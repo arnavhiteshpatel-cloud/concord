@@ -242,3 +242,26 @@ validated). `make compat` regenerates it, `make compat-check` (run in CI) fails 
 stale; `GET /api/v1/compatibility` serves it with this installation's status, and the console
 shows it under Advanced → Compatibility. See
 [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md#registry-m5-f).
+
+## Decoders: bring your own (Milestone 5, workstream A)
+
+Decoders are pluggable. Each one is checked against the source before it runs (modality,
+features, bin size, channel identities and order, units, participant). Third-party code runs
+in an isolated decoder process, and every output is validated:
+
+```bash
+brainos-decoder new my-decoder && pip install -e brainos-my-decoder   # a decoder plugin
+brainos-decoder check my-decoder                                       # run it as BrainOS does
+brainos-decoder check --model data/models/<id>.manifest.json           # an ONNX / skops / TorchScript file
+```
+
+In the console, **Start decoding** lists every decoder:
+
+- BrainOS-trained models, imported model files and decoder plugins;
+- each decoder's compatibility verdict for the chosen processing;
+- the explicit channel mapping by label, offered only when it applies.
+
+**Calibrate…** starts from the output you need (continuous movement, discrete classes, click).
+Pickle / joblib files are refused unless you mark the exact file trusted. Guide:
+[docs/DECODER_SDK.md](docs/DECODER_SDK.md). Example plugin:
+[examples/decoders/brainos-example-decoder](examples/decoders/brainos-example-decoder/README.md).

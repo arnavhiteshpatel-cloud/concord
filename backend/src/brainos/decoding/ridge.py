@@ -41,7 +41,10 @@ def exponential_kernel(bin_ms: float, tau_ms: float = TAU_MS) -> FloatArray:
 
 
 def causal_filter(x: FloatArray, kernel: FloatArray) -> FloatArray:
-    """y[t] = sum_k kernel[k] * x[t-k]; zeros before the first sample (causal)."""
+    """y[t] = sum_k kernel[k] * x[t-k]; zeros before the first sample (causal).
+
+    Summation runs over k in ascending order, element by element; :func:`filter_step` does
+    the same for one bin, so streaming and offline filtering are bit-identical."""
     out = np.zeros_like(x, dtype=np.float64)
     for k, w in enumerate(kernel):
         if k == 0:
@@ -49,6 +52,23 @@ def causal_filter(x: FloatArray, kernel: FloatArray) -> FloatArray:
         else:
             out[k:] += w * x[:-k]
     return out
+
+
+def filter_step(history: FloatArray, kernel: FloatArray) -> FloatArray:
+    """One bin of :func:`causal_filter`: ``history[k]`` = x[t-k] (zeros before the start)."""
+    out: FloatArray = kernel[0] * history[0]
+    for k in range(1, len(kernel)):
+        out += kernel[k] * history[k]
+    return out
+
+
+def rowwise_matmul(z: FloatArray, w: FloatArray) -> FloatArray:
+    """``z @ w`` computed one row at a time (the arithmetic of a streaming step), so offline
+    predictions are bit-identical to the streaming decoder's. A whole-matrix product may
+    sum in a different order and differ in the last bits."""
+    if z.shape[0] == 0:
+        return np.zeros((0, w.shape[1]))
+    return np.stack([row @ w for row in z])
 
 
 def r2_variance_weighted(y: FloatArray, pred: FloatArray) -> float:
@@ -122,6 +142,12 @@ class RidgeDecoder:
     input: dict[str, Any] = field(default_factory=dict)
     # Who/what the training data came from: {"identity", "description"}
     source: dict[str, Any] = field(default_factory=dict)
+    # ---- Milestone 5 (optional; older files lack them)
+    kind: str = "ridge"  # decoder family (decoding/families.py)
+    # several feature inputs, concatenated in this order (supersedes ``input`` when set)
+    inputs: list[dict[str, Any]] = field(default_factory=list)
+    # full decoder manifest (brainos_decoder_sdk schema); derived when absent
+    manifest: dict[str, Any] = field(default_factory=dict)
 
     @property
     def channel_count(self) -> int:
@@ -136,10 +162,12 @@ class RidgeDecoder:
         )
 
     def predict_counts(self, counts: FloatArray) -> FloatArray:
-        """Offline prediction for a whole sequence of counts (filter starts at zero)."""
+        """Offline prediction for a whole sequence of counts (filter starts at zero).
+
+        Bit-identical to stepping :class:`StreamingDecoder` through the same sequence."""
         mean, std, w, b = self._arrays()
         filtered = causal_filter(np.asarray(counts, dtype=np.float64), np.asarray(self.kernel))
-        return ((filtered - mean) / std) @ w + b
+        return rowwise_matmul((filtered - mean) / std, w) + b
 
     def streaming(self) -> StreamingDecoder:
         return StreamingDecoder(self)
@@ -150,18 +178,26 @@ class RidgeDecoder:
         return path
 
     @classmethod
-    def load(cls, path: Path) -> RidgeDecoder:
-        data = json.loads(path.read_text())
+    def from_dict(cls, data: dict[str, Any], name: str = "model") -> RidgeDecoder:
         model = cls(**data)
-        if len(model.weights) != model.channel_count or any(
-            len(r) != len(model.dims) for r in model.weights
+        if model.kind != "ridge":
+            raise ValueError(f"{name}: not a ridge model (kind {model.kind!r})")
+        if (
+            len(model.weights) != model.channel_count
+            or any(len(r) != len(model.dims) for r in model.weights)
+            or len(model.x_std) != model.channel_count
+            or len(model.intercept) != len(model.dims)
         ):
-            raise ValueError(f"{path.name}: weight matrix shape does not match channels/dims")
+            raise ValueError(f"{name}: weight matrix shape does not match channels/dims")
         return model
+
+    @classmethod
+    def load(cls, path: Path) -> RidgeDecoder:
+        return cls.from_dict(json.loads(path.read_text()), path.name)
 
 
 class StreamingDecoder:
-    """Causal, bin-by-bin decoding: identical maths to ``predict_counts``."""
+    """Causal, bin-by-bin decoding: bit-identical to ``predict_counts``."""
 
     def __init__(self, model: RidgeDecoder) -> None:
         self.model = model
@@ -178,8 +214,9 @@ class StreamingDecoder:
         self._history = np.roll(self._history, 1, axis=0)
         self._history[0] = np.asarray(counts, dtype=np.float64)
         self._n += 1
-        filtered = self._kernel @ self._history
-        return ((filtered - self._mean) / self._std) @ self._w + self._b
+        filtered = filter_step(self._history, self._kernel)
+        out: FloatArray = ((filtered - self._mean) / self._std) @ self._w + self._b
+        return out
 
 
 def _model_id(space: str, digest: str) -> str:
@@ -220,6 +257,12 @@ def fit(
     digest = hashlib.sha256(w.tobytes() + b.tobytes()).hexdigest()[:10]
     training = {
         **training,
+        # raw input-feature statistics over all training bins (drift monitoring)
+        "feature_stats": {
+            "mean": np.asarray(counts, dtype=np.float64).mean(axis=0).tolist(),
+            "std": np.asarray(counts, dtype=np.float64).std(axis=0).tolist(),
+            "bins": int(counts.shape[0]),
+        },
         "samples_used": int(rows.sum()),
         "behavior_mean": behavior[rows].mean(axis=0).tolist(),
         "behavior_std": behavior[rows].std(axis=0).tolist(),

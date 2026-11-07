@@ -239,7 +239,7 @@ describe("CalibrationPanel (classifier)", () => {
     render(<CalibrationPanel recordings={[rec]} onTrained={vi.fn()} />);
     expect(screen.queryByTestId("cal-classes")).toBeNull(); // only for a classifier
     fireEvent.click(screen.getByTestId("cal-rec-mi"));
-    fireEvent.change(screen.getByTestId("cal-kind"), { target: { value: "classifier" } });
+    fireEvent.change(screen.getByTestId("cal-capability"), { target: { value: "classes" } });
     fireEvent.change(screen.getByTestId("cal-classes"), { target: { value: "rest, left ,right" } });
     fireEvent.click(screen.getByTestId("cal-train"));
     await screen.findByTestId("cal-report");
@@ -248,7 +248,7 @@ describe("CalibrationPanel (classifier)", () => {
       train_fraction: 0.8,
       gap_bins: 12,
       feature_source: null,
-      kind: "classifier",
+      capability: "classes",
       class_names: ["rest", "left", "right"],
     });
     expect(screen.getByTestId("cal-bacc").textContent).toBe("0.659");

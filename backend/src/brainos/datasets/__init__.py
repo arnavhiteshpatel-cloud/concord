@@ -110,9 +110,17 @@ class DatasetManifest:
         return next((s for s in self.slices if s.data_sha256 == data_sha256), None)
 
 
+# M5 P0: cursor + click blocks (Dryad); the leakage unit is the block (train and test blocks
+# share a day, as for the original online decoder, never a block)
+BLOCK_RE = re.compile(r"(t\d+)_day(\d+)_block(\d+)_")
+
+
 def session_of(filename: str) -> str | None:
     m = SESSION_RE.search(filename)
-    return m.group(1) if m else None
+    if m:
+        return m.group(1)
+    b = BLOCK_RE.search(filename)
+    return f"{b.group(1)}-day{int(b.group(2)):05d}-block{int(b.group(3)):02d}" if b else None
 
 
 @cache

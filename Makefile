@@ -122,3 +122,16 @@ compat:  ## derive compat/registry.json (+ schema, docs/COMPATIBILITY.md section
 
 compat-check:  ## fail if the committed compatibility registry is stale (run in CI)
 	$(PY) -m brainos.compat.build --check
+
+# ---------------------------------------------------------------- Milestone 5, workstream A
+# Decoder SDK (decoder plugins + model files in an isolated host) and the example decoder
+# plugin. torch is an optional extra (brainos-decoder-sdk[torch]); its tests skip without it.
+PY_PKGS += -e "packages/brainos-decoder-sdk[onnx,sklearn,dev]" -e examples/decoders/brainos-example-decoder
+PLUGIN_SRC += ../packages/brainos-decoder-sdk ../examples/decoders/brainos-example-decoder
+PACKAGE_TESTS += packages/brainos-decoder-sdk examples/decoders/brainos-example-decoder
+
+.PHONY: lint-decoders
+lint: lint-decoders
+lint-decoders:  ## mypy --strict: decoder SDK + example decoder plugin
+	cd packages/brainos-decoder-sdk && ../../$(VENV)/bin/mypy src/brainos_decoder_sdk
+	cd examples/decoders/brainos-example-decoder && ../../../$(VENV)/bin/mypy --strict src/brainos_example_decoder

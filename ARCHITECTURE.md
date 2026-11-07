@@ -653,3 +653,61 @@ Normative details: docs/APPLICATIONS.md and docs/CONTROL_BRIDGE.md §7.
   probability or 0/1 decision → `intent.selection`, debounce, refractory, hysteresis,
   minimum-confidence gate) and `pointer_scale: native` for decoders whose output already is a
   workspace velocity. Commands carry the decoder output's `model_origin`.
+
+## 15. Decoders: SDK, families, compatibility, calibration, monitoring (Milestone 5, workstream A)
+
+Guide: docs/DECODER_SDK.md. This section is normative for the runtime side.
+
+```
+ features (pipeline or source) ─▶ check_manifest ─▶ PipelineDecoder ─▶ intent.kinematics ─▶ CommandRouter(s)
+                                   (model.py)         (engine.py)        decoded_intent,       one per decoder,
+                                                       ├ in-process:      model_id,             operator mapping
+                                                       │  built-in JSON   model_origin=brainos  + authorization
+                                                       │  families
+                                                       └ isolated: decoder host (brainos_decoder_sdk.host),
+                                                          plugins + model files, outputs validated twice
+ source decoder outputs (historical / external) ─ decoded_passthrough ─────────────────────────▶ CommandRouter(s)
+```
+
+* **One interface.** `decoding/engine.py: PipelineDecoder` (`start`, `step(x[n, width]) ->
+  values[n, dims] (+ confidence)`, `reset`, `close`). `InProcessDecoder` steps a built-in
+  family's `streaming()`. `IsolatedDecoder` speaks `brainos.decoder-ipc/1` (the adapter SDK's
+  framing) to `python -m brainos_decoder_sdk.host` through the generalized
+  `AsyncHostClient`. A decoder failure (exit, hang > 5 s per step, protocol error, invalid
+  output, exception) marks it `failed`, stops the command router and is reported; features
+  continue.
+* **Registry** (`decoding/registry.py`): BrainOS-trained JSON models (`*.json`), imported
+  model files (`*.manifest.json` + artifact, SHA-256 checked) and decoder plugins
+  (`brainos.decoders` entry points, probed by `host --list`, manifests re-validated). Trust
+  decisions for unsafe formats live in `<models_dir>/_trust.json` (model id, SHA-256, who,
+  when).
+* **Families** (`decoding/families.py`): built-in JSON families dispatched on the file's
+  `kind`. Ridge is the default for files without `kind`; LDA is `outputs.type == "classes"`.
+  Kalman and click are registered by `decoding/kalman.py` and `decoding/click.py`. Ridge and
+  LDA streaming outputs are bit-identical to their offline predictions.
+* **Compatibility** (`decoding/model.py: check_manifest`, §5 of the guide):
+  - checks modality, every input (feature, bin, unit, band, channel count, labels and
+    order), preprocessing preset and parameters, participant (explicit override),
+    training sessions (refused), and calibration profile;
+  - the only transformation is the explicit, operator-enabled channel mapping by label
+    (unique labels on both sides), which is logged and shown.
+* **Pipeline** (`runtime/pipeline.py`):
+  - up to 4 decoders run together, with distinct output names;
+  - multi-input models get their streams joined by bin end time (incomplete bins expire,
+    `join_dropped`);
+  - `decoded_passthrough` forwards a source's `historical` / `external` decoder outputs to
+    the router, keeping their model id and origin;
+  - a declared `y_axis: up` must be mapped with `invert_y`.
+  `provenance.model_origin` is `brainos` for every decoder BrainOS runs, and `external` for
+  source-plugin decoder outputs (`adapters/plugin/mapping.py`).
+* **Calibration** (`decoding/calibrate.py: calibrate_capability`, REST `calibration/options`,
+  `calibration/check`, `calibration/train`): capability → label check → family fit →
+  held-out metrics for that capability (velocity error, balanced accuracy / confusion, click
+  event precision / recall) → model + manifest + report.
+* **Monitoring** (`decoding/monitor.py`): rolling feature shift against `training.feature_stats`,
+  output statistics, label-based rolling metrics, and `recalibration_recommended` with
+  reasons.
+* REST (`server/decoder_routes.py`): `GET /models` (with a `preset` preview), `GET
+  /models/discovery`, `POST /models/discover`, `POST /models/{id}/trust`, and the calibration
+  routes above (moved from `live_routes.py`). `POST /pipeline/start` waits until isolated
+  decoders are loaded.

@@ -68,6 +68,8 @@ class NWBCatalog:
         out = []
         if self.models_dir.exists():
             for p in sorted(self.models_dir.glob("*.json")):
+                if p.name.endswith(".manifest.json") or p.name.startswith("_"):
+                    continue  # decoder manifests / trust records (decoding/registry.py)
                 try:
                     model = load_model(p)
                 except (ValueError, TypeError, KeyError, OSError) as exc:

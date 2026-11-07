@@ -24,6 +24,8 @@ server = [
     "fastapi>=0.115",
     "uvicorn[standard]>=0.30",
     "brainos-adapter-sdk>=1.0,<2",
+    # Milestone 5: decoder plugins and model files run in the isolated decoder host
+    "brainos-decoder-sdk>=1.0,<2",
 ]
 # Offline neural datasets (NWB) + baseline decoder. numpy is used by both.
 # remfile (M5): HTTP range reads of pinned slices of multi-GB DANDI assets (AJILE12 ECoG,

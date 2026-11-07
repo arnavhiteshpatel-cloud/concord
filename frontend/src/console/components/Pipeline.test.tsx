@@ -222,8 +222,8 @@ describe("Decoder row", () => {
     fireEvent.click(screen.getByTestId("calibrate-open"));
     expect(screen.getByTestId("cal-disclaimer").textContent).toMatch(/does not establish closed-loop performance/);
     fireEvent.click(screen.getByTestId("cal-rec-start"));
-    await waitFor(() => expect(calls.length).toBe(1));
-    expect(calls[0]).toEqual({ method: "POST", path: "/recordings/start", body: { exclude_raw: true } });
+    await waitFor(() => expect(calls.some((c) => c.path === "/recordings/start")).toBe(true));
+    expect(calls.find((c) => c.path === "/recordings/start")).toEqual({ method: "POST", path: "/recordings/start", body: { exclude_raw: true } });
   });
 });
 
@@ -380,7 +380,7 @@ describe("CalibrationPanel", () => {
     fireEvent.change(screen.getByTestId("cal-fraction"), { target: { value: "0.7" } });
     fireEvent.click(screen.getByTestId("cal-train"));
     await screen.findByTestId("cal-report");
-    expect(calls[0]!.body).toEqual({
+    expect(calls.find((c) => c.path === "/calibration/train")!.body).toEqual({
       recordings: ["syn-cal"],
       train_fraction: 0.7,
       gap_bins: 12,

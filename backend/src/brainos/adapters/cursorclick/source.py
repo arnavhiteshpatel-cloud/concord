@@ -48,15 +48,17 @@ _ORIGIN = re.compile(r"dryad:10\.5061/dryad\.prr4xgxzq/(t\d+)_day(\d+)_block(\d+
 
 def source_identity(origin: str | None) -> str | None:
     """Participant identity of a replayed T15 block (decoders do not transfer across people)."""
-    m = _ORIGIN.search(origin or "")
-    return f"dryad:{DOI}:{m.group(1)}" if m else None
+    from brainos.decoding.model import source_identity as identity
+
+    return identity(origin) if _ORIGIN.search(origin or "") else None
 
 
 def block_session(origin: str | None) -> str | None:
     """Leakage unit: one block. Training and test blocks share a day (as for the original online
     decoder), never a block; a model is refused on any block it was trained on."""
-    m = _ORIGIN.search(origin or "")
-    return f"{m.group(1)}-day{int(m.group(2)):05d}-block{int(m.group(3)):02d}" if m else None
+    from brainos.datasets import session_of
+
+    return session_of(origin or "") if _ORIGIN.search(origin or "") else None
 
 
 def device_id_for(block: T15Block) -> str:
