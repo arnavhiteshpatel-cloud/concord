@@ -106,7 +106,7 @@ invalid and lossy `stats()`, a device lock that a killed host leaves behind
 ## Reproducing
 
 ```bash
-pip install -e packages/brainos-adapter-sdk -e "backend[dev,nwb,dsp,live]" \
+pip install -e packages/brainos-adapter-sdk -e "backend[server,dev,nwb,dsp,live]" \
     -e examples/adapters/brainos-example-adapter -e packages/brainos-brainflow \
     -e packages/brainos-bci2000 -e packages/brainos-certify
 brainos-certify example-mi-eeg --out docs/compatibility --name example-mi-eeg
