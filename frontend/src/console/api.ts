@@ -45,6 +45,9 @@ export interface RecordingInfo {
   size_bytes: number;
   events: number | null;
   active: boolean;
+  /** M5-D: false for a recording interrupted by a crash or kill (its valid prefix is kept) */
+  complete?: boolean;
+  recovery?: { status: string; reason: string; valid_events: number; discarded_bytes: number } | null;
 }
 
 export interface TestCase {

@@ -1,0 +1,28 @@
+/* Milestone 5 (D): research session strip, stored data, support report. Uses the console's
+   tokens (styles/tokens.css); status colours only for status. */
+
+.session-bar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px;
+  margin-bottom: 16px; padding: 10px 16px 10px 24px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+}
+.session-bar-text { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; min-width: 0; }
+.session-bar-label { color: var(--muted); font-size: var(--fs-sm); }
+.session-bar-name { font-weight: 600; overflow-wrap: anywhere; }
+.session-bar-actions { display: flex; gap: 8px; flex: none; }
+.session-bar-error { flex-basis: 100%; margin: 0; }
+
+textarea {
+  width: 100%; padding: 8px 10px; border: 1px solid #b9c0c3; border-radius: var(--radius);
+  background: var(--surface); color: var(--ink); font: inherit; font-size: var(--fs); resize: vertical;
+}
+.session-notes { white-space: pre-wrap; }
+.session-entries { margin: 8px 0 0; padding-left: 0; list-style: none; font-size: var(--fs-sm); }
+.session-entries li { padding: 3px 0; border-bottom: 1px solid #e7eaeb; }
+.export-hash { overflow-wrap: anywhere; }
+.export-list { margin-top: 12px; }
+.group label.check { display: flex; margin-top: 4px; }
+
+.stored-head { margin-top: 16px; }
+.confirm { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: var(--fs-sm); }
+.support-problems { margin: 6px 0; padding-left: 18px; font-size: var(--fs-sm); }
