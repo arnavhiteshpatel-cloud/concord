@@ -31,6 +31,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 WHEELS = {
     "sdk": ROOT / "packages" / "brainos-adapter-sdk",
+    "decoder_sdk": ROOT / "packages" / "brainos-decoder-sdk",  # brainos[server] needs it (M5)
     "brainos": ROOT / "backend",
 }
 UV = shutil.which("uv")

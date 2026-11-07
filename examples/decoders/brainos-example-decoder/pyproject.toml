@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling>=1.21"]
+build-backend = "hatchling.build"
+
+[project]
+name = "brainos-example-decoder"
+version = "0.1.0"
+description = "Example BrainOS decoder plugin: a hand-set motor-imagery lateralization rule (teaching example)"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary (internal preview)" }
+# A decoder plugin depends on the public decoder SDK only - never on BrainOS itself.
+dependencies = ["brainos-decoder-sdk>=1.0,<2", "numpy>=1.26"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+# This is what makes BrainOS find the decoder: an entry point in the "brainos.decoders" group.
+[project.entry-points."brainos.decoders"]
+example-mi-lateralization = "brainos_example_decoder.decoder:LateralizationDecoder"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/brainos_example_decoder"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "ASYNC", "RUF", "SIM"]
+
+[tool.mypy]
+strict = true
