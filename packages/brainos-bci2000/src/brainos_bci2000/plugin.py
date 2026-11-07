@@ -296,7 +296,10 @@ class AppConnectorSession(SourceSession):
                 raise OpenFailed(
                     f"no BCI2000 App Connector data on {where} within {s.open_timeout_s:g} s "
                     f"({hint}). Set BCI2000's ConnectorOutputAddress parameter to {where} and "
-                    "start a run (BCI2000 sends only while running)."
+                    "start a run (BCI2000 sends only while running). If BrainOS stopped "
+                    "receiving during the current run, BCI2000 has stopped sending until the "
+                    "next run: stop and start the run (observed with BCI2000 3.6; its "
+                    "ConnectorOutput opens its sockets only when a run starts)."
                 )
             for data, t in self._receive(min(remaining, 0.2)):
                 learned.extend(self._assembler.feed(data, t))
