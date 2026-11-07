@@ -4,7 +4,7 @@ VENV  := .venv
 PY    := $(VENV)/bin/python
 NPM   := npm --prefix frontend
 
-.PHONY: setup dev run build test test-backend test-frontend lint e2e e2e-setup bench schema clean \
+.PHONY: setup dev run build test test-backend test-frontend lint e2e e2e-setup bench bench-live schema clean \
         dataset dataset-all model decoding-report
 
 setup:  ## create .venv (Python 3.12) and install backend + frontend deps
@@ -36,7 +36,7 @@ test-frontend:
 
 lint:  ## ruff + mypy (strict) + tsc
 	cd backend && ../$(VENV)/bin/ruff check src tests examples ../scripts && ../$(VENV)/bin/ruff format --check src tests examples ../scripts
-	cd backend && ../$(VENV)/bin/mypy && ../$(VENV)/bin/mypy --strict examples/reference_app
+	cd backend && ../$(VENV)/bin/mypy && ../$(VENV)/bin/mypy --strict examples/reference_app examples/center_out_task.py
 	$(NPM) run typecheck
 
 e2e-setup:  ## one-time: install Playwright (repo-local, not saved) + Chromium
@@ -48,6 +48,9 @@ e2e: build  ## Playwright demo against a fresh server; writes reports/e2e.json
 
 bench:  ## measured throughput/latency on this machine -> docs/BENCHMARKS.md
 	$(PY) scripts/bench.py --write docs/BENCHMARKS.md
+
+bench-live:  ## LSL / Open Ephys -> pipeline -> decoder, measured here -> docs/BENCHMARKS_LIVE.md
+	$(PY) scripts/bench_live.py --write docs/BENCHMARKS_LIVE.md
 
 dataset:  ## download the verified demo recordings (2 FALCON H1 blocks, ~8.7 MiB) to data/datasets/
 	$(PY) -m brainos.datasets.fetch
