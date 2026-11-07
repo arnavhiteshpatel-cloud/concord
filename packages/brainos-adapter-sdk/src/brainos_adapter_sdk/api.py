@@ -97,7 +97,9 @@ class StreamSpec:
     clock: ClockInfo
     modality: Modality | None = None  # SIGNAL / SPIKE_COUNTS only; None = unknown
     invasive: bool | None = None  # None = unknown; must agree with modality if both given
-    bin_ms: float | None = None  # SPIKE_COUNTS only (required there)
+    # SPIKE_COUNTS only (required there). A spike-count sample's timestamp is the END of
+    # its bin (the bin spans ``bin_ms`` before it), as in BrainOS ``features.binned``.
+    bin_ms: float | None = None
     quantity: str | None = None  # BEHAVIOR / DECODER_OUTPUT, e.g. "velocity", "target_code"
     model_id: str | None = None  # DECODER_OUTPUT only (required there): the external decoder
 
@@ -130,7 +132,8 @@ class Chunk:
 
     stream_id: str
     data: NDArray[np.floating[Any] | np.integer[Any]]  # shape (n_samples, n_channels)
-    timestamps: NDArray[np.float64]  # shape (n_samples,), seconds, the stream's clock
+    # shape (n_samples,), seconds (>= 0) on the stream's clock, non-decreasing across calls
+    timestamps: NDArray[np.float64]
     first_index: int  # index of data[0] counted from 0 at open(); a jump means lost samples
 
 

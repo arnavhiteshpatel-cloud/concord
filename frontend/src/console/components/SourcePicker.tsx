@@ -1,13 +1,15 @@
-// The source picker (a sheet): simulated profiles, recorded human data, session recordings
-// and live streams (LSL discovery, Open Ephys registration, registered sources).
+// The source picker (a sheet): simulated profiles, recorded human data, session recordings,
+// live streams (LSL discovery, Open Ephys registration, registered sources) and plugins
+// (installed adapter packages, each run in its own process).
 
 import { useState } from "react";
 import { runtimeApi, type DeviceDescriptor, type RuntimeSnapshot } from "../../sdk";
-import { isDatasetFile, isLiveSource, labApi } from "../api";
+import { isDatasetFile, isLiveSource, isPluginSource, labApi } from "../api";
 import { useLog, useLoggedAction } from "../context";
 import { shapeSummary, sourceKind } from "../wording";
 import { LslSources } from "./LslSources";
 import { OpenEphysForm } from "./OpenEphysForm";
+import { PluginSources } from "./PluginSources";
 import { Disclosure, Sheet } from "./ui";
 
 /** "sub-HumanPitt-held-in-calib_ses-19250108T111022.nwb (DANDI 000954). …" -> short label */
@@ -28,11 +30,14 @@ export function groupSources(devices: DeviceDescriptor[]) {
   // external streams declaring prerecorded content are not "recorded human intracranial data".
   const datasets = devices.filter(isDatasetFile);
   const live = devices.filter(isLiveSource);
+  const plugins = devices.filter(isPluginSource);
   const recordings = devices.filter((d) => d.device_id.startsWith("replay:"));
-  const rest = devices.filter((d) => !isDatasetFile(d) && !isLiveSource(d) && !d.device_id.startsWith("replay:"));
+  const rest = devices.filter(
+    (d) => !isDatasetFile(d) && !isLiveSource(d) && !isPluginSource(d) && !d.device_id.startsWith("replay:"),
+  );
   const simulated = rest.filter((d) => d.kind === "simulated");
   const other = rest.filter((d) => d.kind !== "simulated");
-  return { simulated, datasets, recordings, live, other };
+  return { simulated, datasets, recordings, live, plugins, other };
 }
 
 export function SourcePicker({
@@ -49,7 +54,7 @@ export function SourcePicker({
   const log = useLog();
   const action = useLoggedAction();
   const activeId = runtime?.device && runtime.state !== "idle" ? runtime.device.device_id : null;
-  const { simulated, datasets, recordings, live, other } = groupSources(devices);
+  const { simulated, datasets, recordings, live, plugins, other } = groupSources(devices);
   // the connected file is always visible
   const activeHidden = datasets.slice(DATASETS_SHOWN).some((d) => d.device_id === activeId);
   const [showAll, setAllDatasets] = useState(false);
@@ -181,6 +186,20 @@ export function SourcePicker({
         <Disclosure title="Add Open Ephys source" testId="add-openephys">
           <OpenEphysForm onSourcesChanged={onSourcesChanged} />
         </Disclosure>
+      </section>
+
+      <section className="group" data-testid="plugin-group">
+        <h3>Plugins</h3>
+        <p className="explain">
+          Sources from installed adapter packages. Each plugin runs in its own process and only delivers data to
+          BrainOS; what it declares and sends is checked before use.
+        </p>
+        <PluginSources
+          devices={plugins}
+          activeId={activeId}
+          onConnected={onClose}
+          onSourcesChanged={onSourcesChanged}
+        />
       </section>
     </Sheet>
   );

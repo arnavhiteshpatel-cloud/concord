@@ -66,6 +66,7 @@ def make_settings(tmp_path: Path, **overrides: object) -> Settings:
         "static_dir": None,
         "reconnect_backoff_s": FAST_BACKOFF,
         "seed": 1,
+        "discover_plugins": False,  # plugin tests enable discovery explicitly
     }
     base.update(overrides)
     return Settings(**base)  # type: ignore[arg-type]

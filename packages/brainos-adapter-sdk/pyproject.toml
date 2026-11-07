@@ -16,3 +16,13 @@ dev = ["pytest>=8", "mypy>=1.10", "ruff>=0.5"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/brainos_adapter_sdk"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "ASYNC", "RUF", "SIM"]
+
+[tool.mypy]
+strict = true
