@@ -169,7 +169,11 @@ def manifest_for(model: Any) -> dict[str, Any]:
                 "channel_labels": i.get("channel_labels"),
                 "unit": i.get("unit") or _UNIT_BY_FEATURE.get(str(i.get("feature"))),
                 "band_hz": i.get("band_hz"),
-                **({"excluded_channels": i["excluded_channels"]} if i.get("excluded_channels") else {}),
+                **(
+                    {"excluded_channels": i["excluded_channels"]}
+                    if i.get("excluded_channels")
+                    else {}
+                ),
             }
         )
     probs = fam.output in ("classes", "event")
