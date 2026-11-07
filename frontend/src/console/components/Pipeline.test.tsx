@@ -298,6 +298,17 @@ describe("Command output row", () => {
     expect(screen.queryByTestId("router-on")).toBeNull();
   });
 
+  it("always offers the participant screen, opened as its own named window", () => {
+    const open = vi.spyOn(window, "open").mockReturnValue({ focus: vi.fn() } as unknown as Window);
+    render(<ControlRow pipeline={pipelineState(null)} apps={[]} />);
+    const link = screen.getByTestId("open-participant") as HTMLAnchorElement;
+    expect(link.textContent).toBe("Open participant screen");
+    expect(link.getAttribute("href")).toBe("/board.html");
+    fireEvent.click(link);
+    expect(open).toHaveBeenCalledWith("/board.html", "brainos-participant", expect.stringContaining("popup"));
+    open.mockRestore();
+  });
+
   it("summarises connected applications and what they wait for", () => {
     const app = (id: string, name: string, kind: "application" | "console", status: "active" | "suspended") => ({
       connection_id: `con_${id}`,
