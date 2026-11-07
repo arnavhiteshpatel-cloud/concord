@@ -44,5 +44,20 @@ describe("application boundary", () => {
       expect(text).not.toMatch(/sim-a|sim-b|profile[_ ]?[ab]\b|replay:/i);
       expect(text).not.toMatch(/\/api\/v1\/sim/);
     });
+
+    // M5-C: an application declares capabilities and waits; it never configures the runtime,
+    // the decoder or the command router, and never authorizes itself.
+    it(`${rel} never acts as the operator (no REST control surface)`, () => {
+      expect(text).not.toMatch(/\bruntimeApi\b|\bapiCall\b|\/api\/v1\/(control|pipeline|runtime|calibration|negotiate)/);
+    });
   }
+
+  it("every app acts on commands only through the SDK CommandGuard", () => {
+    const apps = sources.filter((f) => /[\\/]apps[\\/][^\\/]+[\\/][A-Z][^\\/]*\.tsx$/.test(f));
+    expect(apps.length).toBeGreaterThan(0);
+    for (const f of apps) {
+      const t = readFileSync(f, "utf8");
+      if (/BrainOSStream/.test(t)) expect(t, f).toMatch(/attachGuard|CommandGuard/);
+    }
+  });
 });
