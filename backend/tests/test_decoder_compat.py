@@ -72,7 +72,11 @@ def test_matching_stream_is_compatible() -> None:
         ),
         ({"bin_ms": 50.0}, {}, "model expects 20 ms bins, pipeline produces 50 ms"),
         ({"unit": "arbitrary"}, {}, "model expects features in count, pipeline produces arbitrary"),
-        ({}, {"modality": "eeg"}, "model was trained on intracortical data; this source is eeg"),
+        (
+            {},
+            {"modality": "eeg"},
+            "model was trained on intracortical recordings; this source is eeg",
+        ),
         (
             {},
             {"stream_identity": "lsl:rig-b"},
@@ -199,7 +203,7 @@ def test_unknown_modality_is_a_warning_not_a_guess() -> None:
     c = check(manifest(), modality=None)
     assert c.ok and any("does not declare its modality" in w for w in c.warnings)
     c = check(manifest(modalities=[]))
-    assert c.ok and any("model does not declare the modality" in w for w in c.warnings)
+    assert c.ok and any("does not declare the recording modality" in w for w in c.warnings)
 
 
 def test_multi_input_models_find_each_stream() -> None:

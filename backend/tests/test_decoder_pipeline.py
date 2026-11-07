@@ -335,7 +335,7 @@ async def test_modality_mismatch_is_refused(make_rt: Any, plugins: list[str]) ->
         await rt.start_pipeline_async(
             PipelineStartRequest(processing=PASS, model_id="test-plugin-eeg")
         )
-    assert "model was trained on eeg data; this source is intracortical" in exc.value.message
+    assert "model was trained on eeg recordings; this source is intracortical" in exc.value.message
 
 
 @pytest.mark.parametrize(
