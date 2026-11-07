@@ -557,3 +557,23 @@ carries no clock offsets, so different clocks are refused, never merged.
 
 The runtime never imports plugin code; its pump only awaits the host client. Isolation is
 fault isolation, not a security boundary (§8).
+
+## 13. Application layer (Milestone 5, workstream C)
+
+Normative details: docs/APPLICATIONS.md and docs/CONTROL_BRIDGE.md §7.
+
+- **`control.state` (schema 1.4)** is produced by the runtime (`runtime/runtime.py`), not by a
+  device: `control_status` is granted whenever a device is connected
+  (`negotiation.RUNTIME_CAPABILITIES`). Each subscriber that asks for it receives an envelope
+  addressed to it alone (provenance `runtime`, session seq, not recorded, not broadcast) when
+  the set of command capabilities that can reach it changes, when a session starts and when
+  it connects — computed as granted ∩ source `streaming` ∩ (native, or router on and app
+  authorized). It is enqueued synchronously after queued decoded commands were withdrawn and
+  is pinned in the subscriber queue (never the event dropped on overflow).
+- **`navigation`** is a command capability (decoded `intent.navigate` needs operator
+  authorization like `selection`). The command router emits it from discrete rules with
+  action `navigate:<direction>`.
+- **Router additions** (`runtime/router.py`): a click rule (one decoder output = click
+  probability or 0/1 decision → `intent.selection`, debounce, refractory, hysteresis,
+  minimum-confidence gate) and `pointer_scale: native` for decoders whose output already is a
+  workspace velocity. Commands carry the decoder output's `model_origin`.
