@@ -179,3 +179,22 @@ def test_synthetic_and_replayed_flags_must_propagate() -> None:
     rec = decoder_info(prerecorded=True)
     probs = rp.check_event_provenance(_event("behavior.sample", "behavioral_label"), rec, m, by)
     assert any("replayed" in p for p in probs)
+
+
+def test_negotiation_rules_with_runtime_capabilities() -> None:
+    """Schema 1.4: control_status is granted by the runtime with any device (not the plugin)."""
+    caps = [*ALL_CAPS, "navigation", "control_status"]
+    exp = {"recording", "device_status"}
+    others = {c: "unsupported_by_device" for c in caps if c not in exp | {"control_status"}}
+    good = {
+        "all_optional": _neg("active", sorted(exp | {"control_status"}), others),
+        "roles_required": _neg("active", sorted(exp), {}),
+        "command_required": _neg(
+            "suspended", [], {"pointer_intent": "unsupported_by_device"}, True
+        ),
+    }
+    assert rp.check_negotiations(exp, caps, good) == []
+    nav = dict(good, all_optional=_neg("active", sorted(exp | {"control_status", "navigation"}),
+               {k: v for k, v in others.items() if k != "navigation"}))  # fmt: skip
+    assert rp.check_negotiations(exp, caps, nav)  # a plugin must never grant navigation
+    assert "navigation" in rp.COMMAND_CAPABILITIES and "intent.navigate" in rp.COMMAND_EVENTS
