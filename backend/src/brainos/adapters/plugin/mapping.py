@@ -160,6 +160,8 @@ def plan_session(manifest: PluginManifest, info: SessionInfo) -> SessionPlan:
             model_id=f"{manifest.name}:{s.model_id}"[:128] if s.model_id else None,
             origin=origin,
             replayed=replayed,
+            # contract 1.4: a plugin's decoder output is an external system's decoder
+            model_origin="external" if kind is ProvenanceKind.DECODED_INTENT else None,
         )
     flags: list[QualityFlag] = []
     if synthetic:
@@ -272,6 +274,7 @@ def _capabilities(plan: SessionPlan) -> list[CapabilityDescriptor]:
                     "rate_hz": float(s.nominal_rate_hz),
                     "model_id": plan.provenance[s.stream_id].model_id or "",
                     "stream_id": s.stream_id,
+                    "model_origin": "external",
                 },
                 description="Output of the plugin's external decoder (decoded_intent); never a "
                 "command unless the operator enables the command router",

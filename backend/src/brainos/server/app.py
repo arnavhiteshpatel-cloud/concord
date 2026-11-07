@@ -16,19 +16,33 @@ from brainos import __version__
 from brainos.adapters.simulated import OperatorIntentSource
 from brainos.runtime import DeviceRegistry, Recorder, Runtime, RuntimeCommandError
 from brainos.runtime.plugins import PluginRegistry
-from brainos.server import control_routes, live_routes, plugin_routes, routes, sim_routes, ws
+from brainos.server import (
+    control_routes,
+    decoder_routes,
+    live_routes,
+    plugin_routes,
+    routes,
+    sim_routes,
+    ws,
+)
 from brainos.server.deps import AppServices, error_response
 from brainos.server.settings import Settings
 
 log = logging.getLogger(__name__)
 
 
-async def _discover(plugins: PluginRegistry) -> object:
+async def _discover(plugins: PluginRegistry, runtime: Runtime | None = None) -> object:
     try:
         return await plugins.discover()
     except Exception as exc:  # reported via GET /plugins (error); the runtime keeps working
         log.warning("startup plugin discovery failed: %s", exc)
         return None
+    finally:
+        if runtime is not None:
+            try:  # decoder plugins (M5), reported via GET /models/discovery
+                await runtime.pipeline.registry.discover_plugins()
+            except Exception as exc:
+                log.warning("startup decoder plugin discovery failed: %s", exc)
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -48,6 +62,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         queue_size=settings.queue_size,
         reconnect_backoff_s=settings.reconnect_backoff_s,
     )
+    # decoder hosts run with the same interpreter / extra path as source-plugin hosts
+    runtime.pipeline.registry.configure(settings.plugin_python, settings.plugin_path)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
@@ -55,7 +71,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         discovery: asyncio.Task[object] | None = None
         if settings.discover_plugins:
             # in the background: plugin hosts start in subprocesses; startup does not wait
-            discovery = asyncio.create_task(_discover(registry.plugins), name="plugin-discovery")
+            discovery = asyncio.create_task(
+                _discover(registry.plugins, runtime), name="plugin-discovery"
+            )
         yield
         if discovery is not None:
             discovery.cancel()
@@ -78,6 +96,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app.include_router(routes.router)
     app.include_router(live_routes.router)
+    app.include_router(decoder_routes.router)
     app.include_router(plugin_routes.router)
     app.include_router(control_routes.router)
     if settings.enable_sim:
