@@ -16,6 +16,7 @@ from brainos.contracts.capabilities import UnknownCapabilityError, parse_capabil
 from brainos.contracts.events import SCHEMA_VERSION
 from brainos.contracts.protocol import STREAM_PROTOCOL, ErrorCode, Hello
 from brainos.runtime import Runtime, Subscriber
+from brainos.runtime.bus import SubscriberOverflowError
 from brainos.server.deps import AppServices
 
 log = logging.getLogger(__name__)
@@ -81,7 +82,11 @@ async def _handshake(ws: WebSocket, runtime: Runtime) -> Subscriber | None:
         "negotiation": sub.negotiation.model_dump(mode="json"),
         "runtime": runtime.snapshot().model_dump(mode="json"),
     }
-    await ws.send_text(json.dumps(welcome))
+    try:
+        await ws.send_text(json.dumps(welcome))
+    except Exception:
+        runtime.unregister_app(sub.connection_id)  # client left during the handshake
+        raise
     return sub
 
 
@@ -95,7 +100,7 @@ async def _sender(ws: WebSocket, sub: Subscriber, runtime: Runtime) -> None:
 
 
 async def _receiver(ws: WebSocket, sub: Subscriber) -> None:
-    while True:
+    while not sub.control_overflow:
         raw = await ws.receive_text()
         if len(raw) > MAX_CLIENT_MESSAGE:
             sub.offer_control(_error(ErrorCode.PROTOCOL_ERROR, "message too large"))
@@ -128,7 +133,7 @@ async def stream(ws: WebSocket) -> None:
     await ws.accept()
     try:
         sub = await _handshake(ws, runtime)
-    except WebSocketDisconnect:
+    except Exception:  # client disconnected mid-handshake; _handshake already cleaned up
         return
     if sub is None:
         return
@@ -138,7 +143,9 @@ async def stream(ws: WebSocket) -> None:
         done, _ = await asyncio.wait({sender, receiver}, return_when=asyncio.FIRST_COMPLETED)
         for task in done:
             exc = task.exception()
-            if exc is not None and not isinstance(exc, WebSocketDisconnect | RuntimeError):
+            if exc is not None and not isinstance(
+                exc, WebSocketDisconnect | RuntimeError | SubscriberOverflowError
+            ):
                 log.warning("stream %s ended with %r", sub.connection_id, exc)
     finally:
         for task in (sender, receiver):
@@ -147,6 +154,11 @@ async def stream(ws: WebSocket) -> None:
             with contextlib.suppress(asyncio.CancelledError, Exception):
                 await task
         runtime.unregister_app(sub.connection_id)
+        if sub.control_overflow:
+            log.warning("stream %s closed: control queue full", sub.connection_id)
         if ws.client_state is WebSocketState.CONNECTED:
             with contextlib.suppress(Exception):
-                await ws.close()
+                if sub.control_overflow:
+                    await ws.close(code=POLICY_VIOLATION, reason="control_queue_overflow")
+                else:
+                    await ws.close()

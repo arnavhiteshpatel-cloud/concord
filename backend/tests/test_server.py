@@ -236,3 +236,18 @@ def test_test_reports_endpoint(client: TestClient, tmp_path: Path) -> None:
     assert (py["total"], py["passed"], py["failed"], py["skipped"]) == (3, 1, 1, 1)
     assert py["cases"][1]["message"] == "boom"
     assert reports[2]["passed"] == 1
+
+
+def test_corrupt_recording_files_do_not_break_listing(client: TestClient, tmp_path: Path) -> None:
+    """Review #5: unreadable files in the recordings dir are skipped, not 500s."""
+    rec = tmp_path / "data" / "recordings"
+    rec.mkdir(parents=True)
+    (rec / "binary.brainos.jsonl").write_bytes(b"\xff\xfe\x00garbage\n")
+    (rec / "badver.brainos.jsonl").write_text(
+        '{"format":"brainos.recording/1","schema_version":"x.0","created_at_ns":1,'
+        '"device":{"device_id":"sim-a","display_name":"a","kind":"simulated","adapter":"a@1.0.0",'
+        '"native_format":"-","capabilities":[],"synthetic":true},"synthetic":true}\n'
+    )
+    assert client.get("/api/v1/devices").status_code == 200
+    assert client.get("/api/v1/recordings").json() == []
+    assert client.get("/api/v1/devices/replay:binary").status_code == 404

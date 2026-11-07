@@ -16,6 +16,7 @@ never emit intents: behavioral labels are not intents.
 from __future__ import annotations
 
 import json
+import logging
 import re
 from collections.abc import Iterator
 from dataclasses import dataclass
@@ -26,6 +27,8 @@ from pydantic import BaseModel, ConfigDict
 
 from brainos.contracts.events import SCHEMA_MAJOR
 from brainos.contracts.protocol import DeviceDescriptor
+
+log = logging.getLogger(__name__)
 
 RECORDING_FORMAT = "brainos.recording/1"
 RECORDING_SUFFIX = ".brainos.jsonl"
@@ -70,15 +73,17 @@ def recording_path(directory: Path, name: str) -> Path:
 
 
 def read_header(path: Path) -> RecordingHeader:
-    with path.open("r", encoding="utf-8") as fh:
-        first = fh.readline()
+    """Read and validate the header. Any malformed file raises RecordingFormatError."""
     try:
+        with path.open("r", encoding="utf-8") as fh:
+            first = fh.readline()
         header = RecordingHeader.model_validate_json(first)
-    except ValueError as exc:
+        major = int(header.schema_version.split(".")[0])
+    except ValueError as exc:  # includes UnicodeDecodeError and pydantic ValidationError
         raise RecordingFormatError(f"{path.name}: invalid header: {exc}") from exc
     if header.format != RECORDING_FORMAT:
         raise RecordingFormatError(f"{path.name}: unsupported format {header.format!r}")
-    if int(header.schema_version.split(".")[0]) != SCHEMA_MAJOR:
+    if major != SCHEMA_MAJOR:
         raise RecordingFormatError(f"{path.name}: unsupported schema {header.schema_version}")
     return header
 
@@ -88,6 +93,7 @@ class BrainOSRecordingSource:
         self.path = path
         self.name = path.name.removesuffix(RECORDING_SUFFIX)
         self._header = read_header(path)
+        self.skipped_lines = 0
 
     def header(self) -> RecordingHeader:
         return self._header
@@ -102,5 +108,10 @@ class BrainOSRecordingSource:
                     env = json.loads(line)
                     t_ns = int(env["timestamp_ns"])
                 except (ValueError, KeyError, TypeError) as exc:
-                    raise RecordingFormatError(f"{self.path.name}:{lineno}: {exc}") from exc
+                    # e.g. a last line truncated by a crash mid-write: skip, don't fail the replay
+                    self.skipped_lines += 1
+                    log.warning(
+                        "%s:%d: skipping unreadable record: %s", self.path.name, lineno, exc
+                    )
+                    continue
                 yield ReplayRecord(t_ns=t_ns, envelope=env)

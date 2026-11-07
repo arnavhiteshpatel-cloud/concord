@@ -23,6 +23,7 @@ Example::
 
 from __future__ import annotations
 
+import asyncio
 import json
 from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
@@ -47,6 +48,7 @@ from brainos.contracts.protocol import (
 )
 
 DEFAULT_BASE_URL = "http://127.0.0.1:8000"
+HANDSHAKE_TIMEOUT_S = 10.0
 
 _DEVICES = TypeAdapter(list[DeviceDescriptor])
 
@@ -218,22 +220,32 @@ class EventStream:
             "app": {"id": app_id, "name": app_name, "kind": kind},
             "capabilities": {"required": required or [], "optional": optional or []},
         }
-        await ws.send(json.dumps(hello))
         try:
-            first = json.loads(await ws.recv())
+            await ws.send(json.dumps(hello))
+            first = json.loads(await asyncio.wait_for(ws.recv(), HANDSHAKE_TIMEOUT_S))
+            if not isinstance(first, dict):
+                raise ValueError("welcome is not an object")
         except websockets.ConnectionClosed as exc:
             raise StreamClosedError("closed", f"server closed during handshake: {exc}") from exc
+        except (TimeoutError, ValueError) as exc:
+            await ws.close()
+            raise BrainOSError("protocol_error", f"handshake failed: {exc!r}") from exc
         if first.get("type") == "error":
             await ws.close()
             raise BrainOSError(first["code"], first["message"])
         if first.get("type") != "welcome":
             await ws.close()
             raise BrainOSError("protocol_error", f"expected welcome, got {first.get('type')}")
-        major = int(str(first["schema_version"]).split(".")[0])
+        try:
+            major = int(str(first["schema_version"]).split(".")[0])
+            stream = cls(ws, first)
+        except (KeyError, ValueError) as exc:
+            await ws.close()
+            raise BrainOSError("protocol_error", f"malformed welcome: {exc!r}") from exc
         if major != SCHEMA_MAJOR:
             await ws.close()
             raise BrainOSError("unsupported_schema", f"server schema {first['schema_version']}")
-        return cls(ws, first)
+        return stream
 
     async def __aenter__(self) -> Self:
         return self

@@ -93,6 +93,7 @@ class Runtime:
         self._last_error: str | None = None
         self._paused = False
         self._pump_task: asyncio.Task[None] | None = None
+        self._background: set[asyncio.Future[None]] = set()
 
     # ------------------------------------------------------------------ queries
     @property
@@ -217,6 +218,8 @@ class Runtime:
                 await self._disconnect("operator disconnect")
             else:
                 # clear error/ended states
+                if self.recorder.active_name:
+                    self.recorder.stop("operator disconnect")
                 self._device = None
                 self._session_id = None
                 self._last_error = None
@@ -307,6 +310,7 @@ class Runtime:
         self._emit_status(DeviceState.STREAMING, "streaming")
         self._set_state(RuntimeState.STREAMING)
         self._pump_task = asyncio.create_task(self._pump(adapter), name=f"pump:{device_id}")
+        self._pump_task.add_done_callback(self._pump_done)
 
     async def _disconnect(self, reason: str) -> None:
         self._set_state(RuntimeState.DISCONNECTING)
@@ -330,8 +334,27 @@ class Runtime:
             with contextlib.suppress(asyncio.CancelledError):
                 await task
 
+    def _pump_done(self, task: asyncio.Task[None]) -> None:
+        """Watchdog: a pump that dies from an unexpected exception must not leave the
+        runtime claiming to stream."""
+        if task.cancelled() or task.exception() is None:
+            return
+        exc = task.exception()
+        log.error("event pump crashed", exc_info=exc)
+        if self._pump_task is not task:
+            return
+        self._pump_task = None
+        adapter = self._adapter
+        self._fail(f"internal error in event pump: {exc!r}", kind="pump_crash")
+        if adapter is not None:
+            close = asyncio.ensure_future(adapter.close())
+            self._background.add(close)
+            close.add_done_callback(self._background.discard)
+
     def _fail(self, message: str, *, kind: str) -> None:
         log.error("runtime error (%s): %s", kind, message)
+        if self.recorder.active_name:
+            self.recorder.stop(f"runtime error: {kind}")
         self._last_error = message
         self.diagnostics.record_error(
             kind, self._device.device_id if self._device else None, message

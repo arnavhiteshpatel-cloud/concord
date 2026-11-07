@@ -94,3 +94,30 @@ async def test_sdk_reports_server_notices(live_server: str) -> None:
 
         notice = await asyncio.wait_for(first_notice(), 5)
         assert notice.code == "read_only_runtime"
+
+
+async def test_clients_that_leave_during_handshake_are_unregistered(live_server: str) -> None:
+    """Review #3: hello-then-close must not leave phantom subscribers behind."""
+    import json
+
+    import httpx
+    import websockets
+
+    url = live_server.replace("http://", "ws://") + "/api/v1/stream"
+    hello = {
+        "type": "hello",
+        "protocol": "brainos.stream/1",
+        "app": {"id": "ghost", "name": "ghost"},
+        "capabilities": {"required": [], "optional": ["selection"]},
+    }
+    for _ in range(20):
+        ws = await websockets.connect(url)
+        await ws.send(json.dumps(hello))
+        await ws.close()  # leave before reading the welcome
+    async with httpx.AsyncClient() as http:
+        for _ in range(100):
+            apps = (await http.get(live_server + "/api/v1/runtime")).json()["apps"]
+            if not apps:
+                break
+            await asyncio.sleep(0.05)
+    assert apps == []
