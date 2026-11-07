@@ -26,6 +26,8 @@ function summary(e: EventEnvelope): string {
       const total = c.reduce((a, b) => a + b, 0);
       return `bin ${e.payload.bin_index}  ${e.payload.channel_count} ch  Σ${total} ${e.payload.feature}`;
     }
+    case "features.vector":
+      return `bin ${e.payload.bin_index}  ${e.payload.channel_count} ch  ${e.payload.feature} ${e.payload.unit}`;
     case "behavior.sample":
     case "intent.kinematics":
       return e.payload.dims.map((d, i) => `${d}=${(e.payload.values[i] ?? 0).toExponential(1)}`).join(" ");

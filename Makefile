@@ -9,8 +9,8 @@ NPM   := npm --prefix frontend
 
 setup:  ## create .venv (Python 3.12) and install backend + frontend deps
 	@command -v uv >/dev/null && uv venv --python 3.12 $(VENV) || python3.12 -m venv $(VENV)
-	@if command -v uv >/dev/null; then uv pip install --python $(PY) -e "backend[dev,nwb]"; \
-	  else $(PY) -m pip install -e "backend[dev,nwb]"; fi
+	@if command -v uv >/dev/null; then uv pip install --python $(PY) -e "backend[dev,nwb,dsp,live]"; \
+	  else $(PY) -m pip install -e "backend[dev,nwb,dsp,live]"; fi
 	$(NPM) ci
 
 build:  ## build the console + board app into frontend/dist
