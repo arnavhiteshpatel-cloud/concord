@@ -203,7 +203,9 @@ async def test_example_adapter_end_to_end(server: str, tmp_path: Path) -> None:
         # --- the processing pipeline runs on the plugin's signal like on any source
         await c.switch(DEVICE)
         # 250 Hz: the bin must be a whole number of samples (the 50 ms default is not)
-        status = await c.start_pipeline("band_power", bin_ms=100, band_low_hz=8.0, band_high_hz=12.0)
+        status = await c.start_pipeline(
+            "band_power", bin_ms=100, band_low_hz=8.0, band_high_hz=12.0
+        )
         assert status["running"] and status["output"]["channel_count"] == 16
         for _ in range(100):
             status = await c.pipeline()

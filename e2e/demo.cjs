@@ -689,6 +689,41 @@ async function main() {
       );
     });
 
+    // ------------------------------------------- Milestone 4: a third-party source plugin
+    const PLUGIN_ID = "plugin:example-mi-eeg:mi-eeg";
+    await step("M4-1. example plugin: compatible in the picker, options form, connect; plugin line and modality shown", async () => {
+      await openPicker();
+      const st = page.getByTestId("plugin-status-example-mi-eeg");
+      await st.waitFor({ timeout: 20000 }).catch(() => {
+        throw new Error("example plugin not listed; install it with `make setup` (examples/adapters/brainos-example-adapter)");
+      });
+      await expectText(st, /^brainos-example-adapter@0\.1\.0 · compatible$/);
+      await page.getByTestId(`plugin-options-${PLUGIN_ID}-toggle`).click();
+      await page.getByTestId(`${PLUGIN_ID}-opt-montage`).selectOption("16");
+      await page.getByTestId("plugin-group").scrollIntoViewIfNeeded();
+      await shot("11-m4-plugins");
+      await page.getByTestId(`plugin-connect-${PLUGIN_ID}`).click();
+      await page.getByTestId("source-picker").waitFor({ state: "detached", timeout: 15000 });
+      await expectState("streaming", 12000);
+      await expectText(status, /Simulated data/);
+      const line = await expectText(
+        page.getByTestId("source-integration"),
+        /^Plugin · brainos-example-adapter@0\.1\.0 · isolated · EEG, noninvasive$/,
+      );
+      const frames = async () =>
+        ((await api("/diagnostics")).event_types.find((e) => e.event_type === "recording.frame") ?? { total: 0 }).total;
+      const a = await frames();
+      await page.waitForTimeout(1200);
+      const b = await frames();
+      if (!(b > a)) throw new Error(`recording.frame total did not increase (${a} -> ${b})`);
+      const dev = (await api("/runtime")).device;
+      const labels = dev.capabilities.find((c) => c.capability === "recording").params.channel_labels;
+      if (labels.length !== 16 || labels[6] !== "C3" || labels[8] !== "C4") throw new Error(`labels ${labels}`);
+      await shot("12-m4-plugin-connected");
+      await disconnect();
+      return `${line}; frames ${a} -> ${b}; 16 channels (${labels.slice(6, 9).join(" ")}…)`;
+    });
+
     await step("21. no uncaught page errors", async () => {
       if (errors.length) throw new Error(errors.join(" | "));
       return null;

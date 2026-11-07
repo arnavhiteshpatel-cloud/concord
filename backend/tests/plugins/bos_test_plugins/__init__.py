@@ -56,6 +56,7 @@ def manifest(
                 "choice", "signal unit", default="microvolts",
                 choices=("microvolts", "millivolts", "none"),
             ),
+            "close_marker": OptionSpec("str", "file written by close() (tests)"),
         },
     )  # fmt: skip
 
@@ -71,6 +72,7 @@ class DemoSession(SourceSession):
         self.plugin = plugin
         unit = options.get("unit", "microvolts")
         self.fail_after = int(options.get("fail_after", 0))
+        self.close_marker = options.get("close_marker")
         self._info = SessionInfo(
             streams=(
                 StreamSpec(
@@ -118,7 +120,9 @@ class DemoSession(SourceSession):
         return out
 
     def close(self) -> None:
-        pass
+        if self.close_marker:
+            with open(self.close_marker, "a") as f:
+                f.write(f"closed after {self.reads} reads\n")
 
     def stats(self) -> Mapping[str, int | float]:
         return {"reads": self.reads}
@@ -239,6 +243,20 @@ class NaNPlugin(GoodPlugin):
         if s.index >= CHUNK:
             c.data[0, 0] = np.nan
         return out
+
+
+class SlowReadPlugin(GoodPlugin):
+    """Each read takes 0.3 s (long enough to cancel a request while the plugin works)."""
+
+    def make_chunks(self, s: DemoSession) -> list[Chunk | MarkerChunk]:
+        time.sleep(0.3)
+        return super().make_chunks(s)
+
+
+class HangDiscoverPlugin(GoodPlugin):
+    def discover(self, timeout_s: float) -> Sequence[DeviceInfo]:
+        time.sleep(3600)
+        return []
 
 
 class Api2Plugin(GoodPlugin):

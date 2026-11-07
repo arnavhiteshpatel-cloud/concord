@@ -82,6 +82,30 @@ the PR description and delete it here.
   - LSL timestamps are the source's; behavior/markers are mapped with liblsl
     `time_correction` (accuracy as liblsl's, typically sub-millisecond on a LAN, not
     verified by us across machines).
+- **Source plugins (M4)**: see docs/ADAPTER_SDK.md §5 for exactly what is isolated.
+  - **Fault isolation, not a security sandbox.** A plugin runs in its own process but as the
+    same user with the same file, network and process permissions as BrainOS; there are no
+    CPU/memory limits. `manifest.network` is a declaration, not enforced. Installing a plugin
+    means trusting its code like any Python package in BrainOS's environment.
+  - What a plugin declares (synthetic / prerecorded, units, modality, origin, clock) is shown
+    as declared, never verified. Undeclared modality is shown as "modality not declared".
+  - One stream per role is delivered; additional streams of a role are listed as not
+    delivered. All streams of a session must share one clock domain (mixed clocks are
+    rejected; API 1.0 has no offset estimation). Non-finite values are rejected (a plugin
+    cannot mark individual behavior samples invalid).
+  - Every connection and reconnect starts a fresh host process (≈ 0.2 s with numpy). The
+    reconnect policy is the runtime's (3 attempts); a plugin that fails 3 sessions in a row
+    without delivering data, or violates the contract, is stopped until reconfigured.
+  - Request/response IPC (one outstanding `read`, 0.1 s plugin wait): adds ≈ 0.3–2.5 ms per
+    read round trip on the dev container; measured ceiling 28–72× real time for 64 ch × 30 kHz
+    float32 (docs/ADAPTER_SDK.md §6). Converting frames to JSON events is the slower step.
+  - Discovery runs at startup in the background and on demand ("Search again"); a package
+    installed while BrainOS runs is not seen until then. Configured plugin devices and options
+    are in memory only (lost on restart).
+  - If the runtime process is killed hard, a plugin blocked inside `read()` exits only when that
+    call returns; processes a plugin itself starts are not tracked.
+  - The example adapter generates synthetic EEG at 250 Hz; the pipeline's default 50 ms bin is
+    not a whole number of samples at 250 Hz, so the operator must set e.g. 40 or 100 ms.
 - **Pipeline (M3)**: one pipeline at a time, in the runtime process (Python, single asyncio
   task). Measured headroom on a 4-vCPU container: 96 ch × 30 kHz at ≈ 50 % of one core
   (docs/BENCHMARKS_LIVE.md); larger arrays need measuring. Threshold RMS is estimated once
@@ -132,5 +156,6 @@ the PR description and delete it here.
   `make bench` locally for yours.
 - npm uses `legacy-peer-deps` (frontend/.npmrc) to work around an npm 10 resolver bug with
   Vitest 4's optional peer dependencies; peers we need are pinned explicitly.
-- No packaging/publishing of the SDKs yet (installed from the repo).
+- No packaging/publishing of the SDKs yet (installed from the repo). `brainos` now depends on
+  `brainos-adapter-sdk`, which must be installed from `packages/` first (`make setup` does).
 - Diagnostics are in-memory only and reset on restart.

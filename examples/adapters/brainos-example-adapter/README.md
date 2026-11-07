@@ -73,13 +73,24 @@ when you don't; `synthetic=True` for generated data; one clock for all streams.
 clock = ClockInfo("source", "generator sample clock: monotonic time at open() + index / 250 Hz")
 SessionInfo(
     streams=(
-        StreamSpec("eeg", StreamRole.SIGNAL,
-                   tuple(Channel(lab, unit="microvolts", type="EEG") for lab in labels),
-                   250.0, clock, modality=Modality.EEG, invasive=False),
-        StreamSpec("cue", StreamRole.BEHAVIOR, (Channel("cue_class"),), 50.0, clock, quantity="class"),
+        StreamSpec(
+            "eeg",
+            StreamRole.SIGNAL,
+            tuple(Channel(lab, unit="microvolts", type="EEG") for lab in labels),
+            250.0,
+            clock,
+            modality=Modality.EEG,
+            invasive=False,
+        ),
+        StreamSpec(
+            "cue", StreamRole.BEHAVIOR, (Channel("cue_class"),), 50.0, clock, quantity="class"
+        ),
         StreamSpec("markers", StreamRole.MARKERS, (Channel("cue"),), 0.0, clock),
     ),
-    primary_stream="eeg", synthetic=True, prerecorded=False, origin="brainos-example-adapter:mi-eeg:seed=1",
+    primary_stream="eeg",
+    synthetic=True,
+    prerecorded=False,
+    origin="brainos-example-adapter:mi-eeg:seed=1",
 )
 ```
 
@@ -148,7 +159,7 @@ and your data:
 with SyncHostClient("example-mi-eeg") as host:
     assert host.manifest()["compatible"]
     host.open("mi-eeg", {"seed": 5})
-    chunks = host.read(0.2)      # validated by the host; invalid data raises HostError
+    chunks = host.read(0.2)  # validated by the host; invalid data raises HostError
 ```
 
 Run with `pytest tests/` (the BrainOS repository also runs it in `make test`).
