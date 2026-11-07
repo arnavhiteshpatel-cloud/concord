@@ -36,7 +36,7 @@ test-frontend:
 
 lint:  ## ruff + mypy (strict) + tsc
 	cd backend && ../$(VENV)/bin/ruff check src tests examples ../scripts && ../$(VENV)/bin/ruff format --check src tests examples ../scripts
-	cd backend && ../$(VENV)/bin/mypy
+	cd backend && ../$(VENV)/bin/mypy && ../$(VENV)/bin/mypy --strict examples/reference_app
 	$(NPM) run typecheck
 
 e2e-setup:  ## one-time: install Playwright (repo-local, not saved) + Chromium
