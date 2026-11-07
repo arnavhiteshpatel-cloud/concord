@@ -1,0 +1,932 @@
+{
+  "$defs": {
+    "Capability": {
+      "enum": [
+        "recording",
+        "pointer_intent",
+        "selection",
+        "text_intent",
+        "telemetry",
+        "device_status"
+      ],
+      "title": "Capability",
+      "type": "string"
+    },
+    "DeviceState": {
+      "enum": [
+        "connected",
+        "streaming",
+        "paused",
+        "reconnecting",
+        "disconnected",
+        "error",
+        "ended"
+      ],
+      "title": "DeviceState",
+      "type": "string"
+    },
+    "DeviceStatusEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "$ref": "#/$defs/Capability"
+        },
+        "device_id": {
+          "pattern": "^[a-z0-9][a-z0-9_.:\\-]{0,63}$",
+          "title": "Device Id",
+          "type": "string"
+        },
+        "device_timestamp_ns": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Device clock from the native packet, if any",
+          "title": "Device Timestamp Ns"
+        },
+        "event_type": {
+          "const": "device.status",
+          "title": "Event Type",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/DeviceStatusPayload"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "quality": {
+          "$ref": "#/$defs/Quality"
+        },
+        "schema_version": {
+          "pattern": "^\\d+\\.\\d+$",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "seq": {
+          "minimum": 0,
+          "title": "Seq",
+          "type": "integer"
+        },
+        "session_id": {
+          "pattern": "^ses_[A-Za-z0-9]{6,64}$",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "timestamp_ns": {
+          "description": "Runtime wall clock at ingest, UTC ns",
+          "minimum": 0,
+          "title": "Timestamp Ns",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "session_id",
+        "device_id",
+        "seq",
+        "timestamp_ns",
+        "capability",
+        "quality",
+        "provenance",
+        "event_type",
+        "payload"
+      ],
+      "title": "DeviceStatusEvent",
+      "type": "object"
+    },
+    "DeviceStatusPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "detail": {
+          "default": "",
+          "maxLength": 512,
+          "title": "Detail",
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/DeviceState"
+        }
+      },
+      "required": [
+        "state"
+      ],
+      "title": "DeviceStatusPayload",
+      "type": "object"
+    },
+    "PointerIntentEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "$ref": "#/$defs/Capability"
+        },
+        "device_id": {
+          "pattern": "^[a-z0-9][a-z0-9_.:\\-]{0,63}$",
+          "title": "Device Id",
+          "type": "string"
+        },
+        "device_timestamp_ns": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Device clock from the native packet, if any",
+          "title": "Device Timestamp Ns"
+        },
+        "event_type": {
+          "const": "intent.pointer",
+          "title": "Event Type",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/PointerIntentPayload"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "quality": {
+          "$ref": "#/$defs/Quality"
+        },
+        "schema_version": {
+          "pattern": "^\\d+\\.\\d+$",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "seq": {
+          "minimum": 0,
+          "title": "Seq",
+          "type": "integer"
+        },
+        "session_id": {
+          "pattern": "^ses_[A-Za-z0-9]{6,64}$",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "timestamp_ns": {
+          "description": "Runtime wall clock at ingest, UTC ns",
+          "minimum": 0,
+          "title": "Timestamp Ns",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "session_id",
+        "device_id",
+        "seq",
+        "timestamp_ns",
+        "capability",
+        "quality",
+        "provenance",
+        "event_type",
+        "payload"
+      ],
+      "title": "PointerIntentEvent",
+      "type": "object"
+    },
+    "PointerIntentPayload": {
+      "additionalProperties": false,
+      "description": "Velocity in workspace units per second; the workspace is the unit square.",
+      "properties": {
+        "vx": {
+          "maximum": 10,
+          "minimum": -10,
+          "title": "Vx",
+          "type": "number"
+        },
+        "vy": {
+          "maximum": 10,
+          "minimum": -10,
+          "title": "Vy",
+          "type": "number"
+        }
+      },
+      "required": [
+        "vx",
+        "vy"
+      ],
+      "title": "PointerIntentPayload",
+      "type": "object"
+    },
+    "Provenance": {
+      "additionalProperties": false,
+      "properties": {
+        "adapter": {
+          "maxLength": 128,
+          "pattern": "^[a-z0-9_.\\-]+@\\d+\\.\\d+\\.\\d+$",
+          "title": "Adapter",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/ProvenanceKind"
+        },
+        "model_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model Id"
+        },
+        "origin": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Origin",
+          "type": "string"
+        },
+        "replayed": {
+          "default": false,
+          "title": "Replayed",
+          "type": "boolean"
+        },
+        "synthetic": {
+          "title": "Synthetic",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "adapter",
+        "synthetic",
+        "origin"
+      ],
+      "title": "Provenance",
+      "type": "object"
+    },
+    "ProvenanceKind": {
+      "enum": [
+        "raw_signal",
+        "behavioral_label",
+        "simulated_intent",
+        "decoded_intent",
+        "device_report",
+        "runtime"
+      ],
+      "title": "ProvenanceKind",
+      "type": "string"
+    },
+    "Quality": {
+      "additionalProperties": false,
+      "description": "Adapter-provided quality estimate. ``score`` is in [0, 1]; 1 = nominal.",
+      "properties": {
+        "flags": {
+          "items": {
+            "$ref": "#/$defs/QualityFlag"
+          },
+          "maxItems": 16,
+          "title": "Flags",
+          "type": "array"
+        },
+        "score": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Score",
+          "type": "number"
+        }
+      },
+      "required": [
+        "score"
+      ],
+      "title": "Quality",
+      "type": "object"
+    },
+    "QualityFlag": {
+      "enum": [
+        "synthetic",
+        "replayed",
+        "low_link_quality",
+        "timestamp_regression",
+        "saturated",
+        "dropped_samples"
+      ],
+      "title": "QualityFlag",
+      "type": "string"
+    },
+    "RecordingAnnotationEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "$ref": "#/$defs/Capability"
+        },
+        "device_id": {
+          "pattern": "^[a-z0-9][a-z0-9_.:\\-]{0,63}$",
+          "title": "Device Id",
+          "type": "string"
+        },
+        "device_timestamp_ns": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Device clock from the native packet, if any",
+          "title": "Device Timestamp Ns"
+        },
+        "event_type": {
+          "const": "recording.annotation",
+          "title": "Event Type",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/RecordingAnnotationPayload"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "quality": {
+          "$ref": "#/$defs/Quality"
+        },
+        "schema_version": {
+          "pattern": "^\\d+\\.\\d+$",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "seq": {
+          "minimum": 0,
+          "title": "Seq",
+          "type": "integer"
+        },
+        "session_id": {
+          "pattern": "^ses_[A-Za-z0-9]{6,64}$",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "timestamp_ns": {
+          "description": "Runtime wall clock at ingest, UTC ns",
+          "minimum": 0,
+          "title": "Timestamp Ns",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "session_id",
+        "device_id",
+        "seq",
+        "timestamp_ns",
+        "capability",
+        "quality",
+        "provenance",
+        "event_type",
+        "payload"
+      ],
+      "title": "RecordingAnnotationEvent",
+      "type": "object"
+    },
+    "RecordingAnnotationPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "duration_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        },
+        "label": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        }
+      },
+      "required": [
+        "label"
+      ],
+      "title": "RecordingAnnotationPayload",
+      "type": "object"
+    },
+    "RecordingFrameEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "$ref": "#/$defs/Capability"
+        },
+        "device_id": {
+          "pattern": "^[a-z0-9][a-z0-9_.:\\-]{0,63}$",
+          "title": "Device Id",
+          "type": "string"
+        },
+        "device_timestamp_ns": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Device clock from the native packet, if any",
+          "title": "Device Timestamp Ns"
+        },
+        "event_type": {
+          "const": "recording.frame",
+          "title": "Event Type",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/RecordingFramePayload"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "quality": {
+          "$ref": "#/$defs/Quality"
+        },
+        "schema_version": {
+          "pattern": "^\\d+\\.\\d+$",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "seq": {
+          "minimum": 0,
+          "title": "Seq",
+          "type": "integer"
+        },
+        "session_id": {
+          "pattern": "^ses_[A-Za-z0-9]{6,64}$",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "timestamp_ns": {
+          "description": "Runtime wall clock at ingest, UTC ns",
+          "minimum": 0,
+          "title": "Timestamp Ns",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "session_id",
+        "device_id",
+        "seq",
+        "timestamp_ns",
+        "capability",
+        "quality",
+        "provenance",
+        "event_type",
+        "payload"
+      ],
+      "title": "RecordingFrameEvent",
+      "type": "object"
+    },
+    "RecordingFramePayload": {
+      "additionalProperties": false,
+      "properties": {
+        "channel_count": {
+          "maximum": 1024,
+          "minimum": 1,
+          "title": "Channel Count",
+          "type": "integer"
+        },
+        "first_sample_index": {
+          "minimum": 0,
+          "title": "First Sample Index",
+          "type": "integer"
+        },
+        "sample_rate_hz": {
+          "exclusiveMinimum": 0,
+          "maximum": 100000,
+          "title": "Sample Rate Hz",
+          "type": "number"
+        },
+        "samples": {
+          "description": "samples[channel][sample]",
+          "items": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          },
+          "title": "Samples",
+          "type": "array"
+        },
+        "unit": {
+          "const": "uV",
+          "default": "uV",
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "sample_rate_hz",
+        "channel_count",
+        "first_sample_index",
+        "samples"
+      ],
+      "title": "RecordingFramePayload",
+      "type": "object"
+    },
+    "SelectionIntentEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "$ref": "#/$defs/Capability"
+        },
+        "device_id": {
+          "pattern": "^[a-z0-9][a-z0-9_.:\\-]{0,63}$",
+          "title": "Device Id",
+          "type": "string"
+        },
+        "device_timestamp_ns": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Device clock from the native packet, if any",
+          "title": "Device Timestamp Ns"
+        },
+        "event_type": {
+          "const": "intent.selection",
+          "title": "Event Type",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/SelectionIntentPayload"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "quality": {
+          "$ref": "#/$defs/Quality"
+        },
+        "schema_version": {
+          "pattern": "^\\d+\\.\\d+$",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "seq": {
+          "minimum": 0,
+          "title": "Seq",
+          "type": "integer"
+        },
+        "session_id": {
+          "pattern": "^ses_[A-Za-z0-9]{6,64}$",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "timestamp_ns": {
+          "description": "Runtime wall clock at ingest, UTC ns",
+          "minimum": 0,
+          "title": "Timestamp Ns",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "session_id",
+        "device_id",
+        "seq",
+        "timestamp_ns",
+        "capability",
+        "quality",
+        "provenance",
+        "event_type",
+        "payload"
+      ],
+      "title": "SelectionIntentEvent",
+      "type": "object"
+    },
+    "SelectionIntentPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "const": "primary",
+          "default": "primary",
+          "title": "Action",
+          "type": "string"
+        },
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        }
+      },
+      "required": [
+        "confidence"
+      ],
+      "title": "SelectionIntentPayload",
+      "type": "object"
+    },
+    "TelemetryMetric": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "pattern": "^[a-z][a-z0-9_]{0,47}$",
+          "title": "Name",
+          "type": "string"
+        },
+        "unit": {
+          "maxLength": 16,
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "name",
+        "value",
+        "unit"
+      ],
+      "title": "TelemetryMetric",
+      "type": "object"
+    },
+    "TelemetrySampleEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "$ref": "#/$defs/Capability"
+        },
+        "device_id": {
+          "pattern": "^[a-z0-9][a-z0-9_.:\\-]{0,63}$",
+          "title": "Device Id",
+          "type": "string"
+        },
+        "device_timestamp_ns": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Device clock from the native packet, if any",
+          "title": "Device Timestamp Ns"
+        },
+        "event_type": {
+          "const": "telemetry.sample",
+          "title": "Event Type",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/TelemetrySamplePayload"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "quality": {
+          "$ref": "#/$defs/Quality"
+        },
+        "schema_version": {
+          "pattern": "^\\d+\\.\\d+$",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "seq": {
+          "minimum": 0,
+          "title": "Seq",
+          "type": "integer"
+        },
+        "session_id": {
+          "pattern": "^ses_[A-Za-z0-9]{6,64}$",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "timestamp_ns": {
+          "description": "Runtime wall clock at ingest, UTC ns",
+          "minimum": 0,
+          "title": "Timestamp Ns",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "session_id",
+        "device_id",
+        "seq",
+        "timestamp_ns",
+        "capability",
+        "quality",
+        "provenance",
+        "event_type",
+        "payload"
+      ],
+      "title": "TelemetrySampleEvent",
+      "type": "object"
+    },
+    "TelemetrySamplePayload": {
+      "additionalProperties": false,
+      "properties": {
+        "metrics": {
+          "items": {
+            "$ref": "#/$defs/TelemetryMetric"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Metrics",
+          "type": "array"
+        }
+      },
+      "required": [
+        "metrics"
+      ],
+      "title": "TelemetrySamplePayload",
+      "type": "object"
+    },
+    "TextIntentEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "$ref": "#/$defs/Capability"
+        },
+        "device_id": {
+          "pattern": "^[a-z0-9][a-z0-9_.:\\-]{0,63}$",
+          "title": "Device Id",
+          "type": "string"
+        },
+        "device_timestamp_ns": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Device clock from the native packet, if any",
+          "title": "Device Timestamp Ns"
+        },
+        "event_type": {
+          "const": "intent.text",
+          "title": "Event Type",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/TextIntentPayload"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "quality": {
+          "$ref": "#/$defs/Quality"
+        },
+        "schema_version": {
+          "pattern": "^\\d+\\.\\d+$",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "seq": {
+          "minimum": 0,
+          "title": "Seq",
+          "type": "integer"
+        },
+        "session_id": {
+          "pattern": "^ses_[A-Za-z0-9]{6,64}$",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "timestamp_ns": {
+          "description": "Runtime wall clock at ingest, UTC ns",
+          "minimum": 0,
+          "title": "Timestamp Ns",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "session_id",
+        "device_id",
+        "seq",
+        "timestamp_ns",
+        "capability",
+        "quality",
+        "provenance",
+        "event_type",
+        "payload"
+      ],
+      "title": "TextIntentEvent",
+      "type": "object"
+    },
+    "TextIntentPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "mode": {
+          "enum": [
+            "character",
+            "word"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "text",
+        "mode",
+        "confidence"
+      ],
+      "title": "TextIntentPayload",
+      "type": "object"
+    }
+  },
+  "$id": "https://brainos.local/schemas/event-envelope.v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "discriminator": {
+    "mapping": {
+      "device.status": "#/$defs/DeviceStatusEvent",
+      "intent.pointer": "#/$defs/PointerIntentEvent",
+      "intent.selection": "#/$defs/SelectionIntentEvent",
+      "intent.text": "#/$defs/TextIntentEvent",
+      "recording.annotation": "#/$defs/RecordingAnnotationEvent",
+      "recording.frame": "#/$defs/RecordingFrameEvent",
+      "telemetry.sample": "#/$defs/TelemetrySampleEvent"
+    },
+    "propertyName": "event_type"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/RecordingFrameEvent"
+    },
+    {
+      "$ref": "#/$defs/RecordingAnnotationEvent"
+    },
+    {
+      "$ref": "#/$defs/PointerIntentEvent"
+    },
+    {
+      "$ref": "#/$defs/SelectionIntentEvent"
+    },
+    {
+      "$ref": "#/$defs/TextIntentEvent"
+    },
+    {
+      "$ref": "#/$defs/TelemetrySampleEvent"
+    },
+    {
+      "$ref": "#/$defs/DeviceStatusEvent"
+    }
+  ],
+  "title": "BrainOS EventEnvelope 1.0"
+}
