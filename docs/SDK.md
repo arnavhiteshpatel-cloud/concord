@@ -21,8 +21,9 @@ and never hand an application an event that violates it.
    you receive a new negotiation. Adapt to `granted` — that is how one app runs on
    devices with different capabilities.
 4. **Check provenance.** `provenance.kind` tells you whether an event is a raw signal,
-   a behavioral label, a *simulated* intent, or a *model-decoded* intent. In v1 every
-   intent is `simulated_intent`.
+   a behavioral label, a *simulated* intent, or a *model-decoded* intent
+   (`decoded_intent` + `model_id`). `provenance.replayed` / `synthetic` say whether the data
+   behind it is prerecorded or synthetic — show it to your users.
 5. **Read-only.** There is no API to send anything to a device. Any client message
    other than `ping` gets `read_only_runtime`.
 
@@ -135,3 +136,36 @@ notes), `GET/POST /api/v1/runtime/playback` (position, duration, speed).
 | `timestamp_ns` | runtime wall clock at ingest (UTC, ns) |
 | `device_timestamp_ns` | device clock, arbitrary epoch, monotonic per device unless flagged `timestamp_regression` |
 | `quality.score` | adapter estimate in [0, 1]; 1 = nominal |
+
+## Milestone 3: live sources, pipeline, commands (schema 1.2)
+
+- New event type `features.vector` (`neural_features` capability): real-valued per-channel
+  features, e.g. `log_band_power` with `band_hz`. `recording.frame.unit` may be `arbitrary`
+  when the source did not declare convertible units — do not treat those values as µV.
+- Device kind `stream`: an external LSL / Open Ephys stream whose origin BrainOS cannot
+  verify. A stream that declares prerecorded content is `replay`; synthetic is `simulated`.
+- `intent.pointer` with `decoded_intent` comes **only** from the operator-enabled command
+  router, with the decoder's `model_id`. Apps that require `pointer_intent` are suspended
+  while the router is off — raw or decoded neural data never becomes a command by itself.
+- Reference app: `backend/examples/reference_app/cursor_app.py` (only `brainos.sdk` + stdlib;
+  a test enforces it). It runs unchanged against the simulator, LSL and Open Ephys sources.
+
+### Operator methods (Python `RuntimeClient`)
+
+These configure acquisition and processing; applications should not need them.
+
+| Method | Endpoint |
+| --- | --- |
+| `discover_lsl(wait_s)` | `POST /sources/lsl/discover` |
+| `configure_lsl(signal, behavior=None, markers=None)` | `POST /sources/lsl` → `DeviceDescriptor` (`lsl:<key>`) |
+| `configure_openephys(host=…, data_port=…, unit=…)` | `POST /sources/openephys` |
+| `start_pipeline(preset, model_id=None, allow_cross_source=False, router=None, **params)` | `POST /pipeline/start` |
+| `set_router(enabled=…, x_dim=…, y_dim=…, gain=…, deadzone=…, invert_y=…, max_speed=…)` | `POST /pipeline/router` |
+| `pipeline()` / `stop_pipeline()` | `GET /pipeline` / `POST /pipeline/stop` |
+| `models()` | `GET /models` (with compatibility against the running pipeline) |
+| `start_recording(name, exclude_raw=False)` / `stop_recording()` | `POST /recordings/{start,stop}` |
+| `calibrate(recordings, train_fraction=…, gap_bins=…, feature_source=…)` | `POST /calibration/train` |
+
+Errors raise `BrainOSError(code, message, status)`; e.g. `incompatible_decoder` (409) with the
+reasons (channel count, bin, feature, training session, source).
+
