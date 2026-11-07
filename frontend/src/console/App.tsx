@@ -51,7 +51,11 @@ export function App() {
     consoleApi.recordings().then(setRecordings).catch(onError);
   }, [onError]);
 
-  useEffect(refreshLists, [refreshLists, runtime?.recording]);
+  // Waits for the stream, so an outage shows no error toasts and lists refresh on reconnect.
+  const streamOpen = data.conn === "open";
+  useEffect(() => {
+    if (streamOpen) refreshLists();
+  }, [refreshLists, streamOpen, runtime?.recording]);
 
   useEffect(() => {
     let alive = true;
@@ -59,7 +63,7 @@ export function App() {
       consoleApi
         .diagnostics()
         .then((d) => alive && setDiag(d))
-        .catch(() => undefined);
+        .catch(() => alive && setDiag(null)); // don't keep showing stale metrics as current
     poll();
     const t = setInterval(poll, 1000);
     return () => {
