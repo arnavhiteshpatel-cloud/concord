@@ -70,3 +70,13 @@ levels above as follows; the toolkit can grant only the first by itself.
 | --- | --- | --- | --- |
 | `brainos-certify` toolkit | 1 | `packages/brainos-certify/tests` (every check passes on a good plugin; each check that can fail or warn does so on a crafted defect; installed entry points and RECORD hash verification on a temporary distribution; level logic; signed / tampered / foreign-key / malformed attestations with OpenSSL Ed25519; report schema; CLI exit codes; a run with BrainOS hidden); every broken test plugin in `backend/tests/plugins` caught by a specific check (docs/COMPATIBILITY.md); real runs of the example, BrainFlow and BCI2000 plugins (docs/compatibility/) | Never run against a plugin for real acquisition hardware; thresholds are engineering choices, not standards |
 
+
+## Installation, researcher workflow and security (Milestone 5, workstream D)
+
+| Component | Level reached | Evidence (all executed) | Not yet done |
+| --- | --- | --- | --- |
+| `brainos` command (start / stop / status / doctor / config / dataset / reproduce / serve) | 1 (real processes) | `test_m5_doctor_cli.py`: real background server started, reused, safely stopped; non-local bind refused; busy port reported; config file validated; `scripts/lab_acceptance.py` from built wheels in fresh venvs | Windows; long-running use |
+| Desktop bundle (PyInstaller) | 1 (Linux: built and run here; macOS: CI only) | `packaging/smoke_test.py` on the Linux bundle (headless, plugin host inside the bundle, crash recovery, Tk window under Xvfb) and in CI jobs `package-linux` / `package-macos` (adds `open` + Apple Event quit and the mounted .dmg) | Never installed by hand on a physical Mac; unsigned, not notarized |
+| Research sessions, session log, safe stop, export, `brainos reproduce` | 1 (real server, real pipeline output) | `test_m5_sessions.py` (synthetic feature source through the real pipeline: calibrate, decode, export, re-fit with identical model id, recorded decoder output recomputed exactly; tampering detected); lab acceptance with the LSL synthetic publisher and FALCON H1 over LSL; e2e steps M5-D-1…3 in a real browser | Classifier and router output are not recomputed by `reproduce` |
+| Crash recovery, retention, deletion, permissions | 1 (real processes) | `test_m5_recovery.py` (server killed with SIGKILL mid-recording: valid prefix kept and marked incomplete; SIGTERM: complete), `test_m5_security.py` (0700/0600, redaction, single instance, cross-site and DNS-rebinding refusal) | Power loss (no per-event fsync) |
+| Support report (`brainos doctor`) | 1 | `test_m5_doctor_cli.py`: a data directory seeded with sample values, operator name, notes, names, a secret, an IP and an e-mail; none appears in the JSON or Markdown report | — |
