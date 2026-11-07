@@ -217,3 +217,13 @@ async with await EventStream.connect(
 ```
 
 See [docs/SDK.md](docs/SDK.md) and `backend/examples/print_events.py`.
+
+## Compatibility registry (Milestone 5, workstream F)
+
+`compat/registry.json` lists every integration (built-in adapters, offline datasets, source
+plugins), the validation level its evidence supports and that evidence. Levels are derived by
+fixed rules, never typed in; nothing is at level 3 (hardware-verified) or 4 (human-participant
+validated). `make compat` regenerates it, `make compat-check` (run in CI) fails when it is
+stale; `GET /api/v1/compatibility` serves it with this installation's status, and the console
+shows it under Advanced → Compatibility. See
+[docs/COMPATIBILITY.md](docs/COMPATIBILITY.md#registry-m5-f).

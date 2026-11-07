@@ -217,3 +217,24 @@ See docs/CERTIFICATION.md §6.
   (docs/compatibility/) are for a synthetic generator, BrainFlow's synthetic board and a
   replayed BCI2000 capture.
 
+## Compatibility registry (Milestone 5, workstream F)
+
+See docs/COMPATIBILITY.md, "Registry (M5-F)".
+
+- The registry verifies that evidence exists and says what it claims (paths, anchor texts,
+  certify-report consistency, plugin versions and source hashes). It does not re-run tests or
+  read test results: a counted test is one CI runs (and fails on), or an opt-in test whose
+  execution a document records. Dates of curated tests, benchmarks and documents are curated.
+- A "protocol-level" test is one whose curated entry names the reference stack and whose file
+  contains the given anchor; the anchor ties the claim to the file, it does not prove the test
+  exercises that stack.
+- The BCI2000 certify report predates a change to the plugin's source (an open-error hint), so
+  it is listed and not counted until brainos-certify is re-run; BCI2000's level 2 rests on the
+  opt-in live test recorded in docs/ECOSYSTEMS.md.
+- Plugins outside this repository cannot be hash-checked: their reports count for the version
+  they name. Built-in adapters carry the BrainOS package version, not a per-adapter version.
+- Live status (`GET /api/v1/compatibility`) reports installed / different version /
+  unavailable for this installation; for plugins it needs a completed plugin discovery.
+- The T15 cursor+click adapter is listed as not in this checkout until workstream P0's code is
+  merged; its evidence entries (`compat/sources.json`) are read and verified only then.
+

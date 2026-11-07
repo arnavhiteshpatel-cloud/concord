@@ -11,6 +11,11 @@ at level 3 or 4, and no certification report here contains `hardware_tested` or
 `human_participant_validated`. "Simulated", "synthetic board", "replay" and "capture" below
 mean exactly that.
 
+The machine-readable form of this page is the [compatibility registry](#registry-m5-f)
+(`compat/registry.json`, `GET /api/v1/compatibility`, console: Advanced → Compatibility). Its
+levels are derived from evidence by fixed rules; where the hand-written matrix below and the
+registry disagree, the registry's derivation is the one CI checks.
+
 ## Matrix
 
 | Source | Integration | Level reached | Evidence (all executed) | Missing for the next level |
@@ -119,3 +124,110 @@ brainos-certify bci2000 --option port=20321 --option sampling_rate_hz=256 \
     --option declare_prerecorded=true --out docs/compatibility --name bci2000-app-connector
 python packages/brainos-certify/scripts/certify_broken_plugins.py --markdown
 ```
+
+## Registry (M5-F)
+
+Milestone 5, workstream F. A machine-readable registry of every integration: what it is, the
+validation level it has reached, and the evidence for that level. Nothing in it is typed in
+by hand except where evidence lives; the level is **derived**.
+
+| | |
+| --- | --- |
+| Registry | `compat/registry.json`, JSON Schema `compat/registry.schema.json` (generated from the pydantic models in `backend/src/brainos/compat/model.py`) |
+| Inputs | `compat/sources.json` (curated: integrations, evidence paths, anchors, not-tested notes; **no level field**, a typed-in level is refused) and every `docs/compatibility/*.certify.json` (brainos-certify reports) |
+| Generator | `make compat` = `python -m brainos.compat.build`; writes the registry, its schema and the generated section below |
+| Staleness | `make compat-check` = `python -m brainos.compat.build --check`, run in CI (backend job, step "Workstream F: compatibility registry is current"): exit 1 when any generated file differs from what the checkout produces, 2 when the input is refused |
+| REST | `GET /api/v1/compatibility`: the registry plus, per entry, what this installation has (`live`) |
+| Console | Advanced → Compatibility: a read-only table (integration, kind, level, evidence, not tested) |
+
+**What an entry holds.** id, kind (`builtin_adapter`, `source_plugin`, `offline_dataset`),
+ecosystem / protocol, package and the version the evidence is for, modalities as declared by
+the integration (built-in adapters other than the T15 adapter declare none), a read-only
+statement, the derived level with its rule-by-rule trace (`level_basis`), whether real-data
+replay applies, the evidence (type `test` / `certify_report` / `benchmark` / `doc`, path,
+description, date, what it supports, whether it was counted and why not), what was not tested,
+and known limitations.
+
+**How the level is derived** (`backend/src/brainos/compat/rules.py`; the rules are also
+written into the registry and the generated section). Levels are those of
+[VALIDATION_LEVELS.md](VALIDATION_LEVELS.md); the build fails if that page stops defining them.
+
+1. `software_implemented`: a counted test file, or a counted certify report with
+   `adapter_implementation`.
+2. `protocol_tested`: level 1, and a counted certify report with `protocol_tested` (every
+   consistency rule holds), or a counted test that names the real protocol stack or official
+   reference implementation it runs against and contains the anchor text tying it to it
+   (e.g. `pylsl.StreamOutlet`, `plot_process_zmq.py`, `from brainflow.board_shim import`).
+3. `hardware_verified`: level 2, a counted certify report whose `hardware_tested` rests on an
+   accepted, signature-verified operator attestation, **and** a document of a comparison
+   against an independent reference. An attestation alone is not level 3; a comparison
+   document without an attestation is refused. **No entry meets this.**
+4. `human_validated`: never derived by software; evidence claiming it is refused. **No entry
+   is at level 4.**
+
+Counting: a test that does not run in CI (the BCI2000 live test) counts only with a recorded
+execution, i.e. a document containing a given anchor. A certify report counts only if its
+plugin version and plugin source files (`tree_sha256`, the same hash brainos-certify records)
+equal this checkout's; otherwise it is listed with the reason and not counted. Real-data
+replay (beside level 2, not a level) needs a counted test that reads recordings pinned by
+SHA-256 in a dataset manifest. Benchmarks and documents are context.
+
+Refused (nothing is written, exit 2): a missing evidence path, anchor or recorded execution;
+a typed-in level or any unknown field; a protocol claim without an anchor; a malformed,
+schema-invalid or internally inconsistent certify report (e.g. `protocol_tested` with a
+broken consistency rule, `hardware_tested` without an accepted attestation, any
+`human_participant_validated`); a reference-comparison claim without an accepted attestation;
+any level-4 claim; an adapter id that does not appear in its code; a declared modality the
+code never uses.
+
+**Live status** (`live` in the REST response, per entry id). Built-in adapters: `installed`
+when the code is importable and the running BrainOS version equals the registry's;
+`unavailable` when an optional module it needs (e.g. `pylsl`, `zmq`, `pynwb`) is missing;
+`not_installed` when its code is not in this installation. Plugins, from the last plugin
+discovery: `installed` (version equal to the registry's), `different_version` (shown as
+"evidence for a different version"), `unavailable` (rejected or failed to load),
+`not_installed`, or `not_checked` (discovery has not run). Live status never changes a level.
+
+**Limitations of the registry.** It checks that evidence exists and says what it claims to
+(paths, anchors, report consistency, source hashes); it does not re-run tests or read test
+results: a counted CI test is one CI runs on every change, and CI fails if it fails. Dates of
+tests, benchmarks and documents are curated (the date the evidence was produced or last
+changed); certify-report dates come from the report. A plugin outside this repository cannot
+be hash-checked; its report counts for the version it names. Built-in adapters carry the
+BrainOS package version. The T15 cursor+click adapter (`brainos.cursorclick.t15`, workstream
+P0) is listed as not in this checkout until its code is merged; its evidence is read only then.
+
+<!-- BEGIN compat-registry (generated by `make compat`; do not edit by hand) -->
+
+_Generated from `compat/registry.json` (registry 1.0, BrainOS 0.3.0) by `make compat`; CI fails when it is stale (`python -m brainos.compat.build --check`). Edit `compat/sources.json` or add certify reports, never this table._
+
+Levels are derived from the evidence listed for each entry by rules R1-R7; none is entered by hand. An entry is at the highest level whose evidence exists in this checkout, not the level it was designed for. No entry has reached hardware_verified (level 3) or human_validated (level 4).
+
+| Integration | Kind | Package | Level (derived) | Counted evidence | Not tested |
+| --- | --- | --- | --- | --- | --- |
+| Simulated Profile A (`brainos.sim.profile_a`) | built-in adapter | brainos 0.3.0 | 1: Software-implemented | [test_adapters.py](../backend/tests/test_adapters.py), [test_runtime.py](../backend/tests/test_runtime.py), [test_server.py](../backend/tests/test_server.py) | Not applicable beyond software: a simulator never becomes protocol, hardware or human evidence. |
+| Simulated Profile B (`brainos.sim.profile_b`) | built-in adapter | brainos 0.3.0 | 1: Software-implemented | [test_adapters.py](../backend/tests/test_adapters.py), [test_runtime.py](../backend/tests/test_runtime.py) | Not applicable beyond software: a simulator never becomes protocol, hardware or human evidence. |
+| BrainOS recording replay (`brainos.replay`) | built-in adapter | brainos 0.3.0 | 1: Software-implemented | [test_runtime.py](../backend/tests/test_runtime.py), [test_plugin_example.py](../backend/tests/test_plugin_example.py) | Replays only BrainOS's own recording format; no external producer. |
+| NWB recordings, offline replay (DANDI 000954, FALCON H1) (`brainos.nwb.units`) | offline dataset | brainos 0.3.0 | 1: Software-implemented · real-data replay | [test_nwb_real.py](../backend/tests/test_nwb_real.py), [test_nwb.py](../backend/tests/test_nwb.py) | Not live acquisition by definition: offline replay of recordings made in the past. |
+| Cursor + click recordings, offline replay (Dryad doi:10.5061/dryad.prr4xgxzq, participant T15) (`brainos.cursorclick.t15`) | offline dataset | brainos 0.3.0 | none (not in this checkout) | — | Not live acquisition by definition: offline replay of recordings made in the past. |
+| Lab Streaming Layer (`brainos.lsl`) | built-in adapter | brainos 0.3.0 | 2: Protocol-tested · real-data replay | [test_lsl.py](../backend/tests/test_lsl.py), [test_pipeline_live.py](../backend/tests/test_pipeline_live.py) | Third-party LSL producers (vendor LSL apps, LabRecorder interop). Acquisition hardware: level 3 needs a real amplifier's LSL app recorded at the same time by a reference recorder (LabRecorder to XDF), with counts, values and timestamps compared offline. |
+| Open Ephys ZMQ Interface (`brainos.openephys.zmq`) | built-in adapter | brainos 0.3.0 | 2: Protocol-tested | [test_openephys.py](../backend/tests/test_openephys.py) | Never run against the Open Ephys GUI or an acquisition board: the test publisher reproduces the plugin's format from its source, so a mismatch with the real plugin binary is possible. Level 3 needs the GUI with an acquisition board, compared against the GUI's own Binary-format recording, with TTL alignment checked against a known pulse generator. |
+| Example: motor-imagery EEG generator (`brainos-example-adapter`) | source plugin | brainos-example-adapter 0.1.0 | 1: Software-implemented | [example-mi-eeg.certify.json](../docs/compatibility/example-mi-eeg.certify.json), [test_example_mi_eeg.py](../examples/adapters/brainos-example-adapter/tests/test_example_mi_eeg.py), [test_plugin_example.py](../backend/tests/test_plugin_example.py), [test_m4_demo.py](../backend/tests/test_m4_demo.py) | Not applicable beyond software: a declared-synthetic generator for tutorials, never brain data. |
+| BrainFlow (`brainos-brainflow`) | source plugin | brainos-brainflow 0.1.0 | 2: Protocol-tested | [brainflow-synthetic.certify.json](../docs/compatibility/brainflow-synthetic.certify.json), [test_bf_synthetic.py](../packages/brainos-brainflow/tests/test_bf_synthetic.py), [test_bf_playback.py](../packages/brainos-brainflow/tests/test_bf_playback.py), [test_bf_streaming.py](../packages/brainos-brainflow/tests/test_bf_streaming.py), [test_bf_options.py](../packages/brainos-brainflow/tests/test_bf_options.py), [test_bf_layout.py](../packages/brainos-brainflow/tests/test_bf_layout.py), [test_plugin_ecosystems.py](../backend/tests/test_plugin_ecosystems.py) | No hardware board was connected; units, channel types and package counters of real boards come from BrainFlow's descriptions only. hardware_tested needs a physical BrainFlow-supported board and an operator-signed attestation; level 3 also needs a comparison against an independent reference recording. |
+| BCI2000 App Connector (`brainos-bci2000`) | source plugin | brainos-bci2000 0.1.0 | 2: Protocol-tested | [test_bci_real_bci2000.py](../packages/brainos-bci2000/tests/test_bci_real_bci2000.py), [test_bci_plugin.py](../packages/brainos-bci2000/tests/test_bci_plugin.py), [test_bci_protocol.py](../packages/brainos-bci2000/tests/test_bci_protocol.py), [test_plugin_ecosystems.py](../backend/tests/test_plugin_ecosystems.py) | No amplifier and no BCI2000 source module other than SignalGenerator; no application other than DummyApplication; BCI2000 on Windows or macOS, or on another machine. protocol_tested in a certification report: needs a live BCI2000 run, and BCI2000 stops sending for the rest of a run after its receiver is unreachable for about 1 s, so the certifier's kill and reopen phases need a run restart. The official bci2000.org distribution: the build is from a public fork's source. |
+
+Evidence listed but **not counted**:
+
+- `brainos-bci2000`: [bci2000-app-connector.certify.json](../docs/compatibility/bci2000-app-connector.certify.json): Evidence for an earlier revision of this version: plugin source changed after this run (plugin.py); re-run brainos-certify to count it
+
+Derivation rules:
+
+- R1 software_implemented: at least one counted test file, or a counted brainos-certify report that achieved adapter_implementation.
+- R2 protocol_tested: R1, and a counted brainos-certify report that achieved protocol_tested (every consistency rule holds), or a counted test that names the real protocol stack or official reference implementation it runs against (protocol_reference) and contains the anchor text tying it to that stack.
+- R3 hardware_verified: R2, and a counted certify report whose hardware_tested level rests on an accepted (signature-verified) operator attestation, and a document of a comparison against an independent reference. An attestation alone is not level 3; a comparison document without an accepted attestation is refused.
+- R4 human_validated: never derived by software. It requires an approved human-research protocol run by qualified investigators; any evidence claiming it is refused.
+- R5 counting: a test that does not run in CI counts only with a recorded execution (a document containing the given anchor). A certify report counts only if its plugin version and plugin source files (tree_sha256) equal this checkout's; otherwise it is listed and not counted. Benchmarks and documents are context; they do not establish a level.
+- R6 refused (nothing is written): a missing evidence path or anchor, a typed-in level or any unknown field, a malformed or internally inconsistent certify report, a certify report claiming human_participant_validated, hardware_tested without an accepted attestation, and the claims refused by R3 and R4.
+- R7 real-data replay (beside level 2, not a level): a counted test that reads recordings pinned by SHA-256 in a dataset manifest.
+
+<!-- END compat-registry -->
