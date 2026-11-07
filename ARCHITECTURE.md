@@ -62,6 +62,9 @@ native packet, a device-specific field, or a device-specific code path.**
 | Decoding (M2/M3) | `backend/src/brainos/decoding/` | Ridge decoder, model metadata + compatibility rules, calibration from recordings. |
 | Reference app (M3) | `backend/examples/reference_app/` | Cursor app using only `brainos.sdk`; test-enforced. |
 | Test publishers (M3) | `backend/src/brainos/testing/` | LSL and Open Ephys protocol publishers (synthetic or prerecorded, declared). |
+| Adapter SDK (M4) | `packages/brainos-adapter-sdk/` | Public plugin API (`api.py`), validation (`validate.py`), IPC (`ipc.py`), plugin host process (`host.py`), sync host client. No BrainOS import. §12. |
+| Plugin adapter (M4) | `backend/src/brainos/adapters/plugin/`, `runtime/plugins.py`, `server/plugin_routes.py` | Runs installed source plugins out of process; discovery, configuration, role → event mapping. §12. |
+| Example plugin (M4) | `examples/adapters/brainos-example-adapter/` | Separately installable third-party-style plugin (declared-synthetic motor-imagery EEG). |
 
 ## 3. Capability model
 
@@ -333,7 +336,9 @@ source), `datasets`, `runtime`,
 `sim/{pointer,select,text,faults}`. Milestone 3 (operator controls, `live_routes.py`):
 `sources/lsl` (GET), `sources/lsl/discover`, `sources/lsl` (POST: signal + optional
 behavior/markers keys), `sources/openephys`, `DELETE sources/{id}`, `pipeline`,
-`pipeline/{start,stop,router}`, `pipeline/presets`, `models`, `calibration/train`.
+`pipeline/{start,stop,router}`, `pipeline/presets`, `models`, `calibration/train`. Milestone 4
+(`plugin_routes.py`, §12): `plugins` (GET), `plugins/discover`, `plugins/{name}/configure`;
+`DELETE sources/{id}` also removes configured plugin devices.
 
 WebSocket `/api/v1/stream`, protocol `brainos.stream/1`:
 
@@ -361,13 +366,17 @@ send data toward devices.
 | Data at rest | Recordings are written to `data/recordings/` (gitignored). With M3 live sources they may contain real neural data: treat the directory as research data under your protocol. No encryption. |
 | Acquisition networks (M3) | LSL inlets and the Open Ephys SUB socket only *receive*. The Open Ephys heartbeat REQ sends only `{application, uuid, type: "heartbeat"}` (the plugin's event-injection request is not implemented). BrainOS opens no listening socket other than its HTTP server (default `127.0.0.1`). LSL discovery uses liblsl's multicast/broadcast on the local network. |
 
+| Source plugins (M4) | Third-party plugin code runs in a separate process (fault isolation) and everything it sends is validated twice; it is **not sandboxed** — same user, files and network as BrainOS (§12, docs/ADAPTER_SDK.md §5). |
+
 Planned (not implemented): per-app auth tokens, capability grants requiring
 operator approval, signed adapters, audit log, TLS.
 
 ## 9. Extension points
 
-1. **New device**: implement `DeviceAdapter`, register a factory in
-   `runtime/registry.py`. No changes to runtime, SDKs, or apps.
+1. **New device**: preferably a **source plugin** against the public adapter SDK (§12):
+   `pip install` it and BrainOS discovers, validates and runs it out of process — no change
+   to BrainOS. Built-in alternative: implement `DeviceAdapter`, register a factory in
+   `runtime/registry.py`.
 2. **New dataset format**: implement `ReplaySource` (see `NWBUnitsSource`), and
    pin verified files in a `brainos/datasets/*.json` manifest.
 3. **Decoder**: the M3 pipeline (§11) runs a model on `features.*` from any device whose
@@ -466,3 +475,64 @@ then held-out evaluation; only training data is used for z-scoring and alpha sel
 saved model records recordings + SHA-256, sessions, input spec and source identity; a
 markdown report is written to `reports/calibration/`.
 
+
+## 12. Source plugins (Milestone 4)
+
+A third party integrates a source by writing a plugin against `brainos_adapter_sdk` only
+(`SourcePlugin` / `SourceSession`, API 1.0, read-only), exposing it in the `brainos.sources`
+entry-point group and installing it into BrainOS's environment. Guide: docs/ADAPTER_SDK.md.
+
+```
+ runtime process (never imports plugin code)            plugin host process (one per plugin connection)
+ ┌───────────────────────────────────────────┐          ┌──────────────────────────────────────────┐
+ │ PluginRegistry ── host --list ────────────┼─spawn──▶ │ entry points (metadata only) → one probe │
+ │                                           │          │ process per plugin: manifest, discover() │
+ │ PluginAdapter.open() ── spawn ────────────┼─────────▶│ python -m brainos_adapter_sdk.host <ep>  │
+ │   AsyncHostClient  ◀═ brainos.plugin-ipc/1 ═════════▶│   fd 1 → stderr, fd 0 → /dev/null        │
+ │   re-validate (validate.py)               │  frames: │   validate.py: manifest, options,        │
+ │   mapping.normalize → EventDraft          │  4-byte  │   session, every chunk                   │
+ │   → runtime ingest (§6.2)                 │  len +   │   plugin.open() / session.read()         │
+ └───────────────────────────────────────────┘  JSON +  └──────────────────────────────────────────┘
+                                                raw LE buffers
+```
+
+### 12.1 Discovery, configuration, device ids
+
+* Discovery (startup, in the background, and `POST /plugins/discover`) runs
+  `python -m brainos_adapter_sdk.host --list`, which reads entry points from package metadata
+  and probes each plugin in its own process (manifest + `discover()`). The runtime re-validates
+  every manifest and device list. Each plugin is listed as `compatible`, `rejected` (with the
+  validation problems, e.g. API version) or `load_error` (import / instantiation failure).
+* Device ids: `plugin:<entry-point name>:<device key>` (≤ 64 characters; entry-point names
+  ≤ 24). `configure` validates options against the plugin's `OptionSpec`s, then opens the device
+  once in a host so the descriptor states real streams, units and modality.
+
+### 12.2 Mapping (normative)
+
+| Plugin role | Event | Provenance |
+| --- | --- | --- |
+| `signal` | `recording.frame` (µV only if every channel's unit is a known voltage unit, else `arbitrary`; split at sample-index gaps — the first frame after a gap is flagged `dropped_samples` — and at 2000 samples) | `raw_signal` |
+| `spike_counts` | `features.binned` (`spike_count`; timestamp = bin end) | `processed_feature` |
+| `behavior` | `behavior.sample` | `behavioral_label` |
+| `markers` | `recording.annotation` | `behavioral_label` |
+| `decoder_output` | `intent.kinematics`, `model_id = <plugin name>:<model id>` | `decoded_intent` |
+
+One stream per role is delivered (primary first). Descriptor: `kind` = `simulated` (declared
+synthetic) / `replay` (declared prerecorded; events `replayed: true`) / `stream`; `modality`,
+`invasive` (declared, or by the contract's modality category), `integration = {kind: plugin,
+package, version, api_version, isolated: true, ecosystem}`; adapter `<package>@<version>`.
+**Clocks:** all streams of a session must be on the primary stream's clock domain
+(`session.clock.mixed` otherwise); timestamps go to `device_timestamp_ns` unchanged. API 1.0
+carries no clock offsets, so different clocks are refused, never merged.
+
+### 12.3 Failure containment
+
+| Event | Effect |
+| --- | --- |
+| Host exits / is killed, hangs past `read timeout + grace`, breaks the protocol | Host killed; `DeviceLinkError` → reconnect policy (§6.3) with a fresh host |
+| Plugin raises `LinkLost` / `ConfigurationChanged` | `DeviceLinkError` → reconnect; a changed session updates the descriptor and renegotiates |
+| `OpenFailed` / `InvalidOptions` | connect / reconnect attempt fails with the plugin's message |
+| Invalid data, undeclared stream or role, invalid session or manifest, malformed IPC content, unexpected exception in plugin code, 3 sessions in a row failing before any data | Plugin **stopped**: every further open is refused with the reason, the runtime ends in `error` |
+
+The runtime never imports plugin code; its pump only awaits the host client. Isolation is
+fault isolation, not a security boundary (§8).

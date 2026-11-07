@@ -144,6 +144,9 @@ async def device_source(device_id: str, svc: Svc) -> SourceMetadata | dict[str, 
     ):
         meta: dict[str, Any] = adapter.source_metadata()
         return meta
+    plugin_meta = rt.registry.plugins.source_metadata(device_id)
+    if plugin_meta is not None:  # configured plugin device, not connected: probe-time facts
+        return plugin_meta
     if rt.registry.live.owns(device_id):
         idle = await asyncio.to_thread(rt.registry.live.create, device_id)
         meta = idle.source_metadata()  # type: ignore[attr-defined]

@@ -155,6 +155,25 @@ class RuntimeClient:
         data = await self._call("POST", "/sources/openephys", config)
         return DeviceDescriptor.model_validate(data)
 
+    async def plugins(self) -> dict[str, Any]:
+        """Installed source plugins with compatibility / validation results (M4)."""
+        result: dict[str, Any] = await self._call("GET", "/plugins")
+        return result
+
+    async def discover_plugins(self, discover_timeout_s: float | None = None) -> dict[str, Any]:
+        """Re-scan installed plugins (each probed in its own host process)."""
+        body = {} if discover_timeout_s is None else {"discover_timeout_s": discover_timeout_s}
+        result: dict[str, Any] = await self._call("POST", "/plugins/discover", body)
+        return result
+
+    async def configure_plugin(
+        self, name: str, device_key: str, options: dict[str, Any] | None = None
+    ) -> DeviceDescriptor:
+        """Validate options, open the plugin device once, register it as a device."""
+        body = {"device_key": device_key, "options": options or {}}
+        data = await self._call("POST", f"/plugins/{name}/configure", body)
+        return DeviceDescriptor.model_validate(data)
+
     async def pipeline(self) -> dict[str, Any]:
         result: dict[str, Any] = await self._call("GET", "/pipeline")
         return result

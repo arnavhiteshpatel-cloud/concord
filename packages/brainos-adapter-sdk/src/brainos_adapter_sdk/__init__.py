@@ -1,11 +1,14 @@
 """BrainOS adapter SDK: integrate a neural-data source without modifying BrainOS.
 
-See ``brainos_adapter_sdk.api`` for the interface and docs/ADAPTER_SDK.md for the guide.
+See ``brainos_adapter_sdk.api`` for the interface, ``brainos_adapter_sdk.validate`` for the
+rules BrainOS checks, ``python -m brainos_adapter_sdk.host --check <plugin>`` to try a
+plugin exactly as BrainOS runs it, and docs/ADAPTER_SDK.md for the guide.
 """
 
 from brainos_adapter_sdk.api import (
     API_VERSION,
     ENTRY_POINT_GROUP,
+    KEY_PATTERN,
     PRIMARY_ROLES,
     Channel,
     Chunk,
@@ -30,6 +33,7 @@ from brainos_adapter_sdk.api import (
 __all__ = [
     "API_VERSION",
     "ENTRY_POINT_GROUP",
+    "KEY_PATTERN",
     "PRIMARY_ROLES",
     "Channel",
     "Chunk",
