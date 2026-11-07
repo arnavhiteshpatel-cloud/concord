@@ -199,7 +199,8 @@ async function main() {
       await page.goto(base);
       await expectState("idle");
       await expectText(status, /No source connected/);
-      await expectText(page.getByTestId("apps-line"), /Communication Board waiting for: selection/);
+      // M5-C: the board requires nothing (it adapts to pointer, navigation or selection)
+      await expectText(page.getByTestId("apps-line"), /Communication Board waiting for: a source/);
       await expectText(board().getByTestId("board-mode"), /Waiting/);
       // the default view: four rows, the session log, one collapsed Advanced section
       if (await expanded("advanced")) throw new Error("Advanced is open by default");
@@ -319,16 +320,23 @@ async function main() {
       const activeIdx = await board()
         .locator('[role="gridcell"]')
         .evaluateAll((els) => els.findIndex((e) => e.getAttribute("data-active") === "true"));
+      // M5-C: a scanned control tile (Letters, Speak, Undo, ...) may not change the message;
+      // the board's read-only snapshot counts the selection either way
+      const boardFrame = page.frames().find((f) => f.url().includes("board.html"));
+      const selections = () => boardFrame.evaluate(() => window.__brainosBoard.counters.selections);
+      const n0 = await selections();
       await page.getByTestId("sim-select").click();
       const end = Date.now() + 4000;
       let msg = "";
+      let n1 = n0;
       while (Date.now() < end) {
         msg = (await text(board().getByTestId("board-message"))).trim();
-        if (msg !== boardMsgBefore) break;
+        n1 = await selections();
+        if (n1 > n0) break;
         await page.waitForTimeout(100);
       }
-      const candidates = [activeIdx, (activeIdx + 1) % labels.length].map((i) => labels[i].replace("speech unavailable", ""));
-      if (msg === boardMsgBefore) throw new Error("board did not react to selection");
+      const candidates = [activeIdx, (activeIdx + 1) % labels.length].map((i) => labels[i].replace(/computer speech.*|save to history.*/, ""));
+      if (n1 === n0) throw new Error("board did not react to selection");
       await shot("03-profile-b-scan");
       return `scanned tile among [${candidates.join(", ")}]; message: "${msg}"`;
     });
@@ -667,7 +675,9 @@ async function main() {
       if (!entry.waiting.some((w) => w.capability === "pointer_intent" && w.reason === "not_authorized"))
         throw new Error(`board pointer_intent not reported as not_authorized: ${JSON.stringify(entry.waiting)}`);
       await page.getByTestId("authorize-communication-board").click();
-      await expectText(boardLine, /^Authorized for /);
+      // M5-C: the board requires nothing, so once authorized it receives pointer movement
+      // (pointer with dwell selection) instead of waiting for a selection capability
+      await expectText(boardLine, /^(Authorized for |Receiving pointer movement)/);
       ctl = await api("/control");
       entry = ctl.apps.find((a) => a.app_id === "communication-board");
       if (!entry.authorized.includes("pointer_intent")) throw new Error("authorization not recorded");
@@ -744,6 +754,141 @@ async function main() {
       await shot("12-m4-plugin-connected");
       await disconnect();
       return `${line}; frames ${a} -> ${b}; 16 channels (${labels.slice(6, 9).join(" ")}…)`;
+    });
+
+    // ------------------------------------------- Milestone 5-C: the communication board v2
+    // A second server whose only source is the scripted decoder test source (declared
+    // synthetic) with its hand-written identity TEST decoder (brainos.testing.scripted): the
+    // real decoded-command path (features -> decoder -> command router with a click rule ->
+    // operator authorization -> SDK CommandGuard + control.state) drives two participant
+    // boards, one with pointer + click and one with pointer + dwell selection. The boards take
+    // no mouse input; they are read through their read-only window.__brainosBoard snapshot.
+    const M5C_PORT = 8767;
+    const m5c = `http://127.0.0.1:${M5C_PORT}`;
+    const m5cApi = async (p, method = "GET", body) => {
+      const r = await fetch(`${m5c}/api/v1${p}`, {
+        method,
+        headers: body ? { "content-type": "application/json" } : undefined,
+        body: body ? JSON.stringify(body) : undefined,
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(`${method} ${p}: ${JSON.stringify(data)}`);
+      return data;
+    };
+    const SCRIPTED_ROUTER = {
+      enabled: true, x_dim: "vx", y_dim: "vy", pointer_scale: "native", gain: 1, deadzone: 0, max_speed: 2,
+      click: { output: "click", threshold: 0.5, min_confidence: 0.5, refractory_ms: 300 },
+    };
+    // documented board geometry: unit square, y down, 4 x 4 phrase page, index = row * 4 + col
+    const centre = (i) => [((i % 4) + 0.5) / 4, (Math.floor(i / 4) + 0.5) / 4];
+    const TARGETS = [2, 6]; // "Hello", "Water" on the standard phrase page
+    const boards = {};
+    const snap = (p) => p.evaluate(() => window.__brainosBoard);
+    const waitSnap = async (p, pred, label, timeout = 20000) => {
+      const end = Date.now() + timeout;
+      let s = null;
+      while (Date.now() < end) {
+        s = await snap(p);
+        if (s && pred(s)) return s;
+        await p.waitForTimeout(100);
+      }
+      throw new Error(`${label}: ${JSON.stringify(s && { text: s.text, sel: s.selections.length, active: s.active, stop: s.stopReason, control: s.control })}`);
+    };
+
+    await step("M5-C-1. participant boards wait for the operator's authorization; no command acts before it", async () => {
+      const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "brainos-e2e-m5c-"));
+      const args = ["-m", "brainos.testing.scripted", "serve", "--port", String(M5C_PORT), "--data-dir", dataDir, "--start-after-s", "4", "--loop"];
+      for (const i of TARGETS) args.push("--click-at", centre(i).join(","));
+      children.push(spawn(PY, args, { env: { ...process.env, ...pyEnv }, stdio: ["ignore", "inherit", "inherit"] }));
+      await waitHealthy(m5c);
+      for (const [name, query] of [["click", ""], ["dwell", "?method=cursor_dwell&dwell_ms=800"]]) {
+        const p = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+        p.on("pageerror", (e) => errors.push(`board ${name}: ${e}`));
+        await p.goto(`${m5c}/board.html${query}`);
+        await expectText(p.getByTestId("board-conn"), /Connected/);
+        boards[name] = p;
+      }
+      await m5cApi("/runtime/connect", "POST", { device_id: "test-scripted-decoder" });
+      await m5cApi("/pipeline/start", "POST", {
+        processing: { preset: "features_passthrough" }, model_id: "test-scripted-identity", allow_cross_source: false, router: SCRIPTED_ROUTER,
+      });
+      for (const p of Object.values(boards)) {
+        await expectText(p.getByTestId("board-control"), /Waiting for the operator to authorize this board \(pointer intent, selection\)/);
+      }
+      await boards.click.waitForTimeout(500);
+      const before = await snap(boards.click);
+      if (before.selections.length || before.cursor.x !== 0.5) throw new Error("the board acted before authorization");
+      const pl = await m5cApi("/pipeline");
+      if (!(pl.counters.commands_out > 0)) throw new Error("no decoded commands were produced");
+      return `decoded commands produced (${pl.counters.commands_out}) but withheld; both boards: "${(await text(boards.click.getByTestId("board-control"))).trim()}"`;
+    });
+
+    await step("M5-C-2. authorized decoded cursor + click selects words and composes text on both boards (click and dwell)", async () => {
+      await m5cApi("/control/apps/communication-board/authorize", "POST", { capabilities: ["pointer_intent", "selection"] });
+      const want = ["Hello", "Water"];
+      const out = [];
+      for (const [name, p] of Object.entries(boards)) {
+        await expectText(p.getByTestId("board-control"), /Input active/);
+        const s = await waitSnap(p, (x) => x.selections.length >= 2, `${name} board selections`, 25000);
+        const sel = s.selections.slice(0, 2);
+        const labels = sel.map((x) => x.label);
+        if (JSON.stringify(labels) !== JSON.stringify(want)) throw new Error(`${name}: selected ${labels} (tiles ${sel.map((x) => x.tile)})`);
+        if (JSON.stringify(sel.map((x) => x.tile)) !== JSON.stringify(TARGETS)) throw new Error(`${name}: tiles ${sel.map((x) => x.tile)}`);
+        const via = name === "click" ? "click" : "dwell";
+        if (!sel.every((x) => x.via === via)) throw new Error(`${name}: via ${sel.map((x) => x.via)}`);
+        if (!s.text.startsWith("Hello Water")) throw new Error(`${name}: text "${s.text}"`);
+        if (s.input?.label !== "decoded by test-scripted-identity (BrainOS)") throw new Error(`${name}: input ${JSON.stringify(s.input)}`);
+        if (s.textLabel !== "simulated input — no participant") throw new Error(`${name}: text label ${s.textLabel}`);
+        if (name === "click") {
+          const ev = sel[0].event;
+          if (!ev || ev.input.kind !== "decoded_intent" || ev.input.modelId !== "test-scripted-identity" || ev.deviceTimestampNs === null)
+            throw new Error(`click provenance ${JSON.stringify(ev)}`);
+        }
+        await expectText(p.getByTestId("board-message"), /^Hello Water/);
+        await expectText(p.getByTestId("board-input"), /decoded by test-scripted-identity \(BrainOS\)/);
+        await expectText(p.getByTestId("board-text-label"), /simulated input — no participant/);
+        out.push(`${name}: ${labels.join(", ")} (tiles ${sel.map((x) => x.tile).join(", ")}, via ${via}) -> "${s.text.trim()}"`);
+      }
+      fs.mkdirSync(DESIGN, { recursive: true });
+      await boards.click.screenshot({ path: path.join(DESIGN, "7-board-v2-decoded-click.png") });
+      return out.join("; ");
+    });
+
+    await step("M5-C-3. operator Stop: boards pause at once with the runtime's reason; nothing is selected afterwards", async () => {
+      const t0 = Date.now();
+      await m5cApi("/control/stop", "POST", { reason: "e2e stop" });
+      const counts = {};
+      for (const [name, p] of Object.entries(boards)) {
+        const s = await waitSnap(p, (x) => !x.active, `${name} board stop`, 2000);
+        counts[name] = s.selections.length;
+        await expectText(p.getByTestId("board-control"), /Paused — command output stopped/);
+        if (s.pending) throw new Error(`${name}: pending selection kept after stop`);
+      }
+      const ms = Date.now() - t0;
+      const frozen = await boards.click.getByTestId("board-cursor").getAttribute("class");
+      if (!/cursor-frozen/.test(frozen)) throw new Error(`cursor not frozen: ${frozen}`);
+      const before = await snap(boards.click);
+      await boards.click.waitForTimeout(2500);
+      for (const [name, p] of Object.entries(boards)) {
+        const s = await snap(p);
+        if (s.selections.length !== counts[name]) throw new Error(`${name}: selection after stop`);
+      }
+      const after = await snap(boards.click);
+      if (after.cursor.x !== before.cursor.x || after.cursor.y !== before.cursor.y) throw new Error("cursor moved after stop");
+      await boards.click.screenshot({ path: path.join(DESIGN, "8-board-v2-stopped.png") });
+      return `both boards paused within ${ms} ms ("${after.control?.reason}"); no selection or cursor motion in the next 2.5 s`;
+    });
+
+    await step("M5-C-4. control on again resumes (authorization kept); revocation pauses with its reason", async () => {
+      const n0 = (await snap(boards.click)).selections.length;
+      await m5cApi("/pipeline/router", "POST", SCRIPTED_ROUTER);
+      await waitSnap(boards.click, (x) => x.active && x.selections.length > n0, "resume", 25000);
+      await m5cApi("/control/apps/communication-board/revoke", "POST");
+      const s = await waitSnap(boards.click, (x) => !x.active, "revoke", 2000);
+      await expectText(boards.click.getByTestId("board-control"), /Waiting for the operator to authorize this board/);
+      await m5cApi("/runtime/disconnect", "POST");
+      for (const p of Object.values(boards)) await p.close();
+      return `resumed (${s.selections.length} selections in total); after revoke: "${s.control?.reason}"`;
     });
 
     await step("21. no uncaught page errors", async () => {

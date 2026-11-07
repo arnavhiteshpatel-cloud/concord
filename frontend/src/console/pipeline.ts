@@ -39,12 +39,14 @@ export function stopSpec(s: PipelineStatus | null): RouterSpec | null {
 /** What an app sees for a discrete action. */
 export function actionLabel(r: Pick<DiscreteRule, "action" | "text">): string {
   if (r.action === "text") return `text "${r.text ?? ""}"`;
+  if (r.action.startsWith("navigate:")) return `move ${r.action.slice("navigate:".length)}`;
   return r.action === "primary" ? "select" : r.action;
 }
 
-export function mappingText(r: Pick<RouterSpec, "x_dim" | "y_dim" | "gain" | "invert_y" | "discrete">): string {
+export function mappingText(r: Pick<RouterSpec, "x_dim" | "y_dim" | "gain" | "invert_y" | "discrete" | "click">): string {
   const parts: string[] = [];
   if (r.x_dim && r.y_dim) parts.push(`x ← ${r.x_dim}, y ← ${r.y_dim}${r.invert_y ? " (inverted)" : ""}, gain ${r.gain}`);
+  if (r.click) parts.push(`click ← ${r.click.output}`);
   for (const d of r.discrete ?? []) parts.push(`${actionLabel(d)} ← ${d.output}`);
   return parts.join("; ") || "nothing mapped";
 }

@@ -31,11 +31,11 @@ class _Body(BaseModel):
 
 
 class AuthorizeRequest(_Body):
-    capabilities: list[str] = Field(min_length=1, max_length=3)
+    capabilities: list[str] = Field(min_length=1, max_length=4)
 
 
 class RevokeRequest(_Body):
-    capabilities: list[str] | None = Field(default=None, max_length=3)
+    capabilities: list[str] | None = Field(default=None, max_length=4)
 
 
 class StopRequest(_Body):
@@ -63,6 +63,10 @@ class AppControl(BaseModel):
     receiving: list[Capability]  # command capabilities currently granted to it
     waiting: list[Waiting]  # requested command capabilities not granted, with the reason
     refused_commands: int  # decoded commands not delivered because it was not authorized
+    # schema 1.4: what its last control.state said (None: it did not ask for control_status,
+    # or no session has started since it connected)
+    control_active: bool | None = None
+    control_reason: str | None = None
 
 
 class ControlStatus(BaseModel):
@@ -123,6 +127,8 @@ def control_status(rt: Runtime) -> ControlStatus:
                     if r.capability in COMMAND_CAPABILITIES
                 ],
                 refused_commands=0,
+                control_active=sub.control_state[1] if sub.control_state else None,
+                control_reason=sub.control_reason or None,
             )
         entry.connections += 1
         entry.refused_commands += sub.refused_commands

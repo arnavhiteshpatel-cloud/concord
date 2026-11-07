@@ -341,8 +341,12 @@ def run(data: Path, models_dir: Path | None) -> dict[str, Any]:
     fixed_click.decision = {
         "threshold": c_th,
         "hold_bins": c_hold,
-        "hold_ms": c_hold * 10,
+        "bin_ms": 10.0,
         "refractory_ms": REFRACTORY_BINS * 10,
+        "release": max(0.0, c_th - clickdec.RELEASE_GAP),
+        "router_click_rule": clickdec.router_click_rule(
+            {"threshold": c_th, "hold_bins": c_hold, "refractory_ms": REFRACTORY_BINS * 10}
+        ),
         "chosen_on": "leave-one-block-out out-of-fold probabilities, calibration blocks 0-2",
     }
 
@@ -559,8 +563,8 @@ def markdown(res: dict[str, Any]) -> str:
         "cued target; zero while the cursor touches it).",
         "- Click labels: the task instruction (attempt a click while the cursor touches the target): "
         "on-target bins positive, excluding the first 200 ms on target and the 500 ms after each "
-        "click; the decision (threshold + hold, 1 s refractory) is chosen on out-of-fold "
-        "probabilities of blocks 0-2.",
+        "click; the decision (the command router's click rule: threshold + hold + 1 s refractory + "
+        "hysteresis) is chosen on out-of-fold probabilities of blocks 0-2.",
         "- Controls: features circularly shifted by half a block against the task; chance levels; the "
         "original online decoders' recorded outputs as the reference (historical, not BrainOS).",
         "",
@@ -571,8 +575,10 @@ def markdown(res: dict[str, Any]) -> str:
         f"- Ridge (baseline): features `{sel['ridge']['features']}`, smoothing {sel['ridge']['tau_ms']:g} ms, "
         f"alpha {sel['ridge']['alpha']:g}.",
         f"- Click: features `{sel['click']['features']}`, smoothing {sel['click']['tau_ms']:g} ms, "
-        f"L2 {sel['click']['l2']:g}; decision P > {sel['click']['threshold']:g} for "
-        f"{sel['click']['hold_bins'] * 10} ms, 1 s refractory.",
+        f"L2 {sel['click']['l2']:g}; decision P >= {sel['click']['threshold']:g} for "
+        f"{sel['click']['hold_bins']} bins ({(sel['click']['hold_bins'] - 1) * 10} ms router "
+        "debounce), 1 s refractory, re-armed when P falls 0.15 below the threshold (the command "
+        "router's click rule).",
         "",
         "## Cursor decoding (mean over grid blocks)",
         "",

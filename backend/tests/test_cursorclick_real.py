@@ -198,7 +198,7 @@ async def test_block_replays_through_the_runtime(rt: Runtime) -> None:
     # both feature streams carry identical bin-end times (a decoder joins them per bin)
     assert {e.device_timestamp_ns for e in tx[:100]} == {e.device_timestamp_ns for e in sbp[:100]}
     origin = "dryad:10.5061/dryad.prr4xgxzq/" + GRID.name
-    data = [e for e in evs if e.event_type != "device.status"]
+    data = [e for e in evs if e.provenance.kind != "runtime"]  # device.status, control.state
     assert data and all(e.provenance.origin == origin and e.provenance.replayed for e in data)
     assert not [e for e in evs if e.event_type in ("intent.pointer", "intent.selection")]
     assert rt.diagnostics.validation_errors == 0 and rt.diagnostics.decode_errors == 0

@@ -242,3 +242,74 @@ def test_menu_app_state_machine() -> None:
     assert app.message == ""  # text_intent was not granted: ignored
     app.handle(neg([], "not_authorized"))
     assert app.stops == ["authorization revoked"]
+
+
+def test_menu_app_navigation_and_control_state() -> None:
+    """M5-C: the menu app follows intent.navigate (schema 1.4) and the runtime's control.state;
+    with control_status granted it acts only while the runtime says delivery is active."""
+    import time
+
+    from brainos.contracts import parse_envelope
+    from brainos.contracts.protocol import AppStatus, NegotiationResult
+    from brainos.sdk import Capability, NegotiationUpdate, RuntimeUpdate
+    from brainos.sdk.client import RuntimeSnapshot
+
+    from .helpers import valid_event
+
+    m = _load_named("menu_app")
+    app = m.MenuApp()
+    granted = [Capability.SELECTION, Capability.NAVIGATION, Capability.CONTROL_STATUS]
+    app.handle(
+        NegotiationUpdate(
+            NegotiationResult(device_id="d", status=AppStatus.ACTIVE, granted=granted, rejected=[])
+        )
+    )
+    session = valid_event("intent.navigate")["session_id"]
+    app.handle(
+        RuntimeUpdate(
+            RuntimeSnapshot.model_validate(
+                {
+                    "state": "streaming",
+                    "device": None,
+                    "session_id": session,
+                    "state_since_ns": 0,
+                    "last_error": None,
+                    "recording": None,
+                    "apps": [],
+                }
+            )
+        )
+    )
+
+    def ctl(active: bool, reason: str) -> None:
+        ev = valid_event("control.state", timestamp_ns=time.time_ns())
+        caps = ["navigation", "selection"] if active else []
+        ev["payload"] = {"active": active, "capabilities": caps, "reason": reason}
+        app.handle(parse_envelope(ev))
+
+    def nav(direction: str) -> None:
+        ev = valid_event("intent.navigate", timestamp_ns=time.time_ns())
+        ev["payload"]["direction"] = direction
+        app.handle(parse_envelope(ev))
+
+    nav("down")
+    assert app.highlight == 0 and app.ignored == 1  # no control.state yet: not acted on
+    ctl(True, "command input active")
+    nav("down")
+    nav("down")
+    nav("up")
+    assert app.items[app.highlight] == "Lights"
+    nav("right")  # opens "Lights"
+    assert app.path == ["Lights"]
+    nav("next")
+    nav("right")  # chooses "Off"
+    assert app.chosen == ["Lights / Off"] and app.path == []
+    nav("right")
+    nav("left")  # back
+    assert app.path == []
+    ctl(False, "command output stopped: stopped by operator")
+    assert app.stops[-1] == "command output stopped: stopped by operator"
+    assert "command output stopped" in app.line()
+    nav("down")
+    assert app.items[app.highlight] == "Lights"  # nothing after the stop
+    assert app.summary()["control"] == "inactive: command output stopped: stopped by operator"
