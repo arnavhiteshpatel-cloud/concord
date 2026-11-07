@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends
@@ -91,6 +92,7 @@ class Health(BaseModel):
     stream_protocol: str
     simulation_enabled: bool
     read_only: bool
+    pid: int | None = None  # M5-D: lets `brainos stop` / `status` identify this process
 
 
 @router.get("/health")
@@ -102,6 +104,7 @@ async def health(svc: Svc) -> Health:
         stream_protocol=STREAM_PROTOCOL,
         simulation_enabled=svc.settings.enable_sim,
         read_only=True,
+        pid=os.getpid(),
     )
 
 

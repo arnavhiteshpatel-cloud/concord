@@ -52,12 +52,19 @@ dev = [
     "mypy>=1.11",
     "ruff>=0.6",
 ]
+# M5-D: everything a lab needs in one extra (server, processing, datasets, LSL/Open Ephys)
+lab = ["brainos[server,dsp,nwb,live]"]
 
 [project.scripts]
 brainos-server = "brainos.server.__main__:main"
+# M5-D: start/stop/status/doctor/version/config/dataset/reproduce/serve
+brainos = "brainos.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/brainos"]
+# M5-D: the built console, copied in by packaging/stage_console.py (git-ignored), is shipped
+# in the wheel when present so `pip install` users get the console too
+artifacts = ["src/brainos/server/console/**"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "../examples/adapters/brainos-example-adapter/tests"]
