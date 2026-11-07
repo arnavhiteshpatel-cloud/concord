@@ -43,3 +43,10 @@ not closed-loop control.
   alignment with a known pulse generator.
 - **Any → 4:** only within an approved human-research protocol run by qualified
   investigators. BrainOS provides no clinical functions and is not a medical device.
+
+## Ecosystem plugins (Milestone 4, workstream B)
+
+| Component | Level reached | Evidence (all executed) | Not yet done |
+| --- | --- | --- | --- |
+| `brainos-brainflow` plugin | **2** | 41 tests against the official BrainFlow 5.23.0 library: SYNTHETIC_BOARD (rate, timestamps, ordering), PLAYBACK_FILE_BOARD replaying a `DataFilter.write_file` file bit-for-bit, STREAMING_BOARD fed over multicast by a second official session (bit-exact), a real driver's `prepare_session` failure; metadata from every shipped board description | No hardware board; not yet run through the plugin host |
+| `brainos-bci2000` plugin (App Connector) | **2** | Genuine BCI2000 3.6 build (source fork) — SignalGenerator → DummySignalProcessing → DummyApplication's own ConnectorOutput — received live by the plugin (opt-in test); a capture of it replayed in CI; byte-for-byte reproduction sender for loss/reorder/wrap/malformed cases | No amplifier, no real BCI2000 application module, not run through the plugin host |
