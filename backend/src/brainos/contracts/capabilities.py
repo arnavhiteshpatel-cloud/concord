@@ -102,7 +102,11 @@ def parse_capabilities(names: list[str]) -> list[Capability]:
     return list(seen)
 
 
-ParamValue = int | float | str | bool | list[str]
+ParamScalar = int | float | str | bool | None
+# One level of structure (schema 1.4): a flat object whose values are scalars or lists of
+# scalars, e.g. one entry of neural_features ``streams`` or kinematic_intent ``decoders``.
+ParamObject = dict[str, ParamScalar | list[str] | list[float]]
+ParamValue = int | float | str | bool | list[str] | list[float] | list[ParamObject]
 
 
 class CapabilityDescriptor(BaseModel):

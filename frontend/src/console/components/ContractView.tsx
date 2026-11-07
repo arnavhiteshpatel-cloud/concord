@@ -4,9 +4,21 @@ import { consoleApi, type CapabilityInfo } from "../api";
 import { errorText } from "../hooks";
 import { Panel } from "./ui";
 
+function paramText(v: unknown): string {
+  if (!Array.isArray(v)) return String(v);
+  // schema 1.4: a list of objects (e.g. feature streams, source decoders) -> their names
+  return v
+    .map((x) =>
+      x !== null && typeof x === "object"
+        ? String((x as Record<string, unknown>).model_id ?? (x as Record<string, unknown>).feature ?? "object")
+        : String(x),
+    )
+    .join("|");
+}
+
 function params(p: Record<string, unknown>): string {
   return Object.entries(p)
-    .map(([k, v]) => `${k}=${Array.isArray(v) ? v.join("|") : String(v)}`)
+    .map(([k, v]) => `${k}=${paramText(v)}`)
     .join(", ");
 }
 
