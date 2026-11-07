@@ -14,7 +14,7 @@ and never hand an application an event that violates it.
    `optional` capabilities from the closed vocabulary: `recording`, `pointer_intent`,
    `selection`, `text_intent`, `telemetry`, `device_status`.
 2. **Negotiation is explicit.** Each request is `granted` or `rejected` with a reason
-   (`unsupported_by_device`, `no_device`). Unknown names are a hard error
+   (`unsupported_by_device`, `no_device`, `not_authorized`). Unknown names are a hard error
    (`unknown_capability`). If a required capability is missing, your app is
    `suspended` and receives no events.
 3. **Renegotiation happens.** When the operator connects, switches, or loses a device,
@@ -150,6 +150,25 @@ notes), `GET/POST /api/v1/runtime/playback` (position, duration, speed).
 - Reference app: `backend/examples/reference_app/cursor_app.py` (only `brainos.sdk` + stdlib;
   a test enforces it). It runs unchanged against the simulator, LSL and Open Ephys sources.
 
+## Milestone 4: authorized commands and the command guard (schema 1.3)
+
+- **Decoded commands need the operator's authorization of your app id.** While the command
+  router provides `pointer_intent` / `selection` / `text_intent` and the operator has not
+  authorized your app for it, negotiation rejects it with `not_authorized` (your app is
+  `suspended` if it is required). Show "waiting for operator authorization"; never try to
+  authorize yourself. Simulated profiles' `simulated_intent` is not gated.
+- `intent.selection.action` is `primary` (select), `activate` or `cancel`; `intent.text`
+  carries the rule's text. Discrete actions come only from a classifier via operator rules.
+- Use the **command guard** (Python `brainos.sdk.CommandGuard` / `ControlChannel`, TS
+  `CommandGuard` / `attachGuard` in `frontend/src/sdk/guard.ts`): it tells you which command
+  capabilities are usable now (`is_active`, `waiting_for_authorization`), drops commands
+  older than 500 ms (wall clock and relative delivery delay), reports zero pointer velocity
+  after 500 ms without a pointer command (dead-man), and calls `on_stop(reason)` at once on
+  revocation, command output stopped, suspension, pause, disconnect or stream close.
+  Details, timeouts and examples: [CONTROL_BRIDGE.md](CONTROL_BRIDGE.md).
+- Reference apps: `cursor_app.py` (continuous pointer) and `menu_app.py` (discrete
+  select / activate / cancel + optional text), both SDK + stdlib only.
+
 ### Operator methods (Python `RuntimeClient`)
 
 These configure acquisition and processing; applications should not need them.
@@ -164,7 +183,10 @@ These configure acquisition and processing; applications should not need them.
 | `pipeline()` / `stop_pipeline()` | `GET /pipeline` / `POST /pipeline/stop` |
 | `models()` | `GET /models` (with compatibility against the running pipeline) |
 | `start_recording(name, exclude_raw=False)` / `stop_recording()` | `POST /recordings/{start,stop}` |
-| `calibrate(recordings, train_fraction=…, gap_bins=…, feature_source=…)` | `POST /calibration/train` |
+| `calibrate(recordings, train_fraction=…, gap_bins=…, feature_source=…, kind="classifier", class_names=…)` | `POST /calibration/train` (`kind="classifier"`: LDA on a class-label behavior stream) |
+| `set_router(enabled=…, discrete=[{output, action, threshold, hold_ms, refractory_ms, text?}], stall_ms=…)` | `POST /pipeline/router` (discrete actions from a classifier) |
+| `control()` / `authorize_app(app_id, caps)` / `revoke_app(app_id, caps=None)` / `stop_control(reason=None)` | `GET /control`, `POST /control/apps/{id}/authorize`, `…/revoke`, `POST /control/stop` |
+| `negotiate(required, optional, app_id=…)` | `POST /negotiate` dry run as an app id |
 
 Errors raise `BrainOSError(code, message, status)`; e.g. `incompatible_decoder` (409) with the
 reasons (channel count, bin, feature, training session, source).

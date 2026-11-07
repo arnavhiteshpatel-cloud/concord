@@ -190,8 +190,18 @@ export function DecoderRow({
         (dec ? (
           <>
             <p className="value-sub" data-testid="decoder-model">
-              Model {dec.model_id} · offline held-out R²{" "}
-              <span className="num">{fmt.num(dec.held_out_r2 ?? null, 3)}</span>
+              Model {dec.model_id} ·{" "}
+              {dec.outputs?.type === "classes" ? (
+                <>
+                  classes {dec.outputs.classes.join(", ")} · offline held-out balanced accuracy{" "}
+                  <span className="num">{fmt.num(dec.held_out_balanced_accuracy ?? null, 3)}</span> (chance{" "}
+                  <span className="num">{fmt.num(dec.chance_balanced_accuracy ?? null, 3)}</span>)
+                </>
+              ) : (
+                <>
+                  offline held-out R² <span className="num">{fmt.num(dec.held_out_r2 ?? null, 3)}</span>
+                </>
+              )}
             </p>
             <p className="value-sub small-break" data-testid="decoder-trained-on">
               Trained on {dec.trained_on ?? "—"}

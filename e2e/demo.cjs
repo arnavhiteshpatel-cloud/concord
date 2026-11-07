@@ -10,7 +10,8 @@
 //      Open Ephys ZMQ test publisher: register, connect, counters. Both publishers generate
 //      synthetic data; LSL declares it, the Open Ephys protocol cannot ("origin unverified").
 //   -> real human recording streamed over LSL (declared prerecorded): passthrough + trained
-//      model, Start control, Stop control from the title bar.
+//      model, Start control, authorize the board app (M4 default deny), Stop control from the
+//      title bar, revoke.
 //
 // The console is one session screen: title bar (status line, Stop control), four rows,
 // the session log, and an Advanced section; the steps open Advanced sections (event stream,
@@ -606,7 +607,7 @@ async function main() {
     const FP = `falcon-e2e-${process.pid}`;
     const FALCON_ID = `lsl:${FP}-counts`;
 
-    await step("M3-6. FALCON over LSL: passthrough + trained model, Start control, Stop control in the title bar", async () => {
+    await step("M3-6. FALCON over LSL: passthrough + trained model, Start control, authorize the board app, Stop control in the title bar, revoke", async () => {
       if (!fs.existsSync(FALCON_FILE)) throw new Error(`missing ${FALCON_FILE}; run \`make dataset\``);
       const models = await api("/models");
       // never a model trained on the replayed session (leakage): the baseline is trained on 110520
@@ -655,6 +656,21 @@ async function main() {
       await page.waitForTimeout(1500);
       const c1 = (await api("/pipeline")).counters.commands_out;
       if (!(c1 > c0)) throw new Error(`commands_out did not grow (${c0} -> ${c1})`);
+
+      // M4: decoded commands reach only applications the operator authorizes (default deny).
+      // The board asks for pointer movement; it is listed as not authorized until Authorize.
+      const boardLine = page.getByTestId("control-app-line-communication-board");
+      await expectText(boardLine, /^Not authorized\. Would receive pointer movement/);
+      let ctl = await api("/control");
+      let entry = ctl.apps.find((a) => a.app_id === "communication-board");
+      if (!entry || entry.authorized.length) throw new Error("board authorized before the operator acted");
+      if (!entry.waiting.some((w) => w.capability === "pointer_intent" && w.reason === "not_authorized"))
+        throw new Error(`board pointer_intent not reported as not_authorized: ${JSON.stringify(entry.waiting)}`);
+      await page.getByTestId("authorize-communication-board").click();
+      await expectText(boardLine, /^Authorized for /);
+      ctl = await api("/control");
+      entry = ctl.apps.find((a) => a.app_id === "communication-board");
+      if (!entry.authorized.includes("pointer_intent")) throw new Error("authorization not recorded");
       await closeAll();
       await page.waitForTimeout(1500);
       await designShot("3-falcon-lsl-decoding-control-on", { fullPage: true });
@@ -676,6 +692,12 @@ async function main() {
       const s1 = (await api("/pipeline")).counters.commands_out;
       if (s1 !== s0) throw new Error(`commands continued after Stop control (${s0} -> ${s1})`);
       await expectText(page.getByTestId("session-log"), /Control stopped/);
+      const stopped = await api("/control");
+      if (stopped.router_on || !/stopped by operator/.test(stopped.last_stop?.reason ?? ""))
+        throw new Error(`control stop not recorded: ${JSON.stringify(stopped.last_stop)}`);
+      // revoke: the board is back to "not authorized"
+      await page.getByTestId("revoke-communication-board").click();
+      await expectText(page.getByTestId("control-app-line-communication-board"), /^Not authorized/);
 
       await page.getByTestId("pl-stop").click();
       await expectText(page.getByTestId("decoder-state"), /^Off$/);
@@ -684,7 +706,7 @@ async function main() {
       await page.getByTestId(`remove-${FALCON_ID}`).click();
       await page.getByTestId("sheet-close").click();
       return (
-        `commands_out ${c0} -> ${c1} while on, unchanged (${s0}) after title-bar Stop; model ${model.summary.model_id}` +
+        `commands_out ${c0} -> ${c1} while on, unchanged (${s0}) after title-bar Stop; board app authorized then revoked (default deny); model ${model.summary.model_id}` +
         (crossSource ? `; cross-source override needed (server: "${crossSource}")` : "")
       );
     });
