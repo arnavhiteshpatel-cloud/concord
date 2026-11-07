@@ -78,6 +78,9 @@ export interface BoardState {
   highlight: number;
   /** last pointer event time on its clock (ns), the clock, and the session */
   lastPointer: { t: number; clock: "device" | "runtime"; session: string } | null;
+  /** the cursor / highlight has moved since input became active: dwell arms only then, so
+   *  resting where the cursor happens to be when input (re)starts never selects anything */
+  moved: boolean;
   scan: { stage: "row" | "cell"; lastMs: number | null; cycles: number };
   dwell: { tile: number | null; sinceMs: number | null; armed: boolean };
   pending: { page: PageKind; tile: number; atMs: number } | null;
@@ -219,6 +222,7 @@ export function initialBoard(settings: BoardSettings = DEFAULT_SETTINGS): BoardS
     hover: 0,
     highlight: 0,
     lastPointer: null,
+    moved: false,
     scan: { stage: "row", lastMs: null, cycles: 0 },
     dwell: { tile: null, sinceMs: null, armed: true },
     pending: null,
@@ -241,6 +245,7 @@ function freeze(s: BoardState): BoardState {
   return {
     ...s,
     lastPointer: null,
+    moved: false,
     dwell: { tile: null, sinceMs: null, armed: true },
     pending: null,
     scan: { stage: "row", lastMs: null, cycles: 0 },
@@ -426,7 +431,8 @@ export function boardReducer(s: BoardState, a: BoardAction): BoardState {
       const x = clamp01(s.cursor.x + a.vx * dt);
       const y = clamp01(s.cursor.y + a.vy * dt);
       const [cols, rows] = pageDims(s);
-      return { ...s, cursor: { x, y }, hover: tileAt(x, y, cols, rows), lastPointer: c, lastInput: a.ref.input };
+      const moved = s.moved || x !== s.cursor.x || y !== s.cursor.y;
+      return { ...s, cursor: { x, y }, hover: tileAt(x, y, cols, rows), lastPointer: c, lastInput: a.ref.input, moved };
     }
 
     case "select": {
@@ -439,7 +445,7 @@ export function boardReducer(s: BoardState, a: BoardAction): BoardState {
 
     case "navigate": {
       if (!s.active || s.method !== "navigate") return inactive(s);
-      return { ...moveHighlight(s, a.direction), lastInput: a.ref.input };
+      return { ...moveHighlight(s, a.direction), lastInput: a.ref.input, moved: true };
     }
 
     case "text": {
@@ -500,6 +506,7 @@ function tick(s0: BoardState, nowMs: number): BoardState {
     s.method === "cursor_dwell" ? s.hover : s.method === "navigate" && !s.granted.includes("selection") ? s.highlight : null;
   if (dwellTarget !== null) {
     const d = s.dwell;
+    if (!s.moved) return s; // nothing moved since input became active: no dwell yet
     if (d.tile !== dwellTarget || d.sinceMs === null) return { ...s, dwell: { tile: dwellTarget, sinceMs: nowMs, armed: true } };
     if (d.armed && nowMs - d.sinceMs >= s.settings.dwellMs) {
       const chosen = choose(s, dwellTarget, s.method === "navigate" ? "navigate" : "dwell", null, nowMs);
