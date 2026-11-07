@@ -100,7 +100,8 @@ export interface PointerIntentPayload {
   vy: number;
 }
 export interface SelectionIntentPayload {
-  action: "primary";
+  /** "primary" = select the highlighted item; "activate" / "cancel" since schema 1.3 */
+  action: "primary" | "activate" | "cancel";
   confidence: number;
 }
 export interface TextIntentPayload {
@@ -214,13 +215,28 @@ export interface DeviceDescriptor {
   native_format: string;
   capabilities: CapabilityDescriptor[];
   synthetic: boolean;
+  /** schema 1.3: recording modality; null/absent = not declared */
+  modality?: Modality | null;
+  invasive?: boolean | null;
+  integration?: IntegrationInfo | null;
+}
+
+export type Modality = "eeg" | "meg" | "emg" | "ecog" | "seeg" | "intracortical" | "other";
+
+export interface IntegrationInfo {
+  kind: "builtin" | "plugin";
+  package?: string | null;
+  version?: string | null;
+  api_version?: string | null;
+  isolated?: boolean;
+  ecosystem?: string | null;
 }
 
 export type AppStatus = "active" | "suspended" | "no_device";
 
 export interface CapabilityRejection {
   capability: Capability;
-  reason: "unsupported_by_device" | "no_device";
+  reason: "unsupported_by_device" | "no_device" | "not_authorized";
   required: boolean;
 }
 

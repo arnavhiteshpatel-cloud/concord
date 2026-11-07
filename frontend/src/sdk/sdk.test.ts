@@ -85,6 +85,17 @@ describe("validateEnvelope", () => {
     expect(validateEnvelope(env({ ...fv, provenance: { ...fv.provenance, kind: "raw_signal" } })).ok).toBe(false);
     expect(validateEnvelope(env({ ...fv, payload: { ...fv.payload, values: [1] } })).ok).toBe(false);
   });
+  it("accepts schema 1.3 activate/cancel actions and rejects unknown ones", () => {
+    const sel = {
+      event_type: "intent.selection",
+      capability: "selection",
+      provenance: { ...prov, kind: "decoded_intent", synthetic: false, model_id: "m1" },
+      payload: { action: "activate", confidence: 0.9 },
+    };
+    expect(validateEnvelope(env({ ...sel, schema_version: "1.3" })).ok).toBe(true);
+    expect(validateEnvelope(env({ ...sel, payload: { action: "cancel", confidence: 0.6 } })).ok).toBe(true);
+    expect(validateEnvelope(env({ ...sel, payload: { action: "stimulate", confidence: 0.6 } })).ok).toBe(false);
+  });
   it("accepts schema 1.1 feature, behavior and decoded kinematic events", () => {
     for (const e of [feat, beh, kin]) expect(validateEnvelope(env({ ...e, schema_version: "1.1" })).ok).toBe(true);
   });

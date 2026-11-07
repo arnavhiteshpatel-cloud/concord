@@ -314,3 +314,60 @@ def test_parse_capabilities_rejects_unknown_names() -> None:
     with pytest.raises(UnknownCapabilityError) as info:
         parse_capabilities(["selection", "mind_reading"])
     assert info.value.names == ["mind_reading"]
+
+
+# ------------------------------------------------------------------ schema 1.3
+
+
+@pytest.mark.parametrize("action", ["primary", "activate", "cancel"])
+def test_selection_actions_1_3(action: str) -> None:
+    env = parse_envelope(
+        valid_event("intent.selection", payload={"action": action, "confidence": 0.8})
+    )
+    assert env.payload.action == action  # type: ignore[union-attr]
+
+
+@pytest.mark.parametrize("action", ["stimulate", "", "PRIMARY", None])
+def test_unknown_selection_actions_rejected(action: Any) -> None:
+    with pytest.raises(ValidationError):
+        parse_envelope(
+            valid_event("intent.selection", payload={"action": action, "confidence": 0.8})
+        )
+
+
+def test_descriptor_modality_and_integration_1_3() -> None:
+    from brainos.contracts.protocol import (
+        INVASIVE_MODALITIES,
+        NONINVASIVE_MODALITIES,
+        DeviceDescriptor,
+        Modality,
+        RejectionReason,
+    )
+
+    base = {
+        "device_id": "plugin:bf-synthetic",
+        "display_name": "x",
+        "kind": "stream",
+        "adapter": "x@1.0.0",
+        "native_format": "x",
+        "capabilities": [],
+        "synthetic": True,
+    }
+    d = DeviceDescriptor.model_validate(base)
+    assert d.modality is None and d.invasive is None and d.integration is None  # never guessed
+    d = DeviceDescriptor.model_validate(
+        {
+            **base,
+            "modality": "eeg",
+            "invasive": False,
+            "integration": {"kind": "plugin", "package": "brainos-brainflow", "isolated": True},
+        }
+    )
+    assert d.modality is Modality.EEG and d.integration is not None and d.integration.isolated
+    assert Modality.EEG in NONINVASIVE_MODALITIES and Modality.INTRACORTICAL in INVASIVE_MODALITIES
+    assert not NONINVASIVE_MODALITIES & INVASIVE_MODALITIES
+    with pytest.raises(ValidationError):
+        DeviceDescriptor.model_validate({**base, "modality": "implant"})
+    with pytest.raises(ValidationError):
+        DeviceDescriptor.model_validate({**base, "integration": {"kind": "vendor"}})
+    assert RejectionReason("not_authorized") is RejectionReason.NOT_AUTHORIZED
