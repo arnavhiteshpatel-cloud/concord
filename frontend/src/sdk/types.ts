@@ -12,6 +12,10 @@ export const CAPABILITIES = [
   "text_intent",
   "telemetry",
   "device_status",
+  // schema 1.1
+  "neural_features",
+  "behavior",
+  "kinematic_intent",
 ] as const;
 export type Capability = (typeof CAPABILITIES)[number];
 
@@ -23,6 +27,10 @@ export const EVENT_CAPABILITY = {
   "intent.text": "text_intent",
   "telemetry.sample": "telemetry",
   "device.status": "device_status",
+  // schema 1.1
+  "features.binned": "neural_features",
+  "behavior.sample": "behavior",
+  "intent.kinematics": "kinematic_intent",
 } as const satisfies Record<string, Capability>;
 export type EventType = keyof typeof EVENT_CAPABILITY;
 
@@ -33,6 +41,7 @@ export const PROVENANCE_KINDS = [
   "decoded_intent",
   "device_report",
   "runtime",
+  "processed_feature", // 1.1
 ] as const;
 export type ProvenanceKind = (typeof PROVENANCE_KINDS)[number];
 
@@ -44,6 +53,9 @@ export const ALLOWED_PROVENANCE: Record<EventType, readonly ProvenanceKind[]> = 
   "intent.text": ["simulated_intent", "decoded_intent"],
   "telemetry.sample": ["device_report"],
   "device.status": ["device_report", "runtime"],
+  "features.binned": ["processed_feature"],
+  "behavior.sample": ["behavioral_label"],
+  "intent.kinematics": ["simulated_intent", "decoded_intent"],
 };
 
 export type QualityFlag =
@@ -114,6 +126,30 @@ export interface DeviceStatusPayload {
   detail: string;
 }
 
+export interface FeaturesBinnedPayload {
+  feature: "threshold_crossing_count" | "spike_count";
+  unit: "count";
+  bin_ms: number;
+  bin_index: number;
+  channel_count: number;
+  counts: number[];
+}
+export interface BehaviorSamplePayload {
+  quantity: string;
+  dims: string[];
+  unit: string;
+  values: number[];
+  sample_index: number;
+  valid: boolean;
+}
+export interface KinematicIntentPayload {
+  quantity: string;
+  dims: string[];
+  unit: string;
+  values: number[];
+  space: string;
+}
+
 export interface PayloadByType {
   "recording.frame": RecordingFramePayload;
   "recording.annotation": RecordingAnnotationPayload;
@@ -122,6 +158,9 @@ export interface PayloadByType {
   "intent.text": TextIntentPayload;
   "telemetry.sample": TelemetrySamplePayload;
   "device.status": DeviceStatusPayload;
+  "features.binned": FeaturesBinnedPayload;
+  "behavior.sample": BehaviorSamplePayload;
+  "intent.kinematics": KinematicIntentPayload;
 }
 
 interface EnvelopeBase {
@@ -213,6 +252,70 @@ export interface RuntimeSnapshot {
   last_error: string | null;
   recording: string | null;
   apps: ConnectedApp[];
+}
+
+// ------------------------------------------------------------- offline sources
+
+export interface PlaybackStatus {
+  device_id: string;
+  speed: number;
+  position_s: number;
+  duration_s: number | null;
+  loops: number;
+  loop: boolean;
+  paused: boolean;
+  records_emitted: number;
+  origin: string;
+}
+
+export interface SourceMetadata {
+  device_id: string;
+  label: string;
+  source_type: "nwb_units";
+  live: false;
+  dataset: {
+    id: string;
+    title: string;
+    dandiset: string;
+    version: string;
+    url: string;
+    license: string;
+    access: string;
+    citation: string;
+    asset_id: string;
+    asset_path: string;
+  } | null;
+  file: { name: string; size_bytes: number; sha256: string; verified: boolean; verification: string };
+  species: string | null;
+  subject_id: string | null;
+  identifier: string;
+  session_description: string;
+  session_start_time: string;
+  experiment_description: string;
+  institution: string;
+  lab: string;
+  recording_type: string;
+  profile: string;
+  feature: string;
+  feature_unit: string;
+  bin_ms: number;
+  n_bins: number;
+  duration_s: number;
+  channel_count: number;
+  channels: { index: number; unit_id: number; spike_count: number; electrode: string | null }[];
+  behavior: { series: string; quantity: string; dims: string[]; unit: string; valid_fraction: number } | null;
+  decoder: {
+    model_id: string;
+    method: string;
+    dims: string[];
+    alpha: number;
+    trained_on: string;
+    evaluated_r2: number | null;
+    evaluated_samples: number | null;
+    control_mean_predictor_r2: number | null;
+    control_time_shift_r2: number | null;
+  } | null;
+  notes: string[];
 }
 
 export type ServerMessage =

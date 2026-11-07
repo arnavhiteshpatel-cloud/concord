@@ -111,3 +111,10 @@ recorded in `docs/BENCHMARKS.md` with the machine they were measured on.
 ## Known limitations
 
 Maintained in [LIMITATIONS.md](LIMITATIONS.md).
+
+## Milestone 2 — genuine human neural data
+
+Acceptance criteria `M2-AT-1` … `M2-AT-14` are defined in
+[docs/MILESTONE2_PLAN.md](docs/MILESTONE2_PLAN.md) and tested in
+`backend/tests/test_nwb.py`, `backend/tests/test_nwb_real.py` (real DANDI 000954 files),
+`frontend/src/sdk/sdk.test.ts` and e2e steps 14–21.
