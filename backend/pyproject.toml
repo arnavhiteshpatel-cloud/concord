@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "brainos"
-version = "0.1.0"
+version = "0.2.0"
 description = "BrainOS: hardware-agnostic, read-only runtime and SDK for implanted brain-computer interfaces (MVP)."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -18,6 +18,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# Offline neural datasets (NWB) + baseline decoder. numpy is used by both.
+nwb = [
+    "pynwb>=2.8",
+    "numpy>=1.26",
+]
 dev = [
     "pytest>=8",
     "pytest-asyncio>=0.24",
@@ -47,6 +52,10 @@ mypy_path = "src"
 packages = ["brainos"]
 plugins = ["pydantic.mypy"]
 
+[[tool.mypy.overrides]]
+module = ["pynwb", "pynwb.*", "hdmf", "hdmf.*", "h5py"]
+ignore_missing_imports = true
+
 [tool.ruff]
 line-length = 100
 target-version = "py312"
@@ -58,3 +67,4 @@ ignore = ["RUF012"]
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["E501", "ASYNC109", "ASYNC110"]
 "../scripts/bench.py" = ["E501"]  # emits markdown tables
+"src/brainos/decoding/evaluate_falcon.py" = ["E501"]  # emits markdown tables

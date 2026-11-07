@@ -23,7 +23,13 @@ log = logging.getLogger(__name__)
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or Settings.from_env()
     intents = OperatorIntentSource()
-    registry = DeviceRegistry(intents, settings.recordings_dir, seed=settings.seed)
+    registry = DeviceRegistry(
+        intents,
+        settings.recordings_dir,
+        seed=settings.seed,
+        datasets_dir=settings.datasets_dir,
+        models_dir=settings.models_dir,
+    )
     runtime = Runtime(
         registry,
         Recorder(settings.recordings_dir),

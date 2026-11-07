@@ -12,7 +12,7 @@ import pytest
 from fastapi.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
 
-from brainos.contracts import parse_envelope
+from brainos.contracts import SCHEMA_VERSION, parse_envelope
 from brainos.server import create_app
 
 from .conftest import make_settings
@@ -39,7 +39,7 @@ def _err(resp: Any) -> str:
 def test_rest_lifecycle(client: TestClient) -> None:
     """AT-18: devices, connect, pause/resume, switch, disconnect, diagnostics."""
     health = client.get("/api/v1/health").json()
-    assert health["read_only"] is True and health["schema_version"] == "1.0"
+    assert health["read_only"] is True and health["schema_version"] == SCHEMA_VERSION
     devices = {d["device_id"]: d for d in client.get("/api/v1/devices").json()}
     assert set(devices) == {"sim-a", "sim-b"}
     assert all(d["synthetic"] for d in devices.values())
@@ -89,7 +89,7 @@ def test_schema_and_capabilities_endpoints(client: TestClient) -> None:
     assert "BrainOS EventEnvelope" in schema["title"]
     caps = {c["capability"]: c for c in client.get("/api/v1/capabilities").json()}
     assert caps["recording"]["event_types"] == ["recording.frame", "recording.annotation"]
-    assert len(caps) == 6
+    assert len(caps) == 9  # schema 1.1 added neural_features, behavior, kinematic_intent
 
 
 def _recv_until(ws: Any, pred: Any, limit: int = 500) -> dict[str, Any]:

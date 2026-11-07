@@ -27,6 +27,7 @@ from brainos.adapters.base import (
     EndOfStream,
     EventDraft,
     PacketDecodeError,
+    PlaybackControl,
 )
 from brainos.contracts.capabilities import EVENT_CAPABILITY, Capability, EventType
 from brainos.contracts.events import (
@@ -43,6 +44,7 @@ from brainos.contracts.protocol import (
     DeviceDescriptor,
     ErrorCode,
     NegotiationResult,
+    PlaybackStatus,
     RuntimeSnapshot,
     RuntimeState,
 )
@@ -250,6 +252,32 @@ class Runtime:
             self._set_state(RuntimeState.STREAMING)
             return self.snapshot()
 
+    # ------------------------------------------------------------- playback
+    def _playback(self) -> PlaybackControl:
+        adapter = self._adapter
+        if adapter is None:
+            raise RuntimeCommandError(ErrorCode.INVALID_STATE, "no device connected")
+        if not isinstance(adapter, PlaybackControl):
+            raise RuntimeCommandError(
+                ErrorCode.UNSUPPORTED_OPERATION,
+                f"{adapter.descriptor.display_name} is a live source; "
+                "playback control applies to recordings",
+            )
+        return adapter
+
+    def playback_status(self) -> PlaybackStatus:
+        return self._playback().playback_status()
+
+    async def set_playback_speed(self, speed: float) -> PlaybackStatus:
+        async with self._lock:
+            pb = self._playback()
+            try:
+                pb.set_speed(speed)
+            except ValueError as exc:
+                raise RuntimeCommandError(ErrorCode.PROTOCOL_ERROR, str(exc)) from None
+            log.info("playback speed set to %gx", speed)
+            return pb.playback_status()
+
     def start_recording(self, name: str | None = None) -> str:
         if (
             self._adapter is None
@@ -284,7 +312,8 @@ class Runtime:
     # ---------------------------------------------------------------- internals
     async def _connect(self, device_id: str) -> None:
         try:
-            adapter = self.registry.create(device_id)
+            # off the event loop: opening a dataset file can take a few hundred ms
+            adapter = await asyncio.to_thread(self.registry.create, device_id)
         except DeviceNotFoundError:
             raise RuntimeCommandError(
                 ErrorCode.DEVICE_NOT_FOUND, f"unknown device '{device_id}'"

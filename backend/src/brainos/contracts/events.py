@@ -15,7 +15,7 @@ from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_validator
 
 from brainos.contracts.capabilities import Capability, EventType, capability_for
 
-SCHEMA_VERSION = "1.0"
+SCHEMA_VERSION = "1.1"  # 1.1: features.binned, behavior.sample, intent.kinematics
 SCHEMA_MAJOR = 1
 
 FiniteFloat = Annotated[float, Field(allow_inf_nan=False)]
@@ -55,6 +55,7 @@ class ProvenanceKind(StrEnum):
     DECODED_INTENT = "decoded_intent"
     DEVICE_REPORT = "device_report"
     RUNTIME = "runtime"
+    PROCESSED_FEATURE = "processed_feature"  # 1.1: derived from neural data, not an intent
 
 
 _INTENT_KINDS = frozenset({ProvenanceKind.SIMULATED_INTENT, ProvenanceKind.DECODED_INTENT})
@@ -67,6 +68,9 @@ ALLOWED_PROVENANCE: dict[EventType, frozenset[ProvenanceKind]] = {
     EventType.INTENT_TEXT: _INTENT_KINDS,
     EventType.TELEMETRY_SAMPLE: frozenset({ProvenanceKind.DEVICE_REPORT}),
     EventType.DEVICE_STATUS: frozenset({ProvenanceKind.DEVICE_REPORT, ProvenanceKind.RUNTIME}),
+    EventType.FEATURES_BINNED: frozenset({ProvenanceKind.PROCESSED_FEATURE}),
+    EventType.BEHAVIOR_SAMPLE: frozenset({ProvenanceKind.BEHAVIORAL_LABEL}),
+    EventType.INTENT_KINEMATICS: _INTENT_KINDS,
 }
 
 
@@ -169,6 +173,61 @@ class DeviceStatusPayload(_Strict):
     detail: str = Field(default="", max_length=512)
 
 
+class FeaturesBinnedPayload(_Strict):
+    """One time bin of a processed neural feature per channel (schema 1.1).
+
+    ``counts[c]`` is the feature value for channel ``c`` in the bin that *ends* at the
+    envelope's ``device_timestamp_ns`` and spans ``bin_ms`` before it.
+    """
+
+    feature: Literal["threshold_crossing_count", "spike_count"]
+    unit: Literal["count"] = "count"
+    bin_ms: float = Field(gt=0, le=10_000, allow_inf_nan=False)
+    bin_index: int = Field(ge=0)
+    channel_count: int = Field(ge=1, le=4096)
+    counts: list[Annotated[int, Field(ge=0)]]
+
+    @model_validator(mode="after")
+    def _shape(self) -> Self:
+        if len(self.counts) != self.channel_count:
+            raise ValueError(
+                f"counts has {len(self.counts)} values, channel_count={self.channel_count}"
+            )
+        return self
+
+
+class _VectorPayload(_Strict):
+    quantity: str = Field(min_length=1, max_length=64)
+    dims: list[Annotated[str, Field(min_length=1, max_length=32)]] = Field(
+        min_length=1, max_length=64
+    )
+    unit: str = Field(max_length=32)
+    values: list[FiniteFloat]
+
+    @model_validator(mode="after")
+    def _shape(self) -> Self:
+        if len(self.values) != len(self.dims):
+            raise ValueError(f"values has {len(self.values)} entries, dims has {len(self.dims)}")
+        return self
+
+
+class BehaviorSamplePayload(_VectorPayload):
+    """Recorded behavioral ground truth (schema 1.1). Never an intent.
+
+    ``valid`` is false where the dataset marks the sample as excluded from
+    training/evaluation (e.g. FALCON ``eval_mask``).
+    """
+
+    sample_index: int = Field(ge=0)
+    valid: bool = True
+
+
+class KinematicIntentPayload(_VectorPayload):
+    """Multi-dimensional movement intent (schema 1.1), in the source's own dimension space."""
+
+    space: str = Field(min_length=1, max_length=64, description="e.g. falcon_h1_7dof")
+
+
 # -------------------------------------------------------------------------- envelope
 
 SESSION_ID_PATTERN = r"^ses_[A-Za-z0-9]{6,64}$"
@@ -241,6 +300,21 @@ class DeviceStatusEvent(_EnvelopeBase):
     payload: DeviceStatusPayload
 
 
+class FeaturesBinnedEvent(_EnvelopeBase):
+    event_type: Literal[EventType.FEATURES_BINNED]
+    payload: FeaturesBinnedPayload
+
+
+class BehaviorSampleEvent(_EnvelopeBase):
+    event_type: Literal[EventType.BEHAVIOR_SAMPLE]
+    payload: BehaviorSamplePayload
+
+
+class KinematicIntentEvent(_EnvelopeBase):
+    event_type: Literal[EventType.INTENT_KINEMATICS]
+    payload: KinematicIntentPayload
+
+
 EventEnvelope = Annotated[
     RecordingFrameEvent
     | RecordingAnnotationEvent
@@ -248,7 +322,10 @@ EventEnvelope = Annotated[
     | SelectionIntentEvent
     | TextIntentEvent
     | TelemetrySampleEvent
-    | DeviceStatusEvent,
+    | DeviceStatusEvent
+    | FeaturesBinnedEvent
+    | BehaviorSampleEvent
+    | KinematicIntentEvent,
     Field(discriminator="event_type"),
 ]
 
@@ -262,6 +339,9 @@ PAYLOAD_MODELS: dict[EventType, type[BaseModel]] = {
     EventType.INTENT_TEXT: TextIntentPayload,
     EventType.TELEMETRY_SAMPLE: TelemetrySamplePayload,
     EventType.DEVICE_STATUS: DeviceStatusPayload,
+    EventType.FEATURES_BINNED: FeaturesBinnedPayload,
+    EventType.BEHAVIOR_SAMPLE: BehaviorSamplePayload,
+    EventType.INTENT_KINEMATICS: KinematicIntentPayload,
 }
 
 
