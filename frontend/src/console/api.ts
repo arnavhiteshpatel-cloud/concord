@@ -115,6 +115,73 @@ export interface OpenEphysConfigInput {
 /** `/devices/{id}/source` for a live source: the adapter's own metadata dict (shape differs per protocol). */
 export type LiveSourceMetadata = Record<string, unknown>;
 
+// ------------------------------------------------------------------ Milestone 4: source plugins
+// Shapes mirror backend/src/brainos/server/plugin_routes.py.
+
+export type OptionValue = string | number | boolean | null;
+
+export interface PluginOptionInfo {
+  name: string;
+  type: "str" | "int" | "float" | "bool" | "choice";
+  description: string;
+  default: OptionValue;
+  required: boolean;
+  choices: string[];
+}
+
+export interface PluginProblem {
+  code: string;
+  message: string;
+  severity: "error" | "warning" | "info";
+  where: string;
+}
+
+export interface PluginDeviceInfo {
+  device_key: string;
+  display_name: string;
+  description: string;
+  details: Record<string, string>;
+  /** null when no valid BrainOS device id can be formed (reason says why) */
+  device_id: string | null;
+  reason: string | null;
+  configured: boolean;
+}
+
+export interface PluginInfo {
+  name: string;
+  entry: string;
+  package: string | null;
+  package_version: string | null;
+  status: "compatible" | "rejected" | "load_error";
+  reason: string | null;
+  display_name: string | null;
+  description: string | null;
+  version: string | null;
+  api_version: string | null;
+  author: string | null;
+  license: string | null;
+  homepage: string | null;
+  ecosystem: string | null;
+  network: boolean | null;
+  roles: string[];
+  options: PluginOptionInfo[];
+  problems: PluginProblem[];
+  error: { type: string; message: string; traceback: string | null } | null;
+  devices: PluginDeviceInfo[];
+  discovery_error: string | null;
+  log_tail: string[];
+}
+
+export interface PluginsStatus {
+  host_api_version: string;
+  sdk_version: string;
+  python: string;
+  discovering: boolean;
+  discovered_at_ns: number | null;
+  error: string | null;
+  plugins: PluginInfo[];
+}
+
 // ------------------------------------------------------------------ pipeline
 
 export type PresetName = "spikeband_threshold" | "ecog_high_gamma" | "band_power" | "features_passthrough";
@@ -250,6 +317,13 @@ export const labApi = {
     apiCall<DeviceDescriptor>("/sources/lsl", { method: "POST", body: { signal, behavior, markers } }),
   openEphysRegister: (config: OpenEphysConfigInput) =>
     apiCall<DeviceDescriptor>("/sources/openephys", { method: "POST", body: config }),
+  plugins: () => apiCall<PluginsStatus>("/plugins"),
+  discoverPlugins: () => apiCall<PluginsStatus>("/plugins/discover", { method: "POST", body: {} }),
+  configurePlugin: (name: string, deviceKey: string, options: Record<string, OptionValue>) =>
+    apiCall<DeviceDescriptor>(`/plugins/${enc(name)}/configure`, {
+      method: "POST",
+      body: { device_key: deviceKey, options },
+    }),
   removeSource: (deviceId: string) => apiCall<{ removed: boolean }>(`/sources/${enc(deviceId)}`, { method: "DELETE" }),
   liveSource: (deviceId: string) => apiCall<LiveSourceMetadata>(`/devices/${enc(deviceId)}/source`),
   pipeline: () => apiCall<PipelineStatus>("/pipeline"),
@@ -268,6 +342,11 @@ const LIVE_PREFIXES = ["lsl:", "openephys:"];
 /** A source registered at runtime (LSL / Open Ephys), as opposed to simulators and local files. */
 export function isLiveSource(device: Pick<DeviceDescriptor, "device_id"> | null | undefined): boolean {
   return !!device && LIVE_PREFIXES.some((p) => device.device_id.startsWith(p));
+}
+
+/** A device provided by an installed source plugin (adapter SDK), run in its own process. */
+export function isPluginSource(device: Pick<DeviceDescriptor, "device_id"> | null | undefined): boolean {
+  return !!device && device.device_id.startsWith("plugin:");
 }
 
 /** Offline dataset files (verified NWB) — the only sources with dataset SourceMetadata + playback. */

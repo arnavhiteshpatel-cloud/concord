@@ -33,6 +33,32 @@ export function sourceKind(device: DeviceDescriptor | null | undefined): { text:
   return { text: "Device data", title: "Non-synthetic data from a connected device" };
 }
 
+const MODALITY: Record<string, string> = {
+  eeg: "EEG",
+  meg: "MEG",
+  emg: "EMG",
+  ecog: "ECoG",
+  seeg: "Stereo-EEG",
+  intracortical: "Intracortical",
+  other: "Other modality",
+};
+
+/** "EEG, noninvasive" / "Intracortical, implanted" / "modality not declared" — as declared. */
+export function modalityWords(device: DeviceDescriptor | null | undefined): string | null {
+  if (!device) return null;
+  const how = device.invasive === true ? "implanted" : device.invasive === false ? "noninvasive" : null;
+  if (!device.modality) return how ? `modality not declared, ${how}` : "modality not declared";
+  return `${MODALITY[device.modality] ?? device.modality}, ${how ?? "invasiveness not declared"}`;
+}
+
+/** "Plugin · brainos-example-adapter@0.1.0 · isolated" for plugin sources, else null. */
+export function integrationLine(device: DeviceDescriptor | null | undefined): string | null {
+  const i = device?.integration;
+  if (!i || i.kind !== "plugin") return null;
+  const pkg = [i.package ?? "unknown package", i.version].filter(Boolean).join("@");
+  return ["Plugin", pkg, i.isolated ? "isolated" : null].filter(Boolean).join(" · ");
+}
+
 /** The title-bar status line: one plain sentence and a status tone. */
 export function statusLine(conn: ConnectionStatus, runtime: RuntimeSnapshot | null): { text: string; tone: Tone } {
   if (conn === "connecting" || conn === "idle") return { text: "Connecting to BrainOS", tone: "info" };

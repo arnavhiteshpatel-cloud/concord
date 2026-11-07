@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -13,11 +15,20 @@ from fastapi.staticfiles import StaticFiles
 from brainos import __version__
 from brainos.adapters.simulated import OperatorIntentSource
 from brainos.runtime import DeviceRegistry, Recorder, Runtime, RuntimeCommandError
-from brainos.server import live_routes, routes, sim_routes, ws
+from brainos.runtime.plugins import PluginRegistry
+from brainos.server import live_routes, plugin_routes, routes, sim_routes, ws
 from brainos.server.deps import AppServices, error_response
 from brainos.server.settings import Settings
 
 log = logging.getLogger(__name__)
+
+
+async def _discover(plugins: PluginRegistry) -> object:
+    try:
+        return await plugins.discover()
+    except Exception as exc:  # reported via GET /plugins (error); the runtime keeps working
+        log.warning("startup plugin discovery failed: %s", exc)
+        return None
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -29,6 +40,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         seed=settings.seed,
         datasets_dir=settings.datasets_dir,
         models_dir=settings.models_dir,
+        plugins=PluginRegistry(python=settings.plugin_python, extra_path=settings.plugin_path),
     )
     runtime = Runtime(
         registry,
@@ -40,7 +52,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         log.info("BrainOS runtime %s ready (simulation=%s)", __version__, settings.enable_sim)
+        discovery: asyncio.Task[object] | None = None
+        if settings.discover_plugins:
+            # in the background: plugin hosts start in subprocesses; startup does not wait
+            discovery = asyncio.create_task(_discover(registry.plugins), name="plugin-discovery")
         yield
+        if discovery is not None:
+            discovery.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await discovery
         await runtime.shutdown()
 
     app = FastAPI(
@@ -58,6 +78,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app.include_router(routes.router)
     app.include_router(live_routes.router)
+    app.include_router(plugin_routes.router)
     if settings.enable_sim:
         app.include_router(sim_routes.router)
     app.include_router(ws.router)

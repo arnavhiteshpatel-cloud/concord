@@ -3,14 +3,18 @@ SHELL := /bin/bash
 VENV  := .venv
 PY    := $(VENV)/bin/python
 NPM   := npm --prefix frontend
+# the public adapter SDK, the backend, and the example third-party source plugin (editable)
+PY_PKGS := -e packages/brainos-adapter-sdk -e "backend[dev,nwb,dsp,live]" \
+           -e examples/adapters/brainos-example-adapter
+PLUGIN_SRC := ../packages/brainos-adapter-sdk ../examples/adapters/brainos-example-adapter
 
 .PHONY: setup dev run build test test-backend test-frontend lint e2e e2e-setup bench bench-live schema clean \
         dataset dataset-all model decoding-report
 
 setup:  ## create .venv (Python 3.12) and install backend + frontend deps
 	@command -v uv >/dev/null && uv venv --python 3.12 $(VENV) || python3.12 -m venv $(VENV)
-	@if command -v uv >/dev/null; then uv pip install --python $(PY) -e "backend[dev,nwb,dsp,live]"; \
-	  else $(PY) -m pip install -e "backend[dev,nwb,dsp,live]"; fi
+	@if command -v uv >/dev/null; then uv pip install --python $(PY) $(PY_PKGS); \
+	  else $(PY) -m pip install $(PY_PKGS); fi
 	$(NPM) ci
 
 build:  ## build the console + board app into frontend/dist
@@ -36,7 +40,10 @@ test-frontend:
 
 lint:  ## ruff + mypy (strict) + tsc
 	cd backend && ../$(VENV)/bin/ruff check src tests examples ../scripts && ../$(VENV)/bin/ruff format --check src tests examples ../scripts
+	cd backend && ../$(VENV)/bin/ruff check $(PLUGIN_SRC) && ../$(VENV)/bin/ruff format --check $(PLUGIN_SRC)
 	cd backend && ../$(VENV)/bin/mypy && ../$(VENV)/bin/mypy --strict examples/reference_app examples/center_out_task.py
+	$(VENV)/bin/mypy --strict packages/brainos-adapter-sdk/src/brainos_adapter_sdk \
+	  examples/adapters/brainos-example-adapter/src/brainos_example_adapter
 	$(NPM) run typecheck
 
 e2e-setup:  ## one-time: install Playwright (repo-local, not saved) + Chromium
