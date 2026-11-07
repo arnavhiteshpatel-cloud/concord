@@ -49,6 +49,7 @@ from brainos.contracts.protocol import (
     RuntimeState,
 )
 from brainos.runtime.bus import DEFAULT_QUEUE_SIZE, EventBus, Subscriber
+from brainos.runtime.control import COMMAND_CAPABILITIES, AuthorizationStore, Grant
 from brainos.runtime.diagnostics import Diagnostics, DiagnosticsSnapshot
 from brainos.runtime.negotiation import negotiate
 from brainos.runtime.pipeline import (
@@ -88,8 +89,14 @@ class Runtime:
         self.recorder = recorder
         self.bus = EventBus()
         self.bus.add_tap(recorder.on_event)
+        # Operator authorizations for decoded commands: in memory, empty on every start,
+        # kept across source switches (the router itself is off after any source change).
+        self.authorizations = AuthorizationStore()
         self.pipeline = PipelineManager(
-            registry.catalog.models_dir, self._ingest_derived, self._renegotiate_all
+            registry.catalog.models_dir,
+            self._ingest_derived,
+            self._renegotiate_all,
+            self._commands_stopped,
         )
         self.bus.add_tap(self.pipeline.tap)
         self.diagnostics = Diagnostics()
@@ -149,6 +156,29 @@ class Runtime:
         merged = list(self._device.capabilities) + [c for c in extra if c.capability not in have]
         return self._device.model_copy(update={"capabilities": merged})
 
+    def _decoded_commands(self, device: DeviceDescriptor | None) -> frozenset[Capability]:
+        """Command capabilities the negotiated device has only through the command router."""
+        if device is None or self._device is None:
+            return frozenset()
+        return frozenset(
+            c for c in self.pipeline.command_capabilities if not self._device.supports(c)
+        )
+
+    def _negotiate(
+        self,
+        app_id: str | None,
+        required: list[Capability],
+        optional: list[Capability],
+        device: DeviceDescriptor | None,
+    ) -> NegotiationResult:
+        return negotiate(
+            required,
+            optional,
+            device,
+            decoded_commands=self._decoded_commands(device),
+            authorized=self.authorizations.authorized(app_id) if app_id else frozenset(),
+        )
+
     # ------------------------------------------------------------- applications
     def register_app(
         self, app: AppInfo, required: list[Capability], optional: list[Capability]
@@ -158,9 +188,10 @@ class Runtime:
             app=app,
             required=required,
             optional=optional,
-            negotiation=negotiate(required, optional, self._active_device()),
+            negotiation=self._negotiate(app.id, required, optional, self._active_device()),
             max_queue=self._queue_size,
         )
+        sub.authorized = self.authorizations.authorized(app.id)
         self.bus.add(sub)
         log.info(
             "app connected: %s (%s) status=%s", app.id, sub.connection_id, sub.negotiation.status
@@ -175,20 +206,70 @@ class Runtime:
             self._broadcast_runtime()
 
     def preview_negotiation(
-        self, device_id: str | None, required: list[Capability], optional: list[Capability]
+        self,
+        device_id: str | None,
+        required: list[Capability],
+        optional: list[Capability],
+        app_id: str | None = None,
     ) -> NegotiationResult:
-        device = self._describe(device_id) if device_id else self._active_device()
-        return negotiate(required, optional, device)
+        if device_id:
+            return negotiate(required, optional, self._describe(device_id))
+        return self._negotiate(app_id, required, optional, self._active_device())
 
     def _renegotiate_all(self) -> None:
         device = self._active_device()
         for sub in self.bus.subscribers:
-            result = negotiate(sub.required, sub.optional, device)
+            sub.authorized = self.authorizations.authorized(sub.app.id)
+            result = self._negotiate(sub.app.id, sub.required, sub.optional, device)
             if result != sub.negotiation:
                 sub.set_negotiation(result)
                 sub.offer_control(
                     '{"type":"negotiation","negotiation":' + result.model_dump_json() + "}"
                 )
+
+    # ------------------------------------------------------- control bridge (M4)
+    def authorize_app(self, app_id: str, capabilities: list[Capability]) -> Grant:
+        """Operator: allow ``app_id`` to receive decoded commands for ``capabilities``."""
+        try:
+            grant = self.authorizations.authorize(app_id, frozenset(capabilities))
+        except ValueError as exc:
+            raise RuntimeCommandError(ErrorCode.PROTOCOL_ERROR, str(exc)) from None
+        self._renegotiate_all()
+        self._broadcast_runtime()
+        return grant
+
+    def revoke_app(
+        self, app_id: str, capabilities: list[Capability] | None = None
+    ) -> frozenset[Capability]:
+        """Operator: withdraw authorization; takes effect before this returns (queued
+        decoded commands for the app are withdrawn, apps are renegotiated)."""
+        removed = self.authorizations.revoke(
+            app_id, frozenset(capabilities) if capabilities is not None else None
+        )
+        for sub in self.bus.subscribers:
+            if sub.app.id == app_id:
+                sub.authorized = self.authorizations.authorized(app_id)
+                sub.purge_commands(removed or None)
+        self._renegotiate_all()
+        self._broadcast_runtime()
+        return removed
+
+    def stop_control(self, reason: str = "stopped by operator") -> bool:
+        """Operator: command output off now (idempotent). Returns whether it was on."""
+        was_on = self.pipeline.stop_router(reason)
+        self.bus.purge_commands()  # nothing decoded may be sent after a stop, even if off
+        return was_on
+
+    def _commands_stopped(self, reason: str) -> None:
+        purged = self.bus.purge_commands()
+        if purged:
+            log.info("withdrew %d queued decoded command(s): %s", purged, reason)
+
+    def command_requests(self) -> list[Subscriber]:
+        """Connected applications that ask for at least one command capability."""
+        return [
+            s for s in self.bus.subscribers if COMMAND_CAPABILITIES & {*s.required, *s.optional}
+        ]
 
     def _broadcast_runtime(self) -> None:
         self.bus.broadcast_control(
@@ -255,6 +336,7 @@ class Runtime:
                 )
             self._paused = True
             self._adapter.set_paused(True)
+            self.pipeline.stop_router("source paused")
             self._emit_status(DeviceState.PAUSED, "paused by operator")
             self._set_state(RuntimeState.PAUSED)
             return self.snapshot()
@@ -495,6 +577,7 @@ class Runtime:
         self.diagnostics.link_errors += 1
         self.diagnostics.record_error("link_error", device_id, str(error))
         log.warning("%s: link error: %s; attempting reconnect", device_id, error)
+        self.pipeline.stop_router("source link lost")
         self._emit_status(DeviceState.RECONNECTING, str(error))
         self._set_state(RuntimeState.RECONNECTING)
         await adapter.close()

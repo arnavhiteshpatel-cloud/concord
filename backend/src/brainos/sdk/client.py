@@ -130,8 +130,16 @@ class RuntimeClient:
         required: list[str],
         optional: list[str] | None = None,
         device_id: str | None = None,
+        app_id: str | None = None,
     ) -> NegotiationResult:
-        body = {"required": required, "optional": optional or [], "device_id": device_id}
+        """Dry run. With ``app_id`` (and no ``device_id``) it reflects that app's operator
+        authorization for decoded commands."""
+        body = {
+            "required": required,
+            "optional": optional or [],
+            "device_id": device_id,
+            "app_id": app_id,
+        }
         return NegotiationResult.model_validate(await self._call("POST", "/negotiate", body))
 
     # -------------------------------------------------- operator: sources, pipeline, models
@@ -200,6 +208,31 @@ class RuntimeClient:
     async def calibrate(self, recordings: list[str], **options: Any) -> dict[str, Any]:
         body = {"recordings": recordings, **options}
         result: dict[str, Any] = await self._call("POST", "/calibration/train", body)
+        return result
+
+    # -------------------------------------------------- operator: control bridge (M4)
+    # Operator decisions. An application must never authorize itself; it declares the
+    # command capabilities it needs and waits (negotiation reason ``not_authorized``).
+
+    async def control(self) -> dict[str, Any]:
+        result: dict[str, Any] = await self._call("GET", "/control")
+        return result
+
+    async def authorize_app(self, app_id: str, capabilities: list[str]) -> dict[str, Any]:
+        body = {"capabilities": capabilities}
+        result: dict[str, Any] = await self._call("POST", f"/control/apps/{app_id}/authorize", body)
+        return result
+
+    async def revoke_app(
+        self, app_id: str, capabilities: list[str] | None = None
+    ) -> dict[str, Any]:
+        body = {"capabilities": capabilities} if capabilities else None
+        result: dict[str, Any] = await self._call("POST", f"/control/apps/{app_id}/revoke", body)
+        return result
+
+    async def stop_control(self, reason: str | None = None) -> dict[str, Any]:
+        body = {"reason": reason} if reason else None
+        result: dict[str, Any] = await self._call("POST", "/control/stop", body)
         return result
 
 

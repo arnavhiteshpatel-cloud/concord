@@ -9,8 +9,14 @@ Separation rules enforced here:
   * features are ``processed_feature`` (never intents);
   * decoder output is ``intent.kinematics`` with ``decoded_intent`` + ``model_id`` — not
     actionable by applications that ask for pointer/selection;
-  * only the explicitly enabled **command router** turns decoded output into
-    ``intent.pointer`` (still ``decoded_intent`` + ``model_id``).
+  * only the explicitly enabled **command router** (runtime/router.py) turns decoder output
+    into ``intent.pointer`` / ``intent.selection`` / ``intent.text`` (still
+    ``decoded_intent`` + ``model_id``), and it accepts nothing but decoder output.
+
+Stale-command prevention: the router is off after every (re)start unless the start request
+itself enables it, is switched off by ``stop`` (source change, error, end) and by
+``stop_router`` (operator stop, pause, link loss), and switches itself off when the decoder
+receives no input for longer than ``max(stall_ms, 3 x bin)`` once it has received any.
 """
 
 from __future__ import annotations
@@ -26,7 +32,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 from brainos.adapters.base import EventDraft
 from brainos.contracts.capabilities import Capability, CapabilityDescriptor, EventType
@@ -38,30 +44,36 @@ from brainos.contracts.events import (
     QualityFlag,
 )
 from brainos.contracts.protocol import DeviceDescriptor, ErrorCode
+from brainos.runtime.control import COMMAND_CAPABILITIES
+from brainos.runtime.router import (
+    CommandRouter,
+    DiscreteRule,
+    RouterSpec,
+    pointer_velocity,
+    router_capabilities,
+)
 
 if TYPE_CHECKING:
-    from brainos.decoding.ridge import RidgeDecoder, StreamingDecoder
+    from brainos.decoding.model import Decoder
     from brainos.processing import SignalChain
 
 log = logging.getLogger(__name__)
 
-PIPELINE_ADAPTER = "brainos.pipeline@0.3.0"
+__all__ = [
+    "DiscreteRule",
+    "PipelineError",
+    "PipelineManager",
+    "PipelineStartRequest",
+    "PipelineStatus",
+    "RouterSpec",
+]
+
+PIPELINE_ADAPTER = "brainos.pipeline@0.4.0"
 QUEUE_MAX = 4096
 LATENCY_WINDOW = 2048
-
-
-class RouterSpec(BaseModel):
-    """Explicit mapping of two decoded dimensions to pointer velocity."""
-
-    model_config = ConfigDict(extra="forbid")
-
-    enabled: bool = False
-    x_dim: str
-    y_dim: str
-    gain: float = Field(default=1.0, gt=0, le=10, description="workspace/s per training-std unit")
-    deadzone: float = Field(default=0.3, ge=0, lt=3, description="in training-std units")
-    invert_y: bool = False
-    max_speed: float = Field(default=2.0, gt=0, le=10)
+STALL_BINS = 3  # the stall limit is never shorter than this many feature bins
+STALL_CHECK_S = 0.05
+ROUTER_LOG = 50
 
 
 class PipelineStartRequest(BaseModel):
@@ -79,6 +91,12 @@ class LatencyStats(BaseModel):
     p95: float | None
     p99: float | None
     max: float | None
+
+
+class RouterEvent(BaseModel):
+    at_ns: int
+    on: bool
+    reason: str
 
 
 class PipelineStatus(BaseModel):
@@ -101,6 +119,11 @@ class PipelineStatus(BaseModel):
     pipeline_latency_ms: LatencyStats
     last_error: str | None
     started_at_ns: int | None
+    # Milestone 4 (additive)
+    router_capabilities: list[Capability] = []
+    stall_limit_ms: float | None = None
+    last_router_stop: RouterEvent | None = None
+    router_log: list[RouterEvent] = []
 
 
 def _stats(values: deque[float]) -> LatencyStats:
@@ -130,14 +153,21 @@ class _Running:
     chain: SignalChain | None
     fs: float | None
     output: dict[str, Any]
-    decoder: RidgeDecoder | None
-    streaming: StreamingDecoder | None
+    decoder: Decoder | None
+    streaming: Any  # StreamingDecoder | StreamingLDA: .step(features) -> values
     router: RouterSpec | None
     cross_source: bool
     warnings: list[str]
     behavior_std: list[float] | None
     capabilities: list[CapabilityDescriptor]
     started_at_ns: int = field(default_factory=time.time_ns)
+    command_router: CommandRouter | None = None
+    # monotonic time of the last decoder input since the router was enabled (stall watchdog)
+    last_decoder_input: float | None = None
+
+
+def _router_on(run: _Running | None) -> bool:
+    return run is not None and run.router is not None and run.router.enabled
 
 
 class PipelineManager:
@@ -146,10 +176,12 @@ class PipelineManager:
         models_dir: Path,
         ingest: Callable[[list[EventDraft]], None],
         on_capabilities_changed: Callable[[], None],
+        on_commands_stopped: Callable[[str], None] | None = None,
     ) -> None:
         self.models_dir = models_dir
         self._ingest = ingest
         self._caps_changed = on_capabilities_changed
+        self._commands_stopped = on_commands_stopped or (lambda _reason: None)
         self.available, self.unavailable_reason = _probe()
         self._run: _Running | None = None
         self._queue: deque[EventEnvelope] = deque()
@@ -158,6 +190,7 @@ class PipelineManager:
         self.last_error: str | None = None
         self._proc_us: deque[float] = deque(maxlen=LATENCY_WINDOW)
         self._lat_ms: deque[float] = deque(maxlen=LATENCY_WINDOW)
+        self.router_log: deque[RouterEvent] = deque(maxlen=ROUTER_LOG)
         self.counters: dict[str, int] = {}
         self._reset_counters()
 
@@ -169,6 +202,9 @@ class PipelineManager:
             "features_out": 0,
             "decoded_out": 0,
             "commands_out": 0,
+            "selections_out": 0,
+            "texts_out": 0,
+            "router_stalls": 0,
             "errors": 0,
         }
 
@@ -177,12 +213,33 @@ class PipelineManager:
     def running(self) -> bool:
         return self._run is not None
 
+    @property
+    def router_on(self) -> bool:
+        return _router_on(self._run)
+
     def capability_descriptors(self) -> list[CapabilityDescriptor]:
         return list(self._run.capabilities) if self._run else []
 
     @property
     def capabilities(self) -> frozenset[Capability]:
         return frozenset(c.capability for c in self.capability_descriptors())
+
+    @property
+    def command_capabilities(self) -> frozenset[Capability]:
+        """Command capabilities the running router currently provides (decoded commands)."""
+        return self.capabilities & COMMAND_CAPABILITIES
+
+    @property
+    def last_router_stop(self) -> RouterEvent | None:
+        return next((e for e in reversed(self.router_log) if not e.on), None)
+
+    def _log_router(self, on: bool, reason: str) -> None:
+        self.router_log.append(RouterEvent(at_ns=time.time_ns(), on=on, reason=reason[:256]))
+        log.info("command router %s (%s)", "on" if on else "off", reason)
+
+    def _router_stopped(self, reason: str) -> None:
+        self._log_router(False, reason)
+        self._commands_stopped(reason)
 
     # ------------------------------------------------------------------ control
     def start(
@@ -201,7 +258,6 @@ class PipelineManager:
                 ErrorCode.INVALID_STATE, "connect a device before starting a pipeline"
             )
         from brainos.decoding import model as models
-        from brainos.decoding.ridge import RidgeDecoder
         from brainos.processing import ProcessingSpec, SignalChain, StageConfigError
 
         try:
@@ -278,7 +334,7 @@ class PipelineManager:
                 )
             )
 
-        decoder = None
+        decoder: Decoder | None = None
         cross = False
         warnings: list[str] = []
         behavior_std = None
@@ -286,7 +342,12 @@ class PipelineManager:
             path = self.models_dir / f"{req.model_id}.json"
             if not path.exists():
                 raise PipelineError(ErrorCode.DEVICE_NOT_FOUND, f"no model {req.model_id}")
-            decoder = RidgeDecoder.load(path)
+            try:
+                decoder = models.load_model(path)
+            except (ValueError, TypeError, KeyError, OSError) as exc:
+                raise PipelineError(
+                    ErrorCode.INCOMPATIBLE_DECODER, f"cannot load model {req.model_id}: {exc}"
+                ) from None
             from brainos.datasets import session_of
 
             compat = models.check(
@@ -305,23 +366,29 @@ class PipelineManager:
             cross, warnings = compat.cross_source, compat.warnings
             std = decoder.training.get("behavior_std")
             behavior_std = [float(v) for v in std] if isinstance(std, list) else None
+            params: dict[str, Any] = {
+                "model_id": decoder.model_id,
+                "dims": decoder.dims,
+                "space": decoder.space,
+                "quantity": decoder.quantity,
+            }
+            classes = models.output_classes(decoder)
+            if classes is not None:
+                params["outputs"] = "classes"
             out_caps.append(
                 CapabilityDescriptor(
                     capability=Capability.KINEMATIC_INTENT,
-                    params={
-                        "model_id": decoder.model_id,
-                        "dims": decoder.dims,
-                        "space": decoder.space,
-                    },
+                    params=params,
                     description="decoded_intent from a calibrated model (not an app command)",
                 )
             )
         router = req.router
         if router is not None and router.enabled:
             self._validate_router(router, decoder, behavior_std)
-            out_caps.append(self._router_cap(router, decoder))
+            assert decoder is not None
+            out_caps.extend(router_capabilities(router, decoder.model_id))
 
-        self.stop("restarting")
+        self.stop("pipeline restarted")
         self._reset_counters()
         self._proc_us.clear()
         self._lat_ms.clear()
@@ -342,6 +409,9 @@ class PipelineManager:
             behavior_std=behavior_std,
             capabilities=out_caps,
         )
+        if router is not None and router.enabled and decoder is not None:
+            self._run.command_router = self._make_router(self._run, router)
+            self._log_router(True, "enabled with the pipeline start")
         self._queue.clear()
         self._task = asyncio.get_running_loop().create_task(self._loop(), name="brainos-pipeline")
         log.info(
@@ -352,58 +422,115 @@ class PipelineManager:
 
     @staticmethod
     def _validate_router(
-        router: RouterSpec, decoder: RidgeDecoder | None, std: list[float] | None
+        router: RouterSpec, decoder: Decoder | None, std: list[float] | None
     ) -> None:
         if decoder is None:
             raise PipelineError(
                 ErrorCode.PROTOCOL_ERROR, "the command router needs a loaded decoder"
             )
-        for d in (router.x_dim, router.y_dim):
-            if d not in decoder.dims:
-                raise PipelineError(
-                    ErrorCode.PROTOCOL_ERROR, f"decoder has no dimension {d!r} ({decoder.dims})"
-                )
-        if std is None:
+        from brainos.decoding.model import output_classes
+
+        classes = output_classes(decoder)
+        if not router.pointer and not router.discrete:
             raise PipelineError(
-                ErrorCode.PROTOCOL_ERROR,
-                "model lacks training behavior_std; retrain it to use the router",
+                ErrorCode.CAPABILITY_UNSUPPORTED,
+                "the command router has nothing to emit: map two decoder dimensions to the "
+                "pointer (x_dim, y_dim) or add discrete rules",
             )
+        if router.pointer:
+            if classes is not None:
+                raise PipelineError(
+                    ErrorCode.INCOMPATIBLE_DECODER,
+                    f"pointer movement needs a continuous decoder; {decoder.model_id} is a "
+                    f"classifier (classes {classes}). Use discrete rules instead.",
+                )
+            for d in (router.x_dim, router.y_dim):
+                if d not in decoder.dims:
+                    raise PipelineError(
+                        ErrorCode.PROTOCOL_ERROR,
+                        f"decoder has no dimension {d!r} ({decoder.dims})",
+                    )
+            if std is None:
+                raise PipelineError(
+                    ErrorCode.PROTOCOL_ERROR,
+                    "model lacks training behavior_std; retrain it to use the router",
+                )
+        if router.discrete:
+            if classes is None:
+                raise PipelineError(
+                    ErrorCode.INCOMPATIBLE_DECODER,
+                    f"discrete actions need a classifier (outputs: classes); {decoder.model_id} "
+                    f"outputs continuous {decoder.quantity} {decoder.dims}",
+                )
+            for r in router.discrete:
+                if r.output not in classes:
+                    raise PipelineError(
+                        ErrorCode.INCOMPATIBLE_DECODER,
+                        f"decoder {decoder.model_id} has no class {r.output!r} ({classes})",
+                    )
 
     @staticmethod
-    def _router_cap(router: RouterSpec, decoder: RidgeDecoder | None) -> CapabilityDescriptor:
-        return CapabilityDescriptor(
-            capability=Capability.POINTER_INTENT,
-            params={
-                "source": "command_router",
-                "model_id": decoder.model_id if decoder else "",
-                "x_dim": router.x_dim,
-                "y_dim": router.y_dim,
-                "gain": router.gain,
-            },
-            description="Pointer commands routed from a decoder by explicit operator mapping",
+    def _make_router(run: _Running, router: RouterSpec) -> CommandRouter:
+        assert run.decoder is not None
+        return CommandRouter(
+            router,
+            model_id=run.decoder.model_id,
+            dims=run.decoder.dims,
+            behavior_std=run.behavior_std,
         )
 
-    def set_router(self, router: RouterSpec) -> PipelineStatus:
+    @staticmethod
+    def _route(
+        r: RouterSpec, dims: list[str], values: list[float], std: list[float]
+    ) -> tuple[float, float]:
+        return pointer_velocity(r, dims, values, std)
+
+    def set_router(
+        self, router: RouterSpec, reason: str = "disabled by operator"
+    ) -> PipelineStatus:
         run = self._run
         if run is None:
             raise PipelineError(ErrorCode.INVALID_STATE, "no pipeline running")
-        caps = [c for c in run.capabilities if c.capability is not Capability.POINTER_INTENT]
         if router.enabled:
             self._validate_router(router, run.decoder, run.behavior_std)
-            caps.append(self._router_cap(router, run.decoder))
+        was_on = _router_on(run)
+        caps = [c for c in run.capabilities if c.capability not in COMMAND_CAPABILITIES]
+        if router.enabled:
+            assert run.decoder is not None
+            caps.extend(router_capabilities(router, run.decoder.model_id))
         run.router = router
         run.capabilities = caps
+        # fresh rule states and stall watchdog on every change; never carry state over
+        run.command_router = self._make_router(run, router) if router.enabled else None
+        run.last_decoder_input = None
+        if router.enabled:
+            self._log_router(True, "settings changed" if was_on else "enabled by operator")
+            if was_on:
+                self._commands_stopped("router settings changed")
+        elif was_on:
+            self._router_stopped(reason)
         self._caps_changed()
         return self.status()
+
+    def stop_router(self, reason: str) -> bool:
+        """Turn command output off (keeps the mapping). Returns whether it was on."""
+        run = self._run
+        if run is None or run.router is None or not run.router.enabled:
+            return False
+        self.set_router(run.router.model_copy(update={"enabled": False}), reason)
+        return True
 
     def stop(self, reason: str = "stopped") -> None:
         task, self._task = self._task, None
         if task is not None:
             task.cancel()
-        had = self._run is not None
+        run = self._run
+        was_on = _router_on(run)
         self._run = None
         self._queue.clear()
-        if had:
+        if was_on:
+            self._router_stopped(reason)
+        if run is not None:
             log.info("pipeline stopped (%s)", reason)
             self._caps_changed()
 
@@ -424,11 +551,36 @@ class PipelineManager:
         self._queue.append(env)
         self._wake.set()
 
+    def stall_limit_ms(self, run: _Running | None = None) -> float | None:
+        run = run or self._run
+        if run is None or run.router is None or not run.router.enabled:
+            return None
+        bin_ms = float(run.output.get("bin_ms") or 0.0)
+        return max(run.router.stall_ms, STALL_BINS * bin_ms)
+
+    def check_stall(self, now: float | None = None) -> bool:
+        """Stop command output if the decoder has had no input for too long. Armed only
+        after the first decoder input since the router was enabled (before that, nothing
+        has been emitted that could go stale)."""
+        run = self._run
+        limit = self.stall_limit_ms(run)
+        if run is None or limit is None or run.last_decoder_input is None:
+            return False
+        idle_ms = ((now if now is not None else time.monotonic()) - run.last_decoder_input) * 1e3
+        if idle_ms <= limit:
+            return False
+        self.counters["router_stalls"] += 1
+        self.stop_router(f"input stalled: no decoder input for {idle_ms:.0f} ms (limit {limit:g})")
+        return True
+
     async def _loop(self) -> None:
         while True:
             if not self._queue:
                 self._wake.clear()
-                await self._wake.wait()
+                timeout = STALL_CHECK_S if self.router_on else None
+                with contextlib.suppress(TimeoutError):
+                    await asyncio.wait_for(self._wake.wait(), timeout)
+                self.check_stall()
                 continue
             env = self._queue.popleft()
             run = self._run
@@ -446,6 +598,7 @@ class PipelineManager:
             if drafts:
                 self._ingest(drafts)
                 self._lat_ms.append((time.time_ns() - env.timestamp_ns) / 1e6)
+            self.check_stall()
             await asyncio.sleep(0)  # yield between inputs
 
     def _process(self, run: _Running, env: EventEnvelope) -> list[EventDraft]:
@@ -518,56 +671,37 @@ class PipelineManager:
             q = Quality(score=0.5 if (run.cross_source or gap) else 1.0, flags=flags)
             for vals, ts in features:
                 pred = dec.step(vals)
+                if run.command_router is not None:
+                    run.last_decoder_input = time.monotonic()
                 values = [float(v) for v in pred]
                 if not all(math.isfinite(v) for v in values):
                     self.counters["errors"] += 1
                     continue
-                out.append(
-                    EventDraft(
-                        EventType.INTENT_KINEMATICS,
-                        {
-                            "quantity": run.decoder.quantity,
-                            "dims": run.decoder.dims,
-                            "unit": run.decoder.unit,
-                            "values": values,
-                            "space": run.decoder.space,
-                        },
-                        q,
-                        mk(ProvenanceKind.DECODED_INTENT, model_id=model_id),
-                        ts,
-                    )
+                decoded = EventDraft(
+                    EventType.INTENT_KINEMATICS,
+                    {
+                        "quantity": run.decoder.quantity,
+                        "dims": run.decoder.dims,
+                        "unit": run.decoder.unit,
+                        "values": values,
+                        "space": run.decoder.space,
+                    },
+                    q,
+                    mk(ProvenanceKind.DECODED_INTENT, model_id=model_id),
+                    ts,
                 )
+                out.append(decoded)
                 self.counters["decoded_out"] += 1
-                r = run.router
-                if r is not None and r.enabled and run.behavior_std is not None:
-                    v = self._route(r, run.decoder.dims, values, run.behavior_std)
-                    out.append(
-                        EventDraft(
-                            EventType.INTENT_POINTER,
-                            {"vx": v[0], "vy": v[1]},
-                            q,
-                            mk(ProvenanceKind.DECODED_INTENT, model_id=model_id),
-                            ts,
-                        )
-                    )
-                    self.counters["commands_out"] += 1
+                if run.command_router is not None:
+                    for cmd in run.command_router.route(decoded):
+                        out.append(cmd)
+                        if cmd.event_type is EventType.INTENT_POINTER:
+                            self.counters["commands_out"] += 1
+                        elif cmd.event_type is EventType.INTENT_SELECTION:
+                            self.counters["selections_out"] += 1
+                        else:
+                            self.counters["texts_out"] += 1
         return out
-
-    @staticmethod
-    def _route(
-        r: RouterSpec, dims: list[str], values: list[float], std: list[float]
-    ) -> tuple[float, float]:
-        res = []
-        for d in (r.x_dim, r.y_dim):
-            i = dims.index(d)
-            z = values[i] / std[i] if std[i] > 0 else 0.0
-            if abs(z) < r.deadzone:
-                z = 0.0
-            v = max(-r.max_speed, min(r.max_speed, r.gain * z))
-            res.append(round(v, 6))
-        if r.invert_y:
-            res[1] = -res[1]
-        return res[0], res[1]
 
     # ------------------------------------------------------------------ status
     def status(self) -> PipelineStatus:
@@ -603,10 +737,16 @@ class PipelineManager:
             pipeline_latency_ms=_stats(self._lat_ms),
             last_error=self.last_error,
             started_at_ns=run.started_at_ns if run else None,
+            router_capabilities=sorted(self.command_capabilities),
+            stall_limit_ms=self.stall_limit_ms(run),
+            last_router_stop=self.last_router_stop,
+            router_log=list(self.router_log)[-10:],
         )
 
     async def aclose(self) -> None:
         task, self._task = self._task, None
+        if _router_on(self._run):
+            self._router_stopped("runtime shutdown")
         self._run = None
         if task is not None:
             task.cancel()

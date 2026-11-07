@@ -71,7 +71,7 @@ def make_settings(tmp_path: Path, **overrides: object) -> Settings:
     return Settings(**base)  # type: ignore[arg-type]
 
 
-def _free_port() -> int:
+def free_port() -> int:
     with socket.socket() as s:
         s.bind(("127.0.0.1", 0))
         port: int = s.getsockname()[1]
@@ -81,9 +81,14 @@ def _free_port() -> int:
 @pytest.fixture
 def live_server(tmp_path: Path) -> Iterator[str]:
     """A real uvicorn server on a free port in a background thread."""
-    port = _free_port()
+    port = free_port()
+    yield from serve(create_app(make_settings(tmp_path, port=port)), port)
+
+
+def serve(app: Any, port: int) -> Iterator[str]:
+    """Run ``app`` with uvicorn on ``port`` in a background thread until the generator ends."""
     config = uvicorn.Config(
-        create_app(make_settings(tmp_path, port=port)),
+        app,
         host="127.0.0.1",
         port=port,
         log_level="warning",
