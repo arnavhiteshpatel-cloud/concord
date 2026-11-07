@@ -24,7 +24,7 @@ function checkPayload(type: EventType, p: Record<string, unknown>): string | nul
     case "intent.pointer":
       return inRange(p.vx, -10, 10) && inRange(p.vy, -10, 10) ? null : "pointer vx/vy invalid";
     case "intent.selection":
-      return p.action === "primary" && inRange(p.confidence, 0, 1) ? null : "selection invalid";
+      return (p.action === "primary" || p.action === "activate" || p.action === "cancel") && inRange(p.confidence, 0, 1) ? null : "selection invalid";
     case "intent.text":
       return isStr(p.text) &&
         p.text.length >= 1 &&

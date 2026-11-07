@@ -1,0 +1,18 @@
+[build-system]
+requires = ["hatchling>=1.21"]
+build-backend = "hatchling.build"
+
+[project]
+name = "brainos-adapter-sdk"
+version = "1.0.0"
+description = "Public SDK for integrating neural-data sources with BrainOS as isolated, read-only plugins"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary (internal preview)" }
+dependencies = ["numpy>=1.26"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "mypy>=1.10", "ruff>=0.5"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/brainos_adapter_sdk"]
