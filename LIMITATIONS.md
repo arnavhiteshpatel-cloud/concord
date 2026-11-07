@@ -134,3 +134,26 @@ the PR description and delete it here.
   Vitest 4's optional peer dependencies; peers we need are pinned explicitly.
 - No packaging/publishing of the SDKs yet (installed from the repo).
 - Diagnostics are in-memory only and reset on restart.
+
+## Ecosystem plugins (Milestone 4, `brainos-brainflow`, `brainos-bci2000`)
+
+See docs/ECOSYSTEMS.md for details and evidence.
+
+- Neither plugin has been run with acquisition hardware. BrainFlow was exercised only with
+  its synthetic, playback-file and streaming boards (and a real driver's failure path);
+  BCI2000 only with a locally built SignalGenerator + DummySignalProcessing +
+  DummyApplication from a public source fork (bci2000.org was not reachable).
+- Not yet wired through the plugin host / runtime (built in parallel); tested directly
+  through the public adapter API.
+- BrainFlow: only the DEFAULT preset is read; board configuration (`config_board`) is not
+  offered (it writes to the device); BrainFlow markers cannot reach a read-only consumer
+  (BrainFlow overwrites the marker row), so there is no markers stream; units are taken from
+  BrainFlow's docs ("uV wherever possible" for EXG) and unknown otherwise; channels BrainFlow
+  lists under several types are typed as ambiguous with modality unknown; package-counter
+  loss inference assumes a 0-255 counter unless the operator sets `package_num_modulus`.
+- BCI2000: only the App Connector output is used — processed control information (control
+  signal + states), never raw signal (raw signal would need the FieldTripBuffer route, not
+  implemented). Blocks whose datagrams are all lost are undetectable (no block counter on the
+  wire). `synthetic`/`prerecorded` are operator declarations (App Connector does not reveal
+  BCI2000's source module). The live test against BCI2000 is opt-in (`BCI2000_PROG_DIR`); CI
+  replays a capture recorded from that build.
