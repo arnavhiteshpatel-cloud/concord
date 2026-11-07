@@ -302,6 +302,20 @@ that did not happen (one block had a 62 ms SourceTime step followed by ~0 ms, wi
 datagram received), so that inference was removed. Such gaps remain visible in the timestamps.
 The socket requests a 4 MiB receive buffer (one datagram per line).
 
+### Receiver restarts stop BCI2000's output until the next run (measured)
+
+Against the genuine BCI2000 3.6 build: while a run was active, the receiver socket was closed
+and re-opened. Re-opened immediately, data kept flowing (2,881 datagrams in the next 3 s);
+after a **1 s gap with nothing listening, BCI2000 sent nothing more** (0 datagrams in the
+next 5 s) for the rest of the run. In BCI2000's source, `ConnectorOutput` opens its sending
+sockets only in `StartRun` (`ConnectorFilters.cpp` lines 198–210) and the send loop ignores
+write failures (lines 243–264), so a destination that becomes unreachable is not retried
+until the next run. Consequences: start the BrainOS source **before** starting the BCI2000
+run; after BrainOS reconnects (plugin host restart, BrainOS restart), stop and start the
+BCI2000 run. The plugin's open error says this. It is also why `brainos-certify`'s
+`reconnect.host_killed` phase cannot pass against a live BCI2000 run (the certifier kills
+the receiver mid-run on purpose); see docs/COMPATIBILITY.md.
+
 ### What was tested
 
 **Against genuine BCI2000 (this happened, within the timebox).** BCI2000 3.6 was built from
