@@ -86,6 +86,10 @@ class ReplayAdapter(DeviceAdapter):
             self._paused_at = None
             self._running.set()
 
+    @property
+    def origin(self) -> str:
+        return self._source.origin
+
     # ------------------------------------------------------------ playback control
     def set_speed(self, speed: float) -> None:
         """Change playback speed without a jump: re-anchor the timeline at the current record."""

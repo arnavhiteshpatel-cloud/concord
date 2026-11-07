@@ -26,6 +26,7 @@ from brainos.adapters.simulated import (
 )
 from brainos.contracts.protocol import DeviceDescriptor, SourceMetadata
 from brainos.runtime.catalog import NWBCatalog
+from brainos.runtime.live_sources import LiveSourceRegistry
 
 log = logging.getLogger(__name__)
 
@@ -57,6 +58,7 @@ class DeviceRegistry:
         self._replay_loop = replay_loop
         root = recordings_dir.parent
         self.catalog = NWBCatalog(datasets_dir or root / "datasets", models_dir or root / "models")
+        self.live = LiveSourceRegistry()
         self._factories: dict[str, tuple[DeviceDescriptor, Callable[[], DeviceAdapter]]] = {
             profile_a.DEVICE_ID: (
                 profile_a.descriptor(),
@@ -95,6 +97,7 @@ class DeviceRegistry:
                 except (RecordingFormatError, OSError) as exc:
                     log.warning("ignoring recording %s: %s", path.name, exc)
         out.extend(self.catalog.list())
+        out.extend(self.live.list())
         return out
 
     def _nwb_path(self, device_id: str) -> Path:
@@ -115,6 +118,10 @@ class DeviceRegistry:
         return self.catalog.source(self._nwb_path(device_id)).metadata()
 
     def describe(self, device_id: str) -> DeviceDescriptor:
+        if self.live.owns(device_id):
+            for d in self.live.list():
+                if d.device_id == device_id:
+                    return d
         if device_id.startswith(REPLAY_PREFIX):
             return replay_descriptor(self._replay_source(device_id))
         if device_id.startswith(NWB_PREFIX):
@@ -129,6 +136,11 @@ class DeviceRegistry:
             raise DeviceNotFoundError(device_id) from None
 
     def create(self, device_id: str) -> DeviceAdapter:
+        if self.live.owns(device_id):
+            try:
+                return self.live.create(device_id)
+            except ValueError as exc:
+                raise DeviceOpenError(f"{device_id}: {exc}") from exc
         if device_id.startswith(REPLAY_PREFIX):
             return ReplayAdapter(self._replay_source(device_id), loop=self._replay_loop)
         if device_id.startswith(NWB_PREFIX):

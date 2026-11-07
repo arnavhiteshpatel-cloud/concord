@@ -18,7 +18,12 @@ function sizeCanvas(c: HTMLCanvasElement): CanvasRenderingContext2D | null {
   return ctx;
 }
 
-export function NeuralView({ neural }: { neural: NeuralBuffer }) {
+/**
+ * "offline": a verified dataset file replayed by BrainOS (features + recorded behavior + an
+ * offline-evaluated decoder). "pipeline": features computed by the BrainOS pipeline from the
+ * connected raw source, plus that source's behavior stream and the loaded decoder, if any.
+ */
+export function NeuralView({ neural, source }: { neural: NeuralBuffer; source: "offline" | "pipeline" }) {
   const raster = useRef<HTMLCanvasElement>(null);
   const traces = useRef<HTMLCanvasElement>(null);
   const [dim, setDim] = useState(0);
@@ -107,12 +112,13 @@ export function NeuralView({ neural }: { neural: NeuralBuffer }) {
   const hasDecoded = neural.decoded.size > 0;
   return (
     <Panel
-      title="Recorded neural activity · offline replay"
+      title={source === "offline" ? "Recorded neural activity · offline replay" : "Pipeline features · processed_feature"}
       className="neural-panel"
-      testId="neural-view"
+      testId={source === "offline" ? "neural-view" : "pipeline-neural-view"}
       right={
         <span className="muted">
-          {neural.channelCount} ch · {neural.binMs} ms bins · {neural.feature.replace("_", " ")} · last 5 s
+          {neural.channelCount} ch · {neural.binMs} ms bins · {neural.feature.replace(/_/g, " ")} · last{" "}
+          {neural.binMs ? `${((NEURAL_WINDOW_BINS * neural.binMs) / 1000).toFixed(0)} s` : "—"}
         </span>
       }
     >
@@ -129,18 +135,30 @@ export function NeuralView({ neural }: { neural: NeuralBuffer }) {
           </select>
         </label>
         <span className="legend">
-          <span style={{ color: RECORDED }}>━ recorded (behavioral ground truth, valid samples)</span>
+          {neural.behavior.size > 0 && (
+            <span style={{ color: RECORDED }}>━ recorded (behavioral ground truth, valid samples)</span>
+          )}
           {hasDecoded && <span style={{ color: DECODED }}>┅ decoded_intent ({neural.modelId})</span>}
         </span>
       </div>
       <canvas ref={traces} className="trace-canvas" data-testid="trace-canvas" />
-      <p className="muted small">
-        Real spike counts from a human intracortical recording, replayed from a file. Kinematics are the dataset's
-        recorded (cued) velocity in arbitrary units.{" "}
-        {hasDecoded
-          ? "The dashed line is an offline baseline decoder on a held-out block — not real-time control."
-          : "No decoder is attached to this file."}
-      </p>
+      {source === "offline" ? (
+        <p className="muted small">
+          Real spike counts from a human intracortical recording, replayed from a file. Kinematics are the dataset's
+          recorded (cued) velocity in arbitrary units.{" "}
+          {hasDecoded
+            ? "The dashed line is an offline baseline decoder on a held-out block — not real-time control."
+            : "No decoder is attached to this file."}
+        </p>
+      ) : (
+        <p className="muted small">
+          Binned features computed by the BrainOS pipeline from the connected source (see the data badge for what that
+          source is). Solid: the source's behavior stream, if one is attached.{" "}
+          {hasDecoded
+            ? "Dashed: decoded_intent from the loaded model — calibrated offline, not validated for closed-loop control."
+            : "No decoder loaded."}
+        </p>
+      )}
     </Panel>
   );
 }

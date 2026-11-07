@@ -5,6 +5,7 @@ import threading
 import time
 from collections.abc import AsyncIterator, Iterator
 from pathlib import Path
+from typing import Any
 
 import httpx
 import pytest
@@ -47,6 +48,15 @@ def subscribe(
         required or [],
         optional if optional is not None else list(Capability),
     )
+
+
+@pytest.fixture
+def publishers() -> Iterator[list[Any]]:
+    """Test publishers (LSL / Open Ephys threads) stopped at teardown."""
+    pubs: list[Any] = []
+    yield pubs
+    for p in pubs:
+        p.stop()
 
 
 def make_settings(tmp_path: Path, **overrides: object) -> Settings:

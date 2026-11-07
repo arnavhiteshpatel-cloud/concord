@@ -5,6 +5,10 @@
 // reports/e2e.json (shown in the console's Tests tab):
 //   connect A -> live events -> control board (pointer + select) -> link drop + reconnect
 //   -> switch to B -> board keeps working (scan + text) -> record -> replay -> diagnostics/tests
+//   -> (M2) verified human recording, offline replay
+//   -> (M3) LSL test publisher: discover, register, connect, spikeband pipeline, stop;
+//      Open Ephys ZMQ test publisher: register, connect, counters. Both publishers generate
+//      synthetic data; LSL declares it, the Open Ephys protocol cannot ("origin unverified").
 //
 // Usage:
 //   node e2e/demo.cjs                 # starts its own server on :8765 with a temp data dir
@@ -57,11 +61,28 @@ async function waitHealthy(base, ms = 20000) {
   throw new Error(`server at ${base} not healthy`);
 }
 
+// Python for the server and the test publishers. PYTHONPATH pins the backend of *this*
+// checkout (an editable install elsewhere would otherwise serve a different frontend/dist).
+const PY = fs.existsSync(path.join(ROOT, ".venv/bin/python")) ? path.join(ROOT, ".venv/bin/python") : "python3";
+const pyEnv = {
+  PYTHONPATH: [path.join(ROOT, "backend", "src"), process.env.PYTHONPATH].filter(Boolean).join(path.delimiter),
+};
+const children = [];
+/** Milestone 3: a hardware-free protocol publisher (declared synthetic) as a child process. */
+function publisher(args) {
+  const p = spawn(PY, ["-m", "brainos.testing.publish", ...args, "--seconds", "600"], {
+    env: { ...process.env, ...pyEnv },
+    stdio: ["ignore", "ignore", "inherit"],
+  });
+  children.push(p);
+  return p;
+}
+
 async function main() {
   let server = null;
   let base = EXTERNAL;
   if (!base) {
-    const py = fs.existsSync(path.join(ROOT, ".venv/bin/python")) ? path.join(ROOT, ".venv/bin/python") : "python3";
+    const py = PY;
     const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "brainos-e2e-"));
     // Real recorded data (Milestone 2): link the verified dataset + model dirs read-only.
     for (const sub of ["datasets", "models"]) {
@@ -69,7 +90,7 @@ async function main() {
       if (fs.existsSync(src)) fs.symlinkSync(src, path.join(dataDir, sub), "dir");
     }
     server = spawn(py, ["-m", "brainos.server"], {
-      env: { ...process.env, BRAINOS_PORT: String(PORT), BRAINOS_DATA_DIR: dataDir, BRAINOS_LOG_LEVEL: "WARNING" },
+      env: { ...process.env, ...pyEnv, BRAINOS_PORT: String(PORT), BRAINOS_DATA_DIR: dataDir, BRAINOS_LOG_LEVEL: "WARNING" },
       stdio: ["ignore", "inherit", "inherit"],
     });
     base = `http://127.0.0.1:${PORT}`;
@@ -343,6 +364,115 @@ async function main() {
       return null;
     });
 
+    // ------------------------------------------------- Milestone 3: live acquisition (lab console)
+    // Hardware-free protocol publishers stand in for acquisition systems; both declare
+    // themselves synthetic, and the console must label them accordingly.
+    const SID = `brainos-e2e-${process.pid}`;
+    const LSL_ID = `lsl:${SID}`;
+    const OE_PORT = 5600 + (process.pid % 300);
+    const OE_ID = `openephys:127.0.0.1:${OE_PORT}`;
+    const numberIn = async (loc) => Number(((await loc.textContent({ timeout: 5000 })) ?? "").replace(/[^\d.-]/g, ""));
+    const grows = async (loc, label, timeout = 10000) => {
+      const a = await numberIn(loc);
+      const end = Date.now() + timeout;
+      while (Date.now() < end) {
+        await page.waitForTimeout(400);
+        const b = await numberIn(loc);
+        if (b > a) return [a, b];
+      }
+      throw new Error(`${label} did not increase from ${a}`);
+    };
+    const integrity = (k) => page.locator(`[data-testid="integrity-counters"] [data-counter="${k}"] .counter-value`).first();
+    const plCounter = (k) => page.locator(`[data-testid="pl-counters"] [data-counter="${k}"] .kpi-value`);
+
+    await step("M3-1. discover an LSL stream in the Acquisition tab and register it with its behavior stream", async () => {
+      publisher(["lsl-ephys", "--channels", "16", "--rate", "30000", "--source-id", SID]);
+      await page.getByTestId("tab-acquisition").click();
+      const row = page.locator(`[data-stream-key="${SID}"]`);
+      const end = Date.now() + 15000;
+      while (!(await row.count()) && Date.now() < end) {
+        await page.getByTestId("lsl-discover").click();
+        await expectText(page.getByTestId("lsl-discover"), /Discover LSL streams/, 12000);
+      }
+      if (!(await row.count())) throw new Error(`LSL stream ${SID} not discovered`);
+      const rowText = (await row.innerText()).replace(/\s+/g, " ").trim();
+      if (!/ 16 /.test(rowText) || !/30,000 Hz/.test(rowText) || !/synthetic/.test(rowText))
+        throw new Error(`unexpected stream metadata: ${rowText}`);
+      await page.getByTestId(`lsl-use-${SID}`).click();
+      await page.getByTestId("lsl-behavior").selectOption(`${SID}-behavior`);
+      await page.getByTestId("lsl-register").click();
+      await page.getByTestId("live-source-list").getByTestId(`device-${LSL_ID}`).waitFor({ timeout: 5000 });
+      await shot("08-m3-acquisition");
+      return `discovered: ${rowText.replace(/ configure$/, "")}`;
+    });
+
+    await step("M3-2. connect the LSL source: labelled simulated (declared), integrity counters advance", async () => {
+      await page.getByTestId(`device-${LSL_ID}`).click();
+      await expectText(page.getByTestId("runtime-state"), /streaming/);
+      await expectText(page.getByTestId("data-badge"), /SIMULATED DATA/);
+      const [a, b] = await grows(integrity("samples"), "integrity samples");
+      return `samples ${a} -> ${b}`;
+    });
+
+    await step("M3-3. start the spikeband pipeline: features flow, counters increase", async () => {
+      await page.getByTestId("tab-pipeline").click();
+      await page.getByTestId("pl-preset").selectOption("spikeband_threshold");
+      await page.getByTestId("pl-start").click();
+      await expectText(page.getByTestId("pl-running"), /running/);
+      await expectText(page.getByTestId("pl-output"), /features\.binned · threshold_crossing_count · 20 ms · 16 ch/);
+      const [a, b] = await grows(plCounter("features_out"), "features_out", 15000);
+      const row = page.locator('[data-event-type="features.binned"]').first();
+      await row.waitFor({ timeout: 5000 });
+      const prov = await text(row.locator(".prov"));
+      if (!prov.includes("processed_feature")) throw new Error(`features provenance was ${prov}`);
+      const dropped = await numberIn(plCounter("dropped_inputs"));
+      const errors = await numberIn(plCounter("errors"));
+      if (errors) throw new Error(`pipeline errors: ${errors}`);
+      if ((await numberIn(plCounter("commands_out"))) !== 0) throw new Error("commands without router");
+      await page.waitForTimeout(600);
+      await shot("09-m3-pipeline");
+      // Live tab: integrity counters replace the simulator pad; pipeline features get their own view
+      await page.getByTestId("tab-live").click();
+      await page.getByTestId("signal-integrity").waitFor({ timeout: 3000 });
+      await page.getByTestId("pipeline-neural-view").waitFor({ timeout: 3000 });
+      await page.waitForTimeout(800);
+      await shot("11-m3-live");
+      await page.getByTestId("tab-pipeline").click();
+      const st = await api("/pipeline");
+      return (
+        `features_out ${a} -> ${b} (UI); dropped ${dropped}; commands 0 (router off); ` +
+        `measured processing p50 ${st.processing_us.p50} µs, input->feature p50 ${st.pipeline_latency_ms.p50} ms`
+      );
+    });
+
+    await step("M3-4. stop the pipeline, disconnect, remove the LSL source", async () => {
+      await page.getByTestId("pl-stop").click();
+      await expectText(page.getByTestId("pl-running"), /stopped/);
+      await page.getByTestId("disconnect").click();
+      await expectText(page.getByTestId("runtime-state"), /idle/);
+      await page.getByTestId("tab-acquisition").click();
+      await page.getByTestId(`remove-${LSL_ID}`).click();
+      const end = Date.now() + 5000;
+      while ((await page.getByTestId(`device-${LSL_ID}`).count()) && Date.now() < end) await page.waitForTimeout(100);
+      if (await page.getByTestId(`device-${LSL_ID}`).count()) throw new Error("source still listed");
+      return null;
+    });
+
+    await step("M3-5. Open Ephys ZMQ: register, connect (LIVE STREAM · ORIGIN UNVERIFIED), counters advance", async () => {
+      publisher(["openephys", "--port", String(OE_PORT), "--channels", "8"]);
+      await page.getByTestId("oe-port").fill(String(OE_PORT));
+      await page.getByTestId("oe-register").click();
+      await page.getByTestId(`device-${OE_ID}`).click();
+      await expectText(page.getByTestId("runtime-state"), /streaming/, 12000);
+      await expectText(page.getByTestId("data-badge"), /LIVE STREAM · ORIGIN UNVERIFIED/);
+      const [a, b] = await grows(integrity("data_messages"), "data_messages");
+      await shot("10-m3-openephys");
+      await page.getByTestId("disconnect").click();
+      await expectText(page.getByTestId("runtime-state"), /idle/);
+      await page.getByTestId(`remove-${OE_ID}`).click();
+      return `data_messages ${a} -> ${b}`;
+    });
+
     await step("21. no uncaught page errors", async () => {
       if (errors.length) throw new Error(errors.join(" | "));
       return null;
@@ -359,6 +489,7 @@ async function main() {
       JSON.stringify({ generated_at: new Date().toISOString(), base, ok, steps }, null, 2),
     );
     await browser.close();
+    for (const c of children) c.kill("SIGTERM");
     if (server) server.kill("SIGINT");
   }
   console.log(ok ? "E2E PASSED" : "E2E FAILED");

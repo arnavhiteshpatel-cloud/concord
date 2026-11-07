@@ -115,6 +115,13 @@ class RidgeDecoder:
         "FALCON H1 baseline: causal exponential filter (tau 240 ms), z-score (train stats), "
         "ridge regression; alpha by blocked 5-fold CV within training data"
     )
+    # ---- model metadata (brainos.model/1). Older files lack these; see decoding/model.py.
+    schema: str = "brainos.model/1"
+    version: int = 1
+    # Required input: {"event_type", "feature", "bin_ms", "channel_count", "channel_labels"}
+    input: dict[str, Any] = field(default_factory=dict)
+    # Who/what the training data came from: {"identity", "description"}
+    source: dict[str, Any] = field(default_factory=dict)
 
     @property
     def channel_count(self) -> int:
@@ -175,6 +182,15 @@ class StreamingDecoder:
         return ((filtered - self._mean) / self._std) @ self._w + self._b
 
 
+def _model_id(space: str, digest: str) -> str:
+    prefix = (
+        "falcon-h1"
+        if space == "falcon_h1_7dof"
+        else "".join(ch if ch.isalnum() else "-" for ch in space.lower()).strip("-")[:32]
+    )
+    return f"{prefix}-ridge-{digest}"
+
+
 def fit(
     counts: FloatArray,
     behavior: FloatArray,
@@ -185,6 +201,8 @@ def fit(
     bin_ms: float,
     space: str,
     training: dict[str, Any],
+    input_spec: dict[str, Any] | None = None,
+    source: dict[str, Any] | None = None,
 ) -> RidgeDecoder:
     """Fit on one training sequence. Caller guarantees it contains no evaluation data."""
     kernel = exponential_kernel(bin_ms)
@@ -204,10 +222,11 @@ def fit(
         **training,
         "samples_used": int(rows.sum()),
         "behavior_mean": behavior[rows].mean(axis=0).tolist(),
+        "behavior_std": behavior[rows].std(axis=0).tolist(),
         "cv_r2_by_alpha": cv,
     }
     return RidgeDecoder(
-        model_id=f"falcon-h1-ridge-{digest}",
+        model_id=_model_id(space, digest),
         space=space,
         quantity="velocity",
         dims=dims,
@@ -222,6 +241,15 @@ def fit(
         alpha=alpha,
         training=training,
         created_at=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        input=input_spec
+        or {
+            "event_type": "features.binned",
+            "feature": "spike_count",
+            "bin_ms": bin_ms,
+            "channel_count": int(counts.shape[1]),
+            "channel_labels": None,
+        },
+        source=source or {},
     )
 
 

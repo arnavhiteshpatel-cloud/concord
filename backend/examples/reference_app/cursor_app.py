@@ -1,0 +1,204 @@
+"""BrainOS reference application: a center-out cursor task driven by pointer commands.
+
+Uses ONLY the public Python SDK (``brainos.sdk``) and the standard library. It knows nothing
+about devices, adapters, decoders or datasets: it declares that it *requires*
+``pointer_intent`` and reacts to whatever the runtime grants.
+
+* When no connected source can provide pointer commands (e.g. a raw LSL / Open Ephys stream
+  without a decoder and router), the runtime suspends the app. It does not move, and it
+  never derives commands from raw signals or features itself.
+* When commands arrive, it shows where they come from (provenance): simulated intent from a
+  simulator, or decoded intent from a named model, and whether the underlying data is
+  prerecorded or synthetic.
+
+Run against a running BrainOS (``make run``)::
+
+    python backend/examples/reference_app/cursor_app.py --url http://127.0.0.1:8000 --seconds 30
+
+This is a research demo, not an assistive or clinical interface.
+"""
+
+from __future__ import annotations
+
+import argparse
+import asyncio
+import contextlib
+import json
+import math
+import sys
+from dataclasses import dataclass, field
+from typing import Any
+
+from brainos.sdk import (
+    BrainOSError,
+    EventStream,
+    NegotiationUpdate,
+    RuntimeUpdate,
+    StreamItem,
+    is_event,
+)
+
+APP_ID = "reference-cursor"
+TARGET_RADIUS = 0.15
+DWELL_S = 0.3
+MAX_DT_S = 0.1  # a longer pause between commands does not teleport the cursor
+TARGETS = [
+    (0.7 * math.cos(2 * math.pi * k / 8), 0.7 * math.sin(2 * math.pi * k / 8)) for k in range(8)
+]
+
+
+@dataclass
+class SourceSeen:
+    device_id: str
+    kind: str  # provenance kind of the commands: simulated_intent | decoded_intent
+    model_id: str | None
+    prerecorded: bool
+    synthetic: bool
+    commands: int = 0
+
+    @property
+    def label(self) -> str:
+        what = (
+            f"decoded by model {self.model_id}"
+            if self.kind == "decoded_intent"
+            else "simulated intent"
+        )
+        tags = [
+            t
+            for t, on in (("prerecorded data", self.prerecorded), ("synthetic", self.synthetic))
+            if on
+        ]
+        return f"{self.device_id}: {what}" + (f" ({', '.join(tags)})" if tags else "")
+
+
+@dataclass
+class CursorApp:
+    """Pure state machine; feed it SDK stream items with :meth:`handle`."""
+
+    status: str = "connecting"  # negotiation status: active | suspended | no_device
+    x: float = 0.0
+    y: float = 0.0
+    target: int = 0
+    acquired: int = 0
+    commands: int = 0
+    ignored: int = 0  # events that are not commands (the app does not act on them)
+    sources: dict[tuple[str, str, str | None], SourceSeen] = field(default_factory=dict)
+    device_id: str | None = None
+    _last_ts: int | None = None
+    _dwell_s: float = 0.0
+    _reaching_center: bool = True
+
+    def handle(self, item: StreamItem) -> None:
+        if isinstance(item, NegotiationUpdate):
+            self.status = item.negotiation.status.value
+            if self.status != "active":
+                self._last_ts = None  # do not integrate across a suspension
+        elif isinstance(item, RuntimeUpdate):
+            dev = item.runtime.device
+            if (dev.device_id if dev else None) != self.device_id:
+                self.device_id = dev.device_id if dev else None
+                self._last_ts = None
+        elif is_event(item):
+            if item.event_type.value != "intent.pointer" or self.status != "active":
+                self.ignored += 1
+                return
+            self._command(item)
+
+    def _command(self, env: Any) -> None:
+        p = env.provenance
+        key = (env.device_id, p.kind.value, p.model_id)
+        src = self.sources.get(key)
+        if src is None:
+            src = self.sources[key] = SourceSeen(
+                env.device_id, p.kind.value, p.model_id, bool(p.replayed), bool(p.synthetic)
+            )
+        src.commands += 1
+        self.commands += 1
+        ts = env.device_timestamp_ns or env.timestamp_ns
+        dt = 0.0 if self._last_ts is None else min(MAX_DT_S, max(0.0, (ts - self._last_ts) / 1e9))
+        self._last_ts = ts
+        self.x = max(-1.0, min(1.0, self.x + env.payload.vx * dt))
+        self.y = max(-1.0, min(1.0, self.y + env.payload.vy * dt))
+        tx, ty = (0.0, 0.0) if self._reaching_center else TARGETS[self.target]
+        if math.hypot(self.x - tx, self.y - ty) <= TARGET_RADIUS:
+            self._dwell_s += dt
+            if self._dwell_s >= DWELL_S:
+                if not self._reaching_center:
+                    self.acquired += 1
+                    self.target = (self.target + 1) % len(TARGETS)
+                self._reaching_center = not self._reaching_center
+                self._dwell_s = 0.0
+        else:
+            self._dwell_s = 0.0
+
+    def summary(self) -> dict[str, Any]:
+        return {
+            "status": self.status,
+            "device_id": self.device_id,
+            "cursor": [round(self.x, 3), round(self.y, 3)],
+            "commands": self.commands,
+            "ignored_non_commands": self.ignored,
+            "targets_acquired": self.acquired,
+            "sources": [s.label + f" — {s.commands} commands" for s in self.sources.values()],
+        }
+
+    def line(self) -> str:
+        if self.status != "active":
+            return f"[{self.status}] waiting: no source currently provides pointer commands"
+        src = next(reversed(self.sources.values()), None)
+        where = src.label if src else "no commands yet"
+        return f"[active] cursor ({self.x:+.2f}, {self.y:+.2f}) acquired {self.acquired} | {where}"
+
+
+async def run(app: CursorApp, base_url: str, stop: asyncio.Event) -> CursorApp:
+    """Consume the event stream until ``stop`` is set."""
+    async with await EventStream.connect(
+        app_id=APP_ID,
+        app_name="Reference cursor app",
+        required=["pointer_intent"],
+        base_url=base_url,
+    ) as stream:
+        app.status = stream.negotiation.status.value
+        app.device_id = stream.runtime.device.device_id if stream.runtime.device else None
+
+        async def consume() -> None:
+            async for item in stream:
+                app.handle(item)
+
+        task = asyncio.create_task(consume())
+        await stop.wait()
+        task.cancel()
+        with contextlib.suppress(asyncio.CancelledError, BrainOSError):
+            await task
+    return app
+
+
+async def _main(args: argparse.Namespace) -> int:
+    app, stop = CursorApp(), asyncio.Event()
+    runner = asyncio.create_task(run(app, args.url, stop))
+    loop = asyncio.get_running_loop()
+    deadline = loop.time() + args.seconds
+    try:
+        while loop.time() < deadline and not runner.done():
+            await asyncio.sleep(1.0)
+            print(app.line(), flush=True)
+    finally:
+        stop.set()
+        try:
+            await runner
+        except (BrainOSError, OSError) as exc:
+            print(f"cannot reach BrainOS at {args.url}: {exc}", file=sys.stderr)
+            return 1
+    print(json.dumps(app.summary(), indent=2))
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    ap.add_argument("--url", default="http://127.0.0.1:8000")
+    ap.add_argument("--seconds", type=float, default=30.0)
+    return asyncio.run(_main(ap.parse_args(argv)))
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

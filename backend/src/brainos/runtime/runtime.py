@@ -51,6 +51,13 @@ from brainos.contracts.protocol import (
 from brainos.runtime.bus import DEFAULT_QUEUE_SIZE, EventBus, Subscriber
 from brainos.runtime.diagnostics import Diagnostics, DiagnosticsSnapshot
 from brainos.runtime.negotiation import negotiate
+from brainos.runtime.pipeline import (
+    PipelineError,
+    PipelineManager,
+    PipelineStartRequest,
+    PipelineStatus,
+    RouterSpec,
+)
 from brainos.runtime.recorder import Recorder, RecorderError, RecordingInfo
 from brainos.runtime.registry import DeviceNotFoundError, DeviceOpenError, DeviceRegistry
 
@@ -81,6 +88,10 @@ class Runtime:
         self.recorder = recorder
         self.bus = EventBus()
         self.bus.add_tap(recorder.on_event)
+        self.pipeline = PipelineManager(
+            registry.catalog.models_dir, self._ingest_derived, self._renegotiate_all
+        )
+        self.bus.add_tap(self.pipeline.tap)
         self.diagnostics = Diagnostics()
         self._queue_size = queue_size
         self._backoff = tuple(reconnect_backoff_s)
@@ -91,7 +102,9 @@ class Runtime:
         self._adapter: DeviceAdapter | None = None
         self._session_id: str | None = None
         self._seq = 0
-        self._last_device_ts: int | None = None
+        # last device timestamp per stream (event type x producing adapter): a multi-stream
+        # source (signal + behavior + markers) or the pipeline is monotonic per stream only
+        self._last_device_ts: dict[tuple[str, str], int] = {}
         self._last_error: str | None = None
         self._paused = False
         self._pump_task: asyncio.Task[None] | None = None
@@ -128,7 +141,13 @@ class Runtime:
         """The device apps negotiate against: only one that is delivering events."""
         if self._adapter is None or self._state in (RuntimeState.ERROR, RuntimeState.ENDED):
             return None
-        return self._device
+        extra = self.pipeline.capability_descriptors() if self._device is not None else []
+        if not extra or self._device is None:
+            return self._device
+        # Negotiate against device capabilities plus what the running pipeline derives.
+        have = self._device.capability_set
+        merged = list(self._device.capabilities) + [c for c in extra if c.capability not in have]
+        return self._device.model_copy(update={"capabilities": merged})
 
     # ------------------------------------------------------------- applications
     def register_app(
@@ -278,7 +297,32 @@ class Runtime:
             log.info("playback speed set to %gx", speed)
             return pb.playback_status()
 
-    def start_recording(self, name: str | None = None) -> str:
+    # ------------------------------------------------------------- pipeline
+    def _adapter_origin(self) -> str | None:
+        origin = getattr(self._adapter, "origin", None)
+        return origin if isinstance(origin, str) else None
+
+    def start_pipeline(self, req: PipelineStartRequest) -> PipelineStatus:
+        if self._state not in (RuntimeState.STREAMING, RuntimeState.PAUSED):
+            raise RuntimeCommandError(
+                ErrorCode.INVALID_STATE, f"cannot start a pipeline in state {self._state}"
+            )
+        try:
+            return self.pipeline.start(req, self._device, self._session_id, self._adapter_origin())
+        except PipelineError as exc:
+            raise RuntimeCommandError(exc.code, exc.message) from None
+
+    def set_router(self, router: RouterSpec) -> PipelineStatus:
+        try:
+            return self.pipeline.set_router(router)
+        except PipelineError as exc:
+            raise RuntimeCommandError(exc.code, exc.message) from None
+
+    def stop_pipeline(self) -> PipelineStatus:
+        self.pipeline.stop("stopped by operator")
+        return self.pipeline.status()
+
+    def start_recording(self, name: str | None = None, *, exclude_raw: bool = False) -> str:
         if (
             self._adapter is None
             or self._device is None
@@ -290,7 +334,7 @@ class Runtime:
         ):
             raise RuntimeCommandError(ErrorCode.INVALID_STATE, "connect a device before recording")
         try:
-            rec = self.recorder.start(self._device, name)
+            rec = self.recorder.start(self._device, name, exclude_raw=exclude_raw)
         except RecorderError as exc:
             raise RuntimeCommandError(ErrorCode.RECORDING_ERROR, str(exc)) from exc
         self._broadcast_runtime()
@@ -304,6 +348,7 @@ class Runtime:
         return info
 
     async def shutdown(self) -> None:
+        await self.pipeline.aclose()
         async with self._lock:
             if self._adapter is not None:
                 await self._disconnect("runtime shutdown")
@@ -324,7 +369,7 @@ class Runtime:
         self._device = adapter.descriptor
         self._session_id = f"ses_{secrets.token_hex(8)}"
         self._seq = 0
-        self._last_device_ts = None
+        self._last_device_ts = {}
         self._last_error = None
         self._paused = False
         self.diagnostics.reset_rates()
@@ -337,6 +382,8 @@ class Runtime:
             self._fail(f"connect failed: {msg}", kind="connect_error")
             raise RuntimeCommandError(ErrorCode.DEVICE_ERROR, msg) from exc
         self._adapter = adapter
+        # Live adapters learn channels/rates/units during open(); use the refined descriptor.
+        self._device = adapter.descriptor
         self._renegotiate_all()  # before emitting, so apps receive the 'connected' status
         self._emit_status(DeviceState.CONNECTED, f"connected to {adapter.descriptor.display_name}")
         self._emit_status(DeviceState.STREAMING, "streaming")
@@ -345,6 +392,7 @@ class Runtime:
         self._pump_task.add_done_callback(self._pump_done)
 
     async def _disconnect(self, reason: str) -> None:
+        self.pipeline.stop(f"device disconnected ({reason})")
         self._set_state(RuntimeState.DISCONNECTING)
         await self._stop_pump()
         if self.recorder.active_name:
@@ -385,6 +433,7 @@ class Runtime:
 
     def _fail(self, message: str, *, kind: str) -> None:
         log.error("runtime error (%s): %s", kind, message)
+        self.pipeline.stop(f"runtime error: {kind}")
         if self.recorder.active_name:
             self.recorder.stop(f"runtime error: {kind}")
         self._last_error = message
@@ -409,6 +458,7 @@ class Runtime:
                 self._emit_status(DeviceState.ENDED, str(exc))
                 if self.recorder.active_name:
                     self.recorder.stop("source ended")
+                self.pipeline.stop("source ended")
                 self._set_state(RuntimeState.ENDED)
                 self._renegotiate_all()
                 return
@@ -459,6 +509,11 @@ class Runtime:
                 log.warning("%s: reconnect attempt %d failed: %s", device_id, attempt, exc)
                 continue
             self.diagnostics.reconnect_successes += 1
+            if adapter.descriptor != self._device:
+                # e.g. the stream came back with a different channel layout
+                log.warning("%s: descriptor changed on reconnect", device_id)
+                self._device = adapter.descriptor
+                self._renegotiate_all()
             adapter.set_paused(self._paused)
             self._emit_status(DeviceState.STREAMING, f"reconnected after {attempt} attempt(s)")
             self._set_state(RuntimeState.PAUSED if self._paused else RuntimeState.STREAMING)
@@ -488,13 +543,23 @@ class Runtime:
         )
         self._ingest(draft, time.monotonic_ns(), from_runtime=True)
 
-    def _ingest(self, draft: EventDraft, read_ns: int, *, from_runtime: bool = False) -> None:
+    def _ingest_derived(self, drafts: list[EventDraft]) -> None:
+        now = time.monotonic_ns()
+        for d in drafts:
+            self._ingest(d, now, derived=True)
+
+    def _ingest(
+        self, draft: EventDraft, read_ns: int, *, from_runtime: bool = False, derived: bool = False
+    ) -> None:
         """Stamp, validate, publish. Synchronous by design (atomic seq assignment)."""
         device = self._device
         if device is None or self._session_id is None:
             return
         capability = EVENT_CAPABILITY.get(draft.event_type)
-        if capability is None or (not from_runtime and not device.supports(capability)):
+        allowed = from_runtime or (capability is not None and device.supports(capability))
+        if not allowed and derived and capability in self.pipeline.capabilities:
+            allowed = True
+        if capability is None or not allowed:
             self.diagnostics.undeclared_capability += 1
             self.diagnostics.record_error(
                 "undeclared_capability",
@@ -505,9 +570,11 @@ class Runtime:
         quality = draft.quality
         dev_ts = draft.device_timestamp_ns
         if dev_ts is not None:
-            if self._last_device_ts is not None and dev_ts < self._last_device_ts:
+            key = (draft.event_type.value, draft.provenance.adapter)
+            last = self._last_device_ts.get(key)
+            if last is not None and dev_ts < last:
                 self.diagnostics.timestamp_regressions += 1
-                back_ms = (self._last_device_ts - dev_ts) / 1e6
+                back_ms = (last - dev_ts) / 1e6
                 self.diagnostics.record_error(
                     "timestamp_regression",
                     device.device_id,
@@ -517,7 +584,7 @@ class Runtime:
                     score=min(quality.score, 0.5),
                     flags=[*quality.flags, QualityFlag.TIMESTAMP_REGRESSION],
                 )
-            self._last_device_ts = dev_ts
+            self._last_device_ts[key] = dev_ts
         try:
             envelope = parse_envelope(
                 {

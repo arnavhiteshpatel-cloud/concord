@@ -103,6 +103,19 @@ def valid_event(event_type: str = "intent.pointer", **overrides: Any) -> dict[st
             },
             "processed_feature",
         ),
+        "features.vector": (
+            "neural_features",
+            {
+                "feature": "log_band_power",
+                "unit": "log10(uV^2)",
+                "band_hz": [70.0, 150.0],
+                "bin_ms": 50.0,
+                "bin_index": 1,
+                "channel_count": 2,
+                "values": [1.5, 2.25],
+            },
+            "processed_feature",
+        ),
         "behavior.sample": (
             "behavior",
             {

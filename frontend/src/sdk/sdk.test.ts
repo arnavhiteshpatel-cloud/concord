@@ -74,6 +74,17 @@ describe("validateEnvelope", () => {
     provenance: { ...prov, kind: "decoded_intent", synthetic: false, model_id: "m1" },
     payload: { quantity: "velocity", dims: ["tx"], unit: "arbitrary", values: [0.1], space: "falcon_h1_7dof" },
   };
+  it("accepts schema 1.2 feature vectors and rejects them as raw signal", () => {
+    const fv = {
+      event_type: "features.vector",
+      capability: "neural_features",
+      provenance: { ...prov, kind: "processed_feature", synthetic: false },
+      payload: { feature: "log_band_power", unit: "log10(uV^2)", band_hz: [70, 150], bin_ms: 50, bin_index: 0, channel_count: 2, values: [1, 2] },
+    };
+    expect(validateEnvelope(env({ ...fv, schema_version: "1.2" })).ok).toBe(true);
+    expect(validateEnvelope(env({ ...fv, provenance: { ...fv.provenance, kind: "raw_signal" } })).ok).toBe(false);
+    expect(validateEnvelope(env({ ...fv, payload: { ...fv.payload, values: [1] } })).ok).toBe(false);
+  });
   it("accepts schema 1.1 feature, behavior and decoded kinematic events", () => {
     for (const e of [feat, beh, kin]) expect(validateEnvelope(env({ ...e, schema_version: "1.1" })).ok).toBe(true);
   });

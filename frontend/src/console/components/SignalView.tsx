@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { RuntimeSnapshot, TelemetryMetric } from "../../sdk";
+import { isLiveSource } from "../api";
 import { MAX_CHANNELS_SHOWN, WINDOW_S, type SignalBuffer } from "../signalBuffer";
 import { Panel } from "./ui";
 
@@ -58,7 +59,8 @@ export function SignalView({ signal, runtime }: { signal: SignalBuffer; runtime:
         ctx.stroke();
         ctx.fillStyle = "rgba(139,155,176,0.7)";
         ctx.font = "10px ui-monospace, Menlo, monospace";
-        ctx.fillText(`ch${ch}  ±${peak.toFixed(0)} µV`, 6, lane * ch + 12);
+        const unit = signal.unit === "uV" ? "µV" : "(arbitrary units)";
+        ctx.fillText(`ch${ch}  ±${peak.toFixed(0)} ${unit}`, 6, lane * ch + 12);
       }
     };
     draw();
@@ -66,9 +68,10 @@ export function SignalView({ signal, runtime }: { signal: SignalBuffer; runtime:
   }, [signal]);
 
   const rec = runtime?.device?.capabilities.find((c) => c.capability === "recording");
+  const external = isLiveSource(runtime?.device);
   return (
     <Panel
-      title="Recording (synthetic signal)"
+      title={external ? "Raw signal · live source" : "Recording (synthetic signal)"}
       className="signal-panel"
       right={
         <span className="muted">
@@ -79,9 +82,16 @@ export function SignalView({ signal, runtime }: { signal: SignalBuffer; runtime:
       }
     >
       <canvas ref={canvas} className="signal-canvas" data-testid="signal-canvas" />
-      <p className="muted small">
-        Noise + sinusoids from the simulator. Not physiological and not coupled to any intent.
-      </p>
+      {external ? (
+        <p className="muted small">
+          Samples as received from the connected stream (first {MAX_CHANNELS_SHOWN} channels, each auto-scaled). What the
+          stream is — hardware, playback or simulation — is shown by the data badge.
+        </p>
+      ) : (
+        <p className="muted small">
+          Noise + sinusoids from the simulator. Not physiological and not coupled to any intent.
+        </p>
+      )}
     </Panel>
   );
 }

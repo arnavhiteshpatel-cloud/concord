@@ -26,7 +26,13 @@ truth, in this order:
   FALCON `held-in-minival` files are subsets of `held-in-calib`; never use one to evaluate
   a model trained on the other. Keep `DecoderLeakageError` checks intact.
 - **Read-only.** No write/stimulate/command path to devices: not in the adapter
-  contract, not in the API, not in the SDKs.
+  contract, not in the API, not in the SDKs. Live adapters only receive (the Open Ephys
+  heartbeat is the single, documented exception: a liveness message to the plugin).
+- **Validation levels.** Never describe protocol tests or prerecorded-data streaming as
+  hardware or human validation. Keep docs/VALIDATION_LEVELS.md current.
+- **Commands need the router.** Decoded or raw neural data must never reach apps as
+  `pointer_intent`/`selection`/`text_intent` unless the operator enabled the command router.
+- Never vendor the GPL Open Ephys client; the conformance test downloads it pinned by SHA-256.
 - **Provenance rules** (ARCHITECTURE.md §4.2) are enforced in
   `contracts/events.py`. Do not relax them to make something work.
 - **Apps are device-agnostic.** `frontend/src/apps/**` may import only from
@@ -41,13 +47,19 @@ truth, in this order:
 ```
 backend/src/brainos/
   contracts/   capability vocabulary, envelope, provenance, stream protocol (no I/O)
-  adapters/    base.py (contract), simulated/ (profiles A/B), replay/, nwb/ (real recordings)
+  adapters/    base.py (contract), simulated/ (profiles A/B), replay/, nwb/ (real recordings),
+               lsl/ (LSL inlets), openephys/ (ZMQ Interface plugin protocol) — receive-only
   datasets/    pinned dataset manifests + verified downloader
-  decoding/    offline-evaluated baseline decoder (numpy, JSON models)
+  decoding/    ridge decoder (numpy, JSON models), model.py (input spec + compatibility),
+               calibrate.py (fit from recordings)
+  processing/  causal, chunk-invariant streaming stages + presets (scipy)
+  testing/     LSL / Open Ephys protocol publishers (declared synthetic or prerecorded)
   runtime/     runtime.py (orchestrator), bus.py, negotiation.py, diagnostics.py, recorder.py,
-               registry.py, catalog.py (offline dataset devices)
+               registry.py, catalog.py (offline dataset devices), live_sources.py (LSL / OE),
+               pipeline.py (features -> decoder -> command router)
   server/      FastAPI app, REST routes, WebSocket, test-report reader
   sdk/         Python client SDK
+backend/examples/ print_events.py, reference_app/ (SDK-only, test-enforced), center_out_task.py
 backend/tests/ pytest suite (AT-* ids in docstrings)
 frontend/src/
   sdk/         TS client SDK (types mirror the JSON Schema)
@@ -67,6 +79,7 @@ make test         # pytest + vitest, writes reports/ (shown in console Tests tab
 make lint         # ruff + mypy (strict) + tsc
 make e2e          # Playwright demo against a fresh server (needs playwright + chromium)
 make bench        # measured throughput/latency
+make bench-live   # LSL / Open Ephys -> pipeline measurements -> docs/BENCHMARKS_LIVE.md
 make schema       # regenerate contracts JSON Schema after changing models
 make dataset      # download + verify demo recordings (DANDI 000954) -> data/datasets/
 make model        # baseline decoder on downloaded blocks -> data/models/, reports/decoding.json
