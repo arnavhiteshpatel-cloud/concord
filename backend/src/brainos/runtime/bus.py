@@ -6,6 +6,10 @@
   are visible to clients as gaps.
 * Control messages (negotiation, runtime snapshot) use a separate queue and are
   never dropped.
+* ``control.state`` (schema 1.4) is an event addressed to ONE subscriber by the runtime
+  (``offer_event(..., pinned=True)``): it is ordered with that subscriber's other events and
+  is never the one dropped on overflow (the oldest unpinned event is dropped instead), so
+  the safe-state signal cannot be lost to backpressure.
 * Decoded commands (``decoded_intent`` on a command capability) are delivered only to
   subscribers whose application the operator authorized for that capability, even if
   negotiation granted the capability (defense in depth; see runtime/control.py). When
@@ -49,8 +53,9 @@ class Subscriber:
     delivered: int = 0
     dropped: int = 0
     _next_delivery_seq: int = 0
-    # (delivery_seq, event_json, enqueue monotonic ns, decoded-command capability or None)
-    _events: deque[tuple[int, str, int, Capability | None]] = field(default_factory=deque)
+    # (delivery_seq, event_json, enqueue monotonic ns, decoded-command capability or None,
+    #  pinned: never dropped on overflow)
+    _events: deque[tuple[int, str, int, Capability | None, bool]] = field(default_factory=deque)
     _control: deque[str] = field(default_factory=deque)
     _wake: asyncio.Event = field(default_factory=asyncio.Event)
     allowed: frozenset[Capability] = frozenset()
@@ -59,6 +64,9 @@ class Subscriber:
     refused_commands: int = 0  # decoded commands not delivered: app not authorized
     purged_commands: int = 0  # queued decoded commands withdrawn after stop / revocation
     control_overflow: bool = False
+    # last control.state sent (session id, active, capabilities, why inactive); None = none yet
+    control_state: tuple[str, bool, tuple[str, ...], str] | None = None
+    control_reason: str = ""
 
     def __post_init__(self) -> None:
         self.allowed = frozenset(self.negotiation.granted)
@@ -67,11 +75,23 @@ class Subscriber:
         self.negotiation = negotiation
         self.allowed = frozenset(negotiation.granted)
 
-    def offer_event(self, event_json: str, command: Capability | None = None) -> None:
+    @property
+    def wants_control_state(self) -> bool:
+        return Capability.CONTROL_STATUS in self.required or (
+            Capability.CONTROL_STATUS in self.optional
+        )
+
+    def offer_event(
+        self, event_json: str, command: Capability | None = None, *, pinned: bool = False
+    ) -> None:
         if len(self._events) >= self.max_queue:
-            self._events.popleft()
-            self.dropped += 1
-        self._events.append((self._next_delivery_seq, event_json, time.monotonic_ns(), command))
+            drop = next((i for i, e in enumerate(self._events) if not e[4]), None)
+            if drop is not None:
+                del self._events[drop]
+                self.dropped += 1
+        self._events.append(
+            (self._next_delivery_seq, event_json, time.monotonic_ns(), command, pinned)
+        )
         self._next_delivery_seq += 1
         self._wake.set()
 
@@ -89,7 +109,9 @@ class Subscriber:
         removed = len(self._events) - len(keep)
         if removed:
             base = self._events[0][0]
-            self._events = deque((base + i, ev, t, cmd) for i, (_, ev, t, cmd) in enumerate(keep))
+            self._events = deque(
+                (base + i, ev, t, cmd, pin) for i, (_, ev, t, cmd, pin) in enumerate(keep)
+            )
             self._next_delivery_seq = base + len(keep)
             self.purged_commands += removed
         return removed
@@ -113,7 +135,7 @@ class Subscriber:
             if self._control:
                 return self._control.popleft(), None
             if self._events:
-                dseq, ev, t_enq, _ = self._events.popleft()
+                dseq, ev, t_enq, _, _ = self._events.popleft()
                 self.delivered += 1
                 return f'{{"type":"event","delivery_seq":{dseq},"event":{ev}}}', t_enq
             self._wake.clear()
