@@ -17,7 +17,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install
-        run: python -m pip install -e packages/brainos-adapter-sdk -e "backend[dev,nwb,dsp,live]" -e examples/adapters/brainos-example-adapter
+        run: python -m pip install -e packages/brainos-adapter-sdk -e "backend[server,dev,nwb,dsp,live]" -e examples/adapters/brainos-example-adapter -e packages/brainos-brainflow -e packages/brainos-bci2000
       - name: Cache verified datasets
         uses: actions/cache@v4
         with:
@@ -56,6 +56,18 @@ jobs:
           name: pytest-report
           path: reports/pytest-junit.xml
 
+  distribution:
+    # The developer distribution from built wheels in fresh virtualenvs: an adapter developer
+    # with only brainos-adapter-sdk, a lab with brainos[server], an app developer with brainos.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Clean-room distribution check
+        run: python scripts/dist_check.py
+
   frontend:
     runs-on: ubuntu-latest
     defaults:
@@ -92,7 +104,7 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - name: Install backend
-        run: python -m pip install -e packages/brainos-adapter-sdk -e "backend[dev,nwb,dsp,live]" -e examples/adapters/brainos-example-adapter
+        run: python -m pip install -e packages/brainos-adapter-sdk -e "backend[server,dev,nwb,dsp,live]" -e examples/adapters/brainos-example-adapter -e packages/brainos-brainflow -e packages/brainos-bci2000
       - name: Cache verified datasets
         uses: actions/cache@v4
         with:

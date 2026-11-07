@@ -4,11 +4,14 @@ VENV  := .venv
 PY    := $(VENV)/bin/python
 NPM   := npm --prefix frontend
 # the public adapter SDK, the backend, and the example third-party source plugin (editable)
-PY_PKGS := -e packages/brainos-adapter-sdk -e "backend[dev,nwb,dsp,live]" \
-           -e examples/adapters/brainos-example-adapter
-PLUGIN_SRC := ../packages/brainos-adapter-sdk ../examples/adapters/brainos-example-adapter
+PY_PKGS := -e packages/brainos-adapter-sdk -e "backend[server,dev,nwb,dsp,live]" \
+           -e examples/adapters/brainos-example-adapter \
+           -e packages/brainos-brainflow -e packages/brainos-bci2000
+PLUGIN_SRC := ../packages/brainos-adapter-sdk ../examples/adapters/brainos-example-adapter \
+              ../packages/brainos-brainflow ../packages/brainos-bci2000
+PACKAGE_TESTS := packages/brainos-brainflow packages/brainos-bci2000 examples/adapters/brainos-example-adapter
 
-.PHONY: setup dev run build test test-backend test-frontend lint e2e e2e-setup bench bench-live schema clean \
+.PHONY: setup dev run build test test-backend test-frontend lint e2e e2e-setup bench bench-live dist-check schema clean \
         dataset dataset-all model decoding-report
 
 setup:  ## create .venv (Python 3.12) and install backend + frontend deps
@@ -33,6 +36,7 @@ test: test-backend test-frontend  ## all unit/integration tests; writes reports/
 test-backend:
 	@mkdir -p reports
 	cd backend && ../$(PY) -m pytest -q --junitxml=../reports/pytest-junit.xml
+	@for p in $(PACKAGE_TESTS); do (cd $$p && ../../$(PY) -m pytest -q) || exit 1; done
 
 test-frontend:
 	@mkdir -p reports
@@ -44,6 +48,8 @@ lint:  ## ruff + mypy (strict) + tsc
 	cd backend && ../$(VENV)/bin/mypy && ../$(VENV)/bin/mypy --strict examples/reference_app examples/center_out_task.py
 	$(VENV)/bin/mypy --strict packages/brainos-adapter-sdk/src/brainos_adapter_sdk \
 	  examples/adapters/brainos-example-adapter/src/brainos_example_adapter
+	cd packages/brainos-brainflow && ../../$(VENV)/bin/mypy --strict src/brainos_brainflow
+	cd packages/brainos-bci2000 && ../../$(VENV)/bin/mypy --strict src/brainos_bci2000
 	$(NPM) run typecheck
 
 e2e-setup:  ## one-time: install Playwright (repo-local, not saved) + Chromium
@@ -52,6 +58,9 @@ e2e-setup:  ## one-time: install Playwright (repo-local, not saved) + Chromium
 
 e2e: build  ## Playwright demo against a fresh server; writes reports/e2e.json
 	node e2e/demo.cjs
+
+dist-check:  ## build wheels; adapter dev / lab / app dev flows in fresh virtualenvs
+	$(PY) scripts/dist_check.py
 
 bench:  ## measured throughput/latency on this machine -> docs/BENCHMARKS.md
 	$(PY) scripts/bench.py --write docs/BENCHMARKS.md
