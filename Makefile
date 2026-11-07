@@ -6,10 +6,12 @@ NPM   := npm --prefix frontend
 # the public adapter SDK, the backend, and the example third-party source plugin (editable)
 PY_PKGS := -e packages/brainos-adapter-sdk -e "backend[server,dev,nwb,dsp,live]" \
            -e examples/adapters/brainos-example-adapter \
-           -e packages/brainos-brainflow -e packages/brainos-bci2000
+           -e packages/brainos-brainflow -e packages/brainos-bci2000 \
+           -e "packages/brainos-certify[dev]"
 PLUGIN_SRC := ../packages/brainos-adapter-sdk ../examples/adapters/brainos-example-adapter \
-              ../packages/brainos-brainflow ../packages/brainos-bci2000
-PACKAGE_TESTS := packages/brainos-brainflow packages/brainos-bci2000 examples/adapters/brainos-example-adapter
+              ../packages/brainos-brainflow ../packages/brainos-bci2000 ../packages/brainos-certify
+PACKAGE_TESTS := packages/brainos-brainflow packages/brainos-bci2000 examples/adapters/brainos-example-adapter \
+                 packages/brainos-certify
 
 .PHONY: setup dev run build test test-backend test-frontend lint e2e e2e-setup bench bench-live dist-check schema clean \
         dataset dataset-all model decoding-report
@@ -50,6 +52,7 @@ lint:  ## ruff + mypy (strict) + tsc
 	  examples/adapters/brainos-example-adapter/src/brainos_example_adapter
 	cd packages/brainos-brainflow && ../../$(VENV)/bin/mypy --strict src/brainos_brainflow
 	cd packages/brainos-bci2000 && ../../$(VENV)/bin/mypy --strict src/brainos_bci2000
+	cd packages/brainos-certify && ../../$(VENV)/bin/mypy
 	$(NPM) run typecheck
 
 e2e-setup:  ## one-time: install Playwright (repo-local, not saved) + Chromium
