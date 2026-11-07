@@ -38,7 +38,7 @@ test: test-backend test-frontend  ## all unit/integration tests; writes reports/
 test-backend:
 	@mkdir -p reports
 	cd backend && ../$(PY) -m pytest -q --junitxml=../reports/pytest-junit.xml
-	@for p in $(PACKAGE_TESTS); do (cd $$p && ../../$(PY) -m pytest -q) || exit 1; done
+	@for p in $(PACKAGE_TESTS); do (cd $$p && $(CURDIR)/$(PY) -m pytest -q) || exit 1; done
 
 test-frontend:
 	@mkdir -p reports

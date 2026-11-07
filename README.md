@@ -5,15 +5,17 @@ brain-computer interfaces. Applications declare the capabilities they need, rece
 standardized, provenance-labelled events, and keep working when the underlying device
 changes.
 
-> **Status: Milestone 3 — lab-ready software, not yet lab-verified.** BrainOS now acquires
-> live streams over **Lab Streaming Layer** and the **Open Ephys ZMQ Interface**, runs a
-> streaming processing → decoding pipeline, calibrates decoders from recorded sessions, and
-> routes decoded commands to applications only when an operator enables it. These paths are
-> **protocol-tested** with software publishers and with genuine recorded human data streamed
-> as *prerecorded* (DANDI 000954) — **never with acquisition hardware or a participant**
-> ([docs/VALIDATION_LEVELS.md](docs/VALIDATION_LEVELS.md)). No implant vendor is supported,
-> and there is no write/stimulation path. Not a medical device. See
-> [LIMITATIONS.md](LIMITATIONS.md).
+> **Status: Milestone 4 — an integration platform, not yet lab-verified.** Device makers and
+> labs integrate sources as **isolated plugins** through a public adapter SDK, with a
+> certification toolkit; **BrainFlow** (official `BoardShim` API) and **BCI2000** (App
+> Connector: processed control information) are integrated as plugins; applications receive
+> decoded **pointer / select / activate / cancel / text** commands only after the operator
+> **authorizes** them. Built-in: LSL, Open Ephys ZMQ, recorded human data (DANDI 000954),
+> streaming processing, calibration (regression and LDA classification). Everything is
+> **software- or protocol-tested** — **never with acquisition hardware or a participant**
+> ([docs/VALIDATION_LEVELS.md](docs/VALIDATION_LEVELS.md),
+> [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md)). No implant vendor is supported, and there
+> is no write/stimulation path. Not a medical device. See [LIMITATIONS.md](LIMITATIONS.md).
 
 | Document | Purpose |
 | --- | --- |
@@ -32,6 +34,13 @@ changes.
 | [docs/OPEN_EPHYS.md](docs/OPEN_EPHYS.md) | Open Ephys ZMQ Interface protocol facts, sources, setup |
 | [docs/BENCHMARKS_LIVE.md](docs/BENCHMARKS_LIVE.md) | Measured live-protocol throughput, loss, latency, soak |
 | [docs/MILESTONE3_PLAN.md](docs/MILESTONE3_PLAN.md) | Milestone 3 audit, design, acceptance criteria |
+| [docs/DEVELOPERS.md](docs/DEVELOPERS.md) | **Developers:** install and use the adapter SDK, certify toolkit, server and app SDK |
+| [docs/ADAPTER_SDK.md](docs/ADAPTER_SDK.md) | Source-plugin API, validation rules, isolation model, step-by-step |
+| [docs/CERTIFICATION.md](docs/CERTIFICATION.md) | `brainos-certify`: checks, reports, validation levels |
+| [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md) | Compatibility matrix: every source × level reached × evidence |
+| [docs/ECOSYSTEMS.md](docs/ECOSYSTEMS.md) | BrainFlow and BCI2000: what each interface exposes, mapping, tests |
+| [docs/CONTROL_BRIDGE.md](docs/CONTROL_BRIDGE.md) | App authorization, action set, discrete decoding, stop/stale-command safety |
+| [docs/MILESTONE4_PLAN.md](docs/MILESTONE4_PLAN.md) | Milestone 4 extension points, workstreams, validation levels |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Rules for engineers working in this repo |
 
 ## Quick start (macOS, Apple Silicon)
