@@ -24,6 +24,10 @@ server = [
     "fastapi>=0.115",
     "uvicorn[standard]>=0.30",
     "brainos-adapter-sdk>=1.0,<2",
+    # M5-E: encodes raw-frame sample arrays to JSON ~3x faster than pydantic on tolist()
+    # (byte-identical output; docs/PERFORMANCE.md). Optional at runtime: without it the
+    # runtime falls back to pydantic's encoder (runtime/fastjson.py).
+    "orjson>=3.9",
 ]
 # Offline neural datasets (NWB) + baseline decoder. numpy is used by both.
 nwb = [
@@ -85,4 +89,5 @@ ignore = ["RUF012"]
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["E501", "ASYNC109", "ASYNC110"]
 "../scripts/bench.py" = ["E501"]  # emits markdown tables
+"../scripts/bench_scale.py" = ["E501"]  # emits markdown tables (M5-E)
 "src/brainos/decoding/evaluate_falcon.py" = ["E501"]  # emits markdown tables

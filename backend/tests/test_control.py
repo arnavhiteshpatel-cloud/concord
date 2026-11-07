@@ -670,5 +670,6 @@ async def test_classifier_calibrated_from_a_recording_runs_in_the_pipeline(
 
 def _peek(sub: Subscriber) -> list[dict[str, Any]]:
     return [
-        {"type": "event", "delivery_seq": d, "event": json.loads(ev)} for d, ev, *_ in sub._events
+        {"type": "event", "delivery_seq": d, "event": json.loads(ev.text)}
+        for d, ev, *_ in sub._events
     ]

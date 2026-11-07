@@ -38,6 +38,9 @@ def main() -> None:
         port=settings.port,
         log_level=settings.log_level.lower(),
         ws_max_size=64 * 1024,
+        # M5-E: no permessage-deflate. The server is local; compressing JSON sample frames
+        # cost ~13 ms of CPU per 180 KB frame (docs/PERFORMANCE.md) for no benefit.
+        ws_per_message_deflate=False,
     )
 
 

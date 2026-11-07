@@ -37,7 +37,7 @@ from brainos_adapter_sdk import (
 )
 from brainos_adapter_sdk.validate import version_core
 
-from brainos.adapters.base import EventDraft, PacketDecodeError
+from brainos.adapters.base import EventDraft, PacketDecodeError, frame_samples_limit
 from brainos.adapters.lsl.metadata import ChannelMeta, UnitPlan, plan_units
 from brainos.contracts.capabilities import Capability, CapabilityDescriptor, EventType
 from brainos.contracts.events import (
@@ -418,8 +418,9 @@ def _numeric(plan: SessionPlan, sp: StreamPlan, prov: Provenance, r: Received) -
         if sp.units.scales is not None and any(x != 1.0 for x in sp.units.scales):
             values = values * np.asarray(sp.units.scales)
         n = values.shape[0]
-        for start in range(0, n, MAX_FRAME_SAMPLES):
-            block = values[start : start + MAX_FRAME_SAMPLES]
+        step = frame_samples_limit(len(s.channels), MAX_FRAME_SAMPLES)
+        for start in range(0, n, step):
+            block = values[start : start + step]
             out.append(
                 EventDraft(
                     EventType.RECORDING_FRAME,
@@ -428,7 +429,7 @@ def _numeric(plan: SessionPlan, sp: StreamPlan, prov: Provenance, r: Received) -
                         "channel_count": len(s.channels),
                         "first_sample_index": first + start,
                         "unit": sp.units.unit,
-                        "samples": block.T.tolist(),
+                        "samples": block.T,  # (channels, n) array view (M5-E fast path)
                     },
                     _quality(plan, lost and start == 0),
                     prov,

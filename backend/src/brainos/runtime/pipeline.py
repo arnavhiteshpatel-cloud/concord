@@ -70,6 +70,9 @@ __all__ = [
 
 PIPELINE_ADAPTER = "brainos.pipeline@0.4.0"
 QUEUE_MAX = 4096
+# M5-E: the input queue is also bounded in queued sample values (memory): 16 M values is
+# ~0.5 s of 1024 ch at 30 kHz (128 MB as float64), many seconds at common sizes.
+QUEUE_MAX_VALUES = 16_000_000
 LATENCY_WINDOW = 2048
 STALL_BINS = 3  # the stall limit is never shorter than this many feature bins
 STALL_CHECK_S = 0.05
@@ -185,6 +188,7 @@ class PipelineManager:
         self.available, self.unavailable_reason = _probe()
         self._run: _Running | None = None
         self._queue: deque[EventEnvelope] = deque()
+        self._queued_values = 0  # sample values held by _queue (memory bound, M5-E)
         self._wake = asyncio.Event()
         self._task: asyncio.Task[None] | None = None
         self.last_error: str | None = None
@@ -413,6 +417,7 @@ class PipelineManager:
             self._run.command_router = self._make_router(self._run, router)
             self._log_router(True, "enabled with the pipeline start")
         self._queue.clear()
+        self._queued_values = 0
         self._task = asyncio.get_running_loop().create_task(self._loop(), name="brainos-pipeline")
         log.info(
             "pipeline started: %s on %s (decoder %s)", spec.preset, device.device_id, req.model_id
@@ -528,6 +533,7 @@ class PipelineManager:
         was_on = _router_on(run)
         self._run = None
         self._queue.clear()
+        self._queued_values = 0
         if was_on:
             self._router_stopped(reason)
         if run is not None:
@@ -545,10 +551,14 @@ class PipelineManager:
             return
         if env.provenance.adapter == PIPELINE_ADAPTER:
             return
-        if len(self._queue) >= QUEUE_MAX:
-            self._queue.popleft()
+        size = _input_values(env)
+        while self._queue and (
+            len(self._queue) >= QUEUE_MAX or self._queued_values + size > QUEUE_MAX_VALUES
+        ):
+            self._queued_values -= _input_values(self._queue.popleft())
             self.counters["dropped_inputs"] += 1
         self._queue.append(env)
+        self._queued_values += size
         self._wake.set()
 
     def stall_limit_ms(self, run: _Running | None = None) -> float | None:
@@ -583,6 +593,7 @@ class PipelineManager:
                 self.check_stall()
                 continue
             env = self._queue.popleft()
+            self._queued_values -= _input_values(env)
             run = self._run
             if run is None:
                 return
@@ -752,6 +763,17 @@ class PipelineManager:
             task.cancel()
             with contextlib.suppress(asyncio.CancelledError):
                 await task
+
+
+def _input_values(env: EventEnvelope) -> int:
+    """Number of sample values an input carries (the queue's memory bound counts these)."""
+    p = env.payload
+    if env.event_type is EventType.RECORDING_FRAME:
+        samples = p.samples  # type: ignore[union-attr]
+        shape = getattr(samples, "shape", None)
+        n = int(shape[1]) if shape is not None else (len(samples[0]) if samples else 0)
+        return int(p.channel_count) * n  # type: ignore[union-attr]
+    return int(getattr(p, "channel_count", 1) or 1)
 
 
 def _probe() -> tuple[bool, str | None]:

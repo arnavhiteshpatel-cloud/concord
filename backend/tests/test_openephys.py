@@ -750,6 +750,19 @@ async def test_pause_drains_and_resumes_without_false_drops(adapter: OpenEphysAd
     assert adapter.counters.incomplete_blocks == 0
 
 
+def _plain(drafts: Any) -> list[Any]:
+    return [
+        (
+            d.event_type,
+            {k: v.tolist() if isinstance(v, np.ndarray) else v for k, v in d.payload.items()},
+            d.quality,
+            d.provenance,
+            d.device_timestamp_ns,
+        )
+        for d in drafts
+    ]
+
+
 async def test_long_blocks_are_split_and_normalize_is_pure(
     port: int, publisher: OpenEphysTestPublisher
 ) -> None:
@@ -758,7 +771,8 @@ async def test_long_blocks_are_split_and_normalize_is_pure(
     try:
         packet: NativePacket = await a.read()
         drafts = a.normalize(packet)
-        assert a.normalize(packet) == drafts  # pure: same packet, same drafts
+        # pure: same packet, same drafts (frame samples are numpy arrays since M5-E)
+        assert _plain(a.normalize(packet)) == _plain(drafts)
         frames = [d for d in drafts if d.event_type == "recording.frame"]
         assert [len(f.payload["samples"][0]) for f in frames] == [128, 128, 44]
         firsts = [f.payload["first_sample_index"] for f in frames]

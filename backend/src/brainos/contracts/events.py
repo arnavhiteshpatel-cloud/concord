@@ -8,10 +8,22 @@ raw signal, behavioral labels, simulated intents and decoded intents.
 
 from __future__ import annotations
 
+import sys
 from enum import StrEnum
 from typing import Annotated, Any, Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, StrictBool, TypeAdapter, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    SerializerFunctionWrapHandler,
+    StrictBool,
+    TypeAdapter,
+    ValidatorFunctionWrapHandler,
+    WrapSerializer,
+    WrapValidator,
+    model_validator,
+)
 
 from brainos.contracts.capabilities import Capability, EventType, capability_for
 
@@ -115,6 +127,42 @@ def check_provenance(event_type: EventType, provenance: Provenance) -> None:
 # -------------------------------------------------------------------------- payloads
 
 
+def _ndarray(value: object) -> Any:
+    """``value`` if it is a numpy array, else None (numpy is never imported from here: the
+    base SDK install has no numpy, and an array can only exist if numpy is loaded)."""
+    np = sys.modules.get("numpy")
+    return value if np is not None and isinstance(value, np.ndarray) else None
+
+
+def _samples_in(value: Any, handler: ValidatorFunctionWrapHandler) -> Any:
+    """``samples`` given as a 2-D numpy array (channels x samples): an in-process fast path
+    for adapters (no per-value Python objects). The wire format and JSON Schema are those of
+    ``list[list[FiniteFloat]]``. A valid real-valued 2-D array is kept as an owned, read-only,
+    C-ordered float64 copy; anything else, including an array with a NaN/Inf, is validated
+    by the list path (``tolist()``), so accept/reject decisions and errors are identical."""
+    arr = _ndarray(value)
+    if arr is None:
+        return handler(value)
+    np = sys.modules["numpy"]
+    if arr.ndim == 2 and arr.dtype.kind in "biuf":
+        out = np.array(arr, dtype=np.float64, order="C")
+        if np.isfinite(out).all():
+            out.flags.writeable = False
+            return out
+    return handler(arr.tolist())
+
+
+def _samples_out(value: Any, handler: SerializerFunctionWrapHandler) -> Any:
+    arr = _ndarray(value)
+    return handler(value if arr is None else arr.tolist())
+
+
+# list[list[FiniteFloat]] on the wire and in the schema; may hold a float64 ndarray in-process
+FrameSamples = Annotated[
+    list[list[FiniteFloat]], WrapValidator(_samples_in), WrapSerializer(_samples_out)
+]
+
+
 class RecordingFramePayload(_Strict):
     sample_rate_hz: float = Field(gt=0, le=100_000, allow_inf_nan=False)
     channel_count: int = Field(ge=1, le=1024)
@@ -123,15 +171,25 @@ class RecordingFramePayload(_Strict):
     # "arbitrary" (1.2): the source did not state a physical unit BrainOS knows; values are
     # passed through unscaled and must not be interpreted as microvolts.
     unit: Literal["uV", "arbitrary"] = "uV"
-    samples: list[list[FiniteFloat]] = Field(description="samples[channel][sample]")
+    # samples[channel][sample]. In-process it may be a read-only float64 numpy array of shape
+    # (channels, samples) (see _samples_in); it serializes identically either way.
+    samples: FrameSamples = Field(description="samples[channel][sample]")
 
     @model_validator(mode="after")
     def _shape(self) -> Self:
-        if len(self.samples) != self.channel_count:
-            raise ValueError(
-                f"samples has {len(self.samples)} channels, channel_count={self.channel_count}"
-            )
-        lengths = {len(ch) for ch in self.samples}
+        shape = getattr(self.samples, "shape", None)
+        if shape is not None:  # numpy array: rectangular by construction
+            if shape[0] != self.channel_count:
+                raise ValueError(
+                    f"samples has {shape[0]} channels, channel_count={self.channel_count}"
+                )
+            lengths = {int(shape[1])}
+        else:
+            if len(self.samples) != self.channel_count:
+                raise ValueError(
+                    f"samples has {len(self.samples)} channels, channel_count={self.channel_count}"
+                )
+            lengths = {len(ch) for ch in self.samples}
         if len(lengths) != 1:
             raise ValueError("all channels must have the same number of samples")
         n = lengths.pop()
