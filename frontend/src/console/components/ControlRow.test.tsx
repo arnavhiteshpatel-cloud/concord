@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { AppControl, ControlStatus, PipelineStatus, RouterSpec } from "../api";
 import type { PipelineState } from "../pipeline";
 import { stubFetch } from "../testFetch";
+import { CalibrationPanel } from "./CalibrationPanel";
 import { ControlRow, defaultRules, describeApp, discreteSpec } from "./ControlRow";
 
 afterEach(() => {
@@ -204,5 +205,54 @@ describe("Discrete actions (classifier decoders)", () => {
     const stop = { at_ns: 1, on: false, reason: "input stalled: no decoder input for 1200 ms (limit 1000)" };
     render(<ControlRow pipeline={state({ ...classifier, router: { ...discreteRouter, enabled: false }, last_router_stop: stop })} apps={[]} />);
     expect(screen.getByTestId("router-last-stop").textContent).toBe(`Last stopped: ${stop.reason}.`);
+  });
+});
+
+describe("CalibrationPanel (classifier)", () => {
+  it("trains a classifier with class names and shows accuracy against chance and the confusion matrix", async () => {
+    const report = {
+      kind: "classifier",
+      model_id: "classes-cue-lda-1",
+      recordings: ["mi.brainos.jsonl"],
+      source_identity: "brainos:test",
+      prerecorded_source: false,
+      synthetic_source: true,
+      classes: ["rest", "left", "right"],
+      balanced_accuracy: 0.659,
+      accuracy: 0.649,
+      chance_balanced_accuracy: 1 / 3,
+      chance_majority_accuracy: 0.387,
+      control_time_shift_balanced_accuracy: 0.313,
+      per_class_accuracy: { rest: 0.67, left: 0.8, right: 0.5 },
+      confusion: [
+        [51, 18, 7],
+        [11, 72, 7],
+        [36, 16, 53],
+      ],
+      samples: 271,
+    };
+    const calls = stubFetch({
+      "POST /calibration/train": () => ({ model: { model_id: "classes-cue-lda-1", dims: ["rest", "left", "right"] }, report, report_markdown: "" }),
+    });
+    const rec = { name: "mi", device_id: "mi", device_name: "MI", synthetic: true, created_at_ns: 1, size_bytes: 1, events: 1, active: false };
+    render(<CalibrationPanel recordings={[rec]} onTrained={vi.fn()} />);
+    expect(screen.queryByTestId("cal-classes")).toBeNull(); // only for a classifier
+    fireEvent.click(screen.getByTestId("cal-rec-mi"));
+    fireEvent.change(screen.getByTestId("cal-kind"), { target: { value: "classifier" } });
+    fireEvent.change(screen.getByTestId("cal-classes"), { target: { value: "rest, left ,right" } });
+    fireEvent.click(screen.getByTestId("cal-train"));
+    await screen.findByTestId("cal-report");
+    expect(calls.find((c) => c.path === "/calibration/train")?.body).toEqual({
+      recordings: ["mi"],
+      train_fraction: 0.8,
+      gap_bins: 12,
+      feature_source: null,
+      kind: "classifier",
+      class_names: ["rest", "left", "right"],
+    });
+    expect(screen.getByTestId("cal-bacc").textContent).toBe("0.659");
+    expect(screen.getByTestId("cal-report").textContent).toContain("chance 0.333");
+    expect(screen.getByTestId("cal-report").textContent).toContain("synthetic data");
+    expect(screen.getByTestId("cal-confusion").querySelectorAll("tbody tr")).toHaveLength(3);
   });
 });

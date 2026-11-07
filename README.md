@@ -124,10 +124,11 @@ In the console: **Connect a source** → *Live streams* → **Find LSL streams**
 network*; **Use** the FALCON spike-count stream, attach its behavior and marker streams, **Add
 source**, then **Connect** it (the status line reads *Recorded data, streamed replay
 (declared)*). In **Decoder**, **Start decoding**: *Source features (passthrough)* is preselected;
-choose the trained model. In **Command output**, **Start control**; the red **Stop control** in
-the title bar stops it at any time.
-In a third terminal, the reference app (SDK only) waits while no commands exist and moves once
-the router is on:
+choose the trained model. In **Command output**, **Start control**, then **Authorize** the
+application under *Authorized applications* (decoded commands reach only authorized apps); the
+red **Stop control** in the title bar stops it at any time.
+In a third terminal, the reference app (SDK only) waits while no commands exist or while it is not
+authorized, and moves once the router is on and you have authorized it:
 
 ```bash
 .venv/bin/python backend/examples/reference_app/cursor_app.py --seconds 60

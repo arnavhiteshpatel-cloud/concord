@@ -64,14 +64,29 @@ function ModelDetails({ m }: { m: ModelInfo }) {
             <dd>{s.source_identity}</dd>
           </>
         )}
-        <dt>Offline held-out R²</dt>
-        <dd className="num">
-          {fmt.num(s.held_out_r2 ?? null, 3)}{" "}
-          <span className="hint">
-            as reported by the model file · mean-predictor control {fmt.num(s.control_mean_predictor_r2 ?? null, 3)} ·{" "}
-            {fmt.num(s.held_out_samples ?? null)} samples
-          </span>
-        </dd>
+        {s.outputs?.type === "classes" ? (
+          <>
+            <dt>Offline held-out balanced accuracy</dt>
+            <dd className="num">
+              {fmt.num(s.held_out_balanced_accuracy ?? null, 3)}{" "}
+              <span className="hint">
+                as reported by the model file · chance {fmt.num(s.chance_balanced_accuracy ?? null, 3)} ·{" "}
+                {fmt.num(s.held_out_samples ?? null)} bins · classes {s.outputs.classes.join(", ")}
+              </span>
+            </dd>
+          </>
+        ) : (
+          <>
+            <dt>Offline held-out R²</dt>
+            <dd className="num">
+              {fmt.num(s.held_out_r2 ?? null, 3)}{" "}
+              <span className="hint">
+                as reported by the model file · mean-predictor control {fmt.num(s.control_mean_predictor_r2 ?? null, 3)} ·{" "}
+                {fmt.num(s.held_out_samples ?? null)} samples
+              </span>
+            </dd>
+          </>
+        )}
         <dt>Expects</dt>
         <dd>
           {inp?.feature?.replace(/_/g, " ") ?? "?"} · {inp?.bin_ms ?? "?"} ms bins · {inp?.channel_count ?? "?"} channels

@@ -249,7 +249,8 @@ class Runtime:
         for sub in self.bus.subscribers:
             if sub.app.id == app_id:
                 sub.authorized = self.authorizations.authorized(app_id)
-                sub.purge_commands(removed or None)
+                if removed:
+                    sub.purge_commands(removed)
         self._renegotiate_all()
         self._broadcast_runtime()
         return removed

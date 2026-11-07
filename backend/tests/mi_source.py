@@ -21,7 +21,7 @@ from typing import Any
 import numpy as np
 from numpy.typing import NDArray
 
-from brainos.adapters.base import DeviceAdapter, EventDraft, NativePacket
+from brainos.adapters.base import DeviceAdapter, DeviceLinkError, EventDraft, NativePacket
 from brainos.contracts.capabilities import Capability, CapabilityDescriptor, EventType
 from brainos.contracts.events import Provenance, ProvenanceKind, Quality, QualityFlag
 from brainos.contracts.protocol import DeviceDescriptor, DeviceKind
@@ -162,6 +162,7 @@ class MotorImageryAdapter(DeviceAdapter):
         self._k = 0
         self.paused = False
         self.stalled = False  # test hook: stop producing data (link stays up)
+        self.fail_reads = 0  # test hook: the next N reads lose the link
 
     async def open(self) -> None:
         self._t0 = time.monotonic()
@@ -175,6 +176,9 @@ class MotorImageryAdapter(DeviceAdapter):
 
     async def read(self) -> NativePacket:
         assert self._t0 is not None
+        if self.fail_reads > 0:
+            self.fail_reads -= 1
+            raise DeviceLinkError("test: link lost")
         while self.stalled:
             await asyncio.sleep(0.01)
             self._t0 = time.monotonic() - self._k * self.n / self.gen.fs / self.speed

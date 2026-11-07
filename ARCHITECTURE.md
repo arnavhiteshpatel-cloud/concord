@@ -98,7 +98,9 @@ An application's `hello` lists `required` and `optional` capabilities.
 - Unknown capability name → protocol error `unknown_capability`, connection
   closed (code 1008). Never silently ignored.
 - Each requested capability is either `granted` or `rejected` with a reason:
-  `unsupported_by_device` or `no_device`.
+  `unsupported_by_device`, `no_device`, or (1.3) `not_authorized`: a command capability that
+  only the command router provides (decoded commands) is granted only to application ids the
+  operator authorized for it (default deny; docs/CONTROL_BRIDGE.md).
 - If any **required** capability is rejected, the app status is `suspended`:
   it stays connected, receives runtime/negotiation notices, but **no events**.
 - On every device change (connect, switch, disconnect) the runtime
@@ -147,7 +149,7 @@ The authoritative definition is the Pydantic model in
 | `recording.frame` | `sample_rate_hz`, `channel_count`, `first_sample_index`, `unit` (`uV`, or `arbitrary` (1.2) when the source does not declare a convertible unit for every channel), `samples[channel][sample]` (shape validated) |
 | `recording.annotation` | `label`, `value` (number/string/null), `duration_ms` |
 | `intent.pointer` | `vx`, `vy` — velocity in workspace units/s; workspace = unit square, x → right, y → down; `|v| ≤ 10` |
-| `intent.selection` | `action` (`primary`), `confidence` ∈ [0,1] |
+| `intent.selection` | `action` (`primary` = select; 1.3 adds `activate`, `cancel`), `confidence` ∈ [0,1] |
 | `intent.text` | `text` (1–64 chars), `mode` (`character`/`word`), `confidence` |
 | `telemetry.sample` | `metrics: [{name, value, unit}]` |
 | `device.status` | `state` (`connected`/`streaming`/`paused`/`reconnecting`/`disconnected`/`error`/`ended`), `detail` |
@@ -360,9 +362,10 @@ send data toward devices.
 | Simulation endpoints | `/api/v1/sim/*` exist only for simulated devices and are disabled by `BRAINOS_ENABLE_SIM=0`. They are an operator tool, not an app API. |
 | Data at rest | Recordings are written to `data/recordings/` (gitignored). With M3 live sources they may contain real neural data: treat the directory as research data under your protocol. No encryption. |
 | Acquisition networks (M3) | LSL inlets and the Open Ephys SUB socket only *receive*. The Open Ephys heartbeat REQ sends only `{application, uuid, type: "heartbeat"}` (the plugin's event-injection request is not implemented). BrainOS opens no listening socket other than its HTTP server (default `127.0.0.1`). LSL discovery uses liblsl's multicast/broadcast on the local network. |
+| Decoded commands → apps (M4) | Default deny: an app id receives decoded `intent.pointer` / `intent.selection` / `intent.text` only while the operator has authorized it for that capability (`/api/v1/control`); enforced in negotiation (`not_authorized`) and again on the bus. App ids are self-declared (no authentication). docs/CONTROL_BRIDGE.md. |
 
-Planned (not implemented): per-app auth tokens, capability grants requiring
-operator approval, signed adapters, audit log, TLS.
+Planned (not implemented): per-app auth tokens (so an authorization cannot be claimed by
+another local process), signed adapters, audit log, TLS.
 
 ## 9. Extension points
 
@@ -448,10 +451,29 @@ clock), not wall clock.
   (`incompatible_decoder`, HTTP 409) on any mismatch, on a stream from the model's training
   session (leakage), and on a different source unless `allow_cross_source` is set — which is
   then shown in status and lowers event quality to 0.5.
-- The **command router** is off by default. When the operator enables it, two decoded
-  dimensions are mapped to `intent.pointer` (`decoded_intent`, `model_id`), z-scored by the
-  training behavior std, with gain, dead-zone and clamp. Only then is `pointer_intent`
-  negotiable; apps requiring it are otherwise suspended.
+- The **command router** (`runtime/router.py`) is off by default and accepts nothing but the
+  running decoder's `intent.kinematics` (`decoded_intent` + its `model_id`; anything else
+  raises). When the operator enables it, it produces the standardized action set (M4):
+  continuous movement — two dimensions of a continuous decoder mapped to `intent.pointer`,
+  z-scored by the training behavior std, with gain, dead-zone and clamp — and discrete
+  `select` / `activate` / `cancel` (`intent.selection`) and `text` (`intent.text`) from a
+  classifier's class posteriors by rules with threshold, hold time, refractory period and
+  hysteresis. Only what is configured is advertised (`pointer_intent`, `selection`,
+  `text_intent`); apps requiring a missing one are suspended.
+- **Operator authorization (M4)**: decoded commands reach only application ids the operator
+  authorized for that capability (`/api/v1/control`); negotiation rejects others with
+  `not_authorized`, and the bus refuses delivery to unauthorized subscribers regardless.
+  Authorizations are in memory (cleared on restart, kept across source switches); revocation
+  renegotiates immediately and withdraws queued decoded commands.
+- **Stale-command prevention (M4)**: the router turns off on operator stop, pause, link loss,
+  pipeline stop/restart/decoder change, source switch/disconnect/error/end, and when the
+  decoder gets no input for `max(stall_ms (1000), 3 × bin)` ms; queued decoded commands are
+  withdrawn and no command is emitted after a stop. The SDKs' `CommandGuard` adds
+  client-side staleness (500 ms), a dead-man (500 ms) and immediate stop callbacks.
+- **Classifiers (M4)**: `decoding/lda.py` — shrinkage LDA (Ledoit-Wolf) on smoothed,
+  z-scored features; posteriors are `intent.kinematics` with `quantity: "class_posterior"`
+  and `dims` = class names. Calibrated from recordings with a class-label behavior stream
+  (balanced / per-class accuracy, confusion matrix, chance levels, time-shift control).
 - Status reports per-input processing time, ingest → derived latency (p50/p95/p99/max),
   counters (inputs, dropped_inputs, features_out, decoded_out, commands_out, errors) and
   RMS warm-up remaining.

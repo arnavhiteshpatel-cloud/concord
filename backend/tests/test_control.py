@@ -147,6 +147,22 @@ def test_bus_never_delivers_decoded_commands_to_unauthorized_subscribers() -> No
     assert got_b == ["decoded_intent", "simulated_intent"]
 
 
+async def test_revoking_one_capability_withdraws_only_its_queued_commands(runtime: Runtime) -> None:
+    """Regression: a revoke must not withdraw commands of capabilities still authorized."""
+    sub = subscribe(runtime, required=[], optional=[SEL, TXT], app_id="menu")
+    runtime.authorize_app("menu", [SEL, TXT])
+    sel = _env("intent.selection", "decoded_intent", "m1")
+    txt = _env("intent.text", "decoded_intent", "m1")
+    sub.offer_event(sel.model_dump_json(), SEL)
+    sub.offer_event(txt.model_dump_json(), TXT)
+    assert runtime.revoke_app("menu", [PTR]) == frozenset()  # never held: nothing withdrawn
+    assert len(sub._events) == 2
+    assert runtime.revoke_app("menu", [TXT]) == {TXT}
+    assert [e[3] for e in sub._events] == [SEL] and sub.authorized == {SEL}
+    assert runtime.stop_control("nothing running") is False  # idempotent, still withdraws
+    assert len(sub._events) == 0
+
+
 def test_purge_withdraws_queued_decoded_commands_and_keeps_delivery_seq_contiguous() -> None:
     bus = EventBus()
     sub = _sub("a", [SEL, Capability.TELEMETRY])
@@ -481,6 +497,13 @@ async def test_every_stop_path_turns_command_output_off(
     await assert_off("input stalled")
     assert rt.pipeline.counters["router_stalls"] == 1
     adapter.stalled = False
+
+    await running()  # link loss: off at once, and still off after the reconnect succeeds
+    adapter.fail_reads = 1
+    await wait_for(lambda: not rt.pipeline.router_on, timeout=5)
+    await wait_for(lambda: rt.diagnostics.reconnect_successes >= 1, timeout=5)
+    await assert_off("source link lost")
+    assert rt.pipeline.running  # the pipeline keeps decoding; only command output stopped
 
     await running()  # source switch: router always off after a source change
     await rt.switch("test-mi-2")
