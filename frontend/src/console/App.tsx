@@ -172,9 +172,9 @@ export function App() {
   const on = controlOn(pst);
   const stopControl = async () => {
     const spec = stopSpec(pst);
-    if (!spec) return;
-    const r = await stopAction.run(() => labApi.setRouter(spec));
-    if (r) pipeline.set(r);
+    // /control/stop: command output off now (idempotent); queued commands are withdrawn
+    const r = await stopAction.run(() => labApi.stopControl("stopped by operator (console)"));
+    if (r && pst && spec) pipeline.set({ ...pst, router: spec });
   };
 
   const apps = diag?.apps ?? runtime?.apps ?? [];

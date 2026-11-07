@@ -119,8 +119,13 @@ async def test_same_app_unchanged_across_sources(
         await asyncio.sleep(1.0)
         assert app.status == "suspended" and app.commands == n0
 
-        # 3) operator enables the router -> decoded commands reach the unchanged app
+        # 3) operator enables the router: the app now waits for the operator's authorization
         await op.set_router(enabled=True, x_dim="tx", y_dim="ty", gain=0.5)
+        await wait_for(lambda: app.waiting_for_authorization, timeout=10)
+        await asyncio.sleep(0.5)
+        assert app.status == "suspended" and app.commands == n0
+        # ... and once the operator authorizes it, decoded commands reach the unchanged app
+        await op.authorize_app(app_mod.APP_ID, ["pointer_intent"])
         await wait_for(lambda: app.status == "active" and app.commands >= n0 + 50, timeout=15)
 
         # an incompatible request is refused with a reason, through the SDK
@@ -152,3 +157,88 @@ async def test_same_app_unchanged_across_sources(
     assert ("decoded_intent", model.model_id, True) in kinds
     assert all("lsl:" in s.device_id or s.device_id == "sim-a" for s in app.sources.values())
     assert app.summary()["commands"] == app.commands
+
+
+OPERATOR_CALLS = (
+    "authorize_app",
+    "revoke_app",
+    "stop_control",
+    "set_router",
+    "start_pipeline",
+    "/control",
+    "/pipeline",
+    "RuntimeClient",
+)
+
+
+@pytest.mark.parametrize("name", ["cursor_app", "menu_app"])
+def test_reference_apps_never_act_as_the_operator(name: str) -> None:
+    """M4: apps declare capabilities and wait; authorization is the operator's decision."""
+    text = (APP_DIR / f"{name}.py").read_text()
+    for word in OPERATOR_CALLS:
+        assert word not in text, f"{name} uses operator API {word!r}"
+    assert "CommandGuard" in text  # both apps act on commands through the SDK guard
+
+
+def _load_named(name: str) -> ModuleType:
+    spec = importlib.util.spec_from_file_location(name, APP_DIR / f"{name}.py")
+    assert spec and spec.loader
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[name] = mod
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_menu_app_state_machine() -> None:
+    import time
+
+    from brainos.contracts import parse_envelope
+    from brainos.contracts.protocol import (
+        AppStatus,
+        CapabilityRejection,
+        NegotiationResult,
+        RejectionReason,
+    )
+    from brainos.sdk import Capability, NegotiationUpdate
+
+    from .helpers import valid_event
+
+    m = _load_named("menu_app")
+    app = m.MenuApp()
+
+    def neg(granted: list[Capability], reason: str | None = None) -> NegotiationUpdate:
+        rej = []
+        if reason:
+            rej = [
+                CapabilityRejection(
+                    capability=Capability.SELECTION, reason=RejectionReason(reason), required=True
+                )
+            ]
+        status = AppStatus.SUSPENDED if rej else AppStatus.ACTIVE
+        return NegotiationUpdate(
+            NegotiationResult(device_id="d", status=status, granted=granted, rejected=rej)
+        )
+
+    def act(action: str) -> None:
+        ev = valid_event("intent.selection", timestamp_ns=time.time_ns())
+        ev["payload"]["action"] = action
+        app.handle(parse_envelope(ev))
+
+    app.handle(neg([], "not_authorized"))
+    assert app.waiting_for_authorization and "authorization" in app.line()
+    act("activate")
+    assert app.path == [] and app.ignored == 1  # not authorized: nothing happens
+    app.handle(neg([Capability.SELECTION]))
+    act("primary")  # highlight "Lights"
+    act("activate")  # open it
+    assert app.path == ["Lights"] and app.items[app.highlight] == "On"
+    act("activate")  # choose "On": back to the top level
+    assert app.chosen == ["Lights / On"] and app.path == []
+    assert app.items[app.highlight] == "Lights"
+    act("activate")
+    act("cancel")
+    assert app.path == []
+    app.handle(parse_envelope(valid_event("intent.text", timestamp_ns=time.time_ns())))
+    assert app.message == ""  # text_intent was not granted: ignored
+    app.handle(neg([], "not_authorized"))
+    assert app.stops == ["authorization revoked"]
