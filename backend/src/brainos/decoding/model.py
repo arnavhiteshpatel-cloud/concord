@@ -8,15 +8,45 @@ override is recorded and shown wherever the model's output is shown.
 
 from __future__ import annotations
 
+import json
 import logging
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from brainos.decoding.lda import LDAClassifier
 from brainos.decoding.ridge import RidgeDecoder
 
 log = logging.getLogger(__name__)
+
+# Every model file is ``brainos.model/1``: a continuous regression decoder (ridge) or a
+# classifier (``outputs: {"type": "classes"}``, LDA). Both expose model_id, dims, quantity,
+# unit, space, input, source, training, evaluations and ``streaming().step(features)``.
+Decoder = RidgeDecoder | LDAClassifier
+
+
+def load_model(path: Path) -> Decoder:
+    data = json.loads(path.read_text())
+    if not isinstance(data, dict):
+        raise ValueError(f"{path.name}: not a model object")
+    outputs = data.get("outputs")
+    if data.get("kind") == "lda" or (
+        isinstance(outputs, dict) and outputs.get("type") == "classes"
+    ):
+        return LDAClassifier.from_dict(data, path.name)
+    model = RidgeDecoder(**data)
+    if len(model.weights) != model.channel_count or any(
+        len(r) != len(model.dims) for r in model.weights
+    ):
+        raise ValueError(f"{path.name}: weight matrix shape does not match channels/dims")
+    return model
+
+
+def output_classes(model: Decoder) -> list[str] | None:
+    """Class names if the model is a classifier, else None (continuous outputs)."""
+    return list(model.classes) if isinstance(model, LDAClassifier) else None
+
 
 _DANDI = re.compile(r"dandi:(\d+)/sub-([A-Za-z0-9]+)")
 
@@ -35,7 +65,7 @@ def source_identity(origin: str | None) -> str | None:
     return origin
 
 
-def model_input(model: RidgeDecoder) -> dict[str, Any]:
+def model_input(model: Decoder) -> dict[str, Any]:
     """The model's declared input; older model files get a conservative inferred spec."""
     if model.input:
         return model.input
@@ -49,7 +79,7 @@ def model_input(model: RidgeDecoder) -> dict[str, Any]:
     }
 
 
-def model_source(model: RidgeDecoder) -> str | None:
+def model_source(model: Decoder) -> str | None:
     if model.source.get("identity"):
         return str(model.source["identity"])
     ds = str(model.training.get("dataset", ""))
@@ -70,7 +100,7 @@ class Compatibility:
 
 
 def check(
-    model: RidgeDecoder,
+    model: Decoder,
     *,
     event_type: str,
     feature: str,
@@ -128,20 +158,32 @@ def check(
     return c
 
 
-def list_models(models_dir: Path) -> list[RidgeDecoder]:
-    out = []
+def list_models(models_dir: Path) -> list[Decoder]:
+    out: list[Decoder] = []
     if models_dir.exists():
         for p in sorted(models_dir.glob("*.json")):
             try:
-                out.append(RidgeDecoder.load(p))
+                out.append(load_model(p))
             except (ValueError, TypeError, KeyError, OSError) as exc:
                 log.warning("ignoring model %s: %s", p.name, exc)
     return out
 
 
-def summary(model: RidgeDecoder) -> dict[str, Any]:
+def summary(model: Decoder) -> dict[str, Any]:
     ev = model.evaluations[-1] if model.evaluations else {}
+    classes = output_classes(model)
+    extra: dict[str, Any] = {}
+    if classes is not None:
+        extra = {
+            "held_out_balanced_accuracy": ev.get("balanced_accuracy"),
+            "held_out_accuracy": ev.get("accuracy"),
+            "chance_balanced_accuracy": ev.get("chance_balanced_accuracy"),
+        }
     return {
+        **extra,
+        "outputs": {"type": "classes", "classes": classes}
+        if classes is not None
+        else {"type": "continuous"},
         "model_id": model.model_id,
         "schema": model.schema,
         "version": model.version,

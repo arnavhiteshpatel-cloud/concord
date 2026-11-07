@@ -61,6 +61,17 @@ p.hint { margin: 8px 0 0; }
 .caption { margin: 6px 0 0; color: var(--muted); font-size: var(--fs-sm); }
 .apps-line { margin-top: 16px !important; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font-size: var(--fs-sm); }
 
+/* Command output: authorized applications and the discrete-action rules */
+.control-apps { margin-top: 16px !important; padding-top: 12px; border-top: 1px solid var(--line); }
+.control-apps p.hint { margin: 2px 0 0; }
+.control-app { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 0; }
+.control-app + .control-app { border-top: 1px solid var(--line); }
+.control-app-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.control-app-name { font-weight: 600; }
+.control-app-actions { display: flex; gap: 8px; flex: none; }
+.rule-list { margin-top: 4px; }
+.rule-list .rule { margin-top: 8px; }
+
 /* Messages. Server refusals are technical: plain ink in a neutral box, quoted verbatim. */
 .error-text { color: var(--ink); }
 p.error-text, div.error-text, ul.error-text {

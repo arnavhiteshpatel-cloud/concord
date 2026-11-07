@@ -2,7 +2,7 @@
 // button and Advanced. Polled every second; an action's response is shown until the next poll.
 
 import { useEffect, useState } from "react";
-import { labApi, type PipelineStatus, type RouterSpec } from "./api";
+import { labApi, type DiscreteRule, type ModelSummary, type PipelineStatus, type RouterSpec } from "./api";
 import { usePoll } from "./hooks";
 
 export interface PipelineState {
@@ -22,6 +22,11 @@ export function usePipeline(): PipelineState {
 /** The running decoder, if the pipeline runs one. */
 export const runningDecoder = (s: PipelineStatus | null) => (s?.running ? s.decoder : null);
 
+/** Class names if the decoder is a classifier (discrete decoding), else null. */
+export function decoderClasses(d: Pick<ModelSummary, "outputs"> | null | undefined): string[] | null {
+  return d?.outputs?.type === "classes" ? d.outputs.classes : null;
+}
+
 export const controlOn = (s: PipelineStatus | null): boolean => !!(s?.running && s.router?.enabled);
 
 /** The router spec that turns command output off, keeping the rest of the current mapping. */
@@ -31,6 +36,15 @@ export function stopSpec(s: PipelineStatus | null): RouterSpec | null {
   return { ...r, enabled: false };
 }
 
-export function mappingText(r: Pick<RouterSpec, "x_dim" | "y_dim" | "gain" | "invert_y">): string {
-  return `x ← ${r.x_dim}, y ← ${r.y_dim}${r.invert_y ? " (inverted)" : ""}, gain ${r.gain}`;
+/** What an app sees for a discrete action. */
+export function actionLabel(r: Pick<DiscreteRule, "action" | "text">): string {
+  if (r.action === "text") return `text "${r.text ?? ""}"`;
+  return r.action === "primary" ? "select" : r.action;
+}
+
+export function mappingText(r: Pick<RouterSpec, "x_dim" | "y_dim" | "gain" | "invert_y" | "discrete">): string {
+  const parts: string[] = [];
+  if (r.x_dim && r.y_dim) parts.push(`x ← ${r.x_dim}, y ← ${r.y_dim}${r.invert_y ? " (inverted)" : ""}, gain ${r.gain}`);
+  for (const d of r.discrete ?? []) parts.push(`${actionLabel(d)} ← ${d.output}`);
+  return parts.join("; ") || "nothing mapped";
 }

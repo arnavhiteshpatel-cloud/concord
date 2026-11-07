@@ -58,6 +58,16 @@ const diagnostics = {
 };
 const stats = { count: 0, p50: null, p95: null, p99: null, max: null };
 const router = { enabled: true, x_dim: "vx", y_dim: "vy", gain: 1.5, deadzone: 0.3, invert_y: true, max_speed: 2 };
+const controlStatus = {
+  router_on: true,
+  model_id: "m",
+  provides: ["pointer_intent"],
+  router,
+  stall_limit_ms: 1000,
+  last_stop: null,
+  apps: [],
+  history: [],
+};
 const pipelineOff: PipelineStatus = {
   available: true,
   unavailable_reason: null,
@@ -114,6 +124,11 @@ beforeEach(() => {
         pipeline = { ...pipeline, router: body as typeof router };
         return json(pipeline);
       }
+      if (url.endsWith("/control/stop")) {
+        pipeline = { ...pipeline, router: pipeline.router ? { ...pipeline.router, enabled: false } : null };
+        return json({ ...controlStatus, router_on: false });
+      }
+      if (url.endsWith("/control")) return json(controlStatus);
       if (url.endsWith("/pipeline")) return json(pipeline);
       if (url.includes("/devices")) return json([device]);
       if (url.includes("/runtime/")) return json(streaming);
@@ -173,15 +188,17 @@ describe("title bar", () => {
     expect(stop.title).toBe("Command output is off");
   });
 
-  it("enables Stop control while output is on; it turns the router off keeping the rest of the spec", async () => {
+  it("enables Stop control while output is on; it calls the control stop (router off, mapping kept)", async () => {
     pipeline = pipelineControlOn;
     open();
     const stop = screen.getByTestId("stop-control") as HTMLButtonElement;
     await waitFor(() => expect(stop.disabled).toBe(false));
     fireEvent.click(stop);
-    await waitFor(() => expect(calls.some((c) => c.path === "/pipeline/router")).toBe(true));
-    expect(calls.find((c) => c.path === "/pipeline/router")!.body).toEqual({ ...router, enabled: false });
+    await waitFor(() => expect(calls.some((c) => c.path === "/control/stop")).toBe(true));
+    expect(calls.find((c) => c.path === "/control/stop")!.method).toBe("POST");
+    expect(calls.some((c) => c.path === "/pipeline/router")).toBe(false);
     await waitFor(() => expect(stop.disabled).toBe(true));
+    expect(pipeline.router).toEqual({ ...router, enabled: false });
     // the change appears in the session log
     await waitFor(() => expect(screen.getByTestId("session-log").textContent).toContain("Control stopped"));
   });

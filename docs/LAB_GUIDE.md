@@ -144,15 +144,22 @@ CLI equivalent of step 4: `.venv/bin/python -m brainos.decoding.calibrate data/r
 Decoded output (`intent.kinematics`) is never a command. To drive an app, use **Command
 output** → **Start control** (the command router; it is offered only while a decoder model
 runs). Its **Settings** choose the two decoded dimensions for x/y, gain, dead-zone, max speed.
-Only then can apps that require `pointer_intent` activate. Run the reference app in another
-terminal:
+With a classifier (LDA, calibrated with *A class per moment*), **Settings** instead list one
+action per class (select, activate, cancel or type text) with threshold, hold and pause.
+Commands then reach only the applications you **Authorize** under *Authorized applications*
+(each says what it would receive); **Revoke** withdraws it at once. Authorizations last until
+revoked or BrainOS restarts; control itself is off after any source change, pause, link loss
+or decoder change, and stops by itself if the decoder gets no input for 1 s (at least three
+feature bins)
+(docs/CONTROL_BRIDGE.md). Run the reference app in another terminal:
 
 ```bash
 .venv/bin/python backend/examples/reference_app/cursor_app.py --seconds 60
 ```
 
-It prints whether it is suspended or active and where commands come from (model id,
-prerecorded/synthetic). The red **Stop control** button in the title bar (always visible)
+It prints whether it is suspended, waiting for your authorization, or active, and where
+commands come from (model id, prerecorded/synthetic). For discrete actions use
+`backend/examples/reference_app/menu_app.py`. The red **Stop control** button in the title bar (always visible)
 stops commands; **Stop decoding** stops the pipeline; **Disconnect** stops acquisition.
 
 The communication board is the reference participant display: **Open participant screen** in the
