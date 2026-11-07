@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling>=1.21"]
+build-backend = "hatchling.build"
+
+[project]
+name = "brainos-brainflow"
+version = "0.1.0"
+description = "BrainOS source plugin for BrainFlow boards (official BoardShim API; noninvasive research devices, read-only)"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary (internal preview)" }
+dependencies = [
+    "brainos-adapter-sdk>=1.0,<2",
+    "brainflow>=5.12",
+    "numpy>=1.26",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.entry-points."brainos.sources"]
+brainflow = "brainos_brainflow.plugin:BrainFlowPlugin"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/brainos_brainflow"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
