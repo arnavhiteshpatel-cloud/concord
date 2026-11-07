@@ -277,3 +277,37 @@ See docs/ECOG.md §9 for details.
 - An unverified raw-voltage NWB file has no declared modality (`null`); models with a declared
   modality then load with a warning only (feature, channel, source and session checks still
   apply).
+
+## Decoders and model ecosystem (Milestone 5, workstream A)
+
+- **Not a security sandbox.** Decoder plugins and model files run in a separate process
+  (fault isolation: crash, hang, garbage and invalid outputs are contained and reported). That
+  process has the same user, files and network as BrainOS. A malicious plugin, or a pickle
+  the operator trusted, can do anything that user can.
+- Trust decisions are recorded per file (SHA-256, who, when). BrainOS has no user accounts,
+  so "who" is what the operator types or "operator".
+- **TorchScript** is deprecated upstream (PyTorch 2.x). It is supported but not recommended;
+  ONNX or safetensors are preferred. Torch is an optional extra and is not installed by
+  `make setup` (the CPU wheel needs a dedicated index). Without it, the TorchScript /
+  safetensors tests skip with a reason. They were run here with torch 2.15 (CPU).
+- Only two safetensors architectures exist (`linear`, `gru`). Other PyTorch models must be
+  exported to ONNX or TorchScript.
+- **The drift thresholds are heuristics** (feature shift 0.5 SD RMS, 25 % of channels > 1 SD,
+  variability × 1.5, half the held-out margin). They are tested only on deliberately shifted
+  versus unshifted synthetic streams, and are not validated against closed-loop performance
+  or real non-stationarity. Models trained before Milestone 5 lack `feature_stats`, so their
+  feature drift is reported as unavailable.
+- **Calibration records the preset only when known.** Recordings do not carry the pipeline's
+  processing parameters. Models calibrated from recordings declare their feature, bin, unit,
+  band and channel labels, but not `threshold_k` or the preset. A spike-band model
+  calibrated at one threshold is not refused at another.
+- **The click calibration metric** uses a plain 0.5 threshold crossing within ±300 ms. The
+  router's hold / refractory / hysteresis rules, which decide the actual clicks, are not part
+  of the offline score.
+- **Decoded passthrough** routes the source's decoder outputs as they are.
+  - Without a declared `scale`, the pointer gain applies to raw values.
+  - Only `historical` and `external` origins are accepted.
+  - BrainOS cannot verify that a source's declared model origin is true.
+- **The example decoder is hand-set** (not trained) and only shown above chance on BrainOS's
+  synthetic motor-imagery generator. It is a teaching example, not an EEG decoder.
+- The decoder-host IPC round trip per step is not benchmarked here (workstream E).

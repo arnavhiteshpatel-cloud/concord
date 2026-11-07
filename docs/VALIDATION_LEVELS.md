@@ -98,3 +98,10 @@ not hardware (3) and not closed-loop use by a person (4).
 | Movement-vs-rest LDA on ECoG | real-data replay (offline) | Held-out sessions: balanced accuracy 0.938 / 0.861, AUC 0.992 / 0.939 vs time-shift nulls ≤ 0.55 / 0.60 (docs/ECOG_DECODING.md); online == offline posteriors | No participant was trying to control anything; one participant |
 | Modality guards | 1 (+ real streams) | ECoG model refused on FALCON spike counts, FALCON model and EEG-declared model refused on ECoG, even with the cross-source override | — |
 | Same SDK-only app on ECoG | 1–2 (real server, real recorded ECoG) | Unchanged `menu_app.py` receives decoded selections from the held-out ECoG replay only after operator authorization; nothing after disconnect | No person used it; offline replay only |
+
+## Decoder SDK and model ecosystem (Milestone 5, workstream A)
+
+| Component | Level reached | Evidence (all executed) | Not yet done |
+| --- | --- | --- | --- |
+| Decoder SDK (manifest, decoder host, loaders, CLI) | 1 | `packages/brainos-decoder-sdk/tests`: malformed manifests per rule; real ONNX (linear + recurrent), skops, pickle (refused / trusted / malicious never executed), TorchScript and safetensors files generated in the tests, loaded through a real host; crash, hang, garbage, invalid outputs; `brainos-decoder new` scaffold passes `check` | No third-party decoder from a lab has been run; no GPU execution |
+| Decoders in the pipeline (built-in + isolated), compatibility, mapping, passthrough, drift, calibration | 1 (2 for the FALCON passthrough path: genuine liblsl, prerecorded human data) | `backend/tests/test_decoder_compat.py`, `test_decoder_pipeline.py` (synthetic, declared), `test_pipeline_live.py` (FALCON over LSL: streamed decoded output == offline prediction bit for bit), `test_decoder_example.py` (installed example plugin, real server, SDK app after authorization) | No decoder BrainOS ran has been used by a person; drift thresholds unvalidated against closed-loop performance |
