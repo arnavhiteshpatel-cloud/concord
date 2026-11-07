@@ -2,41 +2,35 @@
 
 import { useState } from "react";
 import { labApi, type OpenEphysUnit } from "../api";
-import { useAction } from "../hooks";
-import { Panel } from "./ui";
+import { useLog, useLoggedAction } from "../context";
 
 const UNITS: OpenEphysUnit[] = ["unknown", "uV", "mV", "V"];
 
-export function OpenEphysForm({
-  onSourcesChanged,
-  notify,
-}: {
-  onSourcesChanged: () => void;
-  notify: (text: string) => void;
-}) {
+export function OpenEphysForm({ onSourcesChanged }: { onSourcesChanged: () => void }) {
+  const log = useLog();
   const [host, setHost] = useState("127.0.0.1");
   const [port, setPort] = useState("5556");
   const [unit, setUnit] = useState<OpenEphysUnit>("unknown");
-  const action = useAction();
+  const action = useLoggedAction();
   const portNum = Number(port);
   const portOk = Number.isInteger(portNum) && portNum >= 1 && portNum <= 65534;
 
   const register = async () => {
     const desc = await action.run(() => labApi.openEphysRegister({ host: host.trim(), data_port: portNum, unit }));
     if (!desc) return;
-    notify(`Registered ${desc.device_id} — connect it from Devices & sources`);
+    log("info", `Registered ${desc.display_name ?? desc.device_id}`);
     onSourcesChanged();
   };
 
   return (
-    <Panel title="Open Ephys · ZMQ Interface" testId="openephys-form">
+    <div className="subsection" data-testid="openephys-form">
       <div className="form-grid">
         <label>
-          host
+          Host
           <input value={host} onChange={(e) => setHost(e.target.value)} data-testid="oe-host" />
         </label>
         <label>
-          data port
+          Data port
           <input
             value={port}
             inputMode="numeric"
@@ -46,11 +40,11 @@ export function OpenEphysForm({
           />
         </label>
         <label>
-          sample unit
+          Sample unit
           <select value={unit} onChange={(e) => setUnit(e.target.value as OpenEphysUnit)} data-testid="oe-unit">
             {UNITS.map((u) => (
               <option key={u} value={u}>
-                {u === "unknown" ? "unknown (pass through unscaled)" : u}
+                {u === "unknown" ? "Unknown (pass through unscaled)" : u}
               </option>
             ))}
           </select>
@@ -58,25 +52,25 @@ export function OpenEphysForm({
       </div>
       <div className="btn-row">
         <button
+          type="button"
           className="btn btn-primary"
           disabled={action.busy || !portOk || !host.trim()}
           onClick={register}
           data-testid="oe-register"
         >
-          Register Open Ephys source
+          Add source
         </button>
       </div>
       {action.error && (
-        <div className="alert" data-testid="oe-error">
+        <p className="error-text" data-testid="oe-error">
           {action.error}
-        </div>
+        </p>
       )}
-      <p className="muted small">
-        The ZMQ Interface plugin does not transmit units. With <b>unknown</b>, samples are passed through unscaled and
-        labelled <code>arbitrary</code>; choose the unit configured in the GUI to have them converted to µV. Heartbeats
-        go to port {portOk ? portNum + 1 : "data port + 1"}. Registering does not connect — BrainOS only subscribes
-        (read-only) once you connect the source.
+      <p className="hint">
+        The ZMQ Interface plugin does not transmit units. With <b>Unknown</b>, samples are passed through unscaled and
+        labelled arbitrary; choose the unit configured in the GUI to have them converted to µV. Heartbeats go to port{" "}
+        {portOk ? portNum + 1 : "data port + 1"}. Adding a source does not connect it.
       </p>
-    </Panel>
+    </div>
   );
 }

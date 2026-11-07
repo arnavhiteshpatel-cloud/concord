@@ -1,52 +1,50 @@
+/* BrainOS operator console — design tokens (single light theme).
+   Status colours are used only to show status, never as decoration. */
 :root {
-  --bg: #0a0d12;
-  --bg-2: #0f141b;
-  --panel: #121922;
-  --panel-2: #17202b;
-  --border: #223041;
-  --border-2: #2d3d52;
-  --text: #e6edf3;
-  --muted: #8b9bb0;
-  --faint: #5d6b7e;
-  --accent: #5ad1e6;
-  --accent-2: #3aa8bd;
-  --ok: #3fcf8e;
-  --warn: #e3b341;
-  --err: #f47067;
-  --violet: #b392f0;
-  --blue: #6cb6ff;
-  --amber: #e0a458;
-  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", system-ui, sans-serif;
-  --mono: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace;
-  --radius: 10px;
-  color-scheme: dark;
+  --bg: #eceeef;
+  --surface: #ffffff;
+  --surface-2: #f5f6f6;
+  --ink: #1b1f22;
+  --muted: #5f686d;
+  --line: #d6dadb;
+
+  --bar: #2a2e33;
+  --bar-ink: #f2f3f3;
+  --bar-muted: #aeb4b8;
+
+  --ok: #2f7d4f;
+  --caution: #b7791f;
+  /* caution as text: the dot colour is below 4.5:1 on white, so text uses a darker shade */
+  --caution-ink: #85570f;
+  --alarm: #c0392b;
+  --info: #2c7a8c;
+  --inactive: #a9b0b3;
+
+  --well: #15181a;
+  --trace: #4cc27a;
+
+  --radius: 6px;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --fs-sm: 13px;
+  --fs: 15px;
+  --fs-h: 18px;
+  --fs-xl: 24px;
+  --touch: 40px;
+  --focus: #2a2e33;
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; }
-html, body, #root { height: 100%; margin: 0; }
+html, body, #root { min-height: 100%; margin: 0; }
 body {
   background: var(--bg);
-  color: var(--text);
+  color: var(--ink);
   font-family: var(--font);
-  font-size: 13px;
-  line-height: 1.45;
+  font-size: var(--fs);
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
-button { font: inherit; color: inherit; }
-code, .mono { font-family: var(--mono); }
-
-.chip {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 2px 8px; border-radius: 999px;
-  border: 1px solid var(--border-2); background: var(--panel-2);
-  font-size: 11px; color: var(--muted); white-space: nowrap;
-}
-.chip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: .9; }
-.chip.plain::before { display: none; }
-
-.prov-raw_signal { color: var(--blue); }
-.prov-behavioral_label { color: var(--amber); }
-.prov-simulated_intent { color: var(--violet); }
-.prov-decoded_intent { color: var(--ok); }
-.prov-device_report { color: var(--muted); }
-.prov-runtime { color: var(--faint); }
+button, input, select, textarea { font: inherit; color: inherit; }
+code, .mono { font-family: var(--mono); font-size: 0.9em; }
+.num { font-variant-numeric: tabular-nums; }

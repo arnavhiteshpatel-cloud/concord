@@ -380,7 +380,7 @@ class LSLAdapter(DeviceAdapter):
         return max(2.0, 50.0 / self.signal.nominal_srate)
 
     def _pull(self, st: _Stream) -> tuple[Any, list[float]] | None:
-        pylsl = discovery._pylsl()
+        lost = discovery.lost_error()
         try:
             if st.buffer is not None:
                 _, ts = st.inlet.pull_chunk(
@@ -393,7 +393,7 @@ class LSLAdapter(DeviceAdapter):
             if not ts:
                 return None
             return data, list(ts)
-        except pylsl.LostError as exc:
+        except lost as exc:
             self.stats.lost += 1
             raise DeviceLinkError(f"LSL stream {st.meta.name!r} lost (publisher gone)") from exc
 

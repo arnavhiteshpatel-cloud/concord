@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { CAPABILITIES, type DeviceDescriptor } from "../../sdk";
 import { consoleApi, type CapabilityInfo } from "../api";
+import { errorText } from "../hooks";
 import { Panel } from "./ui";
 
 function params(p: Record<string, unknown>): string {
@@ -9,19 +10,24 @@ function params(p: Record<string, unknown>): string {
     .join(", ");
 }
 
-export function ContractView({ devices, onError }: { devices: DeviceDescriptor[]; onError: (e: unknown) => void }) {
+export function ContractView({ devices }: { devices: DeviceDescriptor[] }) {
   const [caps, setCaps] = useState<CapabilityInfo[]>([]);
+  const [error, setError] = useState<string | null>(null);
   useEffect(() => {
-    consoleApi.capabilities().then(setCaps).catch(onError);
-  }, [onError]);
+    consoleApi
+      .capabilities()
+      .then(setCaps)
+      .catch((e: unknown) => setError(errorText(e)));
+  }, []);
 
   return (
     <div className="contract" data-testid="contract-view">
-      <Panel title="Capability matrix" right={<span className="muted">✓ declared by device · — explicitly unsupported</span>}>
+      {error && <p className="error-text">{error}</p>}
+      <Panel title="Capability matrix" right={<span className="hint">Yes: declared by the device · —: not supported</span>}>
         <table className="table matrix">
           <thead>
             <tr>
-              <th>capability</th>
+              <th>Capability</th>
               {devices.map((d) => (
                 <th key={d.device_id}>{d.display_name}</th>
               ))}
@@ -37,11 +43,10 @@ export function ContractView({ devices, onError }: { devices: DeviceDescriptor[]
                     <td key={d.device_id} className={desc ? "yes" : "no"}>
                       {desc ? (
                         <>
-                          <span className="tick">✓</span>
-                          <span className="mono small muted">{params(desc.params)}</span>
+                          <span>Yes</span> <span className="hint">{params(desc.params)}</span>
                         </>
                       ) : (
-                        <span className="muted">—</span>
+                        <span className="hint">—</span>
                       )}
                     </td>
                   );
@@ -49,9 +54,9 @@ export function ContractView({ devices, onError }: { devices: DeviceDescriptor[]
               </tr>
             ))}
             <tr>
-              <td className="mono">native format</td>
+              <td>Native format</td>
               {devices.map((d) => (
-                <td key={d.device_id} className="small muted">
+                <td key={d.device_id} className="hint">
                   {d.native_format}
                 </td>
               ))}
@@ -60,13 +65,13 @@ export function ContractView({ devices, onError }: { devices: DeviceDescriptor[]
         </table>
       </Panel>
       <div className="diag-grid">
-        <Panel title="Capability vocabulary (schema 1.0)">
+        <Panel title="Capability vocabulary">
           <table className="table">
             <tbody>
               {caps.map((c) => (
                 <tr key={c.capability}>
                   <td className="mono nowrap">{c.capability}</td>
-                  <td className="mono muted">{c.event_types.join(", ")}</td>
+                  <td className="hint">{c.event_types.join(", ")}</td>
                   <td>{c.description}</td>
                 </tr>
               ))}
@@ -98,7 +103,7 @@ export function ContractView({ devices, onError }: { devices: DeviceDescriptor[]
               </tr>
             </tbody>
           </table>
-          <p className="muted small">
+          <p className="hint">
             Enforced by the envelope validator on the server and re-checked by both SDKs. Full JSON Schema:{" "}
             <a href="/api/v1/schema/event" target="_blank" rel="noreferrer">
               /api/v1/schema/event

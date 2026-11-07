@@ -1,7 +1,8 @@
 // Configure and start/stop the real-time processing pipeline (features -> optional decoder).
 
 import { useState } from "react";
-import type { ModelInfo, PipelineStartRequest, PipelineStatus, PresetName, ProcessingSpecInput } from "../api";
+import type { ModelInfo, PipelineStartRequest, PresetName, ProcessingSpecInput } from "../api";
+import { presetLabel } from "../wording";
 import { fmt } from "./ui";
 
 /** "" -> undefined (server default); otherwise a finite number or NaN (invalid). */
@@ -54,37 +55,43 @@ function ModelDetails({ m }: { m: ModelInfo }) {
   const inp = s.input;
   return (
     <div className="model-details" data-testid="model-details">
-      <div className="mono small">
-        dims [{s.dims.join(", ")}] · input {inp?.event_type ?? "?"} / {inp?.feature ?? "?"} · {inp?.bin_ms ?? "?"} ms ·{" "}
-        {inp?.channel_count ?? "?"} ch{inp?.inferred ? " (inferred)" : ""}
-      </div>
-      <div className="small">
-        trained on <span className="mono">{s.trained_on ?? "—"}</span>
-        {s.source_identity ? (
+      <dl className="kv">
+        <dt>Trained on</dt>
+        <dd>{s.trained_on ?? "—"}</dd>
+        {s.source_identity && (
           <>
-            {" "}
-            · source <span className="mono">{s.source_identity}</span>
+            <dt>Source</dt>
+            <dd>{s.source_identity}</dd>
           </>
-        ) : null}
-      </div>
-      <div className="small">
-        held-out R² (offline, as reported by the model file): <b>{fmt.num(s.held_out_r2 ?? null, 3)}</b> · mean-predictor
-        control {fmt.num(s.control_mean_predictor_r2 ?? null, 3)} · {fmt.num(s.held_out_samples ?? null)} samples
-      </div>
-      <div className="small" data-testid="model-compat">
-        {m.compatible === null && <span className="muted">Compatibility is checked against the pipeline output when it starts.</span>}
-        {m.compatible === true && <span className="text-ok">✓ compatible with the running pipeline output</span>}
-        {m.compatible === false && <span className="text-err">✗ incompatible with the running pipeline output</span>}
-      </div>
+        )}
+        <dt>Offline held-out R²</dt>
+        <dd className="num">
+          {fmt.num(s.held_out_r2 ?? null, 3)}{" "}
+          <span className="hint">
+            as reported by the model file · mean-predictor control {fmt.num(s.control_mean_predictor_r2 ?? null, 3)} ·{" "}
+            {fmt.num(s.held_out_samples ?? null)} samples
+          </span>
+        </dd>
+        <dt>Expects</dt>
+        <dd>
+          {inp?.feature?.replace(/_/g, " ") ?? "?"} · {inp?.bin_ms ?? "?"} ms bins · {inp?.channel_count ?? "?"} channels
+          {inp?.inferred ? " (inferred)" : ""} → {s.dims.join(", ")}
+        </dd>
+      </dl>
+      <p className="hint" data-testid="model-compat">
+        {m.compatible === null && "Compatibility is checked against the pipeline output when it starts."}
+        {m.compatible === true && <span className="text-ok">Compatible with the running pipeline output.</span>}
+        {m.compatible === false && <span className="error-text">Not compatible with the running pipeline output.</span>}
+      </p>
       {m.errors.length > 0 && (
-        <ul className="notes text-err small">
+        <ul className="notes error-text">
           {m.errors.map((e) => (
             <li key={e}>{e}</li>
           ))}
         </ul>
       )}
       {m.warnings.length > 0 && (
-        <ul className="notes text-warn small">
+        <ul className="notes caution-text">
           {m.warnings.map((w) => (
             <li key={w}>{w}</li>
           ))}
@@ -97,24 +104,22 @@ function ModelDetails({ m }: { m: ModelInfo }) {
 export function PipelineControl({
   presets,
   models,
-  status,
+  defaultPreset,
   canStart,
   busy,
   error,
   onStart,
-  onStop,
 }: {
   presets: Record<string, string>;
   models: ModelInfo[];
-  status: PipelineStatus | null;
+  defaultPreset: PresetName;
   canStart: boolean;
   busy: boolean;
   error: string | null;
   onStart: (req: PipelineStartRequest) => void;
-  onStop: () => void;
 }) {
   const names = Object.keys(presets) as PresetName[];
-  const [preset, setPreset] = useState<PresetName>("spikeband_threshold");
+  const [preset, setPreset] = useState<PresetName>(defaultPreset);
   const [binMs, setBinMs] = useState("");
   const [thresholdK, setThresholdK] = useState("-4.5");
   const [bandLow, setBandLow] = useState("");
@@ -133,13 +138,12 @@ export function PipelineControl({
     allowCrossSource: allowCross,
   });
   const selected = models.find((m) => m.summary.model_id === modelId) ?? null;
-  const running = !!status?.running;
 
   return (
     <div data-testid="pipeline-control">
       <div className="form-grid">
-        <label>
-          preset
+        <label className="span-all">
+          Processing
           <select
             value={effectivePreset}
             onChange={(e) => setPreset(e.target.value as PresetName)}
@@ -147,14 +151,17 @@ export function PipelineControl({
           >
             {names.map((n) => (
               <option key={n} value={n}>
-                {n}
+                {presetLabel(n)}
               </option>
             ))}
           </select>
         </label>
-        {effectivePreset !== "features_passthrough" && (
+      </div>
+      {presets[effectivePreset] && <p className="hint">{presets[effectivePreset]}</p>}
+      {effectivePreset !== "features_passthrough" && (
+        <div className="form-grid">
           <label>
-            bin (ms)
+            Bin (ms)
             <input
               value={binMs}
               placeholder={effectivePreset === "spikeband_threshold" ? "20 (default)" : "50 (default)"}
@@ -162,33 +169,32 @@ export function PipelineControl({
               data-testid="pl-bin"
             />
           </label>
-        )}
-        {effectivePreset === "spikeband_threshold" && (
-          <label>
-            threshold k (× RMS)
-            <input value={thresholdK} onChange={(e) => setThresholdK(e.target.value)} data-testid="pl-threshold" />
-          </label>
-        )}
-        {effectivePreset === "band_power" && (
-          <>
+          {effectivePreset === "spikeband_threshold" && (
             <label>
-              band low (Hz)
-              <input value={bandLow} onChange={(e) => setBandLow(e.target.value)} data-testid="pl-band-low" />
+              Threshold (× RMS)
+              <input value={thresholdK} onChange={(e) => setThresholdK(e.target.value)} data-testid="pl-threshold" />
             </label>
-            <label>
-              band high (Hz)
-              <input value={bandHigh} onChange={(e) => setBandHigh(e.target.value)} data-testid="pl-band-high" />
-            </label>
-          </>
-        )}
-      </div>
-      {presets[effectivePreset] && <p className="muted small">{presets[effectivePreset]}</p>}
+          )}
+          {effectivePreset === "band_power" && (
+            <>
+              <label>
+                Band low (Hz)
+                <input value={bandLow} onChange={(e) => setBandLow(e.target.value)} data-testid="pl-band-low" />
+              </label>
+              <label>
+                Band high (Hz)
+                <input value={bandHigh} onChange={(e) => setBandHigh(e.target.value)} data-testid="pl-band-high" />
+              </label>
+            </>
+          )}
+        </div>
+      )}
 
       <div className="form-grid">
         <label className="span-all">
-          decoder model (optional)
+          Decoder model
           <select value={modelId} onChange={(e) => setModelId(e.target.value)} data-testid="pl-model">
-            <option value="">none — features only</option>
+            <option value="">None (features only)</option>
             {models.map((m) => (
               <option key={m.summary.model_id} value={m.summary.model_id}>
                 {m.summary.model_id}
@@ -202,35 +208,33 @@ export function PipelineControl({
       {modelId && (
         <label className="check" data-testid="pl-cross-label">
           <input type="checkbox" checked={allowCross} onChange={(e) => setAllowCross(e.target.checked)} data-testid="pl-cross" />
-          allow cross-source decoding
+          Allow a model trained on a different source
         </label>
       )}
       {modelId && allowCross && (
-        <div className="alert alert-warn" data-testid="pl-cross-warning">
+        <p className="caution-box" data-testid="pl-cross-warning">
           Runs a decoder calibrated on a different source or session. Its output is not expected to be meaningful on this
           stream; decoded events are marked with reduced quality. Use only for deliberate cross-source tests.
-        </div>
+        </p>
       )}
 
-      <div className="btn-row" style={{ marginTop: 10 }}>
+      <div className="btn-row sheet-actions">
         <button
+          type="button"
           className="btn btn-primary"
           disabled={busy || !canStart || !request}
           onClick={() => request && onStart(request)}
           data-testid="pl-start"
         >
-          {running ? "Restart pipeline" : "Start pipeline"}
-        </button>
-        <button className="btn btn-danger" disabled={busy || !running} onClick={onStop} data-testid="pl-stop">
-          Stop pipeline
+          Start decoding
         </button>
       </div>
-      {!canStart && <p className="muted small">Connect a device (streaming or paused) to start a pipeline.</p>}
-      {problem && <p className="text-warn small">{problem}</p>}
+      {!canStart && <p className="hint">Connect a source (streaming or paused) first.</p>}
+      {problem && <p className="caution-text">{problem}</p>}
       {error && (
-        <div className="alert" data-testid="pl-error">
+        <p className="error-text" data-testid="pl-error">
           {error}
-        </div>
+        </p>
       )}
     </div>
   );
