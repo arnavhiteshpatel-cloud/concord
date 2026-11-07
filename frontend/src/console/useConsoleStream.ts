@@ -78,7 +78,8 @@ export function useConsoleStream(): ConsoleStreamData {
 
   return {
     conn,
-    runtime,
+    // The snapshot is only true while the stream is open; never present it as live afterwards.
+    runtime: conn === "open" ? runtime : null,
     negotiation,
     events: events.current,
     telemetry: telemetry.current,
