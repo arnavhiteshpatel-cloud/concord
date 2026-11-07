@@ -25,10 +25,12 @@ from brainos.adapters.base import (
 from brainos.adapters.replay.format import RecordingFormatError, ReplayRecord, ReplaySource
 from brainos.contracts.capabilities import EventType
 from brainos.contracts.events import Provenance, ProvenanceKind, Quality, QualityFlag
-from brainos.contracts.protocol import DeviceDescriptor, DeviceKind
+from brainos.contracts.protocol import DeviceDescriptor, PlaybackStatus
 
 ADAPTER_ID = "brainos.replay@0.1.0"
 LOOP_GAP_NS = 500_000_000  # pause between loops
+MIN_SPEED, MAX_SPEED = 0.1, 64.0
+YIELD_EVERY = 64  # when behind schedule, still yield to the event loop this often
 
 
 def replay_device_id(name: str) -> str:
@@ -36,24 +38,13 @@ def replay_device_id(name: str) -> str:
 
 
 def replay_descriptor(source: ReplaySource) -> DeviceDescriptor:
-    header = source.header()
-    return DeviceDescriptor(
-        device_id=replay_device_id(source.name),
-        display_name=f"Replay · {source.name}",
-        kind=DeviceKind.REPLAY,
-        adapter=ADAPTER_ID,
-        description=f"Replay of a recording from {header.device.display_name} "
-        f"({header.device.device_id}). Events are marked replayed.",
-        native_format="BrainOS recording (JSONL envelopes)",
-        capabilities=header.device.capabilities,
-        synthetic=header.synthetic,
-    )
+    return source.descriptor()
 
 
 class ReplayAdapter(DeviceAdapter):
     def __init__(self, source: ReplaySource, *, speed: float = 1.0, loop: bool = True) -> None:
-        if speed <= 0:
-            raise ValueError("speed must be > 0")
+        if not MIN_SPEED <= speed <= MAX_SPEED:
+            raise ValueError(f"speed must be in [{MIN_SPEED}, {MAX_SPEED}]")
         self._source = source
         self.descriptor = replay_descriptor(source)
         self._speed = speed
@@ -69,6 +60,10 @@ class ReplayAdapter(DeviceAdapter):
         self._last_dev_ts: int | None = None
         self.loops = 0
         self._yielded_this_pass = False
+        self._pass_first_t: int | None = None
+        self._last_t: int | None = None
+        self._since_yield = 0
+        self.records_emitted = 0
 
     async def open(self) -> None:
         try:
@@ -91,6 +86,35 @@ class ReplayAdapter(DeviceAdapter):
             self._paused_at = None
             self._running.set()
 
+    # ------------------------------------------------------------ playback control
+    def set_speed(self, speed: float) -> None:
+        """Change playback speed without a jump: re-anchor the timeline at the current record."""
+        if not MIN_SPEED <= speed <= MAX_SPEED:
+            raise ValueError(f"speed must be in [{MIN_SPEED}, {MAX_SPEED}]")
+        if self._last_t is not None and self._t0_rec is not None:
+            self._t0_rec = self._last_t
+            self._t0_wall = self._paused_at if self._paused_at is not None else time.monotonic()
+        self._speed = speed
+
+    def playback_status(self) -> PlaybackStatus:
+        duration = self._source.duration_ns()
+        position = (
+            (self._last_t - self._pass_first_t) / 1e9
+            if self._last_t is not None and self._pass_first_t is not None
+            else 0.0
+        )
+        return PlaybackStatus(
+            device_id=self.device_id,
+            speed=self._speed,
+            position_s=round(position, 3),
+            duration_s=round(duration / 1e9, 3) if duration is not None else None,
+            loops=self.loops,
+            loop=self._loop,
+            paused=self._paused_at is not None,
+            records_emitted=self.records_emitted,
+            origin=self._source.origin,
+        )
+
     def _next_record(self) -> ReplayRecord:
         assert self._it is not None
         while True:
@@ -110,6 +134,7 @@ class ReplayAdapter(DeviceAdapter):
                 self.loops += 1
                 self._it = self._source.records()
                 self._t0_rec = None
+                self._pass_first_t = None
                 continue
             except (OSError, RecordingFormatError) as exc:
                 raise DeviceLinkError(f"{self.device_id}: read failed: {exc}") from exc
@@ -127,10 +152,20 @@ class ReplayAdapter(DeviceAdapter):
         if self._t0_rec is None:
             self._t0_rec = rec.t_ns
             self._t0_wall = time.monotonic() + (LOOP_GAP_NS / 1e9 if self.loops else 0.0)
+        if self._pass_first_t is None:
+            self._pass_first_t = rec.t_ns
         due = self._t0_wall + (rec.t_ns - self._t0_rec) / 1e9 / self._speed
         delay = due - time.monotonic()
         if delay > 0:
             await asyncio.sleep(delay)
+            self._since_yield = 0
+        else:
+            self._since_yield += 1
+            if self._since_yield >= YIELD_EVERY:  # behind schedule: never starve the loop
+                self._since_yield = 0
+                await asyncio.sleep(0)
+        self._last_t = rec.t_ns
+        self.records_emitted += 1
         dev_ts = rec.envelope.get("device_timestamp_ns")
         if isinstance(dev_ts, int):
             if self._first_dev_ts is None:
@@ -162,7 +197,7 @@ class ReplayAdapter(DeviceAdapter):
                 payload=payload,
                 quality=Quality(score=q.score, flags=flags),
                 provenance=prov.model_copy(
-                    update={"replayed": True, "origin": f"replay:{self._source.name}"}
+                    update={"replayed": True, "origin": self._source.origin}
                 ),
                 device_timestamp_ns=dev_ts,
             )

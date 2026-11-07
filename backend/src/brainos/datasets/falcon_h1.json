@@ -1,0 +1,172 @@
+{
+  "id": "falcon-h1",
+  "title": "FALCON Benchmark H1: Human 7DoF Reach and Grasp Motor BCI",
+  "dandiset": "000954",
+  "version": "draft",
+  "url": "https://dandiarchive.org/dandiset/000954/draft",
+  "api": "https://api.dandiarchive.org/api",
+  "license": "CC-BY-4.0",
+  "access": "Open access on DANDI; download is subject to the Data Use Agreement in the dandiset description (no re-identification, no contact with subjects, no redistribution).",
+  "citation": "Ye, Joel; Collinger, Jennifer L.; Gaunt, Robert (2024) FALCON Benchmark H1: Human 7DoF Reach and Grasp Motor BCI (Version draft) [Data set]. DANDI archive. https://dandiarchive.org/dandiset/000954/draft",
+  "species": "Homo sapiens",
+  "recording_type": "intracortical microelectrode arrays (2 x 96-ch, motor cortex hand knob); multi-unit spiking activity",
+  "verified_at": "2026-11-07",
+  "assets": [
+    {
+      "path": "sub-HumanPitt-held-in-calib/sub-HumanPitt-held-in-calib_ses-19250101T111740.nwb",
+      "asset_id": "dd1bdcf3-5430-4037-ad4a-1727004d38d2",
+      "size_bytes": 5158319,
+      "sha256": "f8af652a31228f08b26ff8a7ecfd2a6bd05a345e368da8c98be649229f80adb2"
+    },
+    {
+      "path": "sub-HumanPitt-held-in-calib/sub-HumanPitt-held-in-calib_ses-19250101T112404.nwb",
+      "asset_id": "782b6fad-2679-4174-a88f-ad58589fe283",
+      "size_bytes": 3090448,
+      "sha256": "b946c4cf49f00c2ea8f0051481765ed090294e3e1e5a035cc5716ad93aa052b2"
+    },
+    {
+      "path": "sub-HumanPitt-held-in-calib/sub-HumanPitt-held-in-calib_ses-19250108T110520.nwb",
+      "asset_id": "e40a2eca-883d-4c80-81e3-4203a49506b5",
+      "size_bytes": 5801669,
+      "sha256": "8a09f6ead8a44776d2cee62850ff489bd16b1323799c986cad070dad784a2b83"
+    },
+    {
+      "path": "sub-HumanPitt-held-in-calib/sub-HumanPitt-held-in-calib_ses-19250108T111022.nwb",
+      "asset_id": "98f1e471-ad68-4006-b090-9a3e347852e6",
+      "size_bytes": 3308274,
+      "sha256": "9398f27c6164e84a379c4a0b8d40d8acf642659c175b9411d4573147881c0e68"
+    },
+    {
+      "path": "sub-HumanPitt-held-in-calib/sub-HumanPitt-held-in-calib_ses-19250108T111455.nwb",
+      "asset_id": "31a4259f-a8fa-47fc-bc31-4c88dfdd10e1",
+      "size_bytes": 3151141,
+      "sha256": "3a093dd558a7c5b3dbb38eaa1bb1699742a4b865066a336e65c5fe3abdfdd861"
+    },
+    {
+      "path": "sub-HumanPitt-held-in-calib/sub-HumanPitt-held-in-calib_ses-19250113T120811.nwb",
+      "asset_id": "bd4c010b-bf13-4e4b-8149-964b99b51ba4",
+      "size_bytes": 5853252,
+      "sha256": "477410e16b8c1ccfcb3caba9403169ec21ab8bee35c4846376bae781003c5f92"
+    },
+    {
+      "path": "sub-HumanPitt-held-in-calib/sub-HumanPitt-held-in-calib_ses-19250113T121303.nwb",
+      "asset_id": "6ffa00d8-b1b0-44b7-98d2-e3ddf3751c13",
+      "size_bytes": 5567825,
+      "sha256": "29d01954747e028dc8b91f82ece28ef11b95a1a33ab3a57e55eb5f967706419f"
+    },
+    {
+      "path": "sub-HumanPitt-held-in-calib/sub-HumanPitt-held-in-calib_ses-19250115T110633.nwb",
+      "asset_id": "9a95d428-053c-42ba-afae-da03791b7127",
+      "size_bytes": 5944811,
+      "sha256": "ed0760aaa946e42f8ad812d3aef7f5faf66b21b5f2804aa77574c7f7ee853451"
+    },
+    {
+      "path": "sub-HumanPitt-held-in-calib/sub-HumanPitt-held-in-calib_ses-19250115T111328.nwb",
+      "asset_id": "46938dff-771b-4b57-b0f7-cedb6cf2fdc6",
+      "size_bytes": 6858862,
+      "sha256": "022956ab01c8cb645e19327ba3457f2a065b30dd402bb4541e51c684d6a46e20"
+    },
+    {
+      "path": "sub-HumanPitt-held-in-calib/sub-HumanPitt-held-in-calib_ses-19250119T113543.nwb",
+      "asset_id": "c389e73f-f5cf-4cc8-93bf-6972d4333a97",
+      "size_bytes": 6153697,
+      "sha256": "f176ad4e1221843a94b67f87e0676bbcb83b7b1f5e49a58b2ae1d85b30e445d6"
+    },
+    {
+      "path": "sub-HumanPitt-held-in-calib/sub-HumanPitt-held-in-calib_ses-19250119T114045.nwb",
+      "asset_id": "02f569e8-7a26-4101-9eda-2b54b47bfab8",
+      "size_bytes": 5997093,
+      "sha256": "a9548924522750f6217409a9797b37389d22c9a0fe3ef145b87343192ff7d6ac"
+    },
+    {
+      "path": "sub-HumanPitt-held-in-calib/sub-HumanPitt-held-in-calib_ses-19250120T115044.nwb",
+      "asset_id": "18389588-85a6-4df8-a99b-48e3cfc9c9d8",
+      "size_bytes": 6725140,
+      "sha256": "34e0f0d229942516aec6148d2deaf0bbeabda3d10b86cd889fedf0563366c084"
+    },
+    {
+      "path": "sub-HumanPitt-held-in-calib/sub-HumanPitt-held-in-calib_ses-19250120T115537.nwb",
+      "asset_id": "04e815ce-b86e-43f2-891f-9bba135857ca",
+      "size_bytes": 6144273,
+      "sha256": "df0ba7830d01e82b716d7a1eaac0b0400ebc84e8cbf0c9e2e047437a31c43e70"
+    },
+    {
+      "path": "sub-HumanPitt-held-in-minival/sub-HumanPitt-held-in-minival_ses-19250101T111740.nwb",
+      "asset_id": "6e45be2c-12b9-43ee-b945-9426f7349eb2",
+      "size_bytes": 925980,
+      "sha256": "a95585515b1a12a61603fb3170843351d2fb6551ba6e0456c483570b085e68f3"
+    },
+    {
+      "path": "sub-HumanPitt-held-in-minival/sub-HumanPitt-held-in-minival_ses-19250101T112404.nwb",
+      "asset_id": "3ccec807-0955-453d-a982-54c1beb8bf69",
+      "size_bytes": 1015480,
+      "sha256": "e3177a65ffad2d5472c05737e6ff71ef98879bfb744c55608bda18afb11efe60"
+    },
+    {
+      "path": "sub-HumanPitt-held-in-minival/sub-HumanPitt-held-in-minival_ses-19250108T110520.nwb",
+      "asset_id": "1f52eef5-de31-444c-bd30-10ce9b1143dd",
+      "size_bytes": 1024284,
+      "sha256": "99fb1997035c4f9b0dd0a97be093042f9b7cf10af55cb2a3dc83eea7e35b4d0e"
+    },
+    {
+      "path": "sub-HumanPitt-held-in-minival/sub-HumanPitt-held-in-minival_ses-19250108T111022.nwb",
+      "asset_id": "cafc683b-91d3-46e1-b981-352361907a11",
+      "size_bytes": 1067820,
+      "sha256": "0831e7fb7f262faabc1520237bf8dfeea47dd02211642fac75c5257a24d5bc3f"
+    },
+    {
+      "path": "sub-HumanPitt-held-in-minival/sub-HumanPitt-held-in-minival_ses-19250108T111455.nwb",
+      "asset_id": "f860bec0-c9ad-460c-8e9d-9b1f008c1dcc",
+      "size_bytes": 1019604,
+      "sha256": "052423d5963899ebfc669d56ada6bc7ab4c060f023616a870c804c1b24f1418e"
+    },
+    {
+      "path": "sub-HumanPitt-held-in-minival/sub-HumanPitt-held-in-minival_ses-19250113T120811.nwb",
+      "asset_id": "145b08bd-460c-4e35-adfd-393ae4da898b",
+      "size_bytes": 984848,
+      "sha256": "8fcaf8bf0030556ccccd1ff8133b45728409b4972ab8fcf0f554b9ad8befc41e"
+    },
+    {
+      "path": "sub-HumanPitt-held-in-minival/sub-HumanPitt-held-in-minival_ses-19250113T121303.nwb",
+      "asset_id": "8a67178b-b652-47f1-82e1-e23d76fad874",
+      "size_bytes": 922184,
+      "sha256": "8842d94cda42a92e71fb6d611cb97534263887441458086261110f9c3f363b5a"
+    },
+    {
+      "path": "sub-HumanPitt-held-in-minival/sub-HumanPitt-held-in-minival_ses-19250115T110633.nwb",
+      "asset_id": "fe6a8fe2-2f88-43aa-9f72-e703346e179d",
+      "size_bytes": 1106836,
+      "sha256": "d4616e5bca7d1b4581bfca0796e7a6b2c0fc1d2f2b0f1b24171d63818922fec7"
+    },
+    {
+      "path": "sub-HumanPitt-held-in-minival/sub-HumanPitt-held-in-minival_ses-19250115T111328.nwb",
+      "asset_id": "a1c3a7d5-07d1-4c24-9f92-bf316e507687",
+      "size_bytes": 1111248,
+      "sha256": "dd320a6352e312cdbd89eed3a0a8f0729b49c5c6f24101fd00d3fc334d91671c"
+    },
+    {
+      "path": "sub-HumanPitt-held-in-minival/sub-HumanPitt-held-in-minival_ses-19250119T113543.nwb",
+      "asset_id": "06c7a3c7-ea46-4083-a146-2b96f0b22629",
+      "size_bytes": 1067268,
+      "sha256": "5c5ce0f17fdacfb89d0361eec46bc00ef8472fb8bd1018a124fe28ae8ab8fb54"
+    },
+    {
+      "path": "sub-HumanPitt-held-in-minival/sub-HumanPitt-held-in-minival_ses-19250119T114045.nwb",
+      "asset_id": "2136f538-f47e-4c73-9505-46ca77cd1a62",
+      "size_bytes": 1021356,
+      "sha256": "da99134321f3fbd0702791cc76deb46e468260fa24568bc297fb7ba7b7c7ee2e"
+    },
+    {
+      "path": "sub-HumanPitt-held-in-minival/sub-HumanPitt-held-in-minival_ses-19250120T115044.nwb",
+      "asset_id": "3698950f-dec6-4f97-9c3f-f34987c0f15e",
+      "size_bytes": 1109660,
+      "sha256": "9b4420f19793bcbe8ed2bb242e1fdc55e223dc20ad6c8c5ed49a4a61fbb11dc4"
+    },
+    {
+      "path": "sub-HumanPitt-held-in-minival/sub-HumanPitt-held-in-minival_ses-19250120T115537.nwb",
+      "asset_id": "22fa4b8e-75f0-4449-a2b3-cbdc36f5d574",
+      "size_bytes": 1044752,
+      "sha256": "666047a942c82919bbb6b7bb6dda6c7222091c2051cbe12213b1a493610ae179"
+    }
+  ]
+}

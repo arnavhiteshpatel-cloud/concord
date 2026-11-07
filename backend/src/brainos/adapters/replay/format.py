@@ -26,7 +26,7 @@ from typing import Any, Protocol
 from pydantic import BaseModel, ConfigDict
 
 from brainos.contracts.events import SCHEMA_MAJOR
-from brainos.contracts.protocol import DeviceDescriptor
+from brainos.contracts.protocol import DeviceDescriptor, DeviceKind
 
 log = logging.getLogger(__name__)
 
@@ -59,11 +59,20 @@ class ReplayRecord:
 
 
 class ReplaySource(Protocol):
-    name: str
+    """A finite, re-iterable source of recorded envelopes for ``ReplayAdapter``.
 
-    def header(self) -> RecordingHeader: ...
+    Implementations: ``BrainOSRecordingSource`` (runtime recordings) and
+    ``brainos.adapters.nwb.NWBUnitsSource`` (public NWB datasets).
+    """
+
+    name: str
+    origin: str  # provenance.origin for every replayed event
+
+    def descriptor(self) -> DeviceDescriptor: ...
 
     def records(self) -> Iterator[ReplayRecord]: ...
+
+    def duration_ns(self) -> int | None: ...
 
 
 def recording_path(directory: Path, name: str) -> Path:
@@ -94,9 +103,27 @@ class BrainOSRecordingSource:
         self.name = path.name.removesuffix(RECORDING_SUFFIX)
         self._header = read_header(path)
         self.skipped_lines = 0
+        self.origin = f"replay:{self.name}"
 
     def header(self) -> RecordingHeader:
         return self._header
+
+    def descriptor(self) -> DeviceDescriptor:
+        header = self._header
+        return DeviceDescriptor(
+            device_id=f"replay:{self.name}",
+            display_name=f"Replay · {self.name}",
+            kind=DeviceKind.REPLAY,
+            adapter="brainos.replay@0.1.0",
+            description=f"Replay of a recording from {header.device.display_name} "
+            f"({header.device.device_id}). Events are marked replayed.",
+            native_format="BrainOS recording (JSONL envelopes)",
+            capabilities=header.device.capabilities,
+            synthetic=header.synthetic,
+        )
+
+    def duration_ns(self) -> int | None:
+        return None  # not known without scanning the file
 
     def records(self) -> Iterator[ReplayRecord]:
         with self.path.open("r", encoding="utf-8") as fh:

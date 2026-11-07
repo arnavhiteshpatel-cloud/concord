@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends
@@ -21,7 +22,9 @@ from brainos.contracts.protocol import (
     DeviceDescriptor,
     ErrorCode,
     NegotiationResult,
+    PlaybackStatus,
     RuntimeSnapshot,
+    SourceMetadata,
 )
 from brainos.runtime import DiagnosticsSnapshot, RecordingInfo, RuntimeCommandError
 from brainos.runtime.registry import DeviceNotFoundError
@@ -48,6 +51,24 @@ class NegotiateRequest(_Body):
 
 class RecordingStartRequest(_Body):
     name: str | None = Field(default=None, max_length=48)
+
+
+class PlaybackRequest(_Body):
+    speed: float = Field(ge=0.1, le=64, allow_inf_nan=False)
+
+
+class DatasetProblem(BaseModel):
+    file: str
+    error: str
+
+
+class DatasetsStatus(BaseModel):
+    nwb_support: bool
+    unavailable_reason: str | None
+    datasets_dir: str
+    devices: list[str]
+    problems: list[DatasetProblem]
+    fetch_command: str
 
 
 class RecordingStarted(BaseModel):
@@ -105,6 +126,39 @@ async def get_device(device_id: str, svc: Svc) -> DeviceDescriptor:
     except DeviceNotFoundError:
         msg = f"unknown device '{device_id}'"
         raise RuntimeCommandError(ErrorCode.DEVICE_NOT_FOUND, msg) from None
+
+
+@router.get("/devices/{device_id}/source")
+async def device_source(device_id: str, svc: Svc) -> SourceMetadata:
+    """Dataset provenance, file verification, channels and notes for an offline source."""
+    try:
+        return await asyncio.to_thread(svc.runtime.registry.source_metadata, device_id)
+    except DeviceNotFoundError as exc:
+        raise RuntimeCommandError(ErrorCode.DEVICE_NOT_FOUND, str(exc)) from None
+
+
+@router.get("/datasets")
+async def datasets(svc: Svc) -> DatasetsStatus:
+    catalog = svc.runtime.registry.catalog
+    devices = await asyncio.to_thread(catalog.list)
+    return DatasetsStatus(
+        nwb_support=catalog.available,
+        unavailable_reason=catalog.unavailable_reason,
+        datasets_dir=str(catalog.datasets_dir),
+        devices=[d.device_id for d in devices],
+        problems=[DatasetProblem(file=p.file, error=p.error) for p in catalog.problems],
+        fetch_command="make dataset   (python -m brainos.datasets.fetch)",
+    )
+
+
+@router.get("/runtime/playback")
+async def playback_status(svc: Svc) -> PlaybackStatus:
+    return svc.runtime.playback_status()
+
+
+@router.post("/runtime/playback")
+async def set_playback(body: PlaybackRequest, svc: Svc) -> PlaybackStatus:
+    return await svc.runtime.set_playback_speed(body.speed)
 
 
 @router.get("/runtime")
