@@ -82,7 +82,15 @@ export function RecordingPanel({
           <tbody>
             {recordings.slice(0, 8).map((r) => (
               <tr key={r.name}>
-                <td>{r.name}</td>
+                <td>
+                  {r.name}
+                  {r.complete === false && (
+                    <span className="hint" title={r.recovery?.reason}>
+                      {" "}
+                      · incomplete
+                    </span>
+                  )}
+                </td>
                 <td className="r num">{fmt.bytes(r.size_bytes)}</td>
                 <td className="r">{r.active ? "recording" : fmt.ago(r.created_at_ns)}</td>
               </tr>

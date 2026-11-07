@@ -16,6 +16,8 @@ import { IntentPad } from "./IntentPad";
 import { NeuralView } from "./NeuralView";
 import { PipelineStatusPanel } from "./PipelineStatusPanel";
 import { SignalIntegrity } from "./SignalIntegrity";
+import { StoredData } from "./StoredData";
+import { SupportReport } from "./SupportReport";
 import { TelemetryPanel } from "./Telemetry";
 import { TestsView } from "./TestsView";
 import { Disclosure } from "./ui";
@@ -104,6 +106,13 @@ export function Advanced({
         </Disclosure>
         <Disclosure title="Tests" testId="adv-tests">
           <TestsView />
+        </Disclosure>
+        {/* M5-D: stored data (deletion, retention) and the support report */}
+        <Disclosure title="Stored data" testId="adv-storage">
+          <StoredData onChanged={onRecordingsChanged} />
+        </Disclosure>
+        <Disclosure title="Support report" testId="adv-support">
+          <SupportReport />
         </Disclosure>
       </div>
     </Disclosure>

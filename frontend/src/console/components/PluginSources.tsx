@@ -205,6 +205,12 @@ export function PluginSources({
   const plugins = status?.plugins ?? [];
   return (
     <div className="subsection" data-testid="plugin-sources">
+      {/* M5-D: what "isolated" and "compatible" do and do not mean */}
+      <p className="hint" data-testid="plugin-trust">
+        Plugins are third-party code. Each runs in its own process, but with your user&apos;s permissions: it can read your
+        files and use the network. &quot;Compatible&quot; means it follows the adapter contract, not that its code was
+        reviewed. Install only plugins you trust.
+      </p>
       {loadError && <p className="error-text">{loadError}</p>}
       {status?.error && <p className="error-text">Plugin search failed: {status.error}</p>}
       {action.error && (
