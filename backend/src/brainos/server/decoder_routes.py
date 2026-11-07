@@ -51,7 +51,7 @@ class DiscoveryStatus(BaseModel):
     plugins: int
 
 
-def _check(svc: AppServices, preset: str | None, bin_ms: float | None, mapping: bool) -> Any:
+def _check(svc: AppServices, processing: dict[str, Any] | None, mapping: bool) -> Any:
     """Streams + context to check models against: the running pipeline, or a preview."""
     from brainos.datasets import session_of
     from brainos.decoding import model as models
@@ -62,10 +62,8 @@ def _check(svc: AppServices, preset: str | None, bin_ms: float | None, mapping: 
     device = rt.device
     if st.running and st.outputs:
         streams, label, pre, params = st.outputs, "running pipeline", st.preset, None
-    elif preset and device is not None and rt.pipeline.available:
-        processing: dict[str, Any] = {"preset": preset}
-        if bin_ms is not None:
-            processing["bin_ms"] = bin_ms
+    elif processing and device is not None and rt.pipeline.available:
+        preset = str(processing["preset"])
         try:
             plan = rt.pipeline.plan_outputs(processing, device)
         except PipelineError:
@@ -96,17 +94,30 @@ async def list_models(
     svc: Svc,
     preset: Annotated[str | None, Query(max_length=32)] = None,
     bin_ms: Annotated[float | None, Query(gt=0, le=1000)] = None,
+    band_low_hz: Annotated[float | None, Query(gt=0)] = None,
+    band_high_hz: Annotated[float | None, Query(gt=0)] = None,
+    threshold_k: Annotated[float | None, Query(lt=0, ge=-20)] = None,
     allow_channel_mapping: bool = False,
 ) -> list[ModelInfo]:
     """Every decoder, with compatibility against the running pipeline's output or, with
-    ``preset``, against what that preset would produce on the connected source."""
+    ``preset`` (+ its parameters), against what that preset would produce on the connected
+    source."""
+    processing: dict[str, Any] | None = None
+    if preset:
+        given = {
+            "bin_ms": bin_ms,
+            "band_low_hz": band_low_hz,
+            "band_high_hz": band_high_hz,
+            "threshold_k": threshold_k,
+        }
+        processing = {"preset": preset, **{k: v for k, v in given.items() if v is not None}}
     try:
         from brainos.decoding.registry import ModelRecord  # noqa: F401
     except ImportError:
         return []
     reg = svc.runtime.pipeline.registry
     records = await asyncio.to_thread(reg.records)
-    ctx = _check(svc, preset, bin_ms, allow_channel_mapping)
+    ctx = _check(svc, processing, allow_channel_mapping)
     out = []
     for r in records:
         summary = r.summary(reg.trust_of(r))

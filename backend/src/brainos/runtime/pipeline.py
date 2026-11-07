@@ -1133,13 +1133,17 @@ class PipelineManager:
         need = {i for d in run.decoders for i in d.streams}
         slot = run.join.setdefault(ts, {})
         slot[idx] = values
+        # a bin still incomplete once JOIN_PENDING newer bins exist will never complete
+        bin_ns = round(float(run.outputs[idx].get("bin_ms") or 0.0) * 1e6)
+        horizon = ts - JOIN_PENDING * bin_ns
+        for old in [t for t in run.join if t < horizon or (bin_ns == 0 and t < ts)]:
+            if bin_ns == 0 and len(run.join) <= JOIN_PENDING:
+                break
+            del run.join[old]
+            self.counters["join_dropped"] += 1
         if need <= set(slot):
             del run.join[ts]
             return [(ts, slot)]
-        while len(run.join) > JOIN_PENDING:
-            oldest = min(run.join)
-            del run.join[oldest]
-            self.counters["join_dropped"] += 1
         return []
 
     async def _decode(
