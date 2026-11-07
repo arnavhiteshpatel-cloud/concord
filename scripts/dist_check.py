@@ -89,12 +89,14 @@ def free_port() -> int:
         return port
 
 
-def http(method: str, url: str, body: dict[str, object] | None = None) -> object:
+def http(
+    method: str, url: str, body: dict[str, object] | None = None, timeout: float = 30
+) -> object:
     data = json.dumps(body).encode() if body is not None else None
     req = urllib.request.Request(
         url, data=data, method=method, headers={"content-type": "application/json"}
     )
-    with urllib.request.urlopen(req, timeout=30) as r:
+    with urllib.request.urlopen(req, timeout=timeout) as r:
         return json.loads(r.read())
 
 
