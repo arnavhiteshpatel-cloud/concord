@@ -1,0 +1,610 @@
+{
+  "sources_version": "1.0",
+  "builtins": [
+    {
+      "id": "brainos.sim.profile_a",
+      "kind": "builtin_adapter",
+      "display_name": "Simulated Profile A",
+      "code": "backend/src/brainos/adapters/simulated/profile_a.py",
+      "ecosystem": null,
+      "protocol": "In-process simulator: little-endian binary frames with CRC-32 (not a model of any commercial device)",
+      "synthetic_only": true,
+      "modalities_declared": [],
+      "modality_note": "Not declared (descriptor modality is null). Synthetic signal; intents are operator-generated and labelled simulated_intent.",
+      "read_only": {
+        "statement": "Receive-only: the DeviceAdapter contract has no write, send, stimulate or command method (AT-8).",
+        "verified_by": [
+          "backend/tests/test_adapters.py"
+        ]
+      },
+      "evidence": [
+        {
+          "type": "test",
+          "path": "backend/tests/test_adapters.py",
+          "description": "Binary frame decoding, corrupt-frame rejection, declared capabilities at declared rates, fault injection, no write path (AT-8).",
+          "date": "2026-11-07",
+          "anchor": "test_profile_a_decodes_binary_frames",
+          "runs_in_ci": true
+        },
+        {
+          "type": "test",
+          "path": "backend/tests/test_runtime.py",
+          "description": "Runtime lifecycle, negotiation, switching, reconnect and recording with the simulated profiles (AT-9..AT-17).",
+          "date": "2026-11-07",
+          "anchor": "AT-9..AT-17",
+          "runs_in_ci": true
+        },
+        {
+          "type": "test",
+          "path": "backend/tests/test_server.py",
+          "description": "REST and WebSocket transport with the simulated profiles (AT-18, AT-19, AT-21).",
+          "date": "2026-11-07",
+          "anchor": "AT-18, AT-19, AT-21",
+          "runs_in_ci": true
+        }
+      ],
+      "not_tested": [
+        "Not applicable beyond software: a simulator never becomes protocol, hardware or human evidence."
+      ],
+      "limitations": [
+        "Synthetic data; intents come from the operator (simulated_intent), never from decoding."
+      ]
+    },
+    {
+      "id": "brainos.sim.profile_b",
+      "kind": "builtin_adapter",
+      "display_name": "Simulated Profile B",
+      "code": "backend/src/brainos/adapters/simulated/profile_b.py",
+      "ecosystem": null,
+      "protocol": "In-process simulator: newline-delimited JSON, no continuous pointer channel (not a model of any commercial device)",
+      "synthetic_only": true,
+      "modalities_declared": [],
+      "modality_note": "Not declared (descriptor modality is null). Synthetic signal; intents are operator-generated and labelled simulated_intent.",
+      "read_only": {
+        "statement": "Receive-only: the DeviceAdapter contract has no write, send, stimulate or command method (AT-8).",
+        "verified_by": [
+          "backend/tests/test_adapters.py"
+        ]
+      },
+      "evidence": [
+        {
+          "type": "test",
+          "path": "backend/tests/test_adapters.py",
+          "description": "JSON-lines decoding, malformed-line rejection, declared capabilities at declared rates, fault injection, no write path (AT-8).",
+          "date": "2026-11-07",
+          "anchor": "test_profile_b_decodes_json_lines",
+          "runs_in_ci": true
+        },
+        {
+          "type": "test",
+          "path": "backend/tests/test_runtime.py",
+          "description": "Runtime lifecycle, negotiation, switching, reconnect and recording with the simulated profiles (AT-9..AT-17).",
+          "date": "2026-11-07",
+          "anchor": "AT-9..AT-17",
+          "runs_in_ci": true
+        }
+      ],
+      "not_tested": [
+        "Not applicable beyond software: a simulator never becomes protocol, hardware or human evidence."
+      ],
+      "limitations": [
+        "Synthetic data; intents come from the operator (simulated_intent), never from decoding."
+      ]
+    },
+    {
+      "id": "brainos.replay",
+      "kind": "builtin_adapter",
+      "display_name": "BrainOS recording replay",
+      "code": "backend/src/brainos/adapters/replay",
+      "ecosystem": null,
+      "protocol": "BrainOS's own recording files (JSON lines), replayed with their recorded timing",
+      "synthetic_only": false,
+      "modalities_declared": [],
+      "modality_note": "Not declared by the adapter; a replay carries whatever the recorded source declared.",
+      "read_only": {
+        "statement": "Reads BrainOS recording files only; there is no device link and no write path (AT-8).",
+        "verified_by": [
+          "backend/tests/test_adapters.py"
+        ]
+      },
+      "evidence": [
+        {
+          "type": "test",
+          "path": "backend/tests/test_runtime.py",
+          "description": "Record and replay preserve provenance and order; empty and truncated recordings end cleanly.",
+          "date": "2026-11-07",
+          "anchor": "test_record_and_replay_preserves_provenance_and_order",
+          "runs_in_ci": true
+        },
+        {
+          "type": "test",
+          "path": "backend/tests/test_plugin_example.py",
+          "description": "A plugin session recorded through the server and replayed.",
+          "date": "2026-11-07",
+          "anchor": "recorded and replayed",
+          "runs_in_ci": true
+        }
+      ],
+      "not_tested": [
+        "Replays only BrainOS's own recording format; no external producer."
+      ],
+      "limitations": [
+        "Offline: replays what BrainOS recorded earlier; never live acquisition."
+      ]
+    },
+    {
+      "id": "brainos.nwb.units",
+      "kind": "offline_dataset",
+      "display_name": "NWB recordings, offline replay (DANDI 000954, FALCON H1)",
+      "code": "backend/src/brainos/adapters/nwb",
+      "ecosystem": "nwb",
+      "protocol": "NWB 2 files read with pynwb; sorted-unit spike times binned offline; labelled Offline Replay",
+      "synthetic_only": false,
+      "modalities_declared": [],
+      "modality_note": "Not declared in the descriptor (modality is null). The demo files are recordings from a human intracortical array (FALCON H1), labelled 'Recorded Human Intracranial Data — Offline Replay'.",
+      "requires_modules": [
+        "pynwb"
+      ],
+      "read_only": {
+        "statement": "Reads files only; there is no device link. A decoder is never scored or replayed on its training session (DecoderLeakageError).",
+        "verified_by": [
+          "backend/tests/test_nwb_real.py"
+        ]
+      },
+      "evidence": [
+        {
+          "type": "test",
+          "path": "backend/tests/test_nwb_real.py",
+          "description": "Against the checksum-pinned real FALCON H1 files; CI downloads them and fails if these tests are skipped.",
+          "date": "2026-11-07",
+          "anchor": "DANDI 000954",
+          "runs_in_ci": true,
+          "dataset_manifest": "backend/src/brainos/datasets/falcon_h1.json"
+        },
+        {
+          "type": "test",
+          "path": "backend/tests/test_nwb.py",
+          "description": "Error handling, timebase rules, catalog, decoder maths, replay yielding; synthetic NWB fixtures only for error paths.",
+          "date": "2026-11-07",
+          "anchor": "synthetic NWB fixtures",
+          "runs_in_ci": true
+        },
+        {
+          "type": "doc",
+          "path": "docs/DECODING.md",
+          "description": "Offline decoding results on all 13 held-in blocks from `make decoding-report` (open-loop; not closed-loop control).",
+          "date": "2026-11-07",
+          "anchor": "Blocks: 13"
+        }
+      ],
+      "not_tested": [
+        "Not live acquisition by definition: offline replay of recordings made in the past."
+      ],
+      "limitations": [
+        "Offline Replay only. Recorded neural activity is processed_feature, never an intent."
+      ]
+    },
+    {
+      "id": "brainos.nwb.ecog",
+      "kind": "offline_dataset",
+      "display_name": "Raw-voltage NWB recordings, offline replay (DANDI 000055, AJILE12 human ECoG)",
+      "code": "backend/src/brainos/adapters/nwb",
+      "ecosystem": "nwb",
+      "protocol": "NWB 2 ElectricalSeries read with pynwb from verified slice extracts; 100 ms frames; labelled Offline Replay",
+      "synthetic_only": false,
+      "modalities_declared": [
+        "ecog"
+      ],
+      "modality_note": "Declared ecog only when the file verifies against the pinned manifest; unverified files have no modality.",
+      "requires_modules": [
+        "pynwb"
+      ],
+      "read_only": {
+        "statement": "Reads files only through the replay adapter; there is no device link and no write path (AT-8).",
+        "verified_by": [
+          "backend/tests/test_adapters.py"
+        ]
+      },
+      "evidence": [
+        {
+          "type": "test",
+          "path": "backend/tests/test_ecog_real.py",
+          "description": "Against digest-verified AJILE12 slices: frames equal stored microvolts bit for bit, electrodes, pose, intervals, held-out-day decoding, modality guards; CI fetches the slices and fails if these tests are skipped.",
+          "date": "2026-11-07",
+          "anchor": "AJILE12",
+          "runs_in_ci": true,
+          "dataset_manifest": "backend/src/brainos/datasets/ajile12.json"
+        },
+        {
+          "type": "test",
+          "path": "backend/tests/test_ecog.py",
+          "description": "Raw-voltage importer error paths, unit rules, slice verification and ECoG preprocessing on synthetic NWB fixtures (error paths only).",
+          "date": "2026-11-07",
+          "anchor": "ElectricalSeries",
+          "runs_in_ci": true
+        },
+        {
+          "type": "doc",
+          "path": "docs/ECOG_DECODING.md",
+          "description": "Move-vs-rest decoding on held-out days from `make ecog-report`; offline.",
+          "date": "2026-11-07",
+          "anchor": "Held-out"
+        }
+      ],
+      "not_tested": [
+        "Not live acquisition by definition: offline replay of recordings made in the past.",
+        "No live ECoG amplifier or acquisition system has been connected."
+      ],
+      "limitations": [
+        "Offline Replay only; one participant (sub-07). Recorded voltage is raw_signal, never an intent."
+      ]
+    },
+    {
+      "id": "brainos.cursorclick.t15",
+      "kind": "offline_dataset",
+      "display_name": "Cursor + click recordings, offline replay (Dryad doi:10.5061/dryad.prr4xgxzq, participant T15)",
+      "code": "backend/src/brainos/adapters/cursorclick",
+      "ecosystem": null,
+      "protocol": "MATLAB blocks (scipy.io) replayed per 10 ms bin; historical decoder outputs as model_origin historical; labelled Offline Replay",
+      "synthetic_only": false,
+      "modalities_declared": [
+        "intracortical"
+      ],
+      "modality_note": "Declared intracortical, implanted, by the adapter.",
+      "requires_modules": [
+        "scipy"
+      ],
+      "read_only": {
+        "statement": "Reads files only through the replay adapter; there is no device link and no write path (AT-8).",
+        "verified_by": [
+          "backend/tests/test_adapters.py"
+        ]
+      },
+      "evidence": [
+        {
+          "type": "test",
+          "path": "backend/tests/test_cursorclick_format.py",
+          "description": "Reader and catalog error paths (synthetic .mat files only for malformed or unverified files).",
+          "date": "2026-11-07",
+          "anchor": "T15FormatError",
+          "runs_in_ci": true
+        },
+        {
+          "type": "test",
+          "path": "backend/tests/test_cursorclick_real.py",
+          "description": "Against the SHA-256-pinned published Dryad files: layout, the authors' trial/click structure, integration of the recorded decoder output, every replayed event validates, bit-exact runtime replay of both feature streams. CI runs it only with Dryad credentials (repository secrets).",
+          "date": "2026-11-07",
+          "anchor": "doi:10.5061/dryad.prr4xgxzq",
+          "runs_in_ci": false,
+          "record": {
+            "path": "docs/VALIDATION_LEVELS.md",
+            "anchor": "test_cursorclick_real.py"
+          },
+          "dataset_manifest": "backend/src/brainos/datasets/dryad/t15_cursor_click.json"
+        },
+        {
+          "type": "doc",
+          "path": "docs/CURSOR_CLICK.md",
+          "description": "Open-loop cursor, click and word-selection results on 9 held-out grid blocks from `make cursorclick-report`; not closed-loop control.",
+          "date": "2026-11-07",
+          "anchor": "Generated by `python -m brainos.evaluation.run_cursorclick`"
+        }
+      ],
+      "not_tested": [
+        "Not live acquisition by definition: offline replay of recordings made in the past."
+      ],
+      "limitations": [
+        "Offline Replay only. Historical decoder outputs are what the research system decoded during the session, never attributed to BrainOS."
+      ]
+    },
+    {
+      "id": "brainos.lsl",
+      "kind": "builtin_adapter",
+      "display_name": "Lab Streaming Layer",
+      "code": "backend/src/brainos/adapters/lsl",
+      "ecosystem": "lsl",
+      "protocol": "LSL: discovery by resolve, liblsl StreamInlet (pylsl), stream XML metadata",
+      "synthetic_only": false,
+      "modalities_declared": [],
+      "modality_note": "Not declared by the adapter (modality is null). Stream type and channel metadata are the producer's statements; BrainOS cannot verify the origin and labels it 'Live stream, origin unverified'.",
+      "requires_modules": [
+        "pylsl"
+      ],
+      "read_only": {
+        "statement": "Receive-only: StreamInlet only; BrainOS never creates an outlet for, or sends to, a producer.",
+        "verified_by": []
+      },
+      "evidence": [
+        {
+          "type": "test",
+          "path": "backend/tests/test_lsl.py",
+          "description": "Discovery, metadata, units, timestamps, gaps, composite clocks, reconnect when the outlet returns (M3-AT-1..4).",
+          "date": "2026-11-07",
+          "anchor": "pylsl.StreamOutlet",
+          "protocol_reference": "Genuine liblsl outlets (pylsl StreamOutlet) consumed through discovery and StreamInlet; no mocks",
+          "runs_in_ci": true
+        },
+        {
+          "type": "test",
+          "path": "backend/tests/test_pipeline_live.py",
+          "description": "Real FALCON H1 blocks streamed over LSL, declared prerecorded: every bin arrives once and decoded output equals the offline decoder bin for bin.",
+          "date": "2026-11-07",
+          "anchor": "genuine liblsl outlets",
+          "protocol_reference": "Genuine liblsl outlets publishing recorded human data, declared prerecorded",
+          "runs_in_ci": true,
+          "dataset_manifest": "backend/src/brainos/datasets/falcon_h1.json"
+        },
+        {
+          "type": "benchmark",
+          "path": "docs/BENCHMARKS_LIVE.md",
+          "description": "Throughput, latency and loss with the publisher in a separate process (scripts/bench_live.py); no hardware involved.",
+          "date": "2026-11-07",
+          "anchor": "Publishers run in a separate process"
+        }
+      ],
+      "not_tested": [
+        "Third-party LSL producers (vendor LSL apps, LabRecorder interop).",
+        "Acquisition hardware: level 3 needs a real amplifier's LSL app recorded at the same time by a reference recorder (LabRecorder to XDF), with counts, values and timestamps compared offline."
+      ],
+      "limitations": [
+        "BrainOS cannot verify whether an LSL stream comes from hardware, a file player or a simulator."
+      ]
+    },
+    {
+      "id": "brainos.openephys.zmq",
+      "kind": "builtin_adapter",
+      "display_name": "Open Ephys ZMQ Interface",
+      "code": "backend/src/brainos/adapters/openephys",
+      "ecosystem": "open-ephys",
+      "protocol": "Open Ephys GUI ZMQ Interface plugin wire format (pyzmq SUB; heartbeat on the plugin's REP port)",
+      "synthetic_only": false,
+      "modalities_declared": [],
+      "modality_note": "Not declared by the adapter (modality is null). BrainOS cannot tell whether the GUI reads hardware, a file or a simulator.",
+      "requires_modules": [
+        "zmq"
+      ],
+      "read_only": {
+        "statement": "Receive-only (ZMQ SUB). The single documented exception is the plugin's heartbeat, a liveness message so the GUI lists BrainOS as a client (docs/OPEN_EPHYS.md).",
+        "verified_by": [
+          "backend/tests/test_openephys.py"
+        ]
+      },
+      "evidence": [
+        {
+          "type": "test",
+          "path": "backend/tests/test_openephys.py",
+          "description": "Data, TTL and spike messages, heartbeat, block assembly and loss counters over real ZMQ sockets (M3-AT-5, M3-AT-6).",
+          "date": "2026-11-07",
+          "anchor": "plot_process_zmq.py",
+          "protocol_reference": "The ZMQ Interface plugin's official Python client (plot_process_zmq.py, pinned by SHA-256, downloaded at test time) parses BrainOS's test publisher bit-exactly",
+          "runs_in_ci": true
+        },
+        {
+          "type": "doc",
+          "path": "docs/OPEN_EPHYS.md",
+          "description": "Protocol facts derived line by line from the plugin source; limitations.",
+          "date": "2026-11-07",
+          "anchor": "## Limitations"
+        },
+        {
+          "type": "benchmark",
+          "path": "docs/BENCHMARKS_LIVE.md",
+          "description": "Open Ephys wire format from a publisher in a separate process (scripts/bench_live.py); no hardware involved.",
+          "date": "2026-11-07",
+          "anchor": "Open Ephys ZMQ wire format"
+        }
+      ],
+      "not_tested": [
+        "Never run against the Open Ephys GUI or an acquisition board: the test publisher reproduces the plugin's format from its source, so a mismatch with the real plugin binary is possible.",
+        "Level 3 needs the GUI with an acquisition board, compared against the GUI's own Binary-format recording, with TTL alignment checked against a known pulse generator."
+      ],
+      "limitations": [
+        "Data that arrives while open() learns the layout is not emitted, also after every reconnect.",
+        "The plugin may truncate non-ASCII channel names in its JSON header."
+      ]
+    }
+  ],
+  "plugins": [
+    {
+      "package": "brainos-example-adapter",
+      "source_dir": "examples/adapters/brainos-example-adapter",
+      "protocol": "Adapter SDK plugin that generates synthetic motor-imagery EEG in its own process (declared synthetic)",
+      "read_only": {
+        "statement": "Receive-only: the adapter SDK's SourcePlugin / SourceSession interface has no write, stimulate or command method, and the plugin runs in a separate plugin-host process.",
+        "verified_by": [
+          "backend/tests/test_plugin_host.py"
+        ]
+      },
+      "evidence": [
+        {
+          "type": "test",
+          "path": "examples/adapters/brainos-example-adapter/tests/test_example_mi_eeg.py",
+          "description": "The plugin run exactly as BrainOS runs it (separate host process, BrainOS's validation), using only the adapter SDK.",
+          "date": "2026-11-07",
+          "anchor": "Tests a plugin author would write",
+          "runs_in_ci": true
+        },
+        {
+          "type": "test",
+          "path": "backend/tests/test_plugin_example.py",
+          "description": "Discovered by a real server, configured over REST, streamed over the WebSocket, recorded, replayed and reconnected after its host process is killed.",
+          "date": "2026-11-07",
+          "anchor": "recorded and replayed",
+          "runs_in_ci": true
+        },
+        {
+          "type": "test",
+          "path": "backend/tests/test_m4_demo.py",
+          "description": "Milestone 4 demonstration: pipeline, LDA calibration and command-router authorization with this adapter (declared synthetic).",
+          "date": "2026-11-07",
+          "anchor": "THIRD-PARTY adapter",
+          "runs_in_ci": true
+        }
+      ],
+      "not_tested": [
+        "Not applicable beyond software: a declared-synthetic generator for tutorials, never brain data."
+      ],
+      "limitations": [
+        "Synthetic signal (mu-band desynchronisation at C3/C4 by construction); not physiologically validated."
+      ]
+    },
+    {
+      "package": "brainos-brainflow",
+      "source_dir": "packages/brainos-brainflow",
+      "protocol": "BrainFlow BoardShim (official library) in the plugin host: synthetic, playback-file and streaming boards; other BoardIds boards by option",
+      "read_only": {
+        "statement": "Receive-only: the adapter SDK has no write method, and BrainFlow board configuration (config_board, gain, impedance modes) is deliberately not offered because it writes to the device.",
+        "verified_by": [
+          "backend/tests/test_plugin_host.py"
+        ]
+      },
+      "evidence": [
+        {
+          "type": "test",
+          "path": "packages/brainos-brainflow/tests/test_bf_synthetic.py",
+          "description": "Metadata equals get_board_descr; 3 s of streaming through the public API with every contract rule checked; rate and unix timestamps.",
+          "date": "2026-11-07",
+          "anchor": "from brainflow.board_shim import",
+          "protocol_reference": "Official BrainFlow library, BoardShim SYNTHETIC_BOARD; no mocks",
+          "runs_in_ci": true
+        },
+        {
+          "type": "test",
+          "path": "packages/brainos-brainflow/tests/test_bf_playback.py",
+          "description": "Every value played back equals DataFilter.read_file of the same file bit for bit; deleted samples appear as a gap; counter wrap is not loss.",
+          "date": "2026-11-07",
+          "anchor": "from brainflow.data_filter import DataFilter",
+          "protocol_reference": "Official BrainFlow PLAYBACK_FILE_BOARD replaying a file written by DataFilter.write_file",
+          "runs_in_ci": true
+        },
+        {
+          "type": "test",
+          "path": "packages/brainos-brainflow/tests/test_bf_streaming.py",
+          "description": "Every sample received over multicast equals the producer's sample exactly; stopping the producer gives LinkLost.",
+          "date": "2026-11-07",
+          "anchor": "streaming_board://",
+          "protocol_reference": "A second official BoardShim session publishing with add_streamer to the plugin's STREAMING_BOARD",
+          "runs_in_ci": true
+        },
+        {
+          "type": "test",
+          "path": "packages/brainos-brainflow/tests/test_bf_options.py",
+          "description": "Invalid options; a real BrainFlow driver (CYTON_BOARD) on a nonexistent serial port fails with OpenFailed.",
+          "date": "2026-11-07",
+          "anchor": "official BrainFlow library, no hardware",
+          "runs_in_ci": true
+        },
+        {
+          "type": "test",
+          "path": "packages/brainos-brainflow/tests/test_bf_layout.py",
+          "description": "Every board description shipped with the installed BrainFlow maps cleanly; never invasive=True.",
+          "date": "2026-11-07",
+          "anchor": "get_board_descr",
+          "runs_in_ci": true
+        },
+        {
+          "type": "test",
+          "path": "backend/tests/test_plugin_ecosystems.py",
+          "description": "Through the plugin host and the unchanged runtime with the synthetic board.",
+          "date": "2026-11-07",
+          "anchor": "official ``BoardShim`` API",
+          "runs_in_ci": true
+        },
+        {
+          "type": "benchmark",
+          "path": "packages/brainos-brainflow/scripts/measure_brainflow.py",
+          "description": "Rate and latency measurement script; results (synthetic and streaming boards, machine-dependent) in docs/ECOSYSTEMS.md.",
+          "date": "2026-11-07"
+        },
+        {
+          "type": "doc",
+          "path": "docs/ECOSYSTEMS.md",
+          "description": "Mapping, clock, loss, what was tested and what was not.",
+          "date": "2026-11-07",
+          "anchor": "### Not tested / not supported"
+        }
+      ],
+      "not_tested": [
+        "No hardware board was connected; units, channel types and package counters of real boards come from BrainFlow's descriptions only.",
+        "hardware_tested needs a physical BrainFlow-supported board and an operator-signed attestation; level 3 also needs a comparison against an independent reference recording."
+      ],
+      "limitations": [
+        "Only BrainFlow's DEFAULT preset rows are read; BrainFlow markers cannot reach the plugin.",
+        "prerecorded cannot be detected for a streaming board whose producer replays a file."
+      ]
+    },
+    {
+      "package": "brainos-bci2000",
+      "source_dir": "packages/brainos-bci2000",
+      "protocol": "BCI2000 App Connector ConnectorOutput (UDP, one ASCII line per datagram): processed control information, never raw signal",
+      "read_only": {
+        "statement": "Receive-only: ConnectorOutput only; never ConnectorInput, Operator scripting or BCI2000Remote (write and control paths). The control signal reaches apps as a command only if the operator enables the command router.",
+        "verified_by": [
+          "backend/tests/test_plugin_ecosystems.py"
+        ]
+      },
+      "evidence": [
+        {
+          "type": "test",
+          "path": "packages/brainos-bci2000/tests/test_bci_real_bci2000.py",
+          "description": "Opt-in live test: the plugin receives a genuine BCI2000 build's own ConnectorOutput (131 control blocks, 0 malformed, 0 dropped, 5 state changes in order).",
+          "date": "2026-11-07",
+          "anchor": "BCI2000_PROG_DIR",
+          "protocol_reference": "Genuine BCI2000 3.6 built from source: SignalGenerator, DummySignalProcessing, DummyApplication's own ConnectorOutput",
+          "runs_in_ci": false,
+          "record": {
+            "path": "docs/ECOSYSTEMS.md",
+            "anchor": "passed here — 131 control blocks"
+          }
+        },
+        {
+          "type": "test",
+          "path": "packages/brainos-bci2000/tests/test_bci_plugin.py",
+          "description": "UDP replay of 2 011 datagrams captured from that build with original timing (values equal the transmitted text); options, layout changes, port handling.",
+          "date": "2026-11-07",
+          "anchor": "test_replay_of_genuine_bci2000_output",
+          "runs_in_ci": true
+        },
+        {
+          "type": "test",
+          "path": "packages/brainos-bci2000/tests/test_bci_protocol.py",
+          "description": "Strict line grammar, block boundaries, loss, reordering and SourceTime wrap against a byte-for-byte reproduction of ConnectorOutput.",
+          "date": "2026-11-07",
+          "anchor": "byte-for-byte reproduction",
+          "runs_in_ci": true
+        },
+        {
+          "type": "test",
+          "path": "backend/tests/test_plugin_ecosystems.py",
+          "description": "Recorded BCI2000 output through the plugin host and the unchanged runtime; no application command by itself.",
+          "date": "2026-11-07",
+          "anchor": "BCI2000 App Connector output",
+          "runs_in_ci": true
+        },
+        {
+          "type": "benchmark",
+          "path": "packages/brainos-bci2000/scripts/measure_app_connector.py",
+          "description": "Block rate and latency against genuine BCI2000; results (machine-dependent) in docs/ECOSYSTEMS.md.",
+          "date": "2026-11-07"
+        },
+        {
+          "type": "doc",
+          "path": "docs/ECOSYSTEMS.md",
+          "description": "Interfaces, mapping, clock and loss; a receiver gap of about 1 s stops BCI2000's output until the next run (measured).",
+          "date": "2026-11-07",
+          "anchor": "Receiver restarts stop BCI2000's output"
+        }
+      ],
+      "not_tested": [
+        "No amplifier and no BCI2000 source module other than SignalGenerator; no application other than DummyApplication; BCI2000 on Windows or macOS, or on another machine.",
+        "protocol_tested in a certification report: needs a live BCI2000 run, and BCI2000 stops sending for the rest of a run after its receiver is unreachable for about 1 s, so the certifier's kill and reopen phases need a run restart.",
+        "The official bci2000.org distribution: the build is from a public fork's source."
+      ],
+      "limitations": [
+        "Processed control information only, never raw signal.",
+        "A block whose datagrams are all lost is undetectable (no block counter on the wire).",
+        "synthetic and prerecorded are operator declarations."
+      ]
+    }
+  ]
+}

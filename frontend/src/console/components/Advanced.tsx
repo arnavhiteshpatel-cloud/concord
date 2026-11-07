@@ -7,6 +7,7 @@ import type { ConsoleStreamData } from "../useConsoleStream";
 import { isDatasetFile, isLiveSource, type DiagnosticsSnapshot, type LiveSourceMetadata, type RecordingInfo } from "../api";
 import type { PipelineState } from "../pipeline";
 import { AppsPanel } from "./AppsPanel";
+import { CompatibilityView } from "./CompatibilityView";
 import { ContractView } from "./ContractView";
 import { FaultInjection, RecordingPanel, isBuiltInSimulator } from "./ControlsPanel";
 import { DatasetDetails } from "./DatasetDetails";
@@ -104,6 +105,9 @@ export function Advanced({
         </Disclosure>
         <Disclosure title="Tests" testId="adv-tests">
           <TestsView />
+        </Disclosure>
+        <Disclosure title="Compatibility" testId="adv-compat">
+          <CompatibilityView />
         </Disclosure>
       </div>
     </Disclosure>

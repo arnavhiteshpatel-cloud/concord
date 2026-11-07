@@ -86,6 +86,10 @@ jobs:
         with:
           name: pytest-report
           path: reports/pytest-junit.xml
+      # Workstream F (M5): the committed compatibility registry, its schema and the generated
+      # section of docs/COMPATIBILITY.md must equal what this checkout's evidence produces.
+      - name: "Workstream F: compatibility registry is current"
+        run: python -m brainos.compat.build --check
 
   distribution:
     # The developer distribution from built wheels in fresh virtualenvs: an adapter developer
