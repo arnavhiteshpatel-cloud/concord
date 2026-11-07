@@ -60,9 +60,18 @@ def notch(fs: float, f0: float, channels: int, q: float = 30.0) -> SOSFilter:
     return SOSFilter(np.asarray(sps.tf2sos(b, a)), channels, f"notch {f0:g} Hz (Q={q:g})")
 
 
-def common_average_reference(x: F64) -> F64:
-    """Subtract the across-channel mean at each sample (stateless, causal)."""
-    return x - x.mean(axis=1, keepdims=True)
+def common_average_reference(x: F64, reference: NDArray[np.bool_] | None = None) -> F64:
+    """Subtract the across-channel mean at each sample (stateless, causal).
+
+    ``reference`` (M5) selects the channels that form the average (e.g. all channels except
+    those the source marks bad, so a broken electrode cannot contaminate every channel). The
+    average is subtracted from every channel, including excluded ones.
+    """
+    if reference is None:
+        return x - x.mean(axis=1, keepdims=True)
+    if reference.shape != (x.shape[1],) or not reference.any():
+        raise StageConfigError("CAR reference mask must select at least one of the channels")
+    return x - x[:, reference].mean(axis=1, keepdims=True)
 
 
 # ------------------------------------------------------------------ binning

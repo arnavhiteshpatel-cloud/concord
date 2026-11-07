@@ -306,11 +306,19 @@ class PipelineManager:
             fs = float(rec.params["sample_rate_hz"])  # type: ignore[arg-type]
             n = int(rec.params["channel_count"])  # type: ignore[arg-type]
             unit = str(rec.params.get("unit", "uV"))
+            labels = rec.params.get("channel_labels")
+            spec, car_exclude = _source_specific(spec, rec.params, n)
             try:
-                chain = SignalChain(spec, fs, n, unit)
+                chain = SignalChain(
+                    spec,
+                    fs,
+                    n,
+                    unit,
+                    car_exclude=car_exclude,
+                    channel_labels=list(labels) if isinstance(labels, list) else None,
+                )
             except StageConfigError as exc:
                 raise PipelineError(ErrorCode.CAPABILITY_UNSUPPORTED, str(exc)) from None
-            labels = rec.params.get("channel_labels")
             output = {
                 "event_type": chain.out.event_type,
                 "feature": chain.out.feature,
@@ -350,6 +358,11 @@ class PipelineManager:
                 ) from None
             from brainos.datasets import session_of
 
+            bad = (
+                rec_params.get("bad_channels")
+                if (rec_params := _recording_params(device))
+                else None
+            )
             compat = models.check(
                 decoder,
                 event_type=output["event_type"],
@@ -360,6 +373,8 @@ class PipelineManager:
                 stream_identity=models.source_identity(origin),
                 stream_session=session_of(origin or ""),
                 allow_cross_source=req.allow_cross_source,
+                stream_modality=device.modality.value if device.modality else None,
+                stream_bad_channels=[str(b) for b in bad] if isinstance(bad, list) else None,
             )
             if not compat.ok:
                 raise PipelineError(ErrorCode.INCOMPATIBLE_DECODER, "; ".join(compat.errors))
@@ -752,6 +767,52 @@ class PipelineManager:
             task.cancel()
             with contextlib.suppress(asyncio.CancelledError):
                 await task
+
+
+def _recording_params(device: DeviceDescriptor) -> dict[str, Any] | None:
+    rec = next((c for c in device.capabilities if c.capability is Capability.RECORDING), None)
+    return dict(rec.params) if rec is not None else None
+
+
+def _source_specific(spec: Any, params: dict[str, Any], n: int) -> tuple[Any, list[int]]:
+    """Apply what the source declares (M5): its mains frequency for the line-noise notch and its
+    bad channels, which are left out of the common average reference.
+
+    An explicitly requested notch frequency that contradicts the source's declaration is
+    refused (``line_hz: null`` = no notch, e.g. for data notch-filtered upstream, is allowed).
+    """
+    declared = params.get("line_hz")
+    if spec.preset == "ecog_high_gamma" and isinstance(declared, int | float) and declared:
+        if "line_hz" not in spec.model_fields_set:
+            if declared not in (50, 60):
+                raise PipelineError(
+                    ErrorCode.CAPABILITY_UNSUPPORTED,
+                    f"source declares {declared:g} Hz mains; only 50/60 Hz notches exist",
+                )
+            spec = spec.model_copy(update={"line_hz": int(declared)})
+        elif spec.line_hz is not None and float(spec.line_hz) != float(declared):
+            raise PipelineError(
+                ErrorCode.CAPABILITY_UNSUPPORTED,
+                f"notch at {spec.line_hz} Hz requested, but the source declares "
+                f"{declared:g} Hz mains (line_hz: null disables the notch)",
+            )
+    labels = params.get("channel_labels")
+    bad = params.get("bad_channels")
+    exclude: list[int] = []
+    if isinstance(bad, list) and bad:
+        if not isinstance(labels, list) or len(labels) != n:
+            raise PipelineError(
+                ErrorCode.CAPABILITY_UNSUPPORTED,
+                "source declares bad channels without channel labels; cannot exclude them",
+            )
+        index = {str(lbl): i for i, lbl in enumerate(labels)}
+        unknown = [b for b in bad if str(b) not in index]
+        if unknown:
+            raise PipelineError(
+                ErrorCode.CAPABILITY_UNSUPPORTED, f"bad channels {unknown} are not source channels"
+            )
+        exclude = [index[str(b)] for b in bad]
+    return spec, exclude
 
 
 def _probe() -> tuple[bool, str | None]:

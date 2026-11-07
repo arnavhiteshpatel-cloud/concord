@@ -217,3 +217,31 @@ See docs/CERTIFICATION.md §6.
   (docs/compatibility/) are for a synthetic generator, BrainFlow's synthetic board and a
   replayed BCI2000 capture.
 
+
+## Human ECoG (Milestone 5, workstream B)
+
+See docs/ECOG.md §9 for details.
+
+- **Offline replay only.** The ECoG source is a recording (AJILE12, DANDI 000055) made during
+  clinical epilepsy monitoring; no live ECoG source has been connected to BrainOS.
+- **One participant (sub-07), 78.75 minutes from three days**, chosen as the densest windows of
+  curated reach events. Results do not transfer to other participants, implants or tasks.
+- **Movement vs rest only.** The classifier detects curated arm reaches against periods with both
+  wrists still; it also fires during unlabelled behavior (P(move) > 0.5 in 11–15 % of all
+  held-out bins) and yields 3.7–6.1 false onsets per minute of labelled rest at a 0.5 threshold.
+  Reach direction and continuous wrist velocity were not attempted.
+- **No low-frequency / LMP feature:** the 1.4 contract has no feature name for a signed
+  low-pass amplitude; adding one needs a schema minor bump.
+- The data was already notch-filtered (60/120/180 Hz) and low-passed (250 Hz) by the dataset
+  authors; BrainOS's notch has not been exercised on un-notched real ECoG.
+- The AJILE12 files store no channel names, no anatomical locations and no coordinate space;
+  BrainOS labels channels `<group>/<id>` and reports coordinates as stored. Pose is in video
+  pixels (declared `meters` with `conversion` NaN in the file) and is reported as `arbitrary`.
+- The source files (~10 GB each) are never downloaded whole: their SHA-256 is DANDI's metadata,
+  checked at fetch time; BrainOS verifies the slices it uses by their own digests.
+- Raw-voltage NWB files other than AJILE12 extracts are supported only in the layouts the
+  synthetic fixtures cover (one regularly sampled `ElectricalSeries`, an electrodes table,
+  optional Position pose and interval tables); explicit timestamps are refused.
+- An unverified raw-voltage NWB file has no declared modality (`null`); models with a declared
+  modality then load with a warning only (feature, channel, source and session checks still
+  apply).

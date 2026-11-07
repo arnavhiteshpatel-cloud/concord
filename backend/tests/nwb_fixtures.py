@@ -102,8 +102,103 @@ def empty_units(path: Path) -> Path:
     return write(path, f)
 
 
+def calcium_like_unsupported(path: Path) -> Path:
+    """Valid NWB with neither units nor an ElectricalSeries (a generic TimeSeries only)."""
+    f = _file()
+    f.add_acquisition(
+        TimeSeries(name="fluorescence", data=np.zeros((10, 2)), unit="a.u.", rate=30.0)
+    )
+    return write(path, f)
+
+
+def electrical(
+    path: Path,
+    *,
+    data: np.ndarray | None = None,
+    fs: float = 500.0,
+    starting_time: float = 10.0,
+    conversion: float = 1e-6,
+    channel_conversion: list[float] | None = None,
+    good: list[bool] | None = None,
+    bad: list[bool] | None = None,
+    labels: list[str] | None = None,
+    pose: bool = True,
+    epochs: list[tuple[float, float, str]] | None = None,
+    reaches: list[tuple[float, float]] | None = None,
+) -> Path:
+    """An ECoG-like raw-voltage NWB file (synthetic; NOT a substitute for the real data tests)."""
+    from pynwb.behavior import Position, SpatialSeries
+    from pynwb.epoch import TimeIntervals
+
+    if data is None:
+        data = np.random.default_rng(3).normal(scale=20.0, size=(1000, 4)).astype(np.float32)
+    n, ch = data.shape
+    f = _file()
+    dev = f.create_device(name="GRID")
+    grp = f.create_electrode_group(
+        name="GRID", description="ECoG grid", location="unknown", device=dev
+    )
+    if good is not None:
+        f.add_electrode_column(name="good", description="good electrodes")
+    if bad is not None:
+        f.add_electrode_column(name="bad", description="bad electrodes")
+    if labels is not None:
+        f.add_electrode_column(name="label", description="channel name")
+    for i in range(ch):
+        extra: dict[str, object] = {}
+        if good is not None:
+            extra["good"] = good[i]
+        if bad is not None:
+            extra["bad"] = bad[i]
+        if labels is not None:
+            extra["label"] = labels[i]
+        f.add_electrode(group=grp, location="unknown", x=float(i), y=0.0, z=1.0, **extra)
+    region = f.create_electrode_table_region(list(range(ch)), "all electrodes")
+    f.add_acquisition(
+        ElectricalSeries(
+            name="ElectricalSeries",
+            data=data,
+            electrodes=region,
+            rate=fs,
+            starting_time=starting_time,
+            conversion=conversion,
+            channel_conversion=channel_conversion,
+        )
+    )
+    if pose:
+        frames = int(n / fs * 30)
+        xy = np.cumsum(np.random.default_rng(4).normal(size=(frames, 2)), axis=0)
+        xy[5] = np.nan  # one untracked frame
+        module = f.create_processing_module(name="behavior", description="pose data")
+        module.add(
+            Position(
+                spatial_series=[
+                    SpatialSeries(
+                        name=k,
+                        data=xy,
+                        reference_frame="unknown",
+                        conversion=np.nan,
+                        rate=30.0,
+                        starting_time=starting_time,
+                    )
+                    for k in ("L_Wrist", "R_Wrist")
+                ]
+            )
+        )
+    if epochs:
+        f.add_epoch_column(name="labels", description="Coarse behavioral labels")
+        for a, b, lab in epochs:
+            f.add_epoch(start_time=a, stop_time=b, labels=lab)
+    if reaches:
+        ti = TimeIntervals(name="reaches", description="Features of each reach")
+        for a, b in reaches:
+            ti.add_row(start_time=a, stop_time=b)
+        f.add_time_intervals(ti)
+    return write(path, f)
+
+
 def raw_voltage_only(path: Path) -> Path:
-    """Valid NWB with an ElectricalSeries but no units: an unsupported modality."""
+    """Valid NWB with an ElectricalSeries but no units (unsupported by the units reader)."""
     f = _file()
     dev = f.create_device(name="array")
     grp = f.create_electrode_group(name="g", description="d", location="unknown", device=dev)

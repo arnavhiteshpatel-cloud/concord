@@ -68,6 +68,8 @@ class SessionData:
     # class names declared by the source for a class-label behavior stream (capability param
     # ``class_names`` of ``behavior``), if any
     declared_classes: list[str] | None = None
+    # M5: the recorded device's declared modality (contract ``Modality`` value), if any
+    modality: str | None = None
 
 
 def _sha(path: Path) -> str:
@@ -155,7 +157,9 @@ def load_session(path: Path, *, feature_source: str | None = None) -> SessionDat
         if cap.get("capability") == "behavior" and isinstance(names, list) and names:
             declared_classes = [str(x) for x in names]
     bunit = str(beh[0][3]["unit"])
+    modality = header.get("device", {}).get("modality")
     return SessionData(
+        modality=str(modality) if modality else None,
         path=path,
         sha256=_sha(path),
         device_id=str(header.get("device", {}).get("device_id", "")),
@@ -230,13 +234,16 @@ def _training_info(sessions: list[SessionData], split: int) -> dict[str, Any]:
 
 
 def _input_spec(s0: SessionData, channels: int) -> dict[str, Any]:
-    return {
+    spec: dict[str, Any] = {
         "event_type": s0.feature_event,
         "feature": s0.feature,
         "bin_ms": s0.bin_ms,
         "channel_count": channels,
         "channel_labels": s0.channel_labels,
     }
+    if s0.modality:  # M5: declared by the recorded device; checked when the model is loaded
+        spec["modality"] = s0.modality
+    return spec
 
 
 def calibrate(

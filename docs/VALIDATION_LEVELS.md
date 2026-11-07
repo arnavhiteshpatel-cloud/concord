@@ -70,3 +70,18 @@ levels above as follows; the toolkit can grant only the first by itself.
 | --- | --- | --- | --- |
 | `brainos-certify` toolkit | 1 | `packages/brainos-certify/tests` (every check passes on a good plugin; each check that can fail or warn does so on a crafted defect; installed entry points and RECORD hash verification on a temporary distribution; level logic; signed / tampered / foreign-key / malformed attestations with OpenSSL Ed25519; report schema; CLI exit codes; a run with BrainOS hidden); every broken test plugin in `backend/tests/plugins` caught by a specific check (docs/COMPATIBILITY.md); real runs of the example, BrainFlow and BCI2000 plugins (docs/compatibility/) | Never run against a plugin for real acquisition hardware; thresholds are engineering choices, not standards |
 
+
+## Human ECoG (Milestone 5, workstream B)
+
+Real-data replay of **recorded** human ECoG (AJILE12, DANDI 000055, one participant, clinical
+epilepsy monitoring). Offline replay is not live acquisition (not level 2 for a live source),
+not hardware (3) and not closed-loop use by a person (4).
+
+| Component | Level reached | Evidence (all executed) | Not yet done |
+| --- | --- | --- | --- |
+| Slice streaming + verified NWB extracts (`datasets/extract.py`, `ajile12.json`) | 1 + real data | 6 slices fetched from DANDI by HTTP range reads; DANDI SHA-256 / size checked; each slice's stored values hash to the pinned digest; a one-sample change or a shifted timeline makes the extract unverified (`test_ecog_real.py`, `test_ecog.py`) | The full 10 GB source files were never downloaded and hashed here (DANDI's digest is trusted for them) |
+| Raw-voltage NWB importer (`adapters/nwb/ecog.py`) | 1 + real-data replay | Frames through the unchanged runtime equal the stored µV bit for bit; electrode table, bad flags, pose, intervals, data-break flags; unit only from the file's declaration (synthetic fixtures for mV, channel_conversion, unusable units) | Only AJILE12-style files and synthetic fixtures; other ECoG/sEEG NWB layouts untested |
+| ECoG preprocessing (source mains notch, CAR without bad electrodes, 70–150 Hz log power) | 1 (+ real data) | Chunk invariance and causality with CAR exclusion; live pipeline features equal the offline analysis on the real held-out slice | Never applied to a live ECoG stream; never on un-notched real ECoG |
+| Movement-vs-rest LDA on ECoG | real-data replay (offline) | Held-out sessions: balanced accuracy 0.938 / 0.861, AUC 0.992 / 0.939 vs time-shift nulls ≤ 0.55 / 0.60 (docs/ECOG_DECODING.md); online == offline posteriors | No participant was trying to control anything; one participant |
+| Modality guards | 1 (+ real streams) | ECoG model refused on FALCON spike counts, FALCON model and EEG-declared model refused on ECoG, even with the cross-source override | — |
+| Same SDK-only app on ECoG | 1–2 (real server, real recorded ECoG) | Unchanged `menu_app.py` receives decoded selections from the held-out ECoG replay only after operator authorization; nothing after disconnect | No person used it; offline replay only |

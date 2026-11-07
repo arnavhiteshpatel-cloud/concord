@@ -3,6 +3,12 @@
 A manifest pins every asset by DANDI asset id and SHA-256 so a file on disk can be
 proven to be the published recording (DANDI drafts can change; checksums cannot).
 Recordings themselves are never committed to git (``data/`` is ignored).
+
+Large assets (Milestone 5, e.g. AJILE12 ECoG: 8-18 GiB per file) are not downloaded whole:
+a manifest may pin **slices** (exact sample ranges of one series of one asset). The slice is
+streamed with HTTP range requests from the pinned asset and written to a local NWB extract;
+the slice is pinned by the SHA-256 of its raw stored values (``data_sha256``), which BrainOS
+recomputes from the extract at load time (see ``datasets/extract.py``).
 """
 
 from __future__ import annotations
@@ -45,6 +51,28 @@ class DatasetAsset:
 
 
 @dataclass(frozen=True, slots=True)
+class DatasetSlice:
+    """An exact, pinned part of one asset, stored locally as an NWB extract (M5)."""
+
+    id: str
+    asset_path: str
+    filename: str  # local extract file name
+    role: str  # "train" | "test": how BrainOS's own evaluation uses it (sessions never mix)
+    demo: bool  # part of the small default download
+    series: str  # HDF5 path of the sliced series, e.g. "acquisition/ElectricalSeries"
+    samples: tuple[int, int]  # [start, stop) sample indices of ``series``
+    channels: int
+    data_sha256: str  # SHA-256 of the slice's stored values (file dtype, little-endian, C order)
+    pose_frames: tuple[int, int] | None = None  # [start, stop) frames of the pose series
+    pose_sha256: str | None = None
+    note: str = ""
+
+    @property
+    def session(self) -> str | None:
+        return session_of(self.filename)
+
+
+@dataclass(frozen=True, slots=True)
 class DatasetManifest:
     id: str
     title: str
@@ -59,6 +87,12 @@ class DatasetManifest:
     recording_type: str
     verified_at: str
     assets: tuple[DatasetAsset, ...]
+    # Milestone 5 (all optional): declared recording modality (contract ``Modality`` value),
+    # mains frequency of the recording site, pinned slices of large assets, dataset notes.
+    modality: str | None = None
+    line_hz: float | None = None
+    slices: tuple[DatasetSlice, ...] = ()
+    notes: tuple[str, ...] = ()
 
     def asset_url(self, asset: DatasetAsset) -> str:
         return f"{self.api}/assets/{asset.asset_id}/download/"
@@ -68,6 +102,12 @@ class DatasetManifest:
 
     def by_filename(self, filename: str) -> DatasetAsset | None:
         return next((a for a in self.assets if a.filename == filename), None)
+
+    def by_path(self, path: str) -> DatasetAsset | None:
+        return next((a for a in self.assets if a.path == path), None)
+
+    def find_slice(self, data_sha256: str) -> DatasetSlice | None:
+        return next((s for s in self.slices if s.data_sha256 == data_sha256), None)
 
 
 def session_of(filename: str) -> str | None:
@@ -83,8 +123,22 @@ def manifests() -> tuple[DatasetManifest, ...]:
             continue
         raw = json.loads(entry.read_text(encoding="utf-8"))
         assets = tuple(DatasetAsset(**a) for a in raw.pop("assets"))
-        out.append(DatasetManifest(assets=assets, **raw))
+        slices = tuple(_slice(s) for s in raw.pop("slices", []))
+        notes = tuple(raw.pop("notes", []))
+        out.append(DatasetManifest(assets=assets, slices=slices, notes=notes, **raw))
     return tuple(out)
+
+
+def _slice(raw: dict[str, object]) -> DatasetSlice:
+    d = dict(raw)
+    samples = d.pop("samples")
+    frames = d.pop("pose_frames", None)
+    assert isinstance(samples, list) and len(samples) == 2
+    return DatasetSlice(
+        samples=(int(samples[0]), int(samples[1])),
+        pose_frames=(int(frames[0]), int(frames[1])) if isinstance(frames, list) else None,
+        **d,  # type: ignore[arg-type]
+    )
 
 
 def manifest(dataset_id: str) -> DatasetManifest:
@@ -107,12 +161,21 @@ class Verification:
     sha256: str
     manifest: DatasetManifest | None
     asset: DatasetAsset | None
+    # M5: set when the file is a local extract whose sliced data matches a pinned slice
+    slice: DatasetSlice | None = None
 
     @property
     def verified(self) -> bool:
         return self.asset is not None
 
     def describe(self) -> str:
+        if self.manifest and self.asset and self.slice:
+            a, b = self.slice.samples
+            return (
+                f"Extract: SHA-256 of {self.slice.series} samples [{a}, {b}) matches the slice "
+                f"pinned from DANDI {self.manifest.dandiset} asset {self.asset.asset_id} "
+                f"({self.asset.path}, full-file SHA-256 {self.asset.sha256[:12]}…)"
+            )
         if self.manifest and self.asset:
             return (
                 f"SHA-256 matches DANDI {self.manifest.dandiset} asset {self.asset.asset_id} "
@@ -128,6 +191,23 @@ def verify_file(path: Path) -> Verification:
         if asset is not None:
             return Verification(digest, m, asset)
     return Verification(digest, None, None)
+
+
+def verify_slice(file_sha256: str, data_sha256: str) -> Verification:
+    """A local extract is verified when the digest of its sliced data equals a pinned slice."""
+    for m in manifests():
+        s = m.find_slice(data_sha256)
+        if s is not None:
+            return Verification(file_sha256, m, m.by_path(s.asset_path), s)
+    return Verification(file_sha256, None, None)
+
+
+def find_slice_by_filename(filename: str) -> tuple[DatasetManifest, DatasetSlice] | None:
+    for m in manifests():
+        for s in m.slices:
+            if s.filename == filename:
+                return m, s
+    return None
 
 
 class DownloadError(RuntimeError):

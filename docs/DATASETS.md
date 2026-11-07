@@ -78,3 +78,42 @@ handwriting, 1.2 GiB), which needs a sequence model and character-error-rate eva
 raw-signal ingestion, a smaller human intracranial dataset with an NWB `ElectricalSeries`
 would exercise the `recording.frame` path. That requires a separate reader, since this reader
 rejects raw-voltage-only files explicitly.
+
+## Milestone 5, workstream B — human ECoG: AJILE12 (DANDI 000055)
+
+Full write-up: docs/ECOG.md. Results: docs/ECOG_DECODING.md.
+
+| | |
+| --- | --- |
+| **Dataset** | AJILE12: Long-term naturalistic human intracranial neural recordings and pose |
+| **Identifier** | DANDI **000055**, published version **0.220127.0436** |
+| **License / access** | CC-BY-4.0, `dandi:OpenAccess` (verified in DANDI metadata on 2026-11-07). Cite the dataset (doi:10.48324/dandi.000055/0.220127.0436) and its descriptor (doi:10.1101/2021.07.26.453884). |
+| **Modality** | ECoG (subdural grids/strips during clinical epilepsy monitoring), 500 Hz, stored in µV (`conversion` 1e-6 V); manifest declares `modality: ecog`, `line_hz: 60` |
+| **Behavior** | upper-body pose (9 keypoints, 30 Hz, video pixels), curated wrist-movement (reach) intervals with features, coarse behavior labels |
+| **Files used** | participant `sub-07`, days 5 (train), 6 and 7 (held-out sessions): 6 pinned slices, 78.75 min of 64-channel ECoG, streamed with HTTP range requests (the source files are ~10 GB each) into local NWB extracts in `data/datasets/dandi-000055/`. Pinned in `backend/src/brainos/datasets/ajile12.json` by asset id + DANDI SHA-256 of each source file + SHA-256 of each slice's stored values. |
+
+### Why this dataset (and why the M2 verdict "far too large" changed)
+
+The M2 table above rejected 000055 because of its size (788 GiB). Milestone 5 adds slice
+streaming: only the pinned sample ranges are read from the content-addressed DANDI blobs
+(`remfile` + `h5py`), so a 22.5-minute demo costs ~157 MiB instead of two 10 GB files. Among the
+ECoG dandisets on DANDI it is the one with raw voltage *and* motor behavior; 001535 (ECoG BCI,
+imagined movements) only contains precomputed features (docs/ECOG.md §1).
+
+### How slices are verified
+
+1. `python -m brainos.datasets.fetch ajile12 [--all]` asks the DANDI API for the pinned asset id;
+   the reported SHA-256 and size must equal the pinned ones, otherwise nothing is read.
+2. The sliced `ElectricalSeries` values (stored dtype, little-endian, C order) must hash to the
+   pinned `data_sha256`; the pose frames to `pose_sha256`.
+3. The extract (an NWB file with the slice, the full electrodes table, the pose frames and the
+   overlapping interval tables, on the original timeline) is re-hashed after writing and again
+   whenever BrainOS loads it; its shape and start time must match the pinned slice. Anything
+   else is "unverified" (origin `file:<name>`, no declared modality).
+
+### Findings while integrating
+
+See docs/ECOG.md §3: no channel names; `location` = `unknown` everywhere; coordinates without a
+stated space; pose declared `meters` with `conversion` NaN (pixels); upstream 60/120/180 Hz
+notches; recurring sub-second "data break" epochs; de-identified dates; `ReachEvents` equal to
+`intervals/reaches.start_time`; electrode R² columns derived from these recordings (never used).

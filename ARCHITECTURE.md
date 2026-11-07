@@ -557,3 +557,51 @@ carries no clock offsets, so different clocks are refused, never merged.
 
 The runtime never imports plugin code; its pump only awaits the host client. Isolation is
 fault isolation, not a security boundary (§8).
+
+## 13. Raw-voltage intracranial sources: human ECoG (Milestone 5, workstream B)
+
+Normative additions; details and evidence in docs/ECOG.md.
+
+### 13.1 Sliced datasets and verified extracts
+
+A dataset manifest (`brainos/datasets/*.json`) may declare `modality` (a contract `Modality`
+value), `line_hz` (mains of the recording site) and `slices`: exact `[start, stop)` sample
+ranges of one series of one pinned asset, with `data_sha256` = SHA-256 of the stored values
+(file dtype, little-endian, C order) and optionally `pose_sha256`. `datasets/extract.py` reads a
+slice with HTTP range requests (`remfile` + `h5py`) only after DANDI reports the pinned asset
+SHA-256 and size, checks the digests, and writes a local NWB extract on the original timeline.
+At load time `verify_electrical` accepts a file as verified if its whole-file SHA-256 is a pinned
+asset, or if the digest of its sliced series is a pinned slice **and** its shape and start time
+match the slice. Otherwise it is unverified (`origin = file:<name>`, no declared modality).
+
+### 13.2 `NWBElectricalSource` (`adapters/nwb/ecog.py`)
+
+The NWB catalog dispatches by content: spike-time units → `NWBUnitsSource` (§5.2), a regularly
+sampled `ElectricalSeries` without units → `NWBElectricalSource`; both under `nwb:<slug>`.
+
+| Emits | Rule | Provenance |
+| --- | --- | --- |
+| `recording.frame` | 100 ms frames; `unit = uV` only if the series' unit is a voltage unit and `conversion` (× `channel_conversion`) is a finite non-zero factor (value = data × conversion [× channel_conversion] + offset, NWB semantics); otherwise `arbitrary`, unscaled. `first_sample_index` = index in the source series. Device time = first sample; paced at the frame's last sample. Frames overlapping a dataset-declared data break: `dropped_samples`, quality 0.5. | `raw_signal` |
+| `behavior.sample` | Position `SpatialSeries` on one timebase; unit only if every series declares conversion 1, else `arbitrary`; `valid` false for NaN frames and camera-blocklisted epochs | `behavioral_label` |
+| `recording.annotation` | rows of interval tables that start inside the recording; `epochs` as label `epoch` with the coarse label as value (unlabelled rows skipped), other tables by name | `behavioral_label` |
+
+Descriptor: `kind = replay`, `synthetic = false`; `modality` / `invasive` and the recording
+parameter `line_hz` **only from a verified manifest**. Recording parameters also carry
+`channel_labels` (a label column if present, else `<group>/<electrode id>`) and `bad_channels`
+(from a `bad` or `good` column; no column = quality not stated). `SourceMetadata` gains optional
+`modality`, `invasive`, `signal`, `electrodes`, `intervals`, `slice`; `source_type` gains
+`nwb_electrical_series` (additive; the event schema is unchanged).
+
+### 13.3 Pipeline and model rules
+
+* `ecog_high_gamma`: the notch uses the source's declared `line_hz` unless the request sets
+  `line_hz` explicitly; an explicit value contradicting the declaration is refused
+  (`capability_unsupported`); `line_hz: null` disables the notch. The common average reference
+  excludes the source's `bad_channels` (the average of the other channels is still subtracted
+  from them).
+* `decoding/model.py`: `model_modality` = `input.modality`, else the modality declared by the
+  manifest of the model's training dataset (`dandi:<id>:…` identities), else unknown.
+  `check(..., stream_modality=…)`: a declared mismatch is an **error that the cross-source
+  override does not lift**; an undeclared side is a warning. A model that gives weight to a
+  channel the stream marks bad (`input.excluded_channels` lists the zero-weight ones) gets a
+  warning. Calibration from recordings stores the recorded device's modality in `input`.
