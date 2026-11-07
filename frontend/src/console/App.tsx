@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BrainOSApiError, runtimeApi, type DeviceDescriptor } from "../sdk";
-import { consoleApi, type DiagnosticsSnapshot, type Fault, type RecordingInfo } from "./api";
+import {
+  consoleApi,
+  isDatasetFile,
+  isLiveSource,
+  labApi,
+  type DiagnosticsSnapshot,
+  type Fault,
+  type RecordingInfo,
+} from "./api";
+import { AcquisitionView } from "./components/AcquisitionView";
 import { AppsPanel } from "./components/AppsPanel";
 import { ContractView } from "./components/ContractView";
 import { ControlsPanel } from "./components/ControlsPanel";
@@ -10,13 +19,16 @@ import { EventStream } from "./components/EventStream";
 import { Header } from "./components/Header";
 import { IntentPad } from "./components/IntentPad";
 import { NeuralView } from "./components/NeuralView";
+import { PipelineView } from "./components/PipelineView";
+import { SignalIntegrity } from "./components/SignalIntegrity";
 import { SourcePanel } from "./components/SourcePanel";
 import { SignalView, TelemetryPanel } from "./components/SignalView";
 import { TestsView } from "./components/TestsView";
 import { Panel } from "./components/ui";
+import { usePoll } from "./hooks";
 import { useConsoleStream } from "./useConsoleStream";
 
-type Tab = "live" | "diagnostics" | "contract" | "tests";
+type Tab = "live" | "acquisition" | "pipeline" | "diagnostics" | "contract" | "tests";
 interface Toast {
   id: number;
   tone: "err" | "ok";
@@ -90,9 +102,16 @@ export function App() {
   );
 
   const connected = !!runtime?.device && runtime.state !== "idle";
-  // Offline recorded (non-synthetic) source: show provenance + playback instead of the simulator pad.
-  const offlineData = !!runtime?.device && runtime.device.kind === "replay" && !runtime.device.synthetic;
+  // Verified offline dataset file: show provenance + playback instead of the simulator pad.
+  const offlineData = isDatasetFile(runtime?.device);
+  // Live LSL / Open Ephys source: show its integrity counters there instead.
+  const liveDevice = connected && runtime?.device && isLiveSource(runtime.device) ? runtime.device.device_id : null;
+  const live = usePoll(liveDevice, () => labApi.liveSource(liveDevice ?? ""), 1000);
   const neuralFeatures = !!runtime?.device?.capabilities.some((c) => c.capability === "neural_features");
+  // Binned features computed by the pipeline from a raw source arrive on the same session.
+  const pipelineFeatures =
+    !neuralFeatures && data.neural.bins.length > 0 && data.neural.session === runtime?.session_id;
+  const notify = useCallback((text: string) => toast("ok", text), [toast]);
   const onConnect = (id: string) =>
     act(() => (connected ? runtimeApi.switch(id) : runtimeApi.connect(id)), connected ? `Switched to ${id}` : `Connected ${id}`);
 
@@ -109,7 +128,12 @@ export function App() {
             onPause={() => act(runtimeApi.pause)}
             onResume={() => act(runtimeApi.resume)}
             onDisconnect={() => act(runtimeApi.disconnect)}
-            onStartRecording={() => act(() => consoleApi.startRecording(), "Recording started")}
+            onStartRecording={(excludeRaw) =>
+              act(
+                () => consoleApi.startRecording(undefined, excludeRaw),
+                excludeRaw ? "Recording started (features + labels, no raw frames)" : "Recording started",
+              )
+            }
             onStopRecording={() =>
               act(async () => {
                 const info = await consoleApi.stopRecording();
@@ -126,6 +150,8 @@ export function App() {
             {(
               [
                 ["live", "Live"],
+                ["acquisition", "Acquisition"],
+                ["pipeline", "Pipeline"],
                 ["diagnostics", "Diagnostics"],
                 ["contract", "Contract"],
                 ["tests", "Tests"],
@@ -169,22 +195,37 @@ export function App() {
                 </Panel>
                 {offlineData && runtime ? (
                   <SourcePanel runtime={runtime} busy={busy} act={act} onError={onError} />
+                ) : liveDevice ? (
+                  <SignalIntegrity meta={live.value} error={live.error} diag={diag} />
                 ) : (
                   <IntentPad runtime={runtime} onError={onError} />
                 )}
               </div>
               <div className="live-bottom">
                 {neuralFeatures ? (
-                  <NeuralView neural={data.neural} />
+                  <NeuralView neural={data.neural} source="offline" />
                 ) : (
                   <SignalView signal={data.signal} runtime={runtime} />
                 )}
                 <TelemetryPanel telemetry={data.telemetry} runtime={runtime} />
               </div>
+              {pipelineFeatures && <NeuralView neural={data.neural} source="pipeline" />}
           </div>
           {tab === "diagnostics" && (
             <DiagnosticsView diag={diag} clientLatencyMs={data.clientLatencyMs} stats={data.stats} />
           )}
+          {tab === "acquisition" && (
+            <AcquisitionView
+              devices={devices}
+              runtime={runtime}
+              liveMeta={live.value}
+              liveError={live.error}
+              diag={diag}
+              onSourcesChanged={refreshLists}
+              notify={notify}
+            />
+          )}
+          {tab === "pipeline" && <PipelineView runtime={runtime} recordings={recordings} notify={notify} />}
           {tab === "contract" && <ContractView devices={devices} onError={onError} />}
           {tab === "tests" && <TestsView onError={onError} />}
         </main>

@@ -5,7 +5,13 @@ import { Panel } from "./ui";
 const TYPES = Object.keys(EVENT_CAPABILITY) as EventType[];
 const VISIBLE_ROWS = 60;
 
-function summary(e: EventEnvelope): string {
+/** Payload summary; decoded events also name the model that produced them. */
+export function summary(e: EventEnvelope): string {
+  const s = payloadSummary(e);
+  return e.provenance.kind === "decoded_intent" && e.provenance.model_id ? `${s}  ⟵ ${e.provenance.model_id}` : s;
+}
+
+function payloadSummary(e: EventEnvelope): string {
   switch (e.event_type) {
     case "intent.pointer":
       return `vx ${e.payload.vx.toFixed(3)}  vy ${e.payload.vy.toFixed(3)}`;
@@ -26,6 +32,8 @@ function summary(e: EventEnvelope): string {
       const total = c.reduce((a, b) => a + b, 0);
       return `bin ${e.payload.bin_index}  ${e.payload.channel_count} ch  Σ${total} ${e.payload.feature}`;
     }
+    case "features.vector":
+      return `bin ${e.payload.bin_index}  ${e.payload.channel_count} ch  ${e.payload.feature} ${e.payload.unit}`;
     case "behavior.sample":
     case "intent.kinematics":
       return e.payload.dims.map((d, i) => `${d}=${(e.payload.values[i] ?? 0).toExponential(1)}`).join(" ");
@@ -118,7 +126,10 @@ export function EventStream({ events, tick }: { events: EventEnvelope[]; tick: n
             <span className="mono">{e.seq}</span>
             <span className="mono etype">{e.event_type}</span>
             <span className="mono muted">{e.device_id}</span>
-            <span className={`prov prov-${e.provenance.kind}`}>
+            <span
+              className={`prov prov-${e.provenance.kind}`}
+              title={e.provenance.model_id ? `model ${e.provenance.model_id}` : e.provenance.adapter}
+            >
               {e.provenance.kind}
               {e.provenance.replayed ? " ↺" : ""}
             </span>

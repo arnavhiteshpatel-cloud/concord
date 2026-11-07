@@ -115,6 +115,34 @@ MALFORMED: list[tuple[str, dict[str, Any]]] = [
         ),
     ),
     (
+        "feature vector count mismatch",
+        valid_event(
+            "features.vector",
+            payload={**valid_event("features.vector")["payload"], "values": [1.0]},
+        ),
+    ),
+    (
+        "feature vector NaN",
+        valid_event(
+            "features.vector",
+            payload={**valid_event("features.vector")["payload"], "values": [math.nan, 1.0]},
+        ),
+    ),
+    (
+        "feature vector inverted band",
+        valid_event(
+            "features.vector",
+            payload={**valid_event("features.vector")["payload"], "band_hz": [150.0, 70.0]},
+        ),
+    ),
+    (
+        "recording frame with an unknown unit",
+        valid_event(
+            "recording.frame",
+            payload={**valid_event("recording.frame")["payload"], "unit": "volts"},
+        ),
+    ),
+    (
         "behavior dims/values mismatch",
         valid_event(
             "behavior.sample",
@@ -155,6 +183,12 @@ def test_malformed_json_rejected() -> None:
         parse_envelope_json(json.dumps([valid_event()]))
 
 
+def test_recording_frame_arbitrary_unit_is_valid() -> None:
+    """1.2: sources that state no known unit pass values through as 'arbitrary'."""
+    p = {**valid_event("recording.frame")["payload"], "unit": "arbitrary"}
+    assert parse_envelope(valid_event("recording.frame", payload=p)).payload.unit == "arbitrary"  # type: ignore[union-attr]
+
+
 def test_future_minor_version_accepted() -> None:
     """Consumers accept the same major version."""
     assert parse_envelope(valid_event(schema_version="1.7")).schema_version == "1.7"
@@ -174,6 +208,14 @@ def _prov(**kw: Any) -> dict[str, Any]:
 
 
 PROVENANCE_VIOLATIONS: list[tuple[str, dict[str, Any]]] = [
+    (
+        "feature vector labelled as raw signal",
+        valid_event("features.vector", provenance=_prov(kind="raw_signal")),
+    ),
+    (
+        "feature vector labelled as an intent",
+        valid_event("features.vector", provenance=_prov()),
+    ),
     (
         "processed features delivered as an intent",
         valid_event("intent.kinematics", provenance=_prov(kind="processed_feature")),

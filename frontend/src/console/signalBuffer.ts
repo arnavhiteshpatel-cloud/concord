@@ -8,6 +8,8 @@ export const MAX_CHANNELS_SHOWN = 8;
 export class SignalBuffer {
   sampleRate = 0;
   channelCount = 0;
+  /** unit of the latest frame: "uV", or "arbitrary" when the source stated no physical unit */
+  unit = "";
   key = "";
   channels: Float32Array[] = [];
   written = 0; // total samples written per channel
@@ -29,6 +31,7 @@ export class SignalBuffer {
   push(sessionKey: string, p: RecordingFramePayload): void {
     const key = `${sessionKey}:${p.sample_rate_hz}:${p.channel_count}`;
     if (key !== this.key) this.reset(key, p.sample_rate_hz, p.channel_count);
+    this.unit = p.unit;
     const cap = this.capacity;
     const n = p.samples[0]?.length ?? 0;
     for (let c = 0; c < this.channels.length; c++) {

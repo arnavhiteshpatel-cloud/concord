@@ -1,5 +1,5 @@
 import type { ConnectionStatus, DeviceDescriptor, RuntimeSnapshot } from "../../sdk";
-import type { DiagnosticsSnapshot } from "../api";
+import { isLiveSource, type DiagnosticsSnapshot } from "../api";
 import { fmt } from "./ui";
 
 /** What kind of data the connected source produces — derived only from the descriptor. */
@@ -7,6 +7,20 @@ export function dataBadge(device: DeviceDescriptor | null | undefined): { text: 
   if (!device) return null;
   if (device.synthetic)
     return { text: "SIMULATED DATA", className: "badge-sim", title: "The connected source generates synthetic data" };
+  if (device.kind === "stream")
+    return {
+      text: "LIVE STREAM · ORIGIN UNVERIFIED",
+      className: "badge-stream",
+      title: "External live stream: BrainOS cannot verify whether it comes from hardware, a file player or a simulator",
+    };
+  if (device.kind === "replay" && isLiveSource(device))
+    // An external stream whose publisher declares prerecorded content: the declaration is not
+    // verifiable, and the publisher's stream name never makes it "human".
+    return {
+      text: "RECORDED DATA · STREAMED REPLAY (DECLARED)",
+      className: "badge-real",
+      title: "The publisher declares that this live stream replays prerecorded data — not a live implant",
+    };
   if (device.kind === "replay") {
     const human = /human/i.test(device.display_name);
     return {

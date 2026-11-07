@@ -134,6 +134,74 @@ class RuntimeClient:
         body = {"required": required, "optional": optional or [], "device_id": device_id}
         return NegotiationResult.model_validate(await self._call("POST", "/negotiate", body))
 
+    # -------------------------------------------------- operator: sources, pipeline, models
+    # These configure what the runtime acquires and computes. Applications should not call
+    # them: apps declare capabilities and consume events (see docs/SDK.md).
+
+    async def discover_lsl(self, wait_s: float = 1.5) -> dict[str, Any]:
+        result: dict[str, Any] = await self._call(
+            "POST", "/sources/lsl/discover", {"wait_s": wait_s}
+        )
+        return result
+
+    async def configure_lsl(
+        self, signal: str, behavior: str | None = None, markers: str | None = None
+    ) -> DeviceDescriptor:
+        body = {"signal": signal, "behavior": behavior, "markers": markers}
+        return DeviceDescriptor.model_validate(await self._call("POST", "/sources/lsl", body))
+
+    async def configure_openephys(self, **config: Any) -> DeviceDescriptor:
+        """``host``, ``data_port``, ``unit`` (``unknown``/``uV``/``mV``/``V``), ..."""
+        data = await self._call("POST", "/sources/openephys", config)
+        return DeviceDescriptor.model_validate(data)
+
+    async def pipeline(self) -> dict[str, Any]:
+        result: dict[str, Any] = await self._call("GET", "/pipeline")
+        return result
+
+    async def start_pipeline(
+        self,
+        preset: str,
+        *,
+        model_id: str | None = None,
+        allow_cross_source: bool = False,
+        router: dict[str, Any] | None = None,
+        **processing: Any,
+    ) -> dict[str, Any]:
+        body = {
+            "processing": {"preset": preset, **processing},
+            "model_id": model_id,
+            "allow_cross_source": allow_cross_source,
+            "router": router,
+        }
+        result: dict[str, Any] = await self._call("POST", "/pipeline/start", body)
+        return result
+
+    async def set_router(self, **router: Any) -> dict[str, Any]:
+        result: dict[str, Any] = await self._call("POST", "/pipeline/router", router)
+        return result
+
+    async def stop_pipeline(self) -> dict[str, Any]:
+        result: dict[str, Any] = await self._call("POST", "/pipeline/stop")
+        return result
+
+    async def models(self) -> list[dict[str, Any]]:
+        result: list[dict[str, Any]] = await self._call("GET", "/models")
+        return result
+
+    async def start_recording(self, name: str | None = None, *, exclude_raw: bool = False) -> str:
+        body = {"name": name, "exclude_raw": exclude_raw}
+        return str((await self._call("POST", "/recordings/start", body))["name"])
+
+    async def stop_recording(self) -> dict[str, Any]:
+        result: dict[str, Any] = await self._call("POST", "/recordings/stop")
+        return result
+
+    async def calibrate(self, recordings: list[str], **options: Any) -> dict[str, Any]:
+        body = {"recordings": recordings, **options}
+        result: dict[str, Any] = await self._call("POST", "/calibration/train", body)
+        return result
+
 
 # ------------------------------------------------------------------------- stream
 

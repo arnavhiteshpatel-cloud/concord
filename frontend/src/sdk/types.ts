@@ -29,6 +29,7 @@ export const EVENT_CAPABILITY = {
   "device.status": "device_status",
   // schema 1.1
   "features.binned": "neural_features",
+  "features.vector": "neural_features", // 1.2
   "behavior.sample": "behavior",
   "intent.kinematics": "kinematic_intent",
 } as const satisfies Record<string, Capability>;
@@ -54,6 +55,7 @@ export const ALLOWED_PROVENANCE: Record<EventType, readonly ProvenanceKind[]> = 
   "telemetry.sample": ["device_report"],
   "device.status": ["device_report", "runtime"],
   "features.binned": ["processed_feature"],
+  "features.vector": ["processed_feature"],
   "behavior.sample": ["behavioral_label"],
   "intent.kinematics": ["simulated_intent", "decoded_intent"],
 };
@@ -84,7 +86,8 @@ export interface RecordingFramePayload {
   sample_rate_hz: number;
   channel_count: number;
   first_sample_index: number;
-  unit: "uV";
+  /** "arbitrary" (1.2): the source stated no known physical unit; values are not microvolts. */
+  unit: "uV" | "arbitrary";
   samples: number[][];
 }
 export interface RecordingAnnotationPayload {
@@ -134,6 +137,15 @@ export interface FeaturesBinnedPayload {
   channel_count: number;
   counts: number[];
 }
+export interface FeaturesVectorPayload {
+  feature: "band_power" | "log_band_power";
+  unit: string;
+  band_hz: [number, number] | null;
+  bin_ms: number;
+  bin_index: number;
+  channel_count: number;
+  values: number[];
+}
 export interface BehaviorSamplePayload {
   quantity: string;
   dims: string[];
@@ -159,6 +171,7 @@ export interface PayloadByType {
   "telemetry.sample": TelemetrySamplePayload;
   "device.status": DeviceStatusPayload;
   "features.binned": FeaturesBinnedPayload;
+  "features.vector": FeaturesVectorPayload;
   "behavior.sample": BehaviorSamplePayload;
   "intent.kinematics": KinematicIntentPayload;
 }
@@ -195,7 +208,7 @@ export interface CapabilityDescriptor {
 export interface DeviceDescriptor {
   device_id: string;
   display_name: string;
-  kind: "simulated" | "replay" | "hardware";
+  kind: "simulated" | "replay" | "hardware" | "stream";
   adapter: string;
   description: string;
   native_format: string;

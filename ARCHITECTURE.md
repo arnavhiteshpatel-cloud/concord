@@ -1,14 +1,15 @@
 # BrainOS — Architecture
 
-Status: v1 + Milestone 2 (schema 1.1: genuine recorded human data, offline decoding). This document is normative: if code and this
+Status: v1 + Milestone 2 (schema 1.1: recorded human data, offline decoding) + Milestone 3
+(schema 1.2: live LSL / Open Ephys acquisition, streaming pipeline, calibration, command router; §11). This document is normative: if code and this
 document disagree, one of them is a bug.
 
 ## 1. System overview
 
 ```
  ┌──────────────── device side (untrusted, device-specific) ───────────────┐
- │  Simulated Profile A      Simulated Profile B      Replay source         │
- │  (binary framed packets)  (JSON-line packets)      (BrainOS recording)   │
+ │  Simulated Profile A/B    Replay (BrainOS rec.,    LSL inlets      Open Ephys │
+ │  (binary / JSON lines)    NWB datasets)            (liblsl)        ZMQ (SUB)  │
  └──────────┬───────────────────────┬────────────────────────┬─────────────┘
             │ NativePacket          │ NativePacket           │ NativePacket
             ▼                       ▼                        ▼
@@ -53,10 +54,18 @@ native packet, a device-specific field, or a device-specific code path.**
 | TS SDK | `frontend/src/sdk/` | Browser client used by the console and the board app. |
 | Console | `frontend/src/console/` | Operator UI: devices, runtime controls, events, signals, diagnostics, apps, tests. |
 | Board app | `frontend/src/apps/board/` | Demo application. Imports **only** `src/sdk`. Enforced by a test. |
+| LSL adapter (M3) | `backend/src/brainos/adapters/lsl/` | Discovery, metadata, composite signal + behavior + marker inlets, timestamps, gap detection, reconnect. Receive-only. |
+| Open Ephys adapter (M3) | `backend/src/brainos/adapters/openephys/` | ZMQ Interface plugin wire format (data, TTL, spikes), heartbeat, block assembly, loss accounting. Receive-only. |
+| Processing (M3) | `backend/src/brainos/processing/` | Causal, chunk-invariant streaming stages and presets. |
+| Pipeline (M3) | `backend/src/brainos/runtime/pipeline.py` | Features → decoder → (optional) command router, as derived events in the device's session. |
+| Live sources (M3) | `backend/src/brainos/runtime/live_sources.py` | Operator-configured LSL / Open Ephys sources exposed as devices. |
+| Decoding (M2/M3) | `backend/src/brainos/decoding/` | Ridge decoder, model metadata + compatibility rules, calibration from recordings. |
+| Reference app (M3) | `backend/examples/reference_app/` | Cursor app using only `brainos.sdk`; test-enforced. |
+| Test publishers (M3) | `backend/src/brainos/testing/` | LSL and Open Ephys protocol publishers (synthetic or prerecorded, declared). |
 
 ## 3. Capability model
 
-### 3.1 Vocabulary (closed set; 1.1 added the last three)
+### 3.1 Vocabulary (closed set; 1.1 added the last three; 1.2 added `features.vector`)
 
 | Capability | Event types | Description |
 | --- | --- | --- |
@@ -66,7 +75,7 @@ native packet, a device-specific field, or a device-specific code path.**
 | `text_intent` | `intent.text` | Discrete text (character or word) intent. |
 | `telemetry` | `telemetry.sample` | Device health metrics (battery, temperature, link quality …). |
 | `device_status` | `device.status` | Connection / streaming state changes. |
-| `neural_features` (1.1) | `features.binned` | Processed neural features: counts per channel per time bin. |
+| `neural_features` (1.1) | `features.binned`, `features.vector` (1.2) | Processed neural features: counts per channel per time bin, or real-valued per-channel features (e.g. log band power). |
 | `behavior` (1.1) | `behavior.sample` | Recorded behavioral ground truth (e.g. cued kinematics). |
 | `kinematic_intent` (1.1) | `intent.kinematics` | Multi-dimensional movement intent in a source-defined space (simulated or decoded). |
 
@@ -102,11 +111,11 @@ An application's `hello` lists `required` and `optional` capabilities.
 `POST /api/v1/negotiate` offers the same algorithm as a dry run against any
 registered device.
 
-## 4. Event envelope (schema `1.1`; 1.1 is additive over 1.0)
+## 4. Event envelope (schema `1.2`; 1.1 and 1.2 are additive over 1.0)
 
 ```jsonc
 {
-  "schema_version": "1.1",           // major.minor; consumers accept same major
+  "schema_version": "1.2",           // major.minor; consumers accept same major
   "session_id": "ses_8f3a…",        // one per device connection
   "device_id": "sim-a",
   "seq": 1042,                       // runtime-assigned, strictly increasing per session
@@ -135,13 +144,14 @@ The authoritative definition is the Pydantic model in
 
 | Event type | Payload |
 | --- | --- |
-| `recording.frame` | `sample_rate_hz`, `channel_count`, `first_sample_index`, `unit` (`uV`), `samples[channel][sample]` (shape validated) |
+| `recording.frame` | `sample_rate_hz`, `channel_count`, `first_sample_index`, `unit` (`uV`, or `arbitrary` (1.2) when the source does not declare a convertible unit for every channel), `samples[channel][sample]` (shape validated) |
 | `recording.annotation` | `label`, `value` (number/string/null), `duration_ms` |
 | `intent.pointer` | `vx`, `vy` — velocity in workspace units/s; workspace = unit square, x → right, y → down; `|v| ≤ 10` |
 | `intent.selection` | `action` (`primary`), `confidence` ∈ [0,1] |
 | `intent.text` | `text` (1–64 chars), `mode` (`character`/`word`), `confidence` |
 | `telemetry.sample` | `metrics: [{name, value, unit}]` |
 | `device.status` | `state` (`connected`/`streaming`/`paused`/`reconnecting`/`disconnected`/`error`/`ended`), `detail` |
+| `features.vector` (1.2) | `feature` (`band_power`/`log_band_power`), `unit`, `band_hz` [lo, hi] or null, `bin_ms`, `bin_index`, `channel_count`, `values[channel]` (finite). The bin ends at `device_timestamp_ns`. |
 | `features.binned` | `feature` (`spike_count`/`threshold_crossing_count`), `unit` (`count`), `bin_ms`, `bin_index`, `channel_count`, `counts[channel]` (non-negative ints). The bin ends at `device_timestamp_ns`. |
 | `behavior.sample` | `quantity`, `dims[]`, `unit`, `values[dim]`, `sample_index`, `valid` (false where the dataset excludes the sample) |
 | `intent.kinematics` | `quantity`, `dims[]`, `unit`, `values[dim]`, `space` (e.g. `falcon_h1_7dof`) |
@@ -160,7 +170,7 @@ All numbers reject NaN/Infinity.
 | `decoded_intent` | Intent produced by a decoding model | `intent.*` | `model_id` required |
 | `device_report` | Device self-report | `telemetry.sample`, `device.status` | — |
 | `runtime` | Runtime-originated status | `device.status` | — |
-| `processed_feature` (1.1) | Features computed from neural data (e.g. binned spike counts) | `features.binned` | — |
+| `processed_feature` (1.1) | Features computed from neural data (e.g. binned spike counts, band power) | `features.binned`, `features.vector` | — |
 
 `behavior.sample` uses `behavioral_label`; `intent.kinematics` uses `simulated_intent` or
 `decoded_intent` (with `model_id`).
@@ -170,10 +180,11 @@ These rules are enforced by the envelope validator. Consequences:
 - A behavioral label can never be delivered as an intent. Replay of a dataset
   does **not** turn labels into intents; only a decoder (with a `model_id`)
   may emit `decoded_intent`.
-- Recorded neural activity is never an intent: `features.binned` can only carry
-  `processed_feature`. The only `decoded_intent` source is the offline-evaluated
-  baseline decoder (Milestone 2), which emits `intent.kinematics` only. It never
-  emits `pointer_intent`/`selection`/`text_intent`, so no v1 application reacts to it.
+- Recorded neural activity is never an intent: `features.*` can only carry
+  `processed_feature`. `decoded_intent` is emitted only by a decoder with a `model_id`:
+  `intent.kinematics` by the M2 offline source or the M3 pipeline, and `intent.pointer`
+  **only** when the operator has explicitly enabled the M3 command router (§11.4).
+  Without the router no application that requires a command capability is activated.
 - Replayed events keep their original `kind`, and set `replayed: true` plus a
   `replayed` quality flag.
 
@@ -186,7 +197,9 @@ These rules are enforced by the envelope validator. Consequences:
   contiguous; a gap means the server dropped events for that subscriber
   (bounded queue overflow). SDKs report gaps.
 - `device_timestamp_ns` regressions are flagged (`timestamp_regression`
-  quality flag) and counted, never silently reordered.
+  quality flag) and counted, never silently reordered. Monotonicity is checked **per
+  stream** — per (event type, producing adapter) — because a composite source (signal +
+  behavior + markers) or the pipeline legitimately interleaves streams (M3).
 
 ## 5. Adapter contract
 
@@ -311,12 +324,16 @@ code 1008, `control_queue_overflow`) rather than allowed to grow server memory.
 ## 7. Transport & API
 
 REST under `/api/v1`: `health`, `capabilities`, `devices`, `devices/{id}`,
-`devices/{id}/source` (offline sources only), `datasets`, `runtime`,
+`devices/{id}/source` (offline metadata, or live counters for an LSL / Open Ephys
+source), `datasets`, `runtime`,
 `runtime/{connect,switch,disconnect,pause,resume}`, `runtime/playback`
 (GET status / POST `{speed}`; `unsupported_operation` for live devices),
 `diagnostics`, `negotiate`, `schema/event`, `recordings`,
 `recordings/{start,stop}`, `system/tests`; simulation-only:
-`sim/{pointer,select,text,faults}`.
+`sim/{pointer,select,text,faults}`. Milestone 3 (operator controls, `live_routes.py`):
+`sources/lsl` (GET), `sources/lsl/discover`, `sources/lsl` (POST: signal + optional
+behavior/markers keys), `sources/openephys`, `DELETE sources/{id}`, `pipeline`,
+`pipeline/{start,stop,router}`, `pipeline/presets`, `models`, `calibration/train`.
 
 WebSocket `/api/v1/stream`, protocol `brainos.stream/1`:
 
@@ -341,7 +358,8 @@ send data toward devices.
 | App → runtime | Apps are untrusted. Hello is validated; unknown capabilities rejected; apps receive only granted capabilities; no write path exists. |
 | Network exposure | Server binds `127.0.0.1` by default. **No authentication in v1** — local single-user demo only. Do not expose to a network. |
 | Simulation endpoints | `/api/v1/sim/*` exist only for simulated devices and are disabled by `BRAINOS_ENABLE_SIM=0`. They are an operator tool, not an app API. |
-| Data at rest | Recordings are written to `data/recordings/` (gitignored), synthetic only. No PHI. No encryption in v1. |
+| Data at rest | Recordings are written to `data/recordings/` (gitignored). With M3 live sources they may contain real neural data: treat the directory as research data under your protocol. No encryption. |
+| Acquisition networks (M3) | LSL inlets and the Open Ephys SUB socket only *receive*. The Open Ephys heartbeat REQ sends only `{application, uuid, type: "heartbeat"}` (the plugin's event-injection request is not implemented). BrainOS opens no listening socket other than its HTTP server (default `127.0.0.1`). LSL discovery uses liblsl's multicast/broadcast on the local network. |
 
 Planned (not implemented): per-app auth tokens, capability grants requiring
 operator approval, signed adapters, audit log, TLS.
@@ -352,9 +370,9 @@ operator approval, signed adapters, audit log, TLS.
    `runtime/registry.py`. No changes to runtime, SDKs, or apps.
 2. **New dataset format**: implement `ReplaySource` (see `NWBUnitsSource`), and
    pin verified files in a `brainos/datasets/*.json` manifest.
-3. **Decoder**: today decoders run inside an offline source, on held-out data
-   only. A runtime-level decoder stage that consumes `features.binned` from any
-   device and emits `decoded_intent` is the next design item.
+3. **Decoder**: the M3 pipeline (§11) runs a model on `features.*` from any device whose
+   features match the model's declared input. New model types implement the same
+   `streaming()` / `predict_counts()` behaviour and metadata (`brainos.model/1`).
 4. **New capability**: requires a schema minor version bump, a payload model,
    provenance rules, and SDK type updates — deliberately not a plugin.
 
@@ -369,3 +387,82 @@ All values are measured in-process; nothing is estimated.
 | client latency (console) | envelope `timestamp_ns` → received in the browser tab (same-machine clocks, ms resolution) |
 | rate | events in the last 5 s ÷ min(5 s, max(time since connect, 1 s)) |
 | switch duration | wall time of `switch()` (disconnect + connect + renegotiation) |
+
+## 11. Live acquisition and the real-time pipeline (Milestone 3)
+
+```
+ LSL outlet(s) ─┐                                   ┌─ features.binned / features.vector (processed_feature)
+ Open Ephys ZMQ ┼─▶ adapter ─▶ runtime ─▶ bus ─tap─▶│  pipeline: preprocessing ─▶ features ─▶ decoder ─▶ router
+ (receive-only) ┘   (normalize) (validate)          └─ intent.kinematics, intent.pointer (decoded_intent + model_id)
+                                                        └─ re-ingested by the runtime, same session, validated
+```
+
+### 11.1 Device kinds and labelling
+
+An external stream cannot prove where it comes from. LSL / Open Ephys sources are
+`kind = stream` ("live stream · origin unverified") unless the stream itself declares
+otherwise in BrainOS metadata (`<desc><brainos><prerecorded>` / `<synthetic>`): a declared
+prerecorded stream is `kind = replay` and its events carry `replayed: true` (e.g. FALCON H1
+streamed over LSL); a declared synthetic one is `kind = simulated`, `synthetic: true`. The
+declaration travels with the data into recordings, decoders and calibration reports.
+
+### 11.2 LSL adapter (`adapters/lsl/`)
+
+- Discovery (`resolve_streams`) lists every outlet with its metadata. Usable signal
+  streams: numeric, regular-rate; types ending in `SpikeCounts`/`BinnedSpikes` (BrainOS
+  convention) map to `features.binned`, others to `recording.frame`. String or irregular
+  streams can only be attached as markers.
+- Units are taken from `<channels><channel><unit>`: converted exactly to µV if **every**
+  channel has a known voltage unit, else frames are `unit = arbitrary` and a note says why.
+- Timestamps: the signal stream's own LSL timestamps are `device_timestamp_ns`. Behavior and
+  marker streams are mapped onto the signal clock with liblsl `time_correction`
+  (refreshed periodically). Gaps (> 1.5 sample periods) are counted, frames are split at
+  gaps and the frame after a gap is flagged `dropped_samples`.
+- Loss (`LostError`) or a stall raises `DeviceLinkError` → runtime reconnect policy; a
+  stream with the same `source_id` (new uid) is re-resolved. A changed channel count/format
+  is refused rather than silently remapped.
+
+### 11.3 Open Ephys adapter (`adapters/openephys/`)
+
+Implements the Open Ephys GUI "ZMQ Interface" plugin wire protocol (details, sources and
+deviations: docs/OPEN_EPHYS.md). SUB on `data_port`, REQ heartbeat on `data_port + 1`.
+Per-channel messages are assembled into whole blocks; a block missing a channel is dropped
+and counted, never padded. TTL events → `recording.annotation`; spikes → binned counts on
+the sample clock. The plugin does not transmit units: the operator states them, otherwise
+frames are `arbitrary`. Device timestamps are `sample_num / sample_rate` (the acquisition
+clock), not wall clock.
+
+### 11.4 Pipeline, decoders and the command router (`runtime/pipeline.py`)
+
+- The pipeline taps the bus for its input event type in the current session into a bounded
+  queue (4096; overflow drops the oldest and counts `dropped_inputs`) and runs in its own
+  asyncio task. Derived events are re-ingested and validated like any adapter event, with
+  `adapter = brainos.pipeline@…`, the source's `origin`, `synthetic` and `replayed`.
+- Presets (`processing/chain.py`): `spikeband_threshold` (≥ 10 kHz: 250–5000 Hz band-pass,
+  optional CAR, −4.5 × RMS threshold crossings, 1 ms refractory → `features.binned`),
+  `ecog_high_gamma` / `band_power` (notch + band-pass → log band power →
+  `features.vector`), `features_passthrough` (decode features the source already provides).
+  Stages are causal and chunk-invariant (tested: streamed output == batch output).
+- Models declare their input (`event_type`, `feature`, `bin_ms`, `channel_count`,
+  `channel_labels`) and source identity (e.g. `dandi:000954:HumanPitt`). Loading is refused
+  (`incompatible_decoder`, HTTP 409) on any mismatch, on a stream from the model's training
+  session (leakage), and on a different source unless `allow_cross_source` is set — which is
+  then shown in status and lowers event quality to 0.5.
+- The **command router** is off by default. When the operator enables it, two decoded
+  dimensions are mapped to `intent.pointer` (`decoded_intent`, `model_id`), z-scored by the
+  training behavior std, with gain, dead-zone and clamp. Only then is `pointer_intent`
+  negotiable; apps requiring it are otherwise suspended.
+- Status reports per-input processing time, ingest → derived latency (p50/p95/p99/max),
+  counters (inputs, dropped_inputs, features_out, decoded_out, commands_out, errors) and
+  RMS warm-up remaining.
+
+### 11.5 Calibration (`decoding/calibrate.py`)
+
+Input: closed BrainOS recordings with neural features and `behavior.sample` labels (e.g. a
+cue task's LSL Behavior stream, or a dataset's kinematics). Each feature bin is labelled
+with the behavior sample nearest its end within half a bin (labels only; features are never
+shifted). Chronological split at a trial marker after `train_fraction`, then `gap_bins`,
+then held-out evaluation; only training data is used for z-scoring and alpha selection. The
+saved model records recordings + SHA-256, sessions, input spec and source identity; a
+markdown report is written to `reports/calibration/`.
+

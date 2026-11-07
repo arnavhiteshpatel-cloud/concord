@@ -38,6 +38,7 @@ function checkPayload(type: EventType, p: Record<string, unknown>): string | nul
       if (!isInt(p.channel_count) || !isNum(p.sample_rate_hz) || !Array.isArray(s))
         return "recording frame invalid";
       if (s.length !== p.channel_count) return "recording channel_count mismatch";
+      if (p.unit !== "uV" && p.unit !== "arbitrary") return "recording unit invalid";
       const n = Array.isArray(s[0]) ? s[0].length : -1;
       for (const ch of s) {
         if (!Array.isArray(ch) || ch.length !== n || !ch.every(isNum))
@@ -64,6 +65,15 @@ function checkPayload(type: EventType, p: Record<string, unknown>): string | nul
         p.counts.every((c) => isInt(c) && c >= 0)
         ? null
         : "features invalid";
+    case "features.vector":
+      return isInt(p.channel_count) &&
+        inRange(p.bin_ms, 0, 10_000) &&
+        isInt(p.bin_index) &&
+        Array.isArray(p.values) &&
+        p.values.length === p.channel_count &&
+        p.values.every(isNum)
+        ? null
+        : "feature vector invalid";
     case "behavior.sample":
     case "intent.kinematics": {
       const ok =

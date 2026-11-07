@@ -230,3 +230,6 @@ e2e/screenshots/
 
 # Playwright for e2e (installed by make e2e-setup)
 /node_modules/
+
+# agent worktrees
+.claude/worktrees/
