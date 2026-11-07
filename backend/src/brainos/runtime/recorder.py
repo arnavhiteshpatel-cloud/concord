@@ -23,7 +23,9 @@ from brainos.contracts.protocol import DeviceDescriptor
 log = logging.getLogger(__name__)
 
 MAX_DURATION_S = 300.0
+MAX_DURATION_NO_RAW_S = 3600.0  # features + labels only: small enough for calibration sessions
 MAX_BYTES = 200 * 1024 * 1024
+RAW_EVENT = "recording.frame"
 
 
 class RecordingInfo(BaseModel):
@@ -50,13 +52,18 @@ class Recorder:
         self._bytes = 0
         self._events = 0
         self._device: DeviceDescriptor | None = None
+        self._exclude_raw = False
         self.stop_reason: str | None = None
 
     @property
     def active_name(self) -> str | None:
         return self._name
 
-    def start(self, device: DeviceDescriptor, name: str | None = None) -> str:
+    def start(
+        self, device: DeviceDescriptor, name: str | None = None, *, exclude_raw: bool = False
+    ) -> str:
+        """Start recording. ``exclude_raw`` drops ``recording.frame`` events (features, labels,
+        intents and annotations are kept), e.g. for long calibration sessions."""
         if self._fh is not None:
             raise RecorderError(f"already recording {self._name!r}")
         # a local file player is its own recording; external streams (LSL, Open Ephys) that
@@ -77,13 +84,13 @@ class Recorder:
             created_at_ns=time.time_ns(),
             device=device,
             synthetic=device.synthetic,
-            note=_note(device),
+            note=_note(device) + (" Raw signal frames excluded." if exclude_raw else ""),
         )
         self._fh = path.open("w", encoding="utf-8")
         line = header.model_dump_json() + "\n"
         self._fh.write(line)
         self._fh.flush()  # header must be readable while recording (device listing)
-        self._name, self._device = name, device
+        self._name, self._device, self._exclude_raw = name, device, exclude_raw
         self._started, self._bytes, self._events = time.monotonic(), len(line), 0
         self.stop_reason = None
         log.info("recording %s started for %s", name, device.device_id)
@@ -91,6 +98,8 @@ class Recorder:
 
     def on_event(self, envelope: EventEnvelope, event_json: str) -> None:
         if self._fh is None:
+            return
+        if self._exclude_raw and envelope.event_type.value == RAW_EVENT:
             return
         try:
             self._fh.write(event_json)
@@ -101,7 +110,8 @@ class Recorder:
             return
         self._bytes += len(event_json) + 1
         self._events += 1
-        if time.monotonic() - self._started > MAX_DURATION_S:
+        limit = MAX_DURATION_NO_RAW_S if self._exclude_raw else MAX_DURATION_S
+        if time.monotonic() - self._started > limit:
             self.stop("max duration reached")
         elif self._bytes > MAX_BYTES:
             self.stop("max size reached")

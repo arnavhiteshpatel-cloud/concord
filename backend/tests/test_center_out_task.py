@@ -67,7 +67,7 @@ async def test_cues_label_a_neural_stream_and_unrelated_signal_is_not_decodable(
     await rt.connect(f"lsl:{sid}-ephys")
     rt.start_pipeline(PipelineStartRequest(processing={"preset": "spikeband_threshold"}))
     await wait_for(lambda: rt.pipeline.status().warmup_remaining_s == 0, timeout=10)
-    name = rt.start_recording("cues")
+    name = rt.start_recording("cues", exclude_raw=True)  # calibration needs no raw frames
     th = threading.Thread(target=task.run, daemon=True)
     th.start()
     await wait_for(task.stop.is_set, timeout=30)
@@ -81,6 +81,8 @@ async def test_cues_label_a_neural_stream_and_unrelated_signal_is_not_decodable(
     import json
 
     evs = [json.loads(line) for line in path.read_text().splitlines()[1:]]
+    assert not any(e["event_type"] == "recording.frame" for e in evs)
+    assert "Raw signal frames excluded" in json.loads(path.read_text().splitlines()[0])["note"]
     marks = [e["payload"]["label"] for e in evs if e["event_type"] == "recording.annotation"]
     assert marks == task.markers
     model, report = calibrate([path], feature_source="brainos.pipeline", gap_bins=5)

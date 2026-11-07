@@ -322,7 +322,7 @@ class Runtime:
         self.pipeline.stop("stopped by operator")
         return self.pipeline.status()
 
-    def start_recording(self, name: str | None = None) -> str:
+    def start_recording(self, name: str | None = None, *, exclude_raw: bool = False) -> str:
         if (
             self._adapter is None
             or self._device is None
@@ -334,7 +334,7 @@ class Runtime:
         ):
             raise RuntimeCommandError(ErrorCode.INVALID_STATE, "connect a device before recording")
         try:
-            rec = self.recorder.start(self._device, name)
+            rec = self.recorder.start(self._device, name, exclude_raw=exclude_raw)
         except RecorderError as exc:
             raise RuntimeCommandError(ErrorCode.RECORDING_ERROR, str(exc)) from exc
         self._broadcast_runtime()

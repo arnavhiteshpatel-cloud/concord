@@ -51,6 +51,7 @@ class NegotiateRequest(_Body):
 
 class RecordingStartRequest(_Body):
     name: str | None = Field(default=None, max_length=48)
+    exclude_raw: bool = False  # keep features/labels/intents only (long calibration sessions)
 
 
 class PlaybackRequest(_Body):
@@ -235,7 +236,9 @@ async def list_recordings(svc: Svc) -> list[RecordingInfo]:
 
 @router.post("/recordings/start")
 async def start_recording(body: RecordingStartRequest, svc: Svc) -> RecordingStarted:
-    return RecordingStarted(name=svc.runtime.start_recording(body.name))
+    return RecordingStarted(
+        name=svc.runtime.start_recording(body.name, exclude_raw=body.exclude_raw)
+    )
 
 
 @router.post("/recordings/stop")
