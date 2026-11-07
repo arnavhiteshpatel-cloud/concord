@@ -18,6 +18,10 @@ class Capability(StrEnum):
     TEXT_INTENT = "text_intent"
     TELEMETRY = "telemetry"
     DEVICE_STATUS = "device_status"
+    # schema 1.1 (additive)
+    NEURAL_FEATURES = "neural_features"
+    BEHAVIOR = "behavior"
+    KINEMATIC_INTENT = "kinematic_intent"
 
 
 class EventType(StrEnum):
@@ -28,6 +32,10 @@ class EventType(StrEnum):
     INTENT_TEXT = "intent.text"
     TELEMETRY_SAMPLE = "telemetry.sample"
     DEVICE_STATUS = "device.status"
+    # schema 1.1 (additive)
+    FEATURES_BINNED = "features.binned"
+    BEHAVIOR_SAMPLE = "behavior.sample"
+    INTENT_KINEMATICS = "intent.kinematics"
 
 
 EVENT_CAPABILITY: dict[EventType, Capability] = {
@@ -38,6 +46,9 @@ EVENT_CAPABILITY: dict[EventType, Capability] = {
     EventType.INTENT_TEXT: Capability.TEXT_INTENT,
     EventType.TELEMETRY_SAMPLE: Capability.TELEMETRY,
     EventType.DEVICE_STATUS: Capability.DEVICE_STATUS,
+    EventType.FEATURES_BINNED: Capability.NEURAL_FEATURES,
+    EventType.BEHAVIOR_SAMPLE: Capability.BEHAVIOR,
+    EventType.INTENT_KINEMATICS: Capability.KINEMATIC_INTENT,
 }
 
 CAPABILITY_DESCRIPTIONS: dict[Capability, str] = {
@@ -47,6 +58,9 @@ CAPABILITY_DESCRIPTIONS: dict[Capability, str] = {
     Capability.TEXT_INTENT: "Discrete text (character or word) intent.",
     Capability.TELEMETRY: "Device health metrics.",
     Capability.DEVICE_STATUS: "Connection and streaming state changes.",
+    Capability.NEURAL_FEATURES: "Processed neural features, e.g. binned threshold-crossing counts.",
+    Capability.BEHAVIOR: "Recorded behavioral ground truth, e.g. measured or cued kinematics.",
+    Capability.KINEMATIC_INTENT: "Multi-dimensional movement intent (simulated or model-decoded).",
 }
 
 

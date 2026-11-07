@@ -11,6 +11,7 @@ import {
   type RuntimeSnapshot,
   type TelemetryMetric,
 } from "../sdk";
+import { NeuralBuffer } from "./neuralBuffer";
 import { SignalBuffer } from "./signalBuffer";
 
 export const EVENT_LOG_SIZE = 400;
@@ -23,6 +24,7 @@ export interface ConsoleStreamData {
   events: EventEnvelope[];
   telemetry: { metrics: TelemetryMetric[]; at: number; deviceId: string; sessionId: string } | null;
   signal: SignalBuffer;
+  neural: NeuralBuffer;
   clientLatencyMs: number[];
   stats: BrainOSStream["stats"];
   tick: number;
@@ -36,6 +38,7 @@ export function useConsoleStream(): ConsoleStreamData {
   const events = useRef<EventEnvelope[]>([]);
   const telemetry = useRef<ConsoleStreamData["telemetry"]>(null);
   const signal = useRef(new SignalBuffer());
+  const neural = useRef(new NeuralBuffer());
   const latency = useRef<number[]>([]);
   const streamRef = useRef<BrainOSStream | null>(null);
 
@@ -58,6 +61,10 @@ export function useConsoleStream(): ConsoleStreamData {
         latency.current.push(lat);
         if (latency.current.length > LATENCY_WINDOW) latency.current.shift();
         if (e.event_type === "recording.frame") signal.current.push(e.session_id, e.payload);
+        else if (e.event_type === "features.binned") neural.current.pushFeatures(e.session_id, e.payload);
+        else if (e.event_type === "behavior.sample") neural.current.pushBehavior(e.session_id, e.payload);
+        else if (e.event_type === "intent.kinematics" && e.provenance.kind === "decoded_intent")
+          neural.current.pushDecoded(e.session_id, e.payload, e.provenance.model_id);
         else if (e.event_type === "telemetry.sample")
           telemetry.current = {
             metrics: e.payload.metrics,
@@ -84,6 +91,7 @@ export function useConsoleStream(): ConsoleStreamData {
     events: events.current,
     telemetry: telemetry.current,
     signal: signal.current,
+    neural: neural.current,
     clientLatencyMs: latency.current,
     stats: streamRef.current?.stats ?? {
       received: 0,

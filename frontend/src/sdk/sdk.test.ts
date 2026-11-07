@@ -55,6 +55,45 @@ describe("validateEnvelope", () => {
       }),
     ],
   ];
+  const prov = env().provenance as Record<string, unknown>;
+  const feat = {
+    event_type: "features.binned",
+    capability: "neural_features",
+    provenance: { ...prov, kind: "processed_feature", synthetic: false },
+    payload: { feature: "spike_count", unit: "count", bin_ms: 20, bin_index: 0, channel_count: 2, counts: [0, 3] },
+  };
+  const beh = {
+    event_type: "behavior.sample",
+    capability: "behavior",
+    provenance: { ...prov, kind: "behavioral_label", synthetic: false },
+    payload: { quantity: "velocity", dims: ["tx", "ty"], unit: "arbitrary", values: [0.1, 0.2], sample_index: 0, valid: true },
+  };
+  const kin = {
+    event_type: "intent.kinematics",
+    capability: "kinematic_intent",
+    provenance: { ...prov, kind: "decoded_intent", synthetic: false, model_id: "m1" },
+    payload: { quantity: "velocity", dims: ["tx"], unit: "arbitrary", values: [0.1], space: "falcon_h1_7dof" },
+  };
+  it("accepts schema 1.1 feature, behavior and decoded kinematic events", () => {
+    for (const e of [feat, beh, kin]) expect(validateEnvelope(env({ ...e, schema_version: "1.1" })).ok).toBe(true);
+  });
+  const bad11: [string, unknown][] = [
+    ["features as raw_signal", env({ ...feat, provenance: { ...feat.provenance, kind: "raw_signal" } })],
+    ["features as intent", env({ ...feat, provenance: { ...feat.provenance, kind: "decoded_intent", model_id: "m" } })],
+    ["negative count", env({ ...feat, payload: { ...feat.payload, counts: [0, -1] } })],
+    ["count/channel mismatch", env({ ...feat, payload: { ...feat.payload, counts: [1] } })],
+    ["behavior as simulated intent", env({ ...beh, provenance: { ...beh.provenance, kind: "simulated_intent", synthetic: true } })],
+    ["behavior dims mismatch", env({ ...beh, payload: { ...beh.payload, values: [1] } })],
+    ["recorded behavior as kinematic intent", env({ ...kin, provenance: { ...kin.provenance, kind: "behavioral_label" } })],
+    ["decoded kinematics without model", env({ ...kin, provenance: { ...kin.provenance, model_id: null } })],
+    ["kinematics without space", env({ ...kin, payload: { ...kin.payload, space: undefined } })],
+  ];
+  for (const [name, value] of bad11) {
+    it(`rejects 1.1 ${name}`, () => {
+      expect(validateEnvelope(value).ok).toBe(false);
+    });
+  }
+
   for (const [name, value] of bad) {
     it(`rejects ${name}`, () => {
       expect(validateEnvelope(value).ok).toBe(false);

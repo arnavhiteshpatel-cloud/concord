@@ -85,6 +85,58 @@ MALFORMED: list[tuple[str, dict[str, Any]]] = [
         valid_event("intent.text", payload={"text": "", "mode": "character", "confidence": 1}),
     ),
     ("unknown device state", valid_event("device.status", payload={"state": "asleep"})),
+    # schema 1.1 types
+    (
+        "features count/channel mismatch",
+        valid_event(
+            "features.binned",
+            payload={**valid_event("features.binned")["payload"], "counts": [1, 2]},
+        ),
+    ),
+    (
+        "negative feature count",
+        valid_event(
+            "features.binned",
+            payload={**valid_event("features.binned")["payload"], "counts": [0, -1, 1]},
+        ),
+    ),
+    (
+        "non-integer feature count",
+        valid_event(
+            "features.binned",
+            payload={**valid_event("features.binned")["payload"], "counts": [0, 1.5, 1]},
+        ),
+    ),
+    (
+        "unknown feature kind",
+        valid_event(
+            "features.binned",
+            payload={**valid_event("features.binned")["payload"], "feature": "vibes"},
+        ),
+    ),
+    (
+        "behavior dims/values mismatch",
+        valid_event(
+            "behavior.sample",
+            payload={**valid_event("behavior.sample")["payload"], "values": [1.0]},
+        ),
+    ),
+    (
+        "behavior NaN",
+        valid_event(
+            "behavior.sample",
+            payload={**valid_event("behavior.sample")["payload"], "values": [math.nan, 0.0]},
+        ),
+    ),
+    (
+        "kinematic intent without space",
+        valid_event(
+            "intent.kinematics",
+            payload={
+                k: v for k, v in valid_event("intent.kinematics")["payload"].items() if k != "space"
+            },
+        ),
+    ),
 ]
 
 
@@ -122,6 +174,34 @@ def _prov(**kw: Any) -> dict[str, Any]:
 
 
 PROVENANCE_VIOLATIONS: list[tuple[str, dict[str, Any]]] = [
+    (
+        "processed features delivered as an intent",
+        valid_event("intent.kinematics", provenance=_prov(kind="processed_feature")),
+    ),
+    (
+        "recorded behavior delivered as a kinematic intent",
+        valid_event("intent.kinematics", provenance=_prov(kind="behavioral_label")),
+    ),
+    (
+        "features labelled as raw signal",
+        valid_event("features.binned", provenance=_prov(kind="raw_signal")),
+    ),
+    (
+        "features labelled as decoded intent",
+        valid_event("features.binned", provenance=_prov(kind="decoded_intent", model_id="m")),
+    ),
+    (
+        "behavior labelled as simulated intent",
+        valid_event("behavior.sample", provenance=_prov()),
+    ),
+    (
+        "processed_feature on a raw recording frame",
+        valid_event("recording.frame", provenance=_prov(kind="processed_feature")),
+    ),
+    (
+        "decoded kinematics without model_id",
+        valid_event("intent.kinematics", provenance=_prov(kind="decoded_intent", synthetic=False)),
+    ),
     (
         "behavioral label delivered as an intent",
         valid_event("intent.pointer", provenance=_prov(kind="behavioral_label")),

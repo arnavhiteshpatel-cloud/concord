@@ -19,11 +19,11 @@ import time
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Protocol, runtime_checkable
 
 from brainos.contracts.capabilities import EventType
 from brainos.contracts.events import Provenance, Quality
-from brainos.contracts.protocol import DeviceDescriptor
+from brainos.contracts.protocol import DeviceDescriptor, PlaybackStatus
 
 
 class AdapterError(Exception):
@@ -93,3 +93,15 @@ class DeviceAdapter(ABC):
     @abstractmethod
     def normalize(self, packet: NativePacket) -> Sequence[EventDraft]:
         """Decode one native packet. Pure. Raises :class:`PacketDecodeError`."""
+
+
+@runtime_checkable
+class PlaybackControl(Protocol):
+    """Optional interface for adapters over finite recordings (speed, position).
+
+    Live devices do not implement it; the runtime then reports ``unsupported_operation``.
+    """
+
+    def set_speed(self, speed: float) -> None: ...
+
+    def playback_status(self) -> PlaybackStatus: ...

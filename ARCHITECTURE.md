@@ -1,6 +1,6 @@
 # BrainOS — Architecture
 
-Status: v1 (MVP vertical slice). This document is normative: if code and this
+Status: v1 + Milestone 2 (schema 1.1: genuine recorded human data, offline decoding). This document is normative: if code and this
 document disagree, one of them is a bug.
 
 ## 1. System overview
@@ -56,7 +56,7 @@ native packet, a device-specific field, or a device-specific code path.**
 
 ## 3. Capability model
 
-### 3.1 Vocabulary (closed set in v1)
+### 3.1 Vocabulary (closed set; 1.1 added the last three)
 
 | Capability | Event types | Description |
 | --- | --- | --- |
@@ -66,6 +66,9 @@ native packet, a device-specific field, or a device-specific code path.**
 | `text_intent` | `intent.text` | Discrete text (character or word) intent. |
 | `telemetry` | `telemetry.sample` | Device health metrics (battery, temperature, link quality …). |
 | `device_status` | `device.status` | Connection / streaming state changes. |
+| `neural_features` (1.1) | `features.binned` | Processed neural features: counts per channel per time bin. |
+| `behavior` (1.1) | `behavior.sample` | Recorded behavioral ground truth (e.g. cued kinematics). |
+| `kinematic_intent` (1.1) | `intent.kinematics` | Multi-dimensional movement intent in a source-defined space (simulated or decoded). |
 
 Every event type maps to exactly one capability; the envelope carries that
 capability explicitly and validation rejects mismatches.
@@ -99,11 +102,11 @@ An application's `hello` lists `required` and `optional` capabilities.
 `POST /api/v1/negotiate` offers the same algorithm as a dry run against any
 registered device.
 
-## 4. Event envelope (schema `1.0`)
+## 4. Event envelope (schema `1.1`; 1.1 is additive over 1.0)
 
 ```jsonc
 {
-  "schema_version": "1.0",           // major.minor; consumers accept same major
+  "schema_version": "1.1",           // major.minor; consumers accept same major
   "session_id": "ses_8f3a…",        // one per device connection
   "device_id": "sim-a",
   "seq": 1042,                       // runtime-assigned, strictly increasing per session
@@ -139,6 +142,9 @@ The authoritative definition is the Pydantic model in
 | `intent.text` | `text` (1–64 chars), `mode` (`character`/`word`), `confidence` |
 | `telemetry.sample` | `metrics: [{name, value, unit}]` |
 | `device.status` | `state` (`connected`/`streaming`/`paused`/`reconnecting`/`disconnected`/`error`/`ended`), `detail` |
+| `features.binned` | `feature` (`spike_count`/`threshold_crossing_count`), `unit` (`count`), `bin_ms`, `bin_index`, `channel_count`, `counts[channel]` (non-negative ints). The bin ends at `device_timestamp_ns`. |
+| `behavior.sample` | `quantity`, `dims[]`, `unit`, `values[dim]`, `sample_index`, `valid` (false where the dataset excludes the sample) |
+| `intent.kinematics` | `quantity`, `dims[]`, `unit`, `values[dim]`, `space` (e.g. `falcon_h1_7dof`) |
 
 All numbers reject NaN/Infinity.
 
@@ -154,13 +160,20 @@ All numbers reject NaN/Infinity.
 | `decoded_intent` | Intent produced by a decoding model | `intent.*` | `model_id` required |
 | `device_report` | Device self-report | `telemetry.sample`, `device.status` | — |
 | `runtime` | Runtime-originated status | `device.status` | — |
+| `processed_feature` (1.1) | Features computed from neural data (e.g. binned spike counts) | `features.binned` | — |
+
+`behavior.sample` uses `behavioral_label`; `intent.kinematics` uses `simulated_intent` or
+`decoded_intent` (with `model_id`).
 
 These rules are enforced by the envelope validator. Consequences:
 
 - A behavioral label can never be delivered as an intent. Replay of a dataset
   does **not** turn labels into intents; only a decoder (with a `model_id`)
   may emit `decoded_intent`.
-- v1 ships **no decoder**. All intents in v1 are `simulated_intent`.
+- Recorded neural activity is never an intent: `features.binned` can only carry
+  `processed_feature`. The only `decoded_intent` source is the offline-evaluated
+  baseline decoder (Milestone 2), which emits `intent.kinematics` only. It never
+  emits `pointer_intent`/`selection`/`text_intent`, so no v1 application reacts to it.
 - Replayed events keep their original `kind`, and set `replayed: true` plus a
   `replayed` quality flag.
 
@@ -220,13 +233,37 @@ Fault injection (`/api/v1/sim/faults`): `link_drop` (recoverable),
 
 ### 5.2 Replay
 
-`ReplayAdapter` reads a BrainOS recording (`brainos.recording/1`, JSONL:
-header line + envelopes) and re-emits drafts with original relative timing
-(optional speed factor, looping). Runtime-originated status events are not
-replayed. The source abstraction (`ReplaySource`) is designed so a future
-reader for public intracranial datasets maps continuous data →
-`recording.frame` (`raw_signal`) and trial/behavior tables →
-`recording.annotation` (`behavioral_label`) — never to intents.
+`ReplayAdapter` is the single replay engine. It pulls `ReplayRecord`s from a
+`ReplaySource` (`name`, `origin`, `descriptor()`, `records()`, `duration_ns()`)
+and re-emits them with their original relative timing. It supports pause/resume,
+looping, end-of-stream, and **speed control** (`set_speed`, 0.1–64×, re-anchored so
+position never jumps). It reports `playback_status()` (position, duration, speed,
+loops) through the optional `PlaybackControl` interface. When behind schedule it
+yields to the event loop every 64 records. Every replayed event gets
+`provenance.replayed = true`, `origin = source.origin`, and a `replayed` quality flag.
+
+Sources:
+
+| Source | Device ids | Emits |
+| --- | --- | --- |
+| `BrainOSRecordingSource` | `replay:<name>` | the recorded envelopes (runtime status events excluded) |
+| `NWBUnitsSource` (M2) | `nwb:<file-slug>` | per bin: `features.binned` (`processed_feature`), `behavior.sample` (`behavioral_label`) if the file has kinematics, `intent.kinematics` (`decoded_intent`) only if a held-out decoder is attached |
+
+`NWBUnitsSource` reads NWB `units.spike_times` with PyNWB, bins them on demand in
+chunks (bit-identical to the dataset authors' reference binning), validates the
+timebase against the spike times, and returns `SourceMetadata` (dataset, license,
+SHA-256 verification, channels, notes). Files without a units table (e.g. raw
+`ElectricalSeries` only) are rejected as an unsupported modality. Offline sources
+are `kind = replay`, `synthetic = false`, and are labelled "Recorded Human
+Intracranial Data — Offline Replay", never as a live device.
+
+### 5.3 Decoders (M2)
+
+`brainos.decoding.ridge.RidgeDecoder` is a JSON-serialized linear model with a
+causal streaming implementation identical to its offline prediction. The
+`NWBCatalog` attaches a model to a dataset file only if the model's
+`evaluations` include that file's SHA-256. `NWBUnitsSource` refuses (with
+`DecoderLeakageError`) any model trained on the same session as the file.
 
 ## 6. Runtime
 
@@ -273,10 +310,13 @@ code 1008, `control_queue_overflow`) rather than allowed to grow server memory.
 
 ## 7. Transport & API
 
-REST under `/api/v1`: `health`, `devices`, `runtime`, `runtime/{connect,
-switch,disconnect,pause,resume}`, `diagnostics`, `negotiate`,
-`schema/event`, `recordings`, `recordings/{start,stop}`,
-`system/tests`; simulation-only: `sim/{pointer,select,text,faults}`.
+REST under `/api/v1`: `health`, `capabilities`, `devices`, `devices/{id}`,
+`devices/{id}/source` (offline sources only), `datasets`, `runtime`,
+`runtime/{connect,switch,disconnect,pause,resume}`, `runtime/playback`
+(GET status / POST `{speed}`; `unsupported_operation` for live devices),
+`diagnostics`, `negotiate`, `schema/event`, `recordings`,
+`recordings/{start,stop}`, `system/tests`; simulation-only:
+`sim/{pointer,select,text,faults}`.
 
 WebSocket `/api/v1/stream`, protocol `brainos.stream/1`:
 
@@ -310,10 +350,11 @@ operator approval, signed adapters, audit log, TLS.
 
 1. **New device**: implement `DeviceAdapter`, register a factory in
    `runtime/registry.py`. No changes to runtime, SDKs, or apps.
-2. **New dataset format**: implement `ReplaySource`.
-3. **Decoder** (future): a component that consumes `raw_signal` events and
-   emits `decoded_intent` drafts with a `model_id`. Its place in the pipeline
-   is a v2 design item.
+2. **New dataset format**: implement `ReplaySource` (see `NWBUnitsSource`), and
+   pin verified files in a `brainos/datasets/*.json` manifest.
+3. **Decoder**: today decoders run inside an offline source, on held-out data
+   only. A runtime-level decoder stage that consumes `features.binned` from any
+   device and emits `decoded_intent` is the next design item.
 4. **New capability**: requires a schema minor version bump, a payload model,
    provenance rules, and SDK type updates — deliberately not a plugin.
 

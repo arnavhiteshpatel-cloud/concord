@@ -1,7 +1,7 @@
 // Console-only API wrappers: diagnostics, recordings, test reports and the
 // simulation operator endpoints. Applications never use these.
 
-import { apiCall, type ConnectedApp } from "../sdk";
+import { apiCall, type ConnectedApp, type PlaybackStatus, type SourceMetadata } from "../sdk";
 
 export interface LatencySummary {
   count: number;
@@ -84,6 +84,13 @@ export const consoleApi = {
   stopRecording: () => apiCall<RecordingInfo>("/recordings/stop", { method: "POST" }),
   tests: () => apiCall<TestReport[]>("/system/tests"),
   capabilities: () => apiCall<CapabilityInfo[]>("/capabilities"),
+  source: (deviceId: string) => apiCall<SourceMetadata>(`/devices/${encodeURIComponent(deviceId)}/source`),
+  datasets: () =>
+    apiCall<{ nwb_support: boolean; unavailable_reason: string | null; devices: string[]; problems: { file: string; error: string }[]; fetch_command: string }>(
+      "/datasets",
+    ),
+  playback: () => apiCall<PlaybackStatus>("/runtime/playback"),
+  setSpeed: (speed: number) => apiCall<PlaybackStatus>("/runtime/playback", { method: "POST", body: { speed } }),
   simPointer: (vx: number, vy: number) =>
     apiCall<unknown>("/sim/pointer", { method: "POST", body: { vx, vy } }),
   simSelect: () => apiCall<unknown>("/sim/select", { method: "POST" }),

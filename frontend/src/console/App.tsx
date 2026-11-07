@@ -9,6 +9,8 @@ import { DiagnosticsView } from "./components/DiagnosticsView";
 import { EventStream } from "./components/EventStream";
 import { Header } from "./components/Header";
 import { IntentPad } from "./components/IntentPad";
+import { NeuralView } from "./components/NeuralView";
+import { SourcePanel } from "./components/SourcePanel";
 import { SignalView, TelemetryPanel } from "./components/SignalView";
 import { TestsView } from "./components/TestsView";
 import { Panel } from "./components/ui";
@@ -88,6 +90,9 @@ export function App() {
   );
 
   const connected = !!runtime?.device && runtime.state !== "idle";
+  // Offline recorded (non-synthetic) source: show provenance + playback instead of the simulator pad.
+  const offlineData = !!runtime?.device && runtime.device.kind === "replay" && !runtime.device.synthetic;
+  const neuralFeatures = !!runtime?.device?.capabilities.some((c) => c.capability === "neural_features");
   const onConnect = (id: string) =>
     act(() => (connected ? runtimeApi.switch(id) : runtimeApi.connect(id)), connected ? `Switched to ${id}` : `Connected ${id}`);
 
@@ -162,10 +167,18 @@ export function App() {
                     runtime grants — it contains no device-specific code.
                   </p>
                 </Panel>
-                <IntentPad runtime={runtime} onError={onError} />
+                {offlineData && runtime ? (
+                  <SourcePanel runtime={runtime} busy={busy} act={act} onError={onError} />
+                ) : (
+                  <IntentPad runtime={runtime} onError={onError} />
+                )}
               </div>
               <div className="live-bottom">
-                <SignalView signal={data.signal} runtime={runtime} />
+                {neuralFeatures ? (
+                  <NeuralView neural={data.neural} />
+                ) : (
+                  <SignalView signal={data.signal} runtime={runtime} />
+                )}
                 <TelemetryPanel telemetry={data.telemetry} runtime={runtime} />
               </div>
           </div>

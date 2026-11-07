@@ -63,6 +63,11 @@ async function main() {
   if (!base) {
     const py = fs.existsSync(path.join(ROOT, ".venv/bin/python")) ? path.join(ROOT, ".venv/bin/python") : "python3";
     const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "brainos-e2e-"));
+    // Real recorded data (Milestone 2): link the verified dataset + model dirs read-only.
+    for (const sub of ["datasets", "models"]) {
+      const src = path.join(ROOT, "data", sub);
+      if (fs.existsSync(src)) fs.symlinkSync(src, path.join(dataDir, sub), "dir");
+    }
     server = spawn(py, ["-m", "brainos.server"], {
       env: { ...process.env, BRAINOS_PORT: String(PORT), BRAINOS_DATA_DIR: dataDir, BRAINOS_LOG_LEVEL: "WARNING" },
       stdio: ["ignore", "inherit", "inherit"],
@@ -254,7 +259,91 @@ async function main() {
       return null;
     });
 
-    await step("14. no uncaught page errors", async () => {
+    // ---------------------------------------------------------- Milestone 2: real data
+    const REAL = "nwb:sub-humanpitt-held-in-calib_ses-19250108t111022";
+    const playback = () => api("/runtime/playback");
+
+    await step("14. a verified real human recording is offered as an offline source", async () => {
+      const ds = await api("/datasets");
+      if (!ds.nwb_support) throw new Error(`NWB support missing: ${ds.unavailable_reason}`);
+      if (!ds.devices.includes(REAL)) throw new Error(`dataset not found; run \`make dataset model\` (have: ${ds.devices.join(", ") || "none"})`);
+      await page.getByTestId("dataset-list").waitFor();
+      return `${ds.devices.length} DANDI 000954 file(s) available`;
+    });
+
+    await step("15. connect the recording: labelled Offline Replay, file verified against DANDI", async () => {
+      await page.getByTestId(`device-${REAL}`).click();
+      await expectText(page.getByTestId("runtime-device"), /Recorded Human Intracranial Data — Offline Replay/);
+      await expectText(page.getByTestId("data-badge"), /RECORDED HUMAN DATA · OFFLINE REPLAY/);
+      await expectText(page.getByTestId("source-verified"), /SHA-256 matches DANDI 000954/);
+      await expectText(page.getByTestId("source-signal"), /176 channels .* 20 ms bins/);
+      return (await text(page.getByTestId("source-signal"))).trim();
+    });
+
+    await step("16. real samples flow through the runtime with correct provenance", async () => {
+      const d0 = (await api("/diagnostics")).event_types.find((t) => t.event_type === "features.binned");
+      await page.waitForTimeout(1200);
+      const d1 = (await api("/diagnostics")).event_types.find((t) => t.event_type === "features.binned");
+      if (!d1 || (d0 && d1.total <= d0.total)) throw new Error("no features.binned events");
+      for (const [type, kind] of [["features.binned", "processed_feature"], ["behavior.sample", "behavioral_label"], ["intent.kinematics", "decoded_intent"]]) {
+        const row = page.locator(`[data-event-type="${type}"]`).first();
+        await row.waitFor({ timeout: 5000 });
+        const prov = await text(row.locator(".prov"));
+        if (!prov.includes(kind)) throw new Error(`${type} provenance was ${prov}`);
+      }
+      await page.getByTestId("raster-canvas").waitFor();
+      return `features.binned total ${d1.total} at ${d1.rate_hz} Hz`;
+    });
+
+    await step("17. the communication board does not react to neural data", async () => {
+      await expectText(board().getByTestId("board-mode"), /inactive/);
+      const msgBefore = (await text(board().getByTestId("board-message"))).trim();
+      await page.waitForTimeout(800);
+      if ((await text(board().getByTestId("board-message"))).trim() !== msgBefore) throw new Error("board changed");
+      return "board suspended (no selection capability), message unchanged";
+    });
+
+    await step("18. playback: speed, pause, resume", async () => {
+      await page.getByTestId("speed-4").click();
+      let p = await playback();
+      const t0 = Date.now(), p0 = p.position_s;
+      await page.waitForTimeout(1000);
+      p = await playback();
+      const rate = (p.position_s - p0) / ((Date.now() - t0) / 1000);
+      if (p.speed !== 4 || rate < 3 || rate > 5) throw new Error(`speed ${p.speed}, measured ${rate.toFixed(2)} s/s`);
+      await page.getByTestId("pb-pause").click();
+      await page.waitForTimeout(300);
+      const a = (await playback()).position_s;
+      await page.waitForTimeout(600);
+      const b = (await playback()).position_s;
+      if (Math.abs(b - a) > 0.05) throw new Error(`position moved while paused (${a} -> ${b})`);
+      await page.getByTestId("pb-resume").click();
+      await expectText(page.getByTestId("runtime-state"), /streaming/);
+      await page.getByTestId("neural-view").scrollIntoViewIfNeeded();
+      await page.waitForTimeout(1200);
+      await shot("06-real-data");
+      await page.getByTestId("neural-view").screenshot({ path: path.join(SHOTS, "07-neural-view.png") });
+      return `measured ${rate.toFixed(2)} s of recording per second at 4×; paused held at ${a}s`;
+    });
+
+    await step("19. switch back to a simulated device: platform and board keep working", async () => {
+      await page.getByTestId("device-sim-a").click();
+      await expectText(page.getByTestId("data-badge"), /SIMULATED DATA/);
+      await expectText(board().getByTestId("board-mode"), /pointer/);
+      await page.getByTestId("sim-select").click();
+      await expectText(board().getByTestId("board-message"), /\S/);
+      return "board back in pointer mode; selection works";
+    });
+
+    await step("20. stop: reconnect the recording, then Stop returns to idle", async () => {
+      await page.getByTestId(`device-${REAL}`).click();
+      await expectText(page.getByTestId("runtime-device"), /Offline Replay/);
+      await page.getByTestId("pb-stop").click();
+      await expectText(page.getByTestId("runtime-state"), /idle/);
+      return null;
+    });
+
+    await step("21. no uncaught page errors", async () => {
       if (errors.length) throw new Error(errors.join(" | "));
       return null;
     });

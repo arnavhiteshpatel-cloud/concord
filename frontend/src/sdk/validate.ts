@@ -55,6 +55,29 @@ function checkPayload(type: EventType, p: Record<string, unknown>): string | nul
         : "telemetry invalid";
     case "device.status":
       return isStr(p.state) ? null : "status invalid";
+    case "features.binned":
+      return isInt(p.channel_count) &&
+        inRange(p.bin_ms, 0, 10_000) &&
+        isInt(p.bin_index) &&
+        Array.isArray(p.counts) &&
+        p.counts.length === p.channel_count &&
+        p.counts.every((c) => isInt(c) && c >= 0)
+        ? null
+        : "features invalid";
+    case "behavior.sample":
+    case "intent.kinematics": {
+      const ok =
+        Array.isArray(p.dims) &&
+        p.dims.every(isStr) &&
+        Array.isArray(p.values) &&
+        p.values.length === p.dims.length &&
+        p.values.every(isNum) &&
+        isStr(p.unit) &&
+        isStr(p.quantity);
+      if (!ok) return `${type} invalid`;
+      if (type === "intent.kinematics" && !isStr(p.space)) return "kinematic intent requires space";
+      return null;
+    }
   }
 }
 
