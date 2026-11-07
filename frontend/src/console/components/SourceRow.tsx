@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { runtimeApi, type PlaybackStatus, type RuntimeSnapshot } from "../../sdk";
 import { consoleApi, isDatasetFile } from "../api";
 import { useLoggedAction } from "../context";
-import { shapeSummary, sourceKind } from "../wording";
+import { integrationLine, modalityWords, shapeSummary, sourceKind } from "../wording";
 import { Disclosure, Row } from "./ui";
 
 const SPEEDS = [0.5, 1, 2, 4, 8];
@@ -52,6 +52,9 @@ export function SourceRow({
   const pb = usePlayback(replayFile ? (device?.device_id ?? null) : null);
   const kind = sourceKind(device);
   const shape = shapeSummary(device);
+  const integration = integrationLine(device);
+  // modality in words for plugins (declared or "not declared") and for any source that declares it
+  const modality = integration || device?.modality ? modalityWords(device) : null;
   const finished = state === "error" || state === "ended";
 
   if (!device) {
@@ -107,6 +110,11 @@ export function SourceRow({
           </span>
         )}
       </p>
+      {(integration || modality) && (
+        <p className="value-sub" data-testid="source-integration">
+          {[integration, modality].filter(Boolean).join(" · ")}
+        </p>
+      )}
       {runtime?.last_error && finished && (
         <p className="error-text" data-testid="last-error">
           {runtime.last_error}

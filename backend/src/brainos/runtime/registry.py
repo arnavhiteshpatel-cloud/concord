@@ -27,6 +27,7 @@ from brainos.adapters.simulated import (
 from brainos.contracts.protocol import DeviceDescriptor, SourceMetadata
 from brainos.runtime.catalog import NWBCatalog
 from brainos.runtime.live_sources import LiveSourceRegistry
+from brainos.runtime.plugins import PLUGIN_PREFIX, PluginRegistry
 
 log = logging.getLogger(__name__)
 
@@ -52,6 +53,7 @@ class DeviceRegistry:
         replay_loop: bool = True,
         datasets_dir: Path | None = None,
         models_dir: Path | None = None,
+        plugins: PluginRegistry | None = None,
     ) -> None:
         self.intents = intents
         self.recordings_dir = recordings_dir
@@ -59,6 +61,7 @@ class DeviceRegistry:
         root = recordings_dir.parent
         self.catalog = NWBCatalog(datasets_dir or root / "datasets", models_dir or root / "models")
         self.live = LiveSourceRegistry()
+        self.plugins = plugins or PluginRegistry()
         self._factories: dict[str, tuple[DeviceDescriptor, Callable[[], DeviceAdapter]]] = {
             profile_a.DEVICE_ID: (
                 profile_a.descriptor(),
@@ -73,7 +76,7 @@ class DeviceRegistry:
     def register(self, descriptor: DeviceDescriptor, factory: Callable[[], DeviceAdapter]) -> None:
         """Register an additional adapter factory (extension point for new devices)."""
         if descriptor.device_id in self._factories or descriptor.device_id.startswith(
-            (REPLAY_PREFIX, NWB_PREFIX)
+            (REPLAY_PREFIX, NWB_PREFIX, PLUGIN_PREFIX)
         ):
             raise ValueError(f"device id {descriptor.device_id!r} already registered or reserved")
         self._factories[descriptor.device_id] = (descriptor, factory)
@@ -98,6 +101,7 @@ class DeviceRegistry:
                     log.warning("ignoring recording %s: %s", path.name, exc)
         out.extend(self.catalog.list())
         out.extend(self.live.list())
+        out.extend(self.plugins.list())
         return out
 
     def _nwb_path(self, device_id: str) -> Path:
@@ -118,6 +122,11 @@ class DeviceRegistry:
         return self.catalog.source(self._nwb_path(device_id)).metadata()
 
     def describe(self, device_id: str) -> DeviceDescriptor:
+        if device_id.startswith(PLUGIN_PREFIX):
+            desc = self.plugins.describe(device_id)
+            if desc is None:
+                raise DeviceNotFoundError(f"{device_id} (configure the plugin device first)")
+            return desc
         if self.live.owns(device_id):
             for d in self.live.list():
                 if d.device_id == device_id:
@@ -136,6 +145,11 @@ class DeviceRegistry:
             raise DeviceNotFoundError(device_id) from None
 
     def create(self, device_id: str) -> DeviceAdapter:
+        if device_id.startswith(PLUGIN_PREFIX):
+            try:
+                return self.plugins.create(device_id)
+            except KeyError:
+                raise DeviceNotFoundError(device_id) from None
         if self.live.owns(device_id):
             try:
                 return self.live.create(device_id)

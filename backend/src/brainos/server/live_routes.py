@@ -158,7 +158,8 @@ async def remove_source(device_id: str, svc: Svc) -> dict[str, bool]:
         raise RuntimeCommandError(
             ErrorCode.INVALID_STATE, "disconnect the source before removing it"
         )
-    return {"removed": rt.registry.live.remove(device_id)}
+    removed = rt.registry.live.remove(device_id) or rt.registry.plugins.remove(device_id)
+    return {"removed": removed}
 
 
 # -------------------------------------------------------------------- pipeline
