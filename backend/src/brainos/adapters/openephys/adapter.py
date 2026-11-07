@@ -241,9 +241,9 @@ class OpenEphysAdapter(DeviceAdapter):
 
     @property
     def origin(self) -> str:
+        """Provenance origin: ``openephys:<host>:<port>/<stream>`` (stream once learned)."""
         base = f"openephys:{self.config.host}:{self.config.data_port}"
-        stream = self.layout.stream if self.layout else ""
-        return f"{base}/{stream}"[:128]
+        return (f"{base}/{self.layout.stream}" if self.layout else base)[:128]
 
     def _descriptor(self, layout: StreamLayout | None, electrodes: list[str]) -> DeviceDescriptor:
         cfg = self.config

@@ -103,6 +103,8 @@ class OpenEphysTestPublisher:
         self.blocks_sent = 0
         self.messages_sent = 0
         self.messages_dropped = 0
+        #: (kind, sample_num, detail) of every TTL/spike built, in send order
+        self.sent_log: list[tuple[str, int, str]] = []
         self.clients: dict[str, ClientRecord] = {}
         self.requests: list[bytes] = []
         self.replies: list[bytes] = []
@@ -209,6 +211,7 @@ class OpenEphysTestPublisher:
 
         def build(s: int) -> list[bytes]:
             self.message_num += 1
+            self.sent_log.append(("ttl", s, f"line={line} state={state} word={word}"))
             return encode_event(
                 message_num=self.message_num,
                 stream=self.stream,
@@ -241,6 +244,7 @@ class OpenEphysTestPublisher:
 
         def build(s: int) -> list[bytes]:
             self.message_num += 1
+            self.sent_log.append(("spike", s, electrode))
             return encode_spike(
                 message_num=self.message_num,
                 stream=self.stream,
