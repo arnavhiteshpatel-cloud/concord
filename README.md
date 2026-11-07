@@ -77,7 +77,7 @@ For development with hot reload instead: `make dev` and open http://127.0.0.1:51
 ```bash
 make test     # pytest (backend) + vitest (frontend); writes reports/ for the Tests tab
 make lint     # ruff, mypy --strict, tsc
-make e2e      # real-browser demo (AT-25); needs Playwright: npm i -g playwright && npx playwright install chromium
+make e2e      # real-browser demo (AT-25); run `make e2e-setup` once first
 make bench    # measured throughput/latency on this machine -> docs/BENCHMARKS.md
 ```
 

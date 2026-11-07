@@ -4,7 +4,7 @@ VENV  := .venv
 PY    := $(VENV)/bin/python
 NPM   := npm --prefix frontend
 
-.PHONY: setup dev run build test test-backend test-frontend lint e2e bench schema clean
+.PHONY: setup dev run build test test-backend test-frontend lint e2e e2e-setup bench schema clean
 
 setup:  ## create .venv (Python 3.12) and install backend + frontend deps
 	@command -v uv >/dev/null && uv venv --python 3.12 $(VENV) || python3.12 -m venv $(VENV)
@@ -37,6 +37,10 @@ lint:  ## ruff + mypy (strict) + tsc
 	cd backend && ../$(VENV)/bin/ruff check src tests examples ../scripts && ../$(VENV)/bin/ruff format --check src tests examples ../scripts
 	cd backend && ../$(VENV)/bin/mypy
 	$(NPM) run typecheck
+
+e2e-setup:  ## one-time: install Playwright (repo-local, not saved) + Chromium
+	npm install --no-save --no-package-lock playwright@1.63.0
+	npx playwright install chromium
 
 e2e: build  ## Playwright demo against a fresh server; writes reports/e2e.json
 	node e2e/demo.cjs

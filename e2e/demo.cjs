@@ -27,7 +27,7 @@ let chromium;
 try {
   ({ chromium } = require("playwright"));
 } catch {
-  console.error("playwright is not installed. Run: npm i -D playwright && npx playwright install chromium");
+  console.error("playwright is not installed. Run: make e2e-setup");
   process.exit(2);
 }
 
