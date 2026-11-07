@@ -5,13 +5,13 @@
 **Level achieved: `adapter_implementation`** - adapter implementation: every required automated check passed  
 Checks: 27 pass, 1 warn, 0 fail, 1 not run. Exit code 0.  
 Plugin `example-mi-eeg`, device `mi-eeg`; origin `brainos-example-adapter:mi-eeg:seed=1` (synthetic=True, prerecorded=False).  
-Run 2026-11-07T20:47:49Z on Linux x86_64 (Intel(R) Xeon(R) Processor @ 2.10GHz, 4 CPUs), Python 3.12.3, adapter SDK 1.0.0 (API 1.0), BrainOS 0.3.0, brainos-certify 0.1.0.
+Run 2026-11-07T20:55:31Z on Linux x86_64 (Intel(R) Xeon(R) Processor @ 2.10GHz, 4 CPUs), Python 3.12.3, adapter SDK 1.0.0 (API 1.0), BrainOS 0.3.0, brainos-certify 0.1.0.
 
 ## Summary
 
 | Check | Status | Reason |
 | --- | --- | --- |
-| `manifest.load` | PASS | plugin loaded in its own host process (pid 32560) in 0.13 s |
+| `manifest.load` | PASS | plugin loaded in its own host process (pid 1353) in 0.12 s |
 | `manifest.valid` | PASS | manifest valid (host and local validation) |
 | `manifest.api_compat` | PASS | plugin API 1.0 runs on SDK API 1.0 (SDK 1.0.0) |
 | `manifest.entry_point` | PASS | entry point example-mi-eeg = brainos_example_adapter.plugin:MotorImageryEEGPlugin (brainos-example-adapter) |
@@ -23,19 +23,19 @@ Run 2026-11-07T20:47:49Z on Linux x86_64 (Intel(R) Xeon(R) Processor @ 2.10GHz, 
 | `metadata.channel_identity` | PASS | 4 opens (open_1, reopen_same_host, fresh_host_after_kill, brainos_runtime): identical stream ids, labels, order, units, rates (10 channels) |
 | `timing.monotonic` | PASS | 7200 timestamps in 3 session(s) never decrease (within or across chunks) |
 | `timing.rate` | PASS | primary 250.0 Hz from timestamps vs nominal 250 Hz (+0.000 %, tolerance ±2 %) |
-| `timing.jitter` | PASS | primary timestamp residual p50/p99/max 0.0/0.0/0.0 ms; arrival interval p50/p99 100.0185/101.548 ms |
-| `timing.clock_domain` | PASS | source clock: offset to host monotonic 0.0056 s (origin unknown by declaration; not checkable); drift +7.3 ppm vs host monotonic |
+| `timing.jitter` | PASS | primary timestamp residual p50/p99/max 0.0/0.0/0.0 ms; arrival interval p50/p99 100.0102/101.6239 ms |
+| `timing.clock_domain` | PASS | source clock: offset to host monotonic 0.0056 s (origin unknown by declaration; not checkable); drift -4.1 ppm vs host monotonic |
 | `integrity.read` | PASS | 200 reads over 20.0 s, 6005 samples (all streams), no errors |
 | `integrity.chunk_validation` | PASS | 487 chunks validated by the host and again by the certifier |
 | `integrity.sample_index` | PASS | 7200 samples in 3 session(s): 0 gaps, 0 overlaps |
 | `integrity.markers` | PASS | 5 marker(s) in order, within the primary stream's time span |
 | `integrity.plugin_stats` | PASS | 2 counter(s), none reporting loss |
-| `reconnect.clean_reopen` | PASS | closed in 0.2 ms, reopened in 0.001 s, first data 0.102 s after open; identity unchanged |
-| `reconnect.host_killed` | PASS | SIGKILL after 5 reads surfaced as a link loss in 3.3 ms; fresh host: first data 0.256 s after start (0.114 s after open); identity unchanged; exit code 0 |
-| `performance.throughput` | PASS | primary delivered 249.9982 samples/s over 20.0 s vs nominal 250 Hz (-0.001 %); 10601.7 B/s over IPC |
+| `reconnect.clean_reopen` | PASS | closed in 0.5 ms, reopened in 0.001 s, first data 0.102 s after open; identity unchanged |
+| `reconnect.host_killed` | PASS | SIGKILL after 5 reads surfaced as a link loss in 4.8 ms; fresh host: first data 0.226 s after start (0.111 s after open); identity unchanged; exit code 0 |
+| `performance.throughput` | PASS | primary delivered 250.001 samples/s over 20.0 s vs nominal 250 Hz (+0.000 %); 10601.6 B/s over IPC |
 | `performance.latency` | NOT RUN | not applicable: clock domain 'source' has no known relation to a host clock (latency cannot be measured; see timing.clock_domain for the offset) |
-| `performance.host_resources` | PASS | host process CPU 1.1 % of one core, RSS peak 37.4 MiB (median 37.4 MiB) |
-| `performance.ipc` | PASS | 10601.7 B/s, 10.0 reads/s; ping round trip p50/p99 0.1662/0.4154 ms |
+| `performance.host_resources` | PASS | host process CPU 1.2 % of one core, RSS peak 37.4 MiB (median 37.4 MiB) |
+| `performance.ipc` | PASS | 10601.6 B/s, 10.0 reads/s; ping round trip p50/p99 0.1853/0.499 ms |
 | `runtime.descriptor` (optional) | PASS | descriptor kind=simulated modality=eeg invasive=False integration=plugin matches the declarations |
 | `runtime.negotiation` (optional) | PASS | granted ['behavior', 'device_status', 'recording']; every other capability rejected (unsupported_by_device); command app suspended |
 | `runtime.envelopes` (optional) | PASS | 305 of 305 events validated against contract 1.3 (pydantic + JSON Schema); 0 invalid, 0 undeclared, 0 decode errors |
@@ -61,9 +61,9 @@ Level definitions: docs/CERTIFICATION.md. `adapter_implementation` is the only l
 | Entry point | example-mi-eeg |
 | Manifest | brainos-example-adapter 0.1.0, API 1.0, ecosystem None, roles ['behavior', 'markers', 'signal'] |
 | Distribution | brainos-example-adapter 0.1.0 (editable) |
-| RECORD | 9 of 9 hashed entries verified (10 files), sha256 1a2c05ffbcbb226060448f982c6c9380d248ada5758b030cd522901e13062b03 |
+| RECORD | 9 of 9 hashed entries verified (10 files), sha256 acee28b3645b2c0e47124908127d6dc3d9f49bcff606807d9abd30763d6a5657 |
 | Module files | 4 files under /home/user/brainos/examples/adapters/brainos-example-adapter/src/brainos_example_adapter, tree sha256 e9decc29c0a4e68a2c743b411402462c61eef991c0a355267d28deaf1a9fc9b8 |
-| Git | ef626ac26d6c59210dfb645964148d41f6ca31b1 (clean) |
+| Git | 89e11674a08cab367a543f20a2bcfe6b463c0d42 (clean) |
 
 | Stream | Role | Channels | Rate (Hz) | Clock | Modality | Invasive | Units |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -82,7 +82,7 @@ Level definitions: docs/CERTIFICATION.md. `adapter_implementation` is the only l
 ### Manifest & compatibility
 
 **`manifest.load` - PASS** - Plugin host starts and the plugin loads  
-plugin loaded in its own host process (pid 32560) in 0.13 s
+plugin loaded in its own host process (pid 1353) in 0.12 s
 
 <details><summary>evidence</summary>
 
@@ -91,9 +91,9 @@ plugin loaded in its own host process (pid 32560) in 0.13 s
  "host_api_version": "1.0",
  "host_python": "3.12.3",
  "host_sdk_version": "1.0.0",
- "pid": 32560,
+ "pid": 1353,
  "protocol": "brainos.plugin-ipc/1",
- "startup_s": 0.133
+ "startup_s": 0.125
 }
 ```
 
@@ -199,7 +199,7 @@ brainos-example-adapter 0.1.0: 9 of 9 hashed RECORD entries verified; module tre
   "version": "0.1.0"
  },
  "git": {
-  "commit": "ef626ac26d6c59210dfb645964148d41f6ca31b1",
+  "commit": "89e11674a08cab367a543f20a2bcfe6b463c0d42",
   "dirty": false,
   "dirty_files": 0
  },
@@ -213,7 +213,7 @@ brainos-example-adapter 0.1.0: 9 of 9 hashed RECORD entries verified; module tre
   "files": 10,
   "mismatched": [],
   "missing": [],
-  "sha256": "1a2c05ffbcbb226060448f982c6c9380d248ada5758b030cd522901e13062b03",
+  "sha256": "acee28b3645b2c0e47124908127d6dc3d9f49bcff606807d9abd30763d6a5657",
   "unhashed": 1,
   "verified": 9
  }
@@ -240,7 +240,7 @@ brainos-example-adapter 0.1.0: 9 of 9 hashed RECORD entries verified; module tre
    "display_name": "Motor-imagery EEG generator"
   }
  ],
- "discover_s": 0.0,
+ "discover_s": 0.001,
  "problems": [],
  "tested_device": "mi-eeg"
 }
@@ -257,7 +257,7 @@ brainos-example-adapter 0.1.0: 9 of 9 hashed RECORD entries verified; module tre
 
 ```json
 {
- "open_s": 0.009,
+ "open_s": 0.011,
  "options_resolved": {
   "cue_duration_s": 4.0,
   "effect_size": 0.5,
@@ -467,7 +467,7 @@ primary 250.0 Hz from timestamps vs nominal 250 Hz (+0.000 %, tolerance ±2 %)
 </details>
 
 **`timing.jitter` - PASS** - Timestamp and arrival jitter distribution  
-primary timestamp residual p50/p99/max 0.0/0.0/0.0 ms; arrival interval p50/p99 100.0185/101.548 ms
+primary timestamp residual p50/p99/max 0.0/0.0/0.0 ms; arrival interval p50/p99 100.0102/101.6239 ms
 
 <details><summary>evidence</summary>
 
@@ -476,13 +476,13 @@ primary timestamp residual p50/p99/max 0.0/0.0/0.0 ms; arrival interval p50/p99 
  "streams": {
   "cue": {
    "arrival_interval_ms": {
-    "max": 102.0835,
-    "mean": 99.9978,
-    "min": 97.7481,
+    "max": 106.3189,
+    "mean": 100.0013,
+    "min": 93.758,
     "n": 199,
-    "p50": 100.0185,
-    "p95": 100.5237,
-    "p99": 101.548
+    "p50": 100.0102,
+    "p95": 100.552,
+    "p99": 101.6239
    },
    "interval_error_ms": {
     "max": 0.0,
@@ -515,13 +515,13 @@ primary timestamp residual p50/p99/max 0.0/0.0/0.0 ms; arrival interval p50/p99 
   },
   "eeg": {
    "arrival_interval_ms": {
-    "max": 102.0835,
-    "mean": 99.9978,
-    "min": 97.7481,
+    "max": 106.3189,
+    "mean": 100.0013,
+    "min": 93.758,
     "n": 199,
-    "p50": 100.0185,
-    "p95": 100.5237,
-    "p99": 101.548
+    "p50": 100.0102,
+    "p95": 100.552,
+    "p99": 101.6239
    },
    "interval_error_ms": {
     "max": 0.0,
@@ -554,13 +554,13 @@ primary timestamp residual p50/p99/max 0.0/0.0/0.0 ms; arrival interval p50/p99 
   },
   "markers": {
    "arrival_interval_ms": {
-    "max": 4000.5716,
-    "mean": 3999.9226,
-    "min": 3999.3891,
+    "max": 4001.8573,
+    "mean": 3999.9603,
+    "min": 3998.2073,
     "n": 4,
-    "p50": 3999.8648,
-    "p95": 4000.4981,
-    "p99": 4000.5569
+    "p50": 3999.8883,
+    "p95": 4001.5984,
+    "p99": 4001.8055
    },
    "residual_ms": {
     "max": 0.0,
@@ -590,7 +590,7 @@ primary timestamp residual p50/p99/max 0.0/0.0/0.0 ms; arrival interval p50/p99 
 </details>
 
 **`timing.clock_domain` - PASS** - Timestamps are plausible for the declared clock domain  
-source clock: offset to host monotonic 0.0056 s (origin unknown by declaration; not checkable); drift +7.3 ppm vs host monotonic
+source clock: offset to host monotonic 0.0056 s (origin unknown by declaration; not checkable); drift -4.1 ppm vs host monotonic
 
 <details><summary>evidence</summary>
 
@@ -598,25 +598,25 @@ source clock: offset to host monotonic 0.0056 s (origin unknown by declaration; 
 {
  "description": "generator sample clock: monotonic time at open() + sample index / 250 Hz",
  "domain": "source",
- "drift_ppm": 7.3,
+ "drift_ppm": -4.1,
  "drift_span_s": 19.9,
  "offset_newest_s": {
-  "max": 0.0077,
+  "max": 0.0116,
   "mean": 0.0057,
   "min": 0.0052,
   "n": 200,
   "p50": 0.0056,
-  "p95": 0.0062,
-  "p99": 0.0075
+  "p95": 0.0063,
+  "p99": 0.0072
  },
  "offset_oldest_s": {
-  "max": 0.1037,
+  "max": 0.1076,
   "mean": 0.1017,
   "min": 0.1012,
   "n": 200,
   "p50": 0.1016,
-  "p95": 0.1022,
-  "p99": 0.1035
+  "p95": 0.1023,
+  "p99": 0.1032
  },
  "reference_clock": "host monotonic clock"
 }
@@ -635,7 +635,7 @@ source clock: offset to host monotonic 0.0056 s (origin unknown by declaration; 
 {
  "empty_reads": 0,
  "failure": null,
- "first_data_after_s": 0.101,
+ "first_data_after_s": 0.1,
  "ran_s": 20.001,
  "reads": 200,
  "requested_s": 20.0,
@@ -734,8 +734,8 @@ source clock: offset to host monotonic 0.0056 s (origin unknown by declaration; 
 ```json
 {
  "primary_span": [
-  6502.23078614,
-  6522.2267861400005
+  6964.159864597,
+  6984.155864597
  ],
  "streams": {
   "fresh_host.markers": {
@@ -783,7 +783,7 @@ source clock: offset to host monotonic 0.0056 s (origin unknown by declaration; 
 ### Reconnection & fault injection
 
 **`reconnect.clean_reopen` - PASS** - Clean close, reopen, data again, identity unchanged  
-closed in 0.2 ms, reopened in 0.001 s, first data 0.102 s after open; identity unchanged
+closed in 0.5 ms, reopened in 0.001 s, first data 0.102 s after open; identity unchanged
 
 <details><summary>evidence</summary>
 
@@ -803,30 +803,30 @@ closed in 0.2 ms, reopened in 0.001 s, first data 0.102 s after open; identity u
 </details>
 
 **`reconnect.host_killed` - PASS** - Host killed mid-stream: link loss reported, fresh open  
-SIGKILL after 5 reads surfaced as a link loss in 3.3 ms; fresh host: first data 0.256 s after start (0.114 s after open); identity unchanged; exit code 0
+SIGKILL after 5 reads surfaced as a link loss in 4.8 ms; fresh host: first data 0.226 s after start (0.111 s after open); identity unchanged; exit code 0
 
 <details><summary>evidence</summary>
 
 ```json
 {
  "failure": null,
- "first_data_after_host_start_s": 0.256,
- "first_data_after_open_s": 0.114,
+ "first_data_after_host_start_s": 0.226,
+ "first_data_after_open_s": 0.111,
  "fresh_host_exit_code": 0,
- "fresh_host_start_s": 0.142,
+ "fresh_host_start_s": 0.115,
  "identity_differences": [],
  "identity_unchanged": true,
  "kill": {
-  "detect_s": 0.0033,
+  "detect_s": 0.0048,
   "detected_as": "HostDied",
   "host_exit_code": -9,
   "killed": true,
   "message": "plugin host exited (code -9)",
-  "pid": 32560,
+  "pid": 1353,
   "reads_before_kill": 5,
   "signal": "SIGKILL"
  },
- "open_s": 0.012,
+ "open_s": 0.009,
  "samples": 601
 }
 ```
@@ -836,35 +836,35 @@ SIGKILL after 5 reads surfaced as a link loss in 3.3 ms; fresh host: first data 
 ### Performance
 
 **`performance.throughput` - PASS** - Sustained delivery rate keeps up with the nominal rate  
-primary delivered 249.9982 samples/s over 20.0 s vs nominal 250 Hz (-0.001 %); 10601.7 B/s over IPC
+primary delivered 250.001 samples/s over 20.0 s vs nominal 250 Hz (+0.000 %); 10601.6 B/s over IPC
 
 <details><summary>evidence</summary>
 
 ```json
 {
  "duration_s": 20.001,
- "ipc_bytes_per_s": 10601.7,
+ "ipc_bytes_per_s": 10601.6,
  "ipc_bytes_received": 212040,
  "streams": {
   "cue": {
    "arrival_span_s": 19.9,
    "chunks": 200,
-   "error_percent": -0.001,
+   "error_percent": 0.0,
    "nominal_hz": 50.0,
-   "rate_hz": 49.9996,
-   "rate_hz_endpoints": 50.0011,
+   "rate_hz": 50.0002,
+   "rate_hz_endpoints": 49.9993,
    "samples": 1000,
-   "samples_per_s_overall": 49.999
+   "samples_per_s_overall": 49.998
   },
   "eeg": {
    "arrival_span_s": 19.9,
    "chunks": 200,
-   "error_percent": -0.001,
+   "error_percent": 0.0,
    "nominal_hz": 250.0,
-   "rate_hz": 249.9982,
-   "rate_hz_endpoints": 250.0056,
+   "rate_hz": 250.001,
+   "rate_hz_endpoints": 249.9967,
    "samples": 5000,
-   "samples_per_s_overall": 249.994
+   "samples_per_s_overall": 249.99
   },
   "markers": {
    "chunks": 5,
@@ -883,35 +883,35 @@ primary delivered 249.9982 samples/s over 20.0 s vs nominal 250 Hz (-0.001 %); 1
 not applicable: clock domain 'source' has no known relation to a host clock (latency cannot be measured; see timing.clock_domain for the offset)
 
 **`performance.host_resources` - PASS** - Plugin host process CPU and memory  
-host process CPU 1.1 % of one core, RSS peak 37.4 MiB (median 37.4 MiB)
+host process CPU 1.2 % of one core, RSS peak 37.4 MiB (median 37.4 MiB)
 
 <details><summary>evidence</summary>
 
 ```json
 {
  "clock_ticks_per_s": 100,
- "cpu_percent_of_one_core": 1.1,
- "cpu_s": 0.23,
- "pid": 32560,
+ "cpu_percent_of_one_core": 1.2,
+ "cpu_s": 0.24,
+ "pid": 1353,
  "rss_mib_max_sampled": 37.4,
  "rss_mib_median": 37.4,
  "rss_mib_peak": 37.4,
  "rss_samples": 80,
- "wall_s": 20.001
+ "wall_s": 20.002
 }
 ```
 
 </details>
 
 **`performance.ipc` - PASS** - IPC volume and round-trip time  
-10601.7 B/s, 10.0 reads/s; ping round trip p50/p99 0.1662/0.4154 ms
+10601.6 B/s, 10.0 reads/s; ping round trip p50/p99 0.1853/0.499 ms
 
 <details><summary>evidence</summary>
 
 ```json
 {
  "empty_read_fraction": 0.0,
- "host_bytes_per_s": 10601.7,
+ "host_bytes_per_s": 10601.6,
  "host_counters": {
   "bytes": 212040,
   "chunks": 405,
@@ -919,13 +919,13 @@ host process CPU 1.1 % of one core, RSS peak 37.4 MiB (median 37.4 MiB)
   "samples": 6005
  },
  "ping_round_trip_ms": {
-  "max": 0.4287,
-  "mean": 0.2066,
-  "min": 0.1228,
+  "max": 0.5171,
+  "mean": 0.2294,
+  "min": 0.1077,
   "n": 30,
-  "p50": 0.1662,
-  "p95": 0.3677,
-  "p99": 0.4154
+  "p50": 0.1853,
+  "p95": 0.4396,
+  "p99": 0.499
  },
  "reads_per_s": 10.0
 }

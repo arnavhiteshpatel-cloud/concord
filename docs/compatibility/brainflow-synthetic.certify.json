@@ -5,9 +5,9 @@
   "name": "brainos-certify",
   "version": "0.1.0"
  },
- "generated_at": "2026-11-07T20:48:56Z",
- "started_at": "2026-11-07T20:48:21Z",
- "elapsed_s": 34.84,
+ "generated_at": "2026-11-07T20:56:37Z",
+ "started_at": "2026-11-07T20:56:03Z",
+ "elapsed_s": 33.91,
  "environment": {
   "os": "Linux",
   "os_release": "6.18.44-fc-v310",
@@ -136,7 +136,7 @@
      "unhashed": 1,
      "mismatched": [],
      "missing": [],
-     "sha256": "c8fef54b5d8506c90a820c726f28feb4f1b91608eee65fc46e7f0763ce7a5a10"
+     "sha256": "ef6daca7f38268adc1a6540eeffa4fdc2da086f1471f881a083dcb1923aeb9dc"
     }
    },
    "module": {
@@ -183,7 +183,7 @@
    },
    "errors": [],
    "git": {
-    "commit": "ef626ac26d6c59210dfb645964148d41f6ca31b1",
+    "commit": "89e11674a08cab367a543f20a2bcfe6b463c0d42",
     "dirty": false,
     "dirty_files": 0
    }
@@ -384,14 +384,14 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "plugin loaded in its own host process (pid 32595) in 0.14 s",
+   "reason": "plugin loaded in its own host process (pid 1390) in 0.15 s",
    "evidence": {
-    "pid": 32595,
+    "pid": 1390,
     "protocol": "brainos.plugin-ipc/1",
     "host_sdk_version": "1.0.0",
     "host_api_version": "1.0",
     "host_python": "3.12.3",
-    "startup_s": 0.136
+    "startup_s": 0.152
    }
   },
   {
@@ -532,7 +532,7 @@
      "unhashed": 1,
      "mismatched": [],
      "missing": [],
-     "sha256": "c8fef54b5d8506c90a820c726f28feb4f1b91608eee65fc46e7f0763ce7a5a10"
+     "sha256": "ef6daca7f38268adc1a6540eeffa4fdc2da086f1471f881a083dcb1923aeb9dc"
     },
     "module": {
      "name": "brainos_brainflow.plugin",
@@ -541,7 +541,7 @@
      "tree_sha256": "765bb9291093823be2e753b13c324fb40f09d2d034557bf547c9a92dce49a496"
     },
     "git": {
-     "commit": "ef626ac26d6c59210dfb645964148d41f6ca31b1",
+     "commit": "89e11674a08cab367a543f20a2bcfe6b463c0d42",
      "dirty": false,
      "dirty_files": 0
     }
@@ -593,7 +593,7 @@
       }
      }
     ],
-    "discover_s": 0.002,
+    "discover_s": 0.001,
     "problems": [],
     "tested_device": "synthetic"
    }
@@ -605,9 +605,9 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "2 stream(s), primary 'exg', synthetic=True prerecorded=False, opened in 0.01 s",
+   "reason": "2 stream(s), primary 'exg', synthetic=True prerecorded=False, opened in 0.00 s",
    "evidence": {
-    "open_s": 0.011,
+    "open_s": 0.004,
     "primary_stream": "exg",
     "synthetic": true,
     "prerecorded": false,
@@ -780,7 +780,7 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "primary 249.932755 Hz from timestamps vs nominal 250 Hz (-0.027 %, tolerance \u00b12 %)",
+   "reason": "primary 249.931179 Hz from timestamps vs nominal 250 Hz (-0.028 %, tolerance \u00b12 %)",
    "evidence": {
     "tolerance_percent": 2.0,
     "streams": {
@@ -788,19 +788,19 @@
       "nominal_hz": 250.0,
       "clock": "unix",
       "samples": 5000,
-      "time_span_s": 20.00138,
-      "rate_hz": 249.932755,
-      "rate_hz_lsq": 249.934202,
-      "error_percent": -0.027
+      "time_span_s": 20.001506,
+      "rate_hz": 249.931179,
+      "rate_hz_lsq": 249.932608,
+      "error_percent": -0.028
      },
      "aux": {
       "nominal_hz": 250.0,
       "clock": "unix",
       "samples": 5000,
-      "time_span_s": 20.00138,
-      "rate_hz": 249.932755,
-      "rate_hz_lsq": 249.934202,
-      "error_percent": -0.027
+      "time_span_s": 20.001506,
+      "rate_hz": 249.931179,
+      "rate_hz_lsq": 249.932608,
+      "error_percent": -0.028
      }
     }
    }
@@ -812,45 +812,45 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "primary timestamp residual p50/p99/max 0.0257/0.161/2.5239 ms; arrival interval p50/p99 3.3154/5.9078 ms",
+   "reason": "primary timestamp residual p50/p99/max 0.0252/0.1147/1.7202 ms; arrival interval p50/p99 3.2937/5.7646 ms",
    "evidence": {
     "streams": {
      "exg": {
       "residual_ms": {
        "n": 5000,
        "min": 0.0,
-       "p50": 0.0257,
-       "p95": 0.0722,
-       "p99": 0.161,
-       "max": 2.5239,
-       "mean": 0.0346
+       "p50": 0.0252,
+       "p95": 0.0734,
+       "p99": 0.1147,
+       "max": 1.7202,
+       "mean": 0.032
       },
       "interval_error_ms": {
        "n": 4999,
        "min": 0.0001,
-       "p50": 0.0162,
-       "p95": 0.083,
-       "p99": 0.2821,
-       "max": 2.5478,
-       "mean": 0.0334
+       "p50": 0.017,
+       "p95": 0.077,
+       "p99": 0.18,
+       "max": 1.7551,
+       "mean": 0.0297
       },
       "arrival_interval_ms": {
-       "n": 4989,
-       "min": 0.6573,
-       "p50": 3.3154,
-       "p95": 5.5697,
-       "p99": 5.9078,
-       "max": 12.413,
-       "mean": 4.0087
+       "n": 4997,
+       "min": 0.7668,
+       "p50": 3.2937,
+       "p95": 5.5108,
+       "p99": 5.7646,
+       "max": 16.5789,
+       "mean": 4.0027
       },
       "samples_per_chunk": {
-       "n": 4990,
+       "n": 4998,
        "min": 1.0,
        "p50": 1.0,
        "p95": 1.0,
        "p99": 1.0,
-       "max": 2.0,
-       "mean": 1.002
+       "max": 3.0,
+       "mean": 1.0004
       },
       "truncated_to_samples": null
      },
@@ -858,38 +858,38 @@
       "residual_ms": {
        "n": 5000,
        "min": 0.0,
-       "p50": 0.0257,
-       "p95": 0.0722,
-       "p99": 0.161,
-       "max": 2.5239,
-       "mean": 0.0346
+       "p50": 0.0252,
+       "p95": 0.0734,
+       "p99": 0.1147,
+       "max": 1.7202,
+       "mean": 0.032
       },
       "interval_error_ms": {
        "n": 4999,
        "min": 0.0001,
-       "p50": 0.0162,
-       "p95": 0.083,
-       "p99": 0.2821,
-       "max": 2.5478,
-       "mean": 0.0334
+       "p50": 0.017,
+       "p95": 0.077,
+       "p99": 0.18,
+       "max": 1.7551,
+       "mean": 0.0297
       },
       "arrival_interval_ms": {
-       "n": 4989,
-       "min": 0.6573,
-       "p50": 3.3154,
-       "p95": 5.5697,
-       "p99": 5.9078,
-       "max": 12.413,
-       "mean": 4.0087
+       "n": 4997,
+       "min": 0.7668,
+       "p50": 3.2937,
+       "p95": 5.5108,
+       "p99": 5.7646,
+       "max": 16.5789,
+       "mean": 4.0027
       },
       "samples_per_chunk": {
-       "n": 4990,
+       "n": 4998,
        "min": 1.0,
        "p50": 1.0,
        "p95": 1.0,
        "p99": 1.0,
-       "max": 2.0,
-       "mean": 1.002
+       "max": 3.0,
+       "mean": 1.0004
       },
       "truncated_to_samples": null
      }
@@ -904,30 +904,30 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "unix timestamps within 1.70 ms (median) of the wall clock (time.time); drift +0.0 ppm vs host monotonic",
+   "reason": "unix timestamps within 1.70 ms (median) of the wall clock (time.time); drift -0.9 ppm vs host monotonic",
    "evidence": {
     "domain": "unix",
     "description": "BrainFlow timestamp channel: UNIX time in seconds. For some boards BrainFlow stamps packages on the PC when they are received (BrainFlow docs, Data Format Description).",
     "reference_clock": "wall clock (time.time)",
     "offset_newest_s": {
-     "n": 4990,
+     "n": 4998,
      "min": 0.0004,
      "p50": 0.0017,
-     "p95": 0.0028,
-     "p99": 0.0031,
-     "max": 0.0105,
+     "p95": 0.0027,
+     "p99": 0.003,
+     "max": 0.0136,
      "mean": 0.0017
     },
     "offset_oldest_s": {
-     "n": 4990,
+     "n": 4998,
      "min": 0.0004,
      "p50": 0.0017,
-     "p95": 0.0028,
-     "p99": 0.0032,
-     "max": 0.0105,
-     "mean": 0.0018
+     "p95": 0.0027,
+     "p99": 0.003,
+     "max": 0.0136,
+     "mean": 0.0017
     },
-    "drift_ppm": 0.0,
+    "drift_ppm": -0.9,
     "drift_span_s": 20.0
    }
   },
@@ -938,14 +938,14 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "4990 reads over 20.0 s, 10000 samples (all streams), no errors",
+   "reason": "4998 reads over 20.0 s, 10000 samples (all streams), no errors",
    "evidence": {
     "requested_s": 20.0,
-    "ran_s": 20.001,
-    "reads": 4990,
+    "ran_s": 20.003,
+    "reads": 4998,
     "empty_reads": 0,
     "samples": 10000,
-    "first_data_after_s": 0.002,
+    "first_data_after_s": 0.001,
     "failure": null
    }
   },
@@ -956,9 +956,9 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "11982 chunks validated by the host and again by the certifier",
+   "reason": "12000 chunks validated by the host and again by the certifier",
    "evidence": {
-    "chunks_validated": 11982,
+    "chunks_validated": 12000,
     "errors": [],
     "warnings": [],
     "host_notices": {}
@@ -1054,13 +1054,13 @@
      "package_num_unusable": 0,
      "timestamp_regressions": 0,
      "marker_row_nonzero": 0,
-     "chunks_emitted": 9980
+     "chunks_emitted": 9996
     },
     "invalid_stats": 0,
     "host_counters": {
      "samples": 10000,
-     "chunks": 9980,
-     "reads": 4990,
+     "chunks": 9996,
+     "reads": 4998,
      "bytes": 1240000
     }
    }
@@ -1072,11 +1072,11 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "closed in 1.6 ms, reopened in 0.001 s, first data 0.002 s after open; identity unchanged",
+   "reason": "closed in 2.2 ms, reopened in 0.002 s, first data 0.003 s after open; identity unchanged",
    "evidence": {
     "close_s": 0.002,
-    "reopen_s": 0.001,
-    "first_data_after_open_s": 0.002,
+    "reopen_s": 0.002,
+    "first_data_after_open_s": 0.003,
     "samples": 1002,
     "read_s": 2.001,
     "failure": null,
@@ -1091,22 +1091,22 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "SIGKILL after 124 reads surfaced as a link loss in 4.0 ms; fresh host: first data 0.174 s after start (0.007 s after open); identity unchanged; exit code 0",
+   "reason": "SIGKILL after 125 reads surfaced as a link loss in 2.8 ms; fresh host: first data 0.131 s after start (0.008 s after open); identity unchanged; exit code 0",
    "evidence": {
     "kill": {
-     "pid": 32595,
+     "pid": 1390,
      "signal": "SIGKILL",
      "killed": true,
-     "reads_before_kill": 124,
+     "reads_before_kill": 125,
      "detected_as": "HostDied",
-     "message": "plugin host exited (code -9):     \"serial_number\": \"\", |     \"serial_port\": \"\", |     \"timeout\": 0 | } | [plugin brainflow pid 32595] INFO brainos_brainflow.plugin: opened BrainFlow SYNTHETIC_BOARD (format SYNTHETIC_BOARD, brainflow 5.23.0)",
-     "detect_s": 0.004,
+     "message": "plugin host exited (code -9):     \"serial_number\": \"\", |     \"serial_port\": \"\", |     \"timeout\": 0 | } | [plugin brainflow pid 1390] INFO brainos_brainflow.plugin: opened BrainFlow SYNTHETIC_BOARD (format SYNTHETIC_BOARD, brainflow 5.23.0)",
+     "detect_s": 0.0028,
      "host_exit_code": -9
     },
-    "fresh_host_start_s": 0.168,
-    "open_s": 0.006,
-    "first_data_after_open_s": 0.007,
-    "first_data_after_host_start_s": 0.174,
+    "fresh_host_start_s": 0.124,
+    "open_s": 0.005,
+    "first_data_after_open_s": 0.008,
+    "first_data_after_host_start_s": 0.131,
     "samples": 1002,
     "failure": null,
     "identity_unchanged": true,
@@ -1121,34 +1121,34 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "primary delivered 249.9342 samples/s over 20.0 s vs nominal 250 Hz (-0.026 %); 61996.3 B/s over IPC",
+   "reason": "primary delivered 249.9328 samples/s over 20.0 s vs nominal 250 Hz (-0.027 %); 61991.5 B/s over IPC",
    "evidence": {
-    "duration_s": 20.001,
+    "duration_s": 20.003,
     "tolerance_percent": 2.0,
     "streams": {
      "exg": {
       "samples": 5000,
-      "chunks": 4990,
-      "samples_per_s_overall": 249.985,
+      "chunks": 4998,
+      "samples_per_s_overall": 249.966,
       "nominal_hz": 250.0,
-      "arrival_span_s": 19.999,
-      "rate_hz": 249.9342,
-      "rate_hz_endpoints": 249.9569,
-      "error_percent": -0.026
+      "arrival_span_s": 20.002,
+      "rate_hz": 249.9328,
+      "rate_hz_endpoints": 249.9292,
+      "error_percent": -0.027
      },
      "aux": {
       "samples": 5000,
-      "chunks": 4990,
-      "samples_per_s_overall": 249.985,
+      "chunks": 4998,
+      "samples_per_s_overall": 249.966,
       "nominal_hz": 250.0,
-      "arrival_span_s": 19.999,
-      "rate_hz": 249.9342,
-      "rate_hz_endpoints": 249.9569,
-      "error_percent": -0.026
+      "arrival_span_s": 20.002,
+      "rate_hz": 249.9328,
+      "rate_hz_endpoints": 249.9292,
+      "error_percent": -0.027
      }
     },
     "ipc_bytes_received": 1240000,
-    "ipc_bytes_per_s": 61996.3
+    "ipc_bytes_per_s": 61991.5
    }
   },
   {
@@ -1158,26 +1158,26 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "newest-sample latency p50/p95/p99/max 1.7388/2.7777/3.1262/10.4976 ms",
+   "reason": "newest-sample latency p50/p95/p99/max 1.7048/2.7203/2.9796/13.5741 ms",
    "evidence": {
     "reference_clock": "wall clock (time.time)",
     "newest_sample_latency_ms": {
-     "n": 4990,
-     "min": 0.3903,
-     "p50": 1.7388,
-     "p95": 2.7777,
-     "p99": 3.1262,
-     "max": 10.4976,
-     "mean": 1.7467
+     "n": 4998,
+     "min": 0.3598,
+     "p50": 1.7048,
+     "p95": 2.7203,
+     "p99": 2.9796,
+     "max": 13.5741,
+     "mean": 1.7138
     },
     "oldest_sample_latency_s": {
-     "n": 4990,
+     "n": 4998,
      "min": 0.0004,
      "p50": 0.0017,
-     "p95": 0.0028,
-     "p99": 0.0032,
-     "max": 0.0105,
-     "mean": 0.0018
+     "p95": 0.0027,
+     "p99": 0.003,
+     "max": 0.0136,
+     "mean": 0.0017
     },
     "note": "read latency = arrival time at the certifier minus the sample's own timestamp; machine-dependent, includes the source's buffering and the plugin's read timeout"
    }
@@ -1189,15 +1189,15 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "host process CPU 16.5 % of one core, RSS peak 34.9 MiB (median 34.5 MiB)",
+   "reason": "host process CPU 15.6 % of one core, RSS peak 34.8 MiB (median 34.2 MiB)",
    "evidence": {
-    "pid": 32595,
-    "wall_s": 20.002,
-    "cpu_s": 3.31,
-    "cpu_percent_of_one_core": 16.5,
-    "rss_mib_median": 34.5,
-    "rss_mib_max_sampled": 34.9,
-    "rss_mib_peak": 34.9,
+    "pid": 1390,
+    "wall_s": 20.003,
+    "cpu_s": 3.13,
+    "cpu_percent_of_one_core": 15.6,
+    "rss_mib_median": 34.2,
+    "rss_mib_max_sampled": 34.8,
+    "rss_mib_peak": 34.8,
     "rss_samples": 80,
     "clock_ticks_per_s": 100
    }
@@ -1209,25 +1209,25 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "61996.3 B/s, 249.49 reads/s; ping round trip p50/p99 0.1205/0.2553 ms",
+   "reason": "61991.5 B/s, 249.87 reads/s; ping round trip p50/p99 0.2077/0.4255 ms",
    "evidence": {
     "host_counters": {
      "samples": 10000,
-     "chunks": 9980,
-     "reads": 4990,
+     "chunks": 9996,
+     "reads": 4998,
      "bytes": 1240000
     },
-    "host_bytes_per_s": 61996.3,
-    "reads_per_s": 249.49,
+    "host_bytes_per_s": 61991.5,
+    "reads_per_s": 249.87,
     "empty_read_fraction": 0.0,
     "ping_round_trip_ms": {
      "n": 30,
-     "min": 0.1011,
-     "p50": 0.1205,
-     "p95": 0.2075,
-     "p99": 0.2553,
-     "max": 0.2616,
-     "mean": 0.1321
+     "min": 0.1352,
+     "p50": 0.2077,
+     "p95": 0.3605,
+     "p99": 0.4255,
+     "max": 0.443,
+     "mean": 0.2315
     }
    }
   },
@@ -1431,8 +1431,8 @@
  ],
  "host_log_tail": [
   "}",
-  "[plugin brainflow pid 32611] INFO brainos_brainflow.plugin: opened BrainFlow SYNTHETIC_BOARD (format SYNTHETIC_BOARD, brainflow 5.23.0)",
-  "[2026-11-07 20:48:22.123] [board_logger] [info] incoming json: {",
+  "[plugin brainflow pid 1403] INFO brainos_brainflow.plugin: opened BrainFlow SYNTHETIC_BOARD (format SYNTHETIC_BOARD, brainflow 5.23.0)",
+  "[2026-11-07 20:56:04.176] [board_logger] [info] incoming json: {",
   "    \"file\": \"\",",
   "    \"file_anc\": \"\",",
   "    \"file_aux\": \"\",",
@@ -1450,8 +1450,8 @@
   "    \"serial_port\": \"\",",
   "    \"timeout\": 0",
   "}",
-  "[plugin brainflow pid 32595] INFO brainos_brainflow.plugin: opened BrainFlow SYNTHETIC_BOARD (format SYNTHETIC_BOARD, brainflow 5.23.0)",
-  "[2026-11-07 20:48:42.134] [board_logger] [info] incoming json: {",
+  "[plugin brainflow pid 1390] INFO brainos_brainflow.plugin: opened BrainFlow SYNTHETIC_BOARD (format SYNTHETIC_BOARD, brainflow 5.23.0)",
+  "[2026-11-07 20:56:24.191] [board_logger] [info] incoming json: {",
   "    \"file\": \"\",",
   "    \"file_anc\": \"\",",
   "    \"file_aux\": \"\",",
@@ -1469,6 +1469,6 @@
   "    \"serial_port\": \"\",",
   "    \"timeout\": 0",
   "}",
-  "[plugin brainflow pid 32595] INFO brainos_brainflow.plugin: opened BrainFlow SYNTHETIC_BOARD (format SYNTHETIC_BOARD, brainflow 5.23.0)"
+  "[plugin brainflow pid 1390] INFO brainos_brainflow.plugin: opened BrainFlow SYNTHETIC_BOARD (format SYNTHETIC_BOARD, brainflow 5.23.0)"
  ]
 }
