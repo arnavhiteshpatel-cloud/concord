@@ -193,14 +193,20 @@ class RuntimeClient:
         model_id: str | None = None,
         allow_cross_source: bool = False,
         router: dict[str, Any] | None = None,
+        model_ids: list[str] | None = None,
+        allow_channel_mapping: bool = False,
         **processing: Any,
     ) -> dict[str, Any]:
-        body = {
+        body: dict[str, Any] = {
             "processing": {"preset": preset, **processing},
             "model_id": model_id,
             "allow_cross_source": allow_cross_source,
             "router": router,
         }
+        if model_ids:  # Milestone 5: further decoders run together (distinct output names)
+            body["model_ids"] = model_ids
+        if allow_channel_mapping:  # Milestone 5: explicit operator-enabled mapping by label
+            body["allow_channel_mapping"] = True
         result: dict[str, Any] = await self._call("POST", "/pipeline/start", body)
         return result
 

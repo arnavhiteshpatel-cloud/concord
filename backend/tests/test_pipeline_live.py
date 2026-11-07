@@ -265,13 +265,15 @@ async def test_falcon_over_lsl_decodes_like_offline_and_routes_only_on_request(
     counts, _, _ = _file_arrays(EVAL_FILE)
     got = np.array([e["payload"]["counts"] for e in feats], dtype=np.float64)
     assert np.array_equal(got, counts)
-    # the streaming decoder equals the offline decoder on the same input, bin for bin
+    # the streaming decoder equals the offline decoder on the same input, bin for bin and
+    # bit for bit (Milestone 5: identical arithmetic, decoder run through engine.py)
     pred = np.array([e["payload"]["values"] for e in decoded])
     assert pred.shape == (n, 7)
-    np.testing.assert_allclose(pred, held_in.predict_counts(counts), rtol=1e-9, atol=1e-9)
+    assert np.array_equal(pred, held_in.predict_counts(counts))
     assert [e["device_timestamp_ns"] for e in decoded] == [e["device_timestamp_ns"] for e in feats]
     p = decoded[0]["provenance"]
     assert p["kind"] == "decoded_intent" and p["model_id"] == held_in.model_id
+    assert p["model_origin"] == "brainos"  # contract 1.4: a model BrainOS trained, run by BrainOS
     assert p["replayed"] is True and p["origin"].startswith("dandi:000954/")
     # commands: only after the router was enabled, derived from the decoded values
     assert len(pointers) > 100
