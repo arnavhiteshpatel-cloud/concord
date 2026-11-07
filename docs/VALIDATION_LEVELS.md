@@ -98,3 +98,16 @@ not hardware (3) and not closed-loop use by a person (4).
 | Movement-vs-rest LDA on ECoG | real-data replay (offline) | Held-out sessions: balanced accuracy 0.938 / 0.861, AUC 0.992 / 0.939 vs time-shift nulls ≤ 0.55 / 0.60 (docs/ECOG_DECODING.md); online == offline posteriors | No participant was trying to control anything; one participant |
 | Modality guards | 1 (+ real streams) | ECoG model refused on FALCON spike counts, FALCON model and EEG-declared model refused on ECoG, even with the cross-source override | — |
 | Same SDK-only app on ECoG | 1–2 (real server, real recorded ECoG) | Unchanged `menu_app.py` receives decoded selections from the held-out ECoG replay only after operator authorization; nothing after disconnect | No person used it; offline replay only |
+
+## Compatibility registry (Milestone 5, workstream F)
+
+`compat/registry.json` records, per integration, the level on this page that its evidence
+supports. The levels in it are **derived** by fixed rules (docs/COMPATIBILITY.md, "Registry
+(M5-F)") from the evidence files and the brainos-certify reports; they are never typed in, and
+the build refuses evidence that would claim level 3 or 4 without what those levels require.
+The registry itself is software:
+
+| Component | Level reached | Evidence (all executed) | Not yet done |
+| --- | --- | --- | --- |
+| Compatibility registry: generator, level rules, `--check`, `GET /api/v1/compatibility`, console view | 1 | `test_compat_registry.py` (schema; every rule with a malformed or over-claiming input that is refused or not counted, e.g. a typed-in level, a protocol claim without an anchor, an opt-in test without a recorded execution, a certify report for another version or changed plugin source, inconsistent or tampered certify reports, a reference-comparison or level-4 claim; `--check` on stale registry, schema and docs; live status; the REST route with real plugin discovery); Vitest `CompatibilityView.test.tsx`; CI runs `python -m brainos.compat.build --check` | It checks that evidence exists and says what it claims (paths, anchors, report consistency, source hashes); it does not re-run tests or read their results. Dates of curated evidence are curated |
+

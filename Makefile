@@ -111,3 +111,12 @@ dataset-ecog-all:  ## all 6 pinned ECoG slices (78.75 min, ~550 MiB)
 
 ecog-report: dataset-ecog-all  ## ECoG move-vs-rest model -> data/models/, docs/ECOG_DECODING.md
 	$(PY) -m brainos.decoding.evaluate_ecog --write docs/ECOG_DECODING.md
+
+# ---------------------------------------------------------------- Workstream F (M5): compatibility registry
+.PHONY: compat compat-check
+
+compat:  ## derive compat/registry.json (+ schema, docs/COMPATIBILITY.md section) from the evidence
+	$(PY) -m brainos.compat.build
+
+compat-check:  ## fail if the committed compatibility registry is stale (run in CI)
+	$(PY) -m brainos.compat.build --check

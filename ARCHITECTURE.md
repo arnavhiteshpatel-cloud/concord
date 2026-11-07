@@ -612,3 +612,24 @@ parameter `line_hz` **only from a verified manifest**. Recording parameters also
   override does not lift**; an undeclared side is a warning. A model that gives weight to a
   channel the stream marks bad (`input.excluded_channels` lists the zero-weight ones) gets a
   warning. Calibration from recordings stores the recorded device's modality in `input`.
+
+## Compatibility registry (Milestone 5, workstream F)
+
+`backend/src/brainos/compat/`: `model.py` (pydantic, `extra="forbid"`: the curated
+`compat/sources.json` and the generated `compat/registry.json`, whose JSON Schema
+`compat/registry.schema.json` is exported from these models), `rules.py` (pure: what each
+evidence item supports and the level derivation, levels exactly as docs/VALIDATION_LEVELS.md),
+`build.py` (`python -m brainos.compat.build [--check]`: reads the sources and every
+`docs/compatibility/*.certify.json`, verifies paths, anchors, certify-report schema and
+consistency, plugin versions and source hashes against the checkout, writes the registry, its
+schema and the generated section of docs/COMPATIBILITY.md; `--check` fails CI when any is
+stale), `live.py` (loads the registry; per entry: installed / different version / unavailable
+/ not installed / not checked, from module availability and the last plugin discovery).
+
+**Normative:** a level is never typed in; the sources schema has no level field. Live status
+never changes a level. `GET /api/v1/compatibility` (`server/compat_routes.py`, read-only)
+returns `{available, source, error, brainos_version, registry, live, plugin_discovery}`; a
+missing or invalid registry file is `available: false` with the reason (also recorded in
+diagnostics as `compatibility_registry`), never a partial registry. The file is
+`Settings.compat_registry` (`BRAINOS_COMPAT_REGISTRY`, default `compat/registry.json`). The
+console shows it under Advanced → Compatibility (`components/CompatibilityView.tsx`).

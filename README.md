@@ -232,3 +232,13 @@ refused on a different recording modality. Details, results and limitations: doc
 make dataset-ecog       # 2 demo slices (~157 MiB) -> data/datasets/dandi-000055/
 make ecog-report        # all 6 slices; model -> data/models/; docs/ECOG_DECODING.md
 ```
+
+## Compatibility registry (Milestone 5, workstream F)
+
+`compat/registry.json` lists every integration (built-in adapters, offline datasets, source
+plugins), the validation level its evidence supports and that evidence. Levels are derived by
+fixed rules, never typed in; nothing is at level 3 (hardware-verified) or 4 (human-participant
+validated). `make compat` regenerates it, `make compat-check` (run in CI) fails when it is
+stale; `GET /api/v1/compatibility` serves it with this installation's status, and the console
+shows it under Advanced → Compatibility. See
+[docs/COMPATIBILITY.md](docs/COMPATIBILITY.md#registry-m5-f).
