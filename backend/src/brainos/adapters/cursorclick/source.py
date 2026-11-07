@@ -18,6 +18,7 @@ screen height (space ``t15_screen``).
 
 from __future__ import annotations
 
+import re
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
@@ -39,6 +40,23 @@ SBP_UNIT = "arbitrary^2"  # the README does not state the unit of the filtered s
 HISTORICAL_VELOCITY = "t15-historical-velocity"
 HISTORICAL_CLICK = "t15-historical-click"
 BIN_MS = BIN_S * 1000
+
+
+DOI = "10.5061/dryad.prr4xgxzq"
+_ORIGIN = re.compile(r"dryad:10\.5061/dryad\.prr4xgxzq/(t\d+)_day(\d+)_block(\d+)_")
+
+
+def source_identity(origin: str | None) -> str | None:
+    """Participant identity of a replayed T15 block (decoders do not transfer across people)."""
+    m = _ORIGIN.search(origin or "")
+    return f"dryad:{DOI}:{m.group(1)}" if m else None
+
+
+def block_session(origin: str | None) -> str | None:
+    """Leakage unit: one block. Training and test blocks share a day (as for the original online
+    decoder), never a block; a model is refused on any block it was trained on."""
+    m = _ORIGIN.search(origin or "")
+    return f"{m.group(1)}-day{int(m.group(2)):05d}-block{int(m.group(3)):02d}" if m else None
 
 
 def device_id_for(block: T15Block) -> str:
@@ -139,6 +157,7 @@ class T15CursorClickSource:
                 "unit": VEL_UNIT,
                 "space": SPACE,
                 "model_origin": "historical",
+                "y_axis": "up",
             }
         ]
         if b.has_click:

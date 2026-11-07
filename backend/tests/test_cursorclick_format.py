@@ -102,3 +102,13 @@ def test_catalog_lists_good_files_and_reports_bad_ones(tmp_path: Path) -> None:
         reg.describe("t15:day00468-block99-grid-evaluation")
     with pytest.raises(DeviceNotFoundError):
         reg.create("t15:day00468-block99-grid-evaluation")
+
+
+def test_origin_identity_and_block_session() -> None:
+    from brainos.adapters.cursorclick.source import block_session, source_identity
+
+    o = "dryad:10.5061/dryad.prr4xgxzq/t15_day00468_block03_grid_evaluation_task.mat"
+    assert source_identity(o) == "dryad:10.5061/dryad.prr4xgxzq:t15"
+    assert block_session(o) == "t15-day00468-block03"
+    assert source_identity("file:t15_day00468_block03_grid_evaluation_task.mat") is None
+    assert block_session(None) is None

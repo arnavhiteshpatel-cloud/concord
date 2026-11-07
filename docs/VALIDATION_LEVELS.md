@@ -70,3 +70,16 @@ levels above as follows; the toolkit can grant only the first by itself.
 | --- | --- | --- | --- |
 | `brainos-certify` toolkit | 1 | `packages/brainos-certify/tests` (every check passes on a good plugin; each check that can fail or warn does so on a crafted defect; installed entry points and RECORD hash verification on a temporary distribution; level logic; signed / tampered / foreign-key / malformed attestations with OpenSSL Ed25519; report schema; CLI exit codes; a run with BrainOS hidden); every broken test plugin in `backend/tests/plugins` caught by a specific check (docs/COMPATIBILITY.md); real runs of the example, BrainFlow and BCI2000 plugins (docs/compatibility/) | Never run against a plugin for real acquisition hardware; thresholds are engineering choices, not standards |
 
+
+## Cursor + click decoding (Milestone 5, P0)
+
+Real-data replay of the Singer-Clark et al. cursor + click dataset (participant T15, Dryad
+doi:10.5061/dryad.prr4xgxzq). Every number: docs/CURSOR_CLICK.md.
+
+| Component | Level reached | Evidence (all executed) | Not yet done |
+| --- | --- | --- | --- |
+| Dryad manifest + fetcher | 1 + real data | 53 files pinned by SHA-256 from the Dryad API listing; downloads verified; `--verify` | — |
+| T15 reader + replay source (`t15:*` devices) | 1 + real-data replay | `test_cursorclick_real.py`: files verified, layout, authors' trial/click structure, per-trial integration of the recorded decoder output reproduces the recorded cursor; every replayed event validates; runtime replay bit-exact for TX and SBP; error paths in `test_cursorclick_format.py` | Not live acquisition |
+| Kalman cursor decoder | 1 + real-data replay (open loop) | Held-out grid blocks (trained only on earlier calibration blocks): mean angle error 28.0° (original online decoder 27.3°, shifted-feature control 92.4°); R² vs intention 0.765 (original 0.819, control −0.80) | Never closed loop; one participant, one day |
+| Click decoder | 1 + real-data replay (open loop) | 81 % of BrainOS clicks fall while the recorded cursor is on the cued target (original 94 %, control 21 %); 5.0 false activations/min (original 1.5, control 21) | Never closed loop |
+| Neural-to-communication (board) | 1 + real-data replay (open loop) | Word selection by BrainOS cursor + click over the task grid: anchored per trial 14 x 14 15 % / 7 x 7 34 % / 2 x 2 83 % (chance 0.5 / 2 / 25 %; shifted control at chance); through the board's whole-block integration 1 % / 4 % / 43 % (the original decoder's own outputs: 65 % / 83 % / 96 %) | No person has communicated through BrainOS; closed loop needed |

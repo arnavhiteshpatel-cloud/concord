@@ -14,7 +14,7 @@ PACKAGE_TESTS := packages/brainos-brainflow packages/brainos-bci2000 examples/ad
                  packages/brainos-certify
 
 .PHONY: setup dev run build test test-backend test-frontend lint e2e e2e-setup bench bench-live dist-check schema clean \
-        dataset dataset-all model decoding-report
+        dataset dataset-all model decoding-report dataset-t15 dataset-t15-day cursorclick-report
 
 setup:  ## create .venv (Python 3.12) and install backend + frontend deps
 	@command -v uv >/dev/null && uv venv --python 3.12 $(VENV) || python3.12 -m venv $(VENV)
@@ -82,6 +82,17 @@ model:  ## train + evaluate the baseline decoder on downloaded blocks -> data/mo
 
 decoding-report: dataset-all  ## regenerate docs/DECODING.md from all 13 blocks
 	$(PY) -m brainos.decoding.evaluate_falcon --write docs/DECODING.md
+
+# ---- Milestone 5 (P0): cursor + click dataset (Singer-Clark et al., Dryad, CC0). Dryad needs an
+# API token for downloads: export DRYAD_TOKEN=... (or DRYAD_CLIENT_ID + DRYAD_CLIENT_SECRET).
+dataset-t15:  ## T15 cursor+click demo subset (day 468 blocks 0-3, ~90 MiB) -> data/datasets/dryad-prr4xgxzq
+	$(PY) -m brainos.datasets.dryad
+
+dataset-t15-day:  ## all 18 blocks of T15 day 468 (~472 MiB) for the cursor+click report
+	$(PY) -m brainos.datasets.dryad --subset day468
+
+cursorclick-report: dataset-t15-day  ## decoders + click + word selection -> docs/CURSOR_CLICK.md, demo models
+	$(PY) -m brainos.evaluation.run_cursorclick --write docs/CURSOR_CLICK.md
 
 schema:  ## regenerate contracts/event-envelope.v1.schema.json
 	$(PY) scripts/export_schema.py
