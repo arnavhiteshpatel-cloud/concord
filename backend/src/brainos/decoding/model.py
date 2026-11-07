@@ -117,10 +117,12 @@ def check(
             c.warnings.append("CROSS-SOURCE OVERRIDE: " + msg)
         else:
             c.errors.append(msg + " (explicit override required)")
-    trained_session = model.training.get("session")
-    if stream_session and trained_session and stream_session == trained_session:
+    trained = {str(x) for x in model.training.get("sessions") or [] if x}
+    if model.training.get("session"):
+        trained.add(str(model.training["session"]))
+    if stream_session and stream_session in trained:
         c.errors.append(
-            f"stream is from the model's training session {trained_session}; decoding it would "
+            f"stream is from the model's training session {stream_session}; decoding it would "
             "score the model on its own training data"
         )
     return c

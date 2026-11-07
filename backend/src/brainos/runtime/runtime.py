@@ -102,7 +102,9 @@ class Runtime:
         self._adapter: DeviceAdapter | None = None
         self._session_id: str | None = None
         self._seq = 0
-        self._last_device_ts: int | None = None
+        # last device timestamp per stream (event type x producing adapter): a multi-stream
+        # source (signal + behavior + markers) or the pipeline is monotonic per stream only
+        self._last_device_ts: dict[tuple[str, str], int] = {}
         self._last_error: str | None = None
         self._paused = False
         self._pump_task: asyncio.Task[None] | None = None
@@ -367,7 +369,7 @@ class Runtime:
         self._device = adapter.descriptor
         self._session_id = f"ses_{secrets.token_hex(8)}"
         self._seq = 0
-        self._last_device_ts = None
+        self._last_device_ts = {}
         self._last_error = None
         self._paused = False
         self.diagnostics.reset_rates()
@@ -568,9 +570,11 @@ class Runtime:
         quality = draft.quality
         dev_ts = draft.device_timestamp_ns
         if dev_ts is not None:
-            if self._last_device_ts is not None and dev_ts < self._last_device_ts:
+            key = (draft.event_type.value, draft.provenance.adapter)
+            last = self._last_device_ts.get(key)
+            if last is not None and dev_ts < last:
                 self.diagnostics.timestamp_regressions += 1
-                back_ms = (self._last_device_ts - dev_ts) / 1e6
+                back_ms = (last - dev_ts) / 1e6
                 self.diagnostics.record_error(
                     "timestamp_regression",
                     device.device_id,
@@ -580,7 +584,7 @@ class Runtime:
                     score=min(quality.score, 0.5),
                     flags=[*quality.flags, QualityFlag.TIMESTAMP_REGRESSION],
                 )
-            self._last_device_ts = dev_ts
+            self._last_device_ts[key] = dev_ts
         try:
             envelope = parse_envelope(
                 {

@@ -4,10 +4,12 @@ Input: one or more BrainOS recordings (``data/recordings/*.brainos.jsonl``) of a
 session that contains neural features (``features.binned`` or ``features.vector``, from the
 device or from the BrainOS pipeline) and behavioral targets (``behavior.sample``).
 
-Alignment (causal, on the device clock): each feature bin is labelled with the most recent
-behavior sample whose ``device_timestamp_ns`` is at or before the bin's end and within one
-bin of it. Bins without such a label, or with an invalid label, are excluded from fitting
-and scoring. Nothing is interpolated from the future.
+Alignment (on the device clock): each feature bin is labelled with the behavior sample
+nearest to the bin's end, if one lies within half a bin of it (sources that stamp counts and
+behavior with the same clock tick, as FALCON-over-LSL does, may still differ by microseconds
+after clock correction). Bins without such a label, or with an invalid label, are excluded
+from fitting and scoring. Labels are never interpolated; features are never shifted, so the
+decoder itself stays causal.
 
 Split: chronological. Training = the first ``train_fraction`` of labelled bins (moved to the
 next trial boundary when trial markers exist); a gap of ``gap_bins`` follows; evaluation =
@@ -29,6 +31,7 @@ from typing import Any
 import numpy as np
 from numpy.typing import NDArray
 
+from brainos.datasets import session_of
 from brainos.decoding.model import source_identity
 from brainos.decoding.ridge import RidgeDecoder, evaluate, fit
 
@@ -126,12 +129,14 @@ def load_session(path: Path, *, feature_source: str | None = None) -> SessionDat
     ends = np.array([f[0] for f in feats], dtype=np.int64)
     Y = np.zeros((len(feats), len(dims)))
     valid = np.zeros(len(feats), dtype=bool)
-    # latest behavior sample at or before the bin end (causal), not older than one bin
-    idx = np.searchsorted(b_ts, ends, side="right") - 1
-    for i, j in enumerate(idx):
-        if j >= 0 and ends[i] - b_ts[j] <= bin_ns:
+    # nearest behavior sample to the bin end, within half a bin
+    right = np.searchsorted(b_ts, ends, side="left")
+    for i, r in enumerate(right):
+        cands = [j for j in (r - 1, r) if 0 <= j < len(b_ts)]
+        j = min(cands, key=lambda k: abs(int(ends[i]) - int(b_ts[k])))
+        if abs(int(ends[i]) - int(b_ts[j])) <= bin_ns // 2:
             Y[i] = beh[j][1]
-            valid[i] = beh[j][2]
+            valid[i] = beh[j][2] and bool(np.all(np.isfinite(beh[j][1])))
     trial_starts = sorted({int(k) for k in np.searchsorted(ends, np.array(marks, dtype=np.int64))})
     prov0 = feats[0][2]["prov"]
     labels = header.get("device", {}).get("capabilities", [])
@@ -220,7 +225,8 @@ def calibrate(
             "recording_sha256": [s.sha256 for s in sessions],
             "recording": sessions[0].path.name,
             "bins": [0, int(split)],
-            "session": None,
+            "session": session_of(s0.origin or ""),
+            "sessions": sorted({x for s in sessions if (x := session_of(s.origin or ""))}),
             "prerecorded_source": any(s.replayed for s in sessions),
             "synthetic_source": any(s.synthetic for s in sessions),
             "feature_sources": sorted(set().union(*[s.sources for s in sessions])),

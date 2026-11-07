@@ -59,8 +59,10 @@ class Recorder:
     def start(self, device: DeviceDescriptor, name: str | None = None) -> str:
         if self._fh is not None:
             raise RecorderError(f"already recording {self._name!r}")
-        if device.kind.value == "replay":
-            raise RecorderError("re-recording a replay is not supported")
+        # a local file player is its own recording; external streams (LSL, Open Ephys) that
+        # declare prerecorded content are recorded, keeping their 'replayed' provenance
+        if device.device_id.startswith(("replay:", "nwb:")):
+            raise RecorderError("re-recording a local file replay is not supported")
         self.directory.mkdir(parents=True, exist_ok=True)
         name = name or time.strftime(f"{device.device_id}-%Y%m%d-%H%M%S").lower()
         try:
@@ -75,7 +77,7 @@ class Recorder:
             created_at_ns=time.time_ns(),
             device=device,
             synthetic=device.synthetic,
-            note="Synthetic data from a BrainOS simulated profile." if device.synthetic else "",
+            note=_note(device),
         )
         self._fh = path.open("w", encoding="utf-8")
         line = header.model_dump_json() + "\n"
@@ -141,3 +143,13 @@ class Recorder:
             return []
         infos = [self._info(p) for p in sorted(self.directory.glob(f"*{RECORDING_SUFFIX}"))]
         return sorted((i for i in infos if i), key=lambda i: i.created_at_ns, reverse=True)
+
+
+def _note(device: DeviceDescriptor) -> str:
+    if device.kind.value == "simulated" and device.device_id.startswith("sim-"):
+        return "Synthetic data from a BrainOS simulated profile."
+    if device.synthetic:
+        return "Synthetic data (declared by the source)."
+    if device.kind.value == "replay":
+        return "Prerecorded data received over a live protocol (declared by the source)."
+    return ""
