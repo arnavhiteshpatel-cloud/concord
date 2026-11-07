@@ -3,14 +3,25 @@
 from __future__ import annotations
 
 import logging
+import sys
 
-import uvicorn
+try:
+    import uvicorn
 
-from brainos.server.app import create_app
-from brainos.server.settings import Settings
+    from brainos.server.app import create_app
+    from brainos.server.settings import Settings
+except ImportError as exc:  # base install = application SDK only
+    _MISSING: ImportError | None = exc
+else:
+    _MISSING = None
 
 
 def main() -> None:
+    if _MISSING is not None:
+        sys.exit(
+            f"The BrainOS server is not installed ({_MISSING.name or _MISSING}). The base "
+            'package is the application SDK; install the server: pip install "brainos[server]"'
+        )
     settings = Settings.from_env()
     logging.basicConfig(
         level=settings.log_level,

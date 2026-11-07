@@ -26,3 +26,6 @@ select = ["E", "F", "W", "I", "B", "UP", "ASYNC", "RUF", "SIM"]
 
 [tool.mypy]
 strict = true
+
+[project.scripts]
+brainos-adapter = "brainos_adapter_sdk.cli:main"

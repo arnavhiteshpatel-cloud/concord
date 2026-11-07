@@ -26,3 +26,10 @@ packages = ["src/brainos_brainflow"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.mypy]
+strict = true
+
+[[tool.mypy.overrides]]
+module = ["brainflow", "brainflow.*"]
+ignore_missing_imports = true
