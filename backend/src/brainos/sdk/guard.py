@@ -3,10 +3,12 @@
 :class:`CommandGuard` is a small, pure state machine an application feeds every stream item
 (``guard.handle(item)``) and ticks periodically (``guard.tick()``). It
 
-* tracks, per command capability (``pointer_intent``, ``selection``, ``text_intent``),
-  whether the app may act on it now: granted by negotiation **and** the source is streaming
-  **and** the stream is open. ``waiting_for_authorization`` lists capabilities the runtime
-  withholds until the operator authorizes this app (negotiation reason ``not_authorized``);
+* tracks, per command capability (``pointer_intent``, ``selection``, ``text_intent``,
+  ``navigation``), whether the app may act on it now: granted by negotiation **and** the
+  source is streaming **and** the stream is open **and**, when the app was granted
+  ``control_status`` (schema 1.4), the runtime's latest ``control.state`` for this session
+  says that capability is active. ``waiting_for_authorization`` lists capabilities the
+  runtime withholds until the operator authorizes this app (reason ``not_authorized``);
 * drops stale commands: older than ``max_age_ms`` by the envelope's runtime timestamp vs the
   local wall clock (``compare_wall_clock``; turn off when the runtime runs on another
   machine), or delayed more than ``max_age_ms`` relative to the fastest delivery seen
@@ -16,7 +18,8 @@
   (``on_deadman`` is called once per idle period);
 * calls ``on_stop(reason)`` immediately when a previously usable command capability stops
   being usable: revoked authorization, command output stopped, app suspended, source paused,
-  disconnected or switched, or the stream closed. The velocity is zeroed at the same time.
+  disconnected or switched, a ``control.state`` with ``active: false`` (its reason), or the
+  stream closed. The velocity is zeroed at the same time.
 
 :class:`ControlChannel` wraps an :class:`~brainos.sdk.client.EventStream` with a guard and
 runs the dead-man timer for you. Neither talks to the runtime: authorization is an operator
@@ -46,7 +49,9 @@ COMMAND_EVENT_CAPABILITY = {
     "intent.pointer": "pointer_intent",
     "intent.selection": "selection",
     "intent.text": "text_intent",
+    "intent.navigate": "navigation",  # schema 1.4
 }
+CONTROL_STATE_EVENT = "control.state"
 COMMAND_CAPABILITY_NAMES = tuple(dict.fromkeys(COMMAND_EVENT_CAPABILITY.values()))
 DEFAULT_MAX_AGE_MS = 500.0
 DEFAULT_DEADMAN_MS = 500.0
@@ -98,6 +103,10 @@ class CommandGuard:
         self._last_pointer_ns: int | None = None
         self._velocity = (0.0, 0.0)
         self._idle = True
+        # schema 1.4: True while negotiation grants control_status (then control.state rules)
+        self._control_required = False
+        # latest control.state: (session id, active, capabilities, reason)
+        self._control: tuple[str, bool, frozenset[str], str] | None = None
 
     # ------------------------------------------------------------------ state
     def is_active(self, capability: str) -> bool:
@@ -109,7 +118,8 @@ class CommandGuard:
 
     def state(self, capability: str) -> str:
         """``active`` or why not: ``not_authorized``, ``unavailable``, ``no_device``,
-        ``suspended``, ``source_<state>``, ``closed``, ``connecting``, ``not_requested``."""
+        ``suspended``, ``source_<state>``, ``closed``, ``connecting``, ``not_requested``,
+        ``control_inactive`` (the runtime's control.state says so; see ``control_state``)."""
         if capability not in self._negotiated:
             return "not_requested"
         if capability in self._active:
@@ -119,7 +129,18 @@ class CommandGuard:
         why = self._negotiated[capability]
         if why:
             return why
-        return f"source_{self._source}"
+        if self._source not in ("streaming", "unknown"):
+            return f"source_{self._source}"
+        return "control_inactive"
+
+    @property
+    def control_state(self) -> tuple[bool, frozenset[str], str] | None:
+        """The runtime's latest control.state for this session: (active, capabilities,
+        reason), or None if none was received (or the app did not ask for control_status)."""
+        c = self._control
+        if c is None or (self._session is not None and c[0] != self._session):
+            return None
+        return c[1], c[2], c[3]
 
     @property
     def waiting_for_authorization(self) -> list[str]:
@@ -143,6 +164,9 @@ class CommandGuard:
             self.on_runtime(item.runtime.state.value, item.runtime.session_id)
             return None
         if is_event(item):
+            if item.event_type.value == CONTROL_STATE_EVENT:
+                self.on_control_state(item)
+                return item  # the app may show it; it is never a command
             if item.event_type.value not in COMMAND_EVENT_CAPABILITY:
                 return item
             return item if self.accept(item) else None
@@ -167,7 +191,21 @@ class CommandGuard:
                 self._negotiated[cap] = "no_device"
             else:  # not rejected but not granted: the app is suspended for another capability
                 self._negotiated[cap] = "suspended"
+        self._control_required = "control_status" in granted
         self._update()
+
+    def on_control_state(self, env: EventEnvelope) -> None:
+        """Feed a ``control.state`` event (schema 1.4). ``active: false`` stops at once."""
+        if env.event_type.value != CONTROL_STATE_EVENT:
+            return
+        p = env.payload
+        active = bool(p.active)  # type: ignore[union-attr]
+        caps = frozenset(str(c) for c in p.capabilities)  # type: ignore[union-attr]
+        reason = str(p.reason)  # type: ignore[union-attr]
+        if self._session is None:
+            self._session = env.session_id
+        self._control = (env.session_id, active, caps if active else frozenset(), reason)
+        self._update(None if active else reason or "command output inactive")
 
     def on_runtime(self, state: str, session_id: str | None) -> None:
         if session_id != self._session:
@@ -219,12 +257,21 @@ class CommandGuard:
         return True
 
     # ------------------------------------------------------------------ internals
+    def _control_allows(self, cap: str) -> bool:
+        if not self._control_required:
+            return True
+        c = self._control
+        return c is not None and c[0] == self._session and c[1] and cap in c[2]
+
     def _update(self, reason: str | None = None) -> None:
         streaming = self._source in ("streaming", "unknown")
         new = frozenset(
             c
             for c in self.capabilities
-            if not self._closed and streaming and self._negotiated[c] == ""
+            if not self._closed
+            and streaming
+            and self._negotiated[c] == ""
+            and self._control_allows(c)
         )
         lost = self._active - new
         self._active = new
@@ -251,7 +298,12 @@ class CommandGuard:
             return "source disconnected"
         if n == "suspended":
             return "application suspended"
-        return f"source {self._source}"
+        if self._source not in ("streaming", "unknown"):
+            return f"source {self._source}"
+        c = self._control
+        if self._control_required and c is not None and c[0] == self._session and c[3]:
+            return c[3]
+        return "command output inactive"
 
 
 class ControlChannel:

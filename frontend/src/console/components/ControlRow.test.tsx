@@ -6,7 +6,8 @@ import type { AppControl, ControlStatus, PipelineStatus, RouterSpec } from "../a
 import type { PipelineState } from "../pipeline";
 import { stubFetch } from "../testFetch";
 import { CalibrationPanel } from "./CalibrationPanel";
-import { ControlRow, defaultRules, describeApp, discreteSpec } from "./ControlRow";
+import { ControlRow, defaultRules, describeApp, discreteSpec, routerSpec } from "./ControlRow";
+import { actionLabel, mappingText } from "../pipeline";
 
 afterEach(() => {
   cleanup();
@@ -254,5 +255,26 @@ describe("CalibrationPanel (classifier)", () => {
     expect(screen.getByTestId("cal-report").textContent).toContain("chance 0.333");
     expect(screen.getByTestId("cal-report").textContent).toContain("synthetic data");
     expect(screen.getByTestId("cal-confusion").querySelectorAll("tbody tr")).toHaveLength(3);
+  });
+});
+
+describe("Schema 1.4 command output settings (M5-C)", () => {
+  const form = { x_dim: "vx", y_dim: "vy", gain: "1", deadzone: "0", invert_y: true, max_speed: "2" };
+  it("adds a click from a separate decoder output, and refuses a click on a pointer dimension", () => {
+    const ok = routerSpec({ ...form, click_dim: "click", click_threshold: "0.6", click_min_confidence: "0.7", click_refractory_ms: "400" }, true);
+    expect(ok.spec?.click).toEqual({ output: "click", threshold: 0.6, min_confidence: 0.7, refractory_ms: 400 });
+    expect(mappingText(ok.spec!)).toContain("click ← click");
+    expect(routerSpec({ ...form, click_dim: "vx" }, true).problem).toMatch(/cannot come from a dimension that moves the pointer/);
+    expect(routerSpec({ ...form, click_dim: "click", click_threshold: "2" }, true).problem).toMatch(/Check the click/);
+    expect(routerSpec(form, true).spec?.click).toBeUndefined();
+  });
+  it("labels navigate actions and keeps them out of the selection detail", () => {
+    expect(actionLabel({ action: "navigate:next" })).toBe("move next");
+    const rules = [
+      { output: "left", action: "navigate:previous" as const, threshold: "0.8", hold_ms: "300", refractory_ms: "1000", text: "" },
+      { output: "right", action: "primary" as const, threshold: "0.8", hold_ms: "300", refractory_ms: "1000", text: "" },
+    ];
+    const { spec } = discreteSpec(rules, true);
+    expect(spec?.discrete?.map((d) => d.action)).toEqual(["navigate:previous", "primary"]);
   });
 });
