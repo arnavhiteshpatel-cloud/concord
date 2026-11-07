@@ -189,8 +189,9 @@ class RuntimeClient:
         result: list[dict[str, Any]] = await self._call("GET", "/models")
         return result
 
-    async def start_recording(self, name: str | None = None) -> str:
-        return str((await self._call("POST", "/recordings/start", {"name": name}))["name"])
+    async def start_recording(self, name: str | None = None, *, exclude_raw: bool = False) -> str:
+        body = {"name": name, "exclude_raw": exclude_raw}
+        return str((await self._call("POST", "/recordings/start", body))["name"])
 
     async def stop_recording(self) -> dict[str, Any]:
         result: dict[str, Any] = await self._call("POST", "/recordings/stop")
