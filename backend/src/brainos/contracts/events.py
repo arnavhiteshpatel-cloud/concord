@@ -15,7 +15,9 @@ from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_validator
 
 from brainos.contracts.capabilities import Capability, EventType, capability_for
 
-SCHEMA_VERSION = "1.1"  # 1.1: features.binned, behavior.sample, intent.kinematics
+SCHEMA_VERSION = "1.2"
+# 1.1: features.binned, behavior.sample, intent.kinematics
+# 1.2: features.vector; recording.frame unit "arbitrary" (source did not state a known unit)
 SCHEMA_MAJOR = 1
 
 FiniteFloat = Annotated[float, Field(allow_inf_nan=False)]
@@ -69,6 +71,7 @@ ALLOWED_PROVENANCE: dict[EventType, frozenset[ProvenanceKind]] = {
     EventType.TELEMETRY_SAMPLE: frozenset({ProvenanceKind.DEVICE_REPORT}),
     EventType.DEVICE_STATUS: frozenset({ProvenanceKind.DEVICE_REPORT, ProvenanceKind.RUNTIME}),
     EventType.FEATURES_BINNED: frozenset({ProvenanceKind.PROCESSED_FEATURE}),
+    EventType.FEATURES_VECTOR: frozenset({ProvenanceKind.PROCESSED_FEATURE}),
     EventType.BEHAVIOR_SAMPLE: frozenset({ProvenanceKind.BEHAVIORAL_LABEL}),
     EventType.INTENT_KINEMATICS: _INTENT_KINDS,
 }
@@ -106,7 +109,10 @@ class RecordingFramePayload(_Strict):
     sample_rate_hz: float = Field(gt=0, le=100_000, allow_inf_nan=False)
     channel_count: int = Field(ge=1, le=1024)
     first_sample_index: int = Field(ge=0)
-    unit: Literal["uV"] = "uV"
+    # "uV": microvolts (converted exactly from the source's stated unit).
+    # "arbitrary" (1.2): the source did not state a physical unit BrainOS knows; values are
+    # passed through unscaled and must not be interpreted as microvolts.
+    unit: Literal["uV", "arbitrary"] = "uV"
     samples: list[list[FiniteFloat]] = Field(description="samples[channel][sample]")
 
     @model_validator(mode="after")
@@ -193,6 +199,29 @@ class FeaturesBinnedPayload(_Strict):
             raise ValueError(
                 f"counts has {len(self.counts)} values, channel_count={self.channel_count}"
             )
+        return self
+
+
+class FeaturesVectorPayload(_Strict):
+    """One time bin of a continuous-valued neural feature per channel (schema 1.2).
+
+    E.g. log band power. The bin ends at the envelope's ``device_timestamp_ns``.
+    """
+
+    feature: Literal["band_power", "log_band_power"]
+    unit: str = Field(max_length=32, description="e.g. 'uV^2', 'log10(uV^2)', 'log10(arbitrary^2)'")
+    band_hz: tuple[FiniteFloat, FiniteFloat] | None = None
+    bin_ms: float = Field(gt=0, le=10_000, allow_inf_nan=False)
+    bin_index: int = Field(ge=0)
+    channel_count: int = Field(ge=1, le=4096)
+    values: list[FiniteFloat]
+
+    @model_validator(mode="after")
+    def _shape(self) -> Self:
+        if len(self.values) != self.channel_count:
+            raise ValueError(f"values has {len(self.values)} entries, channel_count={self.channel_count}")
+        if self.band_hz is not None and not 0 <= self.band_hz[0] < self.band_hz[1]:
+            raise ValueError("band_hz must be (low, high) with 0 <= low < high")
         return self
 
 
@@ -300,6 +329,11 @@ class DeviceStatusEvent(_EnvelopeBase):
     payload: DeviceStatusPayload
 
 
+class FeaturesVectorEvent(_EnvelopeBase):
+    event_type: Literal[EventType.FEATURES_VECTOR]
+    payload: FeaturesVectorPayload
+
+
 class FeaturesBinnedEvent(_EnvelopeBase):
     event_type: Literal[EventType.FEATURES_BINNED]
     payload: FeaturesBinnedPayload
@@ -324,6 +358,7 @@ EventEnvelope = Annotated[
     | TelemetrySampleEvent
     | DeviceStatusEvent
     | FeaturesBinnedEvent
+    | FeaturesVectorEvent
     | BehaviorSampleEvent
     | KinematicIntentEvent,
     Field(discriminator="event_type"),
@@ -340,6 +375,7 @@ PAYLOAD_MODELS: dict[EventType, type[BaseModel]] = {
     EventType.TELEMETRY_SAMPLE: TelemetrySamplePayload,
     EventType.DEVICE_STATUS: DeviceStatusPayload,
     EventType.FEATURES_BINNED: FeaturesBinnedPayload,
+    EventType.FEATURES_VECTOR: FeaturesVectorPayload,
     EventType.BEHAVIOR_SAMPLE: BehaviorSamplePayload,
     EventType.INTENT_KINEMATICS: KinematicIntentPayload,
 }

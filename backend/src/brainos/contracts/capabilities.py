@@ -34,6 +34,7 @@ class EventType(StrEnum):
     DEVICE_STATUS = "device.status"
     # schema 1.1 (additive)
     FEATURES_BINNED = "features.binned"
+    FEATURES_VECTOR = "features.vector"  # 1.2
     BEHAVIOR_SAMPLE = "behavior.sample"
     INTENT_KINEMATICS = "intent.kinematics"
 
@@ -47,6 +48,7 @@ EVENT_CAPABILITY: dict[EventType, Capability] = {
     EventType.TELEMETRY_SAMPLE: Capability.TELEMETRY,
     EventType.DEVICE_STATUS: Capability.DEVICE_STATUS,
     EventType.FEATURES_BINNED: Capability.NEURAL_FEATURES,
+    EventType.FEATURES_VECTOR: Capability.NEURAL_FEATURES,
     EventType.BEHAVIOR_SAMPLE: Capability.BEHAVIOR,
     EventType.INTENT_KINEMATICS: Capability.KINEMATIC_INTENT,
 }

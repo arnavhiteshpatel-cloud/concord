@@ -383,6 +383,158 @@
       "title": "FeaturesBinnedPayload",
       "type": "object"
     },
+    "FeaturesVectorEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "$ref": "#/$defs/Capability"
+        },
+        "device_id": {
+          "pattern": "^[a-z0-9][a-z0-9_.:\\-]{0,63}$",
+          "title": "Device Id",
+          "type": "string"
+        },
+        "device_timestamp_ns": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Device clock from the native packet, if any",
+          "title": "Device Timestamp Ns"
+        },
+        "event_type": {
+          "const": "features.vector",
+          "title": "Event Type",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/FeaturesVectorPayload"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "quality": {
+          "$ref": "#/$defs/Quality"
+        },
+        "schema_version": {
+          "pattern": "^\\d+\\.\\d+$",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "seq": {
+          "minimum": 0,
+          "title": "Seq",
+          "type": "integer"
+        },
+        "session_id": {
+          "pattern": "^ses_[A-Za-z0-9]{6,64}$",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "timestamp_ns": {
+          "description": "Runtime wall clock at ingest, UTC ns",
+          "minimum": 0,
+          "title": "Timestamp Ns",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "session_id",
+        "device_id",
+        "seq",
+        "timestamp_ns",
+        "capability",
+        "quality",
+        "provenance",
+        "event_type",
+        "payload"
+      ],
+      "title": "FeaturesVectorEvent",
+      "type": "object"
+    },
+    "FeaturesVectorPayload": {
+      "additionalProperties": false,
+      "description": "One time bin of a continuous-valued neural feature per channel (schema 1.2).\n\nE.g. log band power. The bin ends at the envelope's ``device_timestamp_ns``.",
+      "properties": {
+        "band_hz": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Band Hz"
+        },
+        "bin_index": {
+          "minimum": 0,
+          "title": "Bin Index",
+          "type": "integer"
+        },
+        "bin_ms": {
+          "exclusiveMinimum": 0,
+          "maximum": 10000,
+          "title": "Bin Ms",
+          "type": "number"
+        },
+        "channel_count": {
+          "maximum": 4096,
+          "minimum": 1,
+          "title": "Channel Count",
+          "type": "integer"
+        },
+        "feature": {
+          "enum": [
+            "band_power",
+            "log_band_power"
+          ],
+          "title": "Feature",
+          "type": "string"
+        },
+        "unit": {
+          "description": "e.g. 'uV^2', 'log10(uV^2)', 'log10(arbitrary^2)'",
+          "maxLength": 32,
+          "title": "Unit",
+          "type": "string"
+        },
+        "values": {
+          "items": {
+            "type": "number"
+          },
+          "title": "Values",
+          "type": "array"
+        }
+      },
+      "required": [
+        "feature",
+        "unit",
+        "bin_ms",
+        "bin_index",
+        "channel_count",
+        "values"
+      ],
+      "title": "FeaturesVectorPayload",
+      "type": "object"
+    },
     "KinematicIntentEvent": {
       "additionalProperties": false,
       "properties": {
@@ -939,8 +1091,11 @@
           "type": "array"
         },
         "unit": {
-          "const": "uV",
           "default": "uV",
+          "enum": [
+            "uV",
+            "arbitrary"
+          ],
           "title": "Unit",
           "type": "string"
         }
@@ -1289,6 +1444,7 @@
       "behavior.sample": "#/$defs/BehaviorSampleEvent",
       "device.status": "#/$defs/DeviceStatusEvent",
       "features.binned": "#/$defs/FeaturesBinnedEvent",
+      "features.vector": "#/$defs/FeaturesVectorEvent",
       "intent.kinematics": "#/$defs/KinematicIntentEvent",
       "intent.pointer": "#/$defs/PointerIntentEvent",
       "intent.selection": "#/$defs/SelectionIntentEvent",
@@ -1325,11 +1481,14 @@
       "$ref": "#/$defs/FeaturesBinnedEvent"
     },
     {
+      "$ref": "#/$defs/FeaturesVectorEvent"
+    },
+    {
       "$ref": "#/$defs/BehaviorSampleEvent"
     },
     {
       "$ref": "#/$defs/KinematicIntentEvent"
     }
   ],
-  "title": "BrainOS EventEnvelope 1.1"
+  "title": "BrainOS EventEnvelope 1.2"
 }
