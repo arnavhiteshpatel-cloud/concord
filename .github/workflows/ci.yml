@@ -27,6 +27,23 @@ jobs:
         run: |
           python -m brainos.datasets.fetch
           python -m brainos.decoding.evaluate_falcon
+      - name: Cache T15 cursor+click files
+        uses: actions/cache@v4
+        with:
+          path: data/datasets/dryad-prr4xgxzq
+          key: dryad-t15-${{ hashFiles('backend/src/brainos/datasets/dryad/*.json') }}
+      - name: T15 cursor+click demo subset (Dryad; needs DRYAD_CLIENT_ID / DRYAD_CLIENT_SECRET secrets)
+        env:
+          DRYAD_CLIENT_ID: ${{ secrets.DRYAD_CLIENT_ID }}
+          DRYAD_CLIENT_SECRET: ${{ secrets.DRYAD_CLIENT_SECRET }}
+        run: |
+          if python -m brainos.datasets.dryad --verify > /dev/null; then
+            echo "BRAINOS_REQUIRE_T15=1" >> "$GITHUB_ENV"
+          elif [ -n "$DRYAD_CLIENT_ID" ]; then
+            python -m brainos.datasets.dryad && echo "BRAINOS_REQUIRE_T15=1" >> "$GITHUB_ENV"
+          else
+            echo "::warning::T15 real-data tests will be skipped: add the DRYAD_CLIENT_ID and DRYAD_CLIENT_SECRET repository secrets (a Dryad API account) to run them"
+          fi
       - name: Lint
         working-directory: backend
         run: |

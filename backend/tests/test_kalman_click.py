@@ -101,6 +101,7 @@ def test_kalman_roundtrip_json(tmp_path: Path) -> None:
         ({"P": [[1.0, 0.5], [0.0, 1.0]]}, "symmetric"),
         ({"c0": [float("nan")] * 30}, "non-finite"),
         ({"unexpected": 1}, "unexpected"),
+        ({"y_axis": "north"}, "y_axis"),
     ],
 )
 def test_malformed_kalman_model_refused(change: dict[str, Any], match: str) -> None:

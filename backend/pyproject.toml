@@ -86,3 +86,4 @@ ignore = ["RUF012"]
 "tests/**" = ["E501", "ASYNC109", "ASYNC110"]
 "../scripts/bench.py" = ["E501"]  # emits markdown tables
 "src/brainos/decoding/evaluate_falcon.py" = ["E501"]  # emits markdown tables
+"src/brainos/evaluation/run_cursorclick.py" = ["E501", "RUF001"]  # emits markdown tables

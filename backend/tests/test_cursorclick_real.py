@@ -124,6 +124,8 @@ def test_descriptor_declares_modality_streams_and_historical_decoders() -> None:
     decs = caps[Capability.KINEMATIC_INTENT]["decoders"]
     assert {x["model_id"] for x in decs} == {HISTORICAL_VELOCITY, HISTORICAL_CLICK}
     assert all(x["model_origin"] == "historical" for x in decs)
+    vel = next(x for x in decs if x["model_id"] == HISTORICAL_VELOCITY)
+    assert vel["y_axis"] == "up"  # dataset frame; the router must invert y for the pointer
     assert "SHA-256 verified" in d.description and "Offline replay" in d.description
     # no command capability: recorded data never becomes a command by itself
     assert not d.capability_set & {Capability.POINTER_INTENT, Capability.SELECTION}

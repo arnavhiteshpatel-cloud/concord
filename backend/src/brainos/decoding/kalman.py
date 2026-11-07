@@ -100,6 +100,9 @@ class KalmanDecoder:
     version: int = 1
     source: dict[str, Any] = field(default_factory=dict)
     manifest: dict[str, Any] | None = None
+    # direction of +y in the output space ("up" for screen coordinates with +y up, e.g. the T15
+    # dataset); the router refuses to drive a +y-down pointer from it unless invert_y is set
+    y_axis: str | None = None
 
     # -------------------------------------------------------------- properties
     @property
@@ -146,6 +149,8 @@ class KalmanDecoder:
         p = np.asarray(self.P)
         if not np.allclose(p, p.T, atol=1e-9) or np.any(np.diag(p) < 0):
             raise ValueError(f"{name}: P must be symmetric with a non-negative diagonal")
+        if self.y_axis not in (None, "up", "down"):
+            raise ValueError(f"{name}: y_axis must be 'up', 'down' or null")
         if np.max(np.abs(np.linalg.eigvals(np.asarray(self.M)))) >= 1.0:
             raise ValueError(f"{name}: filter dynamics are unstable (|eig(M)| >= 1)")
 
@@ -272,6 +277,7 @@ def fit(
     training: dict[str, Any] | None = None,
     source: dict[str, Any] | None = None,
     model_id_prefix: str | None = None,
+    y_axis: str | None = None,
 ) -> KalmanDecoder:
     """Fit on a list of contiguous training segments (blocks); transitions never cross segments.
 
@@ -343,6 +349,7 @@ def fit(
         },
         created_at=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         source=source or {},
+        y_axis=y_axis,
     )
     model.validate()
     return model
@@ -376,6 +383,7 @@ def fit_calibration(data: Any) -> KalmanDecoder:
         quantity=str(getattr(data, "target_quantity", "velocity")),
         training=dict(data.training),
         source=dict(data.source),
+        y_axis=opts.get("y_axis"),
     )
 
 

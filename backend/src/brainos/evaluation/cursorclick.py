@@ -195,13 +195,44 @@ class Selection:
         return self.selected is not None and self.selected == self.cued
 
 
+def board_chain_positions(vel: FloatArray, b: T15Block) -> FloatArray:
+    """Exactly what the communication board does with a velocity stream over the task grid:
+    the cursor starts at the centre, the first event only starts the clock, then
+    ``pos += v * dt`` per 10 ms event, clamped to the grid square (the board's workspace)."""
+    if b.grid_height is None:
+        raise ValueError("needs the grid task's geometry")
+    half = b.grid_height / 2
+    out = np.empty_like(vel)
+    pos = np.zeros(2)
+    for t in range(len(vel)):
+        if t > 0:
+            pos = np.clip(pos + vel[t] * BIN_S, -half, half)
+        out[t] = pos
+    return out
+
+
+def board_tile(pos: FloatArray, b: T15Block, n: int) -> int:
+    """Board tile index (row-major, row 0 at the TOP, as the board numbers tiles)."""
+    col, row_up = board_cells(np.asarray(pos)[None, :], b, n)[0]
+    return int((n - 1 - row_up) * n + col)
+
+
+MODES = ("anchored", "whole_block", "board")
+
+
 def select_words(
-    vel: FloatArray, clicks: IntArray, b: T15Block, n: int, *, anchored: bool
+    vel: FloatArray, clicks: IntArray, b: T15Block, n: int, *, mode: str
 ) -> list[Selection]:
     """Per trial: the first click inside the trial window (start .. original click + 250 ms)
-    selects the board cell under the integrated cursor. ``anchored``: the cursor starts each
-    trial at the recorded position (analysis); otherwise integrated over the whole block."""
+    selects the board cell under the integrated cursor.
+
+    ``mode``: ``anchored`` -- the cursor restarts each trial at the recorded position
+    (analysis only); ``whole_block`` -- integrated from the block's first recorded position;
+    ``board`` -- exactly the communication board's integration (centre start, clamped)."""
+    if mode not in MODES:
+        raise ValueError(f"mode must be one of {MODES}")
     integ = _integral(vel)
+    chain = board_chain_positions(vel, b) if mode == "board" else None
     out: list[Selection] = []
     for k, (s, e) in enumerate(trials(b)):
         cued = board_cells(b.target[e][None, :], b, n)[0]
@@ -210,7 +241,9 @@ def select_words(
             out.append(Selection(k, None, None, (int(cued[0]), int(cued[1]))))
             continue
         t = hit[0]
-        if anchored:
+        if chain is not None:
+            pos = chain[t]
+        elif mode == "anchored":
             pos = b.cursor[s] + integ[t + 1] - integ[s + 1]
         else:
             pos = b.cursor[0] + integ[t + 1] - integ[1]
