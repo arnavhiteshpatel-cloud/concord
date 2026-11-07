@@ -369,6 +369,33 @@ def test_registry_lists_json_models_and_manifests_and_records_trust(tmp_path: Pa
     )
 
 
+def test_nwb_catalog_attaches_only_ridge_models_and_ignores_other_families_quietly(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    from brainos.runtime.catalog import NWBCatalog
+
+    m, x = _ridge()
+    m.save(tmp_path / f"{m.model_id}.json")
+    labels = (np.arange(len(x)) % 2).astype(float)
+    lda = fit_lda(
+        np.log1p(x),
+        labels,
+        np.ones(len(x), bool),
+        class_values=[0.0, 1.0],
+        class_names=["a", "b"],
+        bin_ms=20.0,
+        space="s",
+        training={},
+        input_spec={},
+    )
+    lda.save(tmp_path / f"{lda.model_id}.json")
+    _write_manifest(tmp_path, "imported-onnx", "onnx")
+    with caplog.at_level("WARNING"):
+        found = NWBCatalog(tmp_path / "datasets", tmp_path)._decoders()
+    assert [d.model_id for d in found] == [m.model_id]
+    assert not [r for r in caplog.records if "ignoring model" in r.getMessage()]
+
+
 def test_duplicate_model_ids_are_rejected(tmp_path: Path) -> None:
     m, _ = _ridge()
     m.save(tmp_path / f"{m.model_id}.json")
