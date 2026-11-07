@@ -231,6 +231,7 @@ async def list_models(svc: Svc) -> list[ModelInfo]:
             channel_labels=out_spec.get("channel_labels"),
             stream_identity=models.source_identity(origin),
             stream_session=session_of(origin or ""),
+            stream_modality=dev.modality.value if (dev := rt.device) and dev.modality else None,
         )
         result.append(
             ModelInfo(

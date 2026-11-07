@@ -44,6 +44,8 @@ jobs:
           else
             echo "::warning::T15 real-data tests will be skipped: add the DRYAD_CLIENT_ID and DRYAD_CLIENT_SECRET repository secrets (a Dryad API account) to run them"
           fi
+      - name: "M5 workstream B: stream pinned ECoG demo slices (DANDI 000055, digest-verified)"
+        run: python -m brainos.datasets.fetch ajile12
       - name: Lint
         working-directory: backend
         run: |
@@ -70,6 +72,10 @@ jobs:
             echo "::error::real-data tests were skipped"; exit 1; fi
           if grep -Eq "could not import '(pylsl|zmq|scipy)'" ../reports/pytest.log; then
             echo "::error::live-protocol tests were skipped"; exit 1; fi
+      - name: "M5 workstream B: real ECoG tests must not be skipped"
+        run: |
+          if grep -q "real AJILE12 ECoG extracts not found" reports/pytest.log; then
+            echo "::error::real ECoG tests were skipped"; exit 1; fi
       - name: Package tests (plugins against official BrainFlow / BCI2000 capture; certify toolkit)
         run: |
           for p in packages/brainos-brainflow packages/brainos-bci2000 examples/adapters/brainos-example-adapter packages/brainos-certify; do

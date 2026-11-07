@@ -114,11 +114,15 @@ def test_catalog_reports_problem_files_and_offers_good_ones(tmp_path: Path) -> N
     ds.mkdir()
     fx.units_with_behavior(ds / "good.nwb")
     (ds / "broken.nwb").write_bytes(b"\x89HDF\r\n garbage")
+    fx.calcium_like_unsupported(ds / "other.nwb")
+    # M5: a raw-voltage ElectricalSeries file is now offered (NWBElectricalSource) instead of
+    # being rejected; files with neither units nor an ElectricalSeries are still problems.
     fx.raw_voltage_only(ds / "raw.nwb")
     cat = NWBCatalog(ds, tmp_path / "models")
-    ids = [d.device_id for d in cat.list()]
-    assert ids == ["nwb:good"]
-    assert sorted(p.file for p in cat.problems) == ["broken.nwb", "raw.nwb"]
+    devices = {d.device_id: d for d in cat.list()}
+    assert sorted(devices) == ["nwb:good", "nwb:raw"]
+    assert devices["nwb:raw"].modality is None  # unverified file: modality never guessed
+    assert sorted(p.file for p in cat.problems) == ["broken.nwb", "other.nwb"]
 
 
 # ----------------------------------------------------------------- decoder maths

@@ -99,3 +99,15 @@ schema:  ## regenerate contracts/event-envelope.v1.schema.json
 
 clean:
 	rm -rf frontend/dist reports e2e/screenshots
+
+# ---- Milestone 5, workstream B: human ECoG (AJILE12, DANDI 000055; docs/ECOG.md) ----
+.PHONY: dataset-ecog dataset-ecog-all ecog-report
+
+dataset-ecog:  ## stream the 2 pinned demo ECoG slices (~157 MiB) to data/datasets/dandi-000055/
+	$(PY) -m brainos.datasets.fetch ajile12
+
+dataset-ecog-all:  ## all 6 pinned ECoG slices (78.75 min, ~550 MiB)
+	$(PY) -m brainos.datasets.fetch ajile12 --all
+
+ecog-report: dataset-ecog-all  ## ECoG move-vs-rest model -> data/models/, docs/ECOG_DECODING.md
+	$(PY) -m brainos.decoding.evaluate_ecog --write docs/ECOG_DECODING.md

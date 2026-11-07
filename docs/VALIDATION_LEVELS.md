@@ -83,3 +83,18 @@ doi:10.5061/dryad.prr4xgxzq). Every number: docs/CURSOR_CLICK.md.
 | Kalman cursor decoder | 1 + real-data replay (open loop) | Held-out grid blocks (trained only on earlier calibration blocks): mean angle error 28.0° (original online decoder 27.3°, shifted-feature control 92.4°); R² vs intention 0.765 (original 0.819, control −0.80) | Never closed loop; one participant, one day |
 | Click decoder | 1 + real-data replay (open loop) | 81 % of BrainOS clicks fall while the recorded cursor is on the cued target (original 94 %, control 21 %); 5.0 false activations/min (original 1.5, control 21) | Never closed loop |
 | Neural-to-communication (board) | 1 + real-data replay (open loop) | Word selection by BrainOS cursor + click over the task grid: anchored per trial 14 x 14 15 % / 7 x 7 34 % / 2 x 2 83 % (chance 0.5 / 2 / 25 %; shifted control at chance); through the board's whole-block integration 1 % / 4 % / 43 % (the original decoder's own outputs: 65 % / 83 % / 96 %) | No person has communicated through BrainOS; closed loop needed |
+
+## Human ECoG (Milestone 5, workstream B)
+
+Real-data replay of **recorded** human ECoG (AJILE12, DANDI 000055, one participant, clinical
+epilepsy monitoring). Offline replay is not live acquisition (not level 2 for a live source),
+not hardware (3) and not closed-loop use by a person (4).
+
+| Component | Level reached | Evidence (all executed) | Not yet done |
+| --- | --- | --- | --- |
+| Slice streaming + verified NWB extracts (`datasets/extract.py`, `ajile12.json`) | 1 + real data | 6 slices fetched from DANDI by HTTP range reads; DANDI SHA-256 / size checked; each slice's stored values hash to the pinned digest; a one-sample change or a shifted timeline makes the extract unverified (`test_ecog_real.py`, `test_ecog.py`) | The full 10 GB source files were never downloaded and hashed here (DANDI's digest is trusted for them) |
+| Raw-voltage NWB importer (`adapters/nwb/ecog.py`) | 1 + real-data replay | Frames through the unchanged runtime equal the stored µV bit for bit; electrode table, bad flags, pose, intervals, data-break flags; unit only from the file's declaration (synthetic fixtures for mV, channel_conversion, unusable units) | Only AJILE12-style files and synthetic fixtures; other ECoG/sEEG NWB layouts untested |
+| ECoG preprocessing (source mains notch, CAR without bad electrodes, 70–150 Hz log power) | 1 (+ real data) | Chunk invariance and causality with CAR exclusion; live pipeline features equal the offline analysis on the real held-out slice | Never applied to a live ECoG stream; never on un-notched real ECoG |
+| Movement-vs-rest LDA on ECoG | real-data replay (offline) | Held-out sessions: balanced accuracy 0.938 / 0.861, AUC 0.992 / 0.939 vs time-shift nulls ≤ 0.55 / 0.60 (docs/ECOG_DECODING.md); online == offline posteriors | No participant was trying to control anything; one participant |
+| Modality guards | 1 (+ real streams) | ECoG model refused on FALCON spike counts, FALCON model and EEG-declared model refused on ECoG, even with the cross-source override | — |
+| Same SDK-only app on ECoG | 1–2 (real server, real recorded ECoG) | Unchanged `menu_app.py` receives decoded selections from the held-out ECoG replay only after operator authorization; nothing after disconnect | No person used it; offline replay only |
