@@ -164,6 +164,13 @@ describe("cursor + dwell (a board interaction, never a neural click)", () => {
     s = run(s, tick(13_000));
     expect(s.selectionCount).toBe(1);
   });
+  it("resting where the cursor is when input becomes active never selects: dwell needs movement", () => {
+    let s = board(["pointer_intent"], { dwellMs: 500 });
+    s = run(s, pointer(0, 0, 0), pointer(0, 0, 20), tick(0), tick(5000));
+    expect(s.selectionCount).toBe(0);
+    s = run(s, pointer(0.5, 0, 40), tick(5100), tick(5700)); // moved: now resting selects
+    expect(s.selectionCount).toBe(1);
+  });
   it("ignores clicks: dwell needs no selection capability", () => {
     const s = board(["pointer_intent", "selection"], { method: "cursor_dwell" });
     expect(run(s, select("primary", 0)).message).toBe("");
