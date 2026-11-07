@@ -218,3 +218,15 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- BrainOS ---
+node_modules/
+frontend/dist/
+data/
+reports/
+.vite/
+*.tsbuildinfo
+e2e/screenshots/
+
+# Playwright for e2e (installed by make e2e-setup)
+/node_modules/
