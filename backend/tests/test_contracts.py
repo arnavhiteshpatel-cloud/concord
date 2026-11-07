@@ -116,15 +116,24 @@ MALFORMED: list[tuple[str, dict[str, Any]]] = [
     ),
     (
         "feature vector count mismatch",
-        valid_event("features.vector", payload={**valid_event("features.vector")["payload"], "values": [1.0]}),
+        valid_event(
+            "features.vector",
+            payload={**valid_event("features.vector")["payload"], "values": [1.0]},
+        ),
     ),
     (
         "feature vector NaN",
-        valid_event("features.vector", payload={**valid_event("features.vector")["payload"], "values": [math.nan, 1.0]}),
+        valid_event(
+            "features.vector",
+            payload={**valid_event("features.vector")["payload"], "values": [math.nan, 1.0]},
+        ),
     ),
     (
         "feature vector inverted band",
-        valid_event("features.vector", payload={**valid_event("features.vector")["payload"], "band_hz": [150.0, 70.0]}),
+        valid_event(
+            "features.vector",
+            payload={**valid_event("features.vector")["payload"], "band_hz": [150.0, 70.0]},
+        ),
     ),
     (
         "recording frame with an unknown unit",
