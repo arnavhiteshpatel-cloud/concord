@@ -36,6 +36,7 @@ class NWBCatalog:
         self.models_dir = models_dir
         self._descriptors: dict[tuple[str, int, int, str], DeviceDescriptor] = {}
         self._paths: dict[str, Path] = {}
+        self._by_id: dict[str, DeviceDescriptor] = {}
         self.problems: list[CatalogProblem] = []
         self.available, self.unavailable_reason = self._probe_support()
 
@@ -86,7 +87,8 @@ class NWBCatalog:
             return []
         from brainos.adapters.nwb.reader import NWBFormatError
 
-        out = []
+        out: list[DeviceDescriptor] = []
+        paths: dict[str, Path] = {}
         models_sig = (
             ",".join(
                 f"{p.name}:{p.stat().st_mtime_ns}" for p in sorted(self.models_dir.glob("*.json"))
@@ -106,9 +108,27 @@ class NWBCatalog:
                     log.warning("dataset file %s not offered: %s", path.name, exc)
                     continue
                 self._descriptors[key] = desc
-            self._paths[desc.device_id] = path
+            if desc.device_id in paths:
+                # never let two files share an id: the second would silently replace the first
+                self.problems.append(
+                    CatalogProblem(
+                        str(path.relative_to(self.datasets_dir)),
+                        f"device id {desc.device_id} already used by "
+                        f"{paths[desc.device_id].relative_to(self.datasets_dir)}; rename one file",
+                    )
+                )
+                continue
+            paths[desc.device_id] = path
             out.append(desc)
+        self._paths = paths
+        self._by_id = {d.device_id: d for d in out}
         return out
+
+    def describe(self, device_id: str) -> DeviceDescriptor | None:
+        """Cached descriptor (no file I/O unless the catalog has never been listed)."""
+        if device_id not in self._by_id:
+            self.list()
+        return self._by_id.get(device_id)
 
     def path_for(self, device_id: str) -> Path | None:
         if device_id not in self._paths:

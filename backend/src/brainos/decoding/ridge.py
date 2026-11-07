@@ -29,6 +29,7 @@ TAU_MS = 240.0
 STILL_THRESHOLD = 0.001  # reference: |v| < 0.001 in all dims = "nothing happening"
 ALPHAS: tuple[float, ...] = tuple(float(a) for a in np.logspace(-3, 5, 17))
 CV_FOLDS = 5
+SHIFTS = 20  # circular-shift null distribution size (beats all 20 => p < 1/21)
 
 FloatArray = NDArray[np.float64]
 
@@ -246,8 +247,15 @@ def evaluate(
         "control_mean_predictor_r2": r2_variance_weighted(y, np.broadcast_to(train_mean, y.shape)),
     }
     if shift_control:
-        shift = counts.shape[0] // 2
-        shifted = model.predict_counts(np.roll(counts, shift, axis=0))
-        out["control_time_shift_r2"] = r2_variance_weighted(y, shifted[rows])
-        out["control_time_shift_bins"] = shift
+        # Null distribution: the same model on neural data circularly shifted against behavior
+        # by SHIFTS evenly spaced offsets (keeps firing statistics, destroys alignment).
+        n = counts.shape[0]
+        null = []
+        for k in range(1, SHIFTS + 1):
+            shifted = model.predict_counts(np.roll(counts, (k * n) // (SHIFTS + 1), axis=0))
+            null.append(r2_variance_weighted(y, shifted[rows]))
+        out["control_time_shift_r2"] = float(np.mean(null))
+        out["control_time_shift_max_r2"] = float(np.max(null))
+        out["control_time_shift_n"] = SHIFTS
+        out["beats_all_shifts"] = bool(out["r2"] > max(null))
     return out

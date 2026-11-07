@@ -26,12 +26,17 @@ def _file(species: str = "Homo sapiens") -> NWBFile:
 
 
 def _units(
-    f: NWBFile, n_units: int, duration_s: float, rate_hz: float = 20.0, seed: int = 0
+    f: NWBFile,
+    n_units: int,
+    duration_s: float,
+    rate_hz: float = 20.0,
+    seed: int = 0,
+    t_start: float = 0.0,
 ) -> None:
     rng = np.random.default_rng(seed)
     for _ in range(n_units):
         n = rng.poisson(rate_hz * duration_s)
-        f.add_unit(spike_times=np.sort(rng.uniform(0, duration_s, n)))
+        f.add_unit(spike_times=np.sort(rng.uniform(t_start, t_start + duration_s, n)))
 
 
 def write(path: Path, f: NWBFile) -> Path:
@@ -47,11 +52,15 @@ def units_with_behavior(
     n: int = 500,
     n_units: int = 4,
     mask_len: int | None = None,
+    starting_time: float = 0.0,
+    conversion: float = 1.0,
+    offset: float = 0.0,
+    blacklist: np.ndarray | None = None,
 ) -> Path:
     """Units + a FALCON-like velocity series. ``rate_field`` is what the file *claims*."""
     f = _file()
     duration = n * 0.02
-    _units(f, n_units, duration)
+    _units(f, n_units, duration, t_start=starting_time)
     vel = np.random.default_rng(1).normal(size=(n, 2)) * 0.01
     f.add_acquisition(
         TimeSeries(
@@ -59,14 +68,25 @@ def units_with_behavior(
             data=vel,
             unit="arbitrary",
             rate=rate_field,
+            starting_time=starting_time,
+            conversion=conversion,
+            offset=offset,
             description="vx,vy",
         )
     )
-    f.add_acquisition(
-        TimeSeries(
-            name="eval_mask", data=np.ones(mask_len or n, dtype=bool), unit="bool", rate=rate_field
+    if blacklist is not None:
+        f.add_acquisition(
+            TimeSeries(name="Blacklist", data=blacklist, unit="bool", rate=rate_field)
         )
-    )
+    else:
+        f.add_acquisition(
+            TimeSeries(
+                name="eval_mask",
+                data=np.ones(mask_len or n, dtype=bool),
+                unit="bool",
+                rate=rate_field,
+            )
+        )
     return write(path, f)
 
 

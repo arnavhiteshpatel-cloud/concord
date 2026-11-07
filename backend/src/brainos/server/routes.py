@@ -116,13 +116,13 @@ async def capabilities() -> list[CapabilityInfo]:
 
 @router.get("/devices")
 async def list_devices(svc: Svc) -> list[DeviceDescriptor]:
-    return svc.runtime.registry.list()
+    return await asyncio.to_thread(svc.runtime.registry.list)  # may open/hash dataset files
 
 
 @router.get("/devices/{device_id}")
 async def get_device(device_id: str, svc: Svc) -> DeviceDescriptor:
     try:
-        return svc.runtime.registry.describe(device_id)
+        return await asyncio.to_thread(svc.runtime.registry.describe, device_id)
     except DeviceNotFoundError:
         msg = f"unknown device '{device_id}'"
         raise RuntimeCommandError(ErrorCode.DEVICE_NOT_FOUND, msg) from None

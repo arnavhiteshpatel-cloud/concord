@@ -48,8 +48,8 @@ the PR description and delete it here.
   during the first second after a connect.
 - **Recording limits**: 300 s or 200 MB per recording, then auto-stop. Re-recording a
   replay is not supported. Recordings cannot be deleted from the UI.
-- **Replay** loops by default; speed control exists in the adapter but is not exposed in
-  the API/UI.
+- **Replay** loops by default (no UI toggle). Speed is adjustable 0.1–64× via
+  `/api/v1/runtime/playback` (console offers 0.5–8×). Seeking to a position is not supported.
 - **Pause** discards packets at the runtime (simulators also stop generating). Discarded
   counts are shown; nothing is buffered for later.
 - **Backpressure** drops the oldest events per slow subscriber; there is no per-app QoS or

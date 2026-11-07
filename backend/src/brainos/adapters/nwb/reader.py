@@ -207,7 +207,6 @@ def _extract(path: Path, nwb: Any, default_bin_s: float) -> NWBUnitsRecording:
     nonempty = [s for s in spikes if s.size]
     if not nonempty:
         raise NWBFormatError(f"{path.name}: units table has no spikes")
-    span_lo = min(float(s[0]) for s in nonempty)
     span_hi = max(float(s[-1]) for s in nonempty)
 
     electrode_col = "electrodes" in units.colnames
@@ -234,7 +233,7 @@ def _extract(path: Path, nwb: Any, default_bin_s: float) -> NWBUnitsRecording:
     profile = "units-only"
     if "OpenLoopKinematicsVelocity" in acq:
         profile = "falcon-h1"
-        behavior, bin_s, t0 = _falcon_h1_behavior(path, acq, span_hi - min(span_lo, 0.0), notes)
+        behavior, bin_s, t0 = _falcon_h1_behavior(path, acq, span_hi, notes)
         n_bins = behavior.values.shape[0]
     else:
         bin_s = default_bin_s
@@ -293,10 +292,19 @@ def _electrode_label(units: Any, i: int) -> str | None:
 
 
 def _falcon_h1_behavior(
-    path: Path, acq: Any, spike_span_s: float, notes: list[str]
+    path: Path, acq: Any, last_spike_s: float, notes: list[str]
 ) -> tuple[Behavior, float, float]:
     vel = acq["OpenLoopKinematicsVelocity"]
     data = np.asarray(vel.data[:], dtype=np.float64)
+    # NWB: true values = data * conversion + offset (offset is a VALUE offset, not a time shift)
+    conversion = float(getattr(vel, "conversion", 1.0) or 1.0)
+    value_offset = float(getattr(vel, "offset", 0.0) or 0.0)
+    if conversion != 1.0 or value_offset != 0.0:
+        data = data * conversion + value_offset
+        notes.append(
+            f"Behavior values scaled per NWB: data * conversion ({conversion:g}) "
+            f"+ offset ({value_offset:g})."
+        )
     if data.ndim != 2 or data.shape[0] == 0:
         raise NWBFormatError(
             f"{path.name}: OpenLoopKinematicsVelocity must be 2-D, got {data.shape}"
@@ -315,14 +323,11 @@ def _falcon_h1_behavior(
             raise NWBFormatError(f"{path.name}: irregular behavior timestamps are not supported")
         t0 = float(ts[0])
     else:
-        bin_s = _resolve_period(
-            float(vel.rate), n, spike_span_s, notes, "OpenLoopKinematicsVelocity"
-        )
         t0 = float(getattr(vel, "starting_time", 0.0) or 0.0)
-        offset = float(getattr(vel, "offset", 0.0) or 0.0)
-        if offset:
-            notes.append(f"Behavior TimeSeries.offset={offset} applied as in the reference loader.")
-            t0 += offset
+        # spikes run from about one bin before t0 to the end of the series
+        bin_s = _resolve_period(
+            float(vel.rate), n, last_spike_s - t0, notes, "OpenLoopKinematicsVelocity"
+        )
     dims = [s.strip() for s in _str(vel.description).split(",") if s.strip()]
     if len(dims) != d:
         notes.append(
@@ -346,6 +351,17 @@ def _falcon_h1_behavior(
         )
     else:
         notes.append("No eval_mask: all behavior samples treated as valid.")
+    if "eval_mask" not in acq and "Blacklist" in acq:
+        black = np.asarray(acq["Blacklist"].data[:]).astype(bool)
+        if black.shape != (n,):
+            raise NWBFormatError(
+                f"{path.name}: Blacklist length {black.shape} != behavior length {n}"
+            )
+        valid = ~black
+        notes[-1] = (
+            "Older FALCON format: no eval_mask; valid = NOT Blacklist, as in the authors' loader. "
+            f"{valid.mean() * 100:.1f}% of samples are valid."
+        )
     valid &= np.isfinite(data).all(axis=1)
     data = np.where(np.isfinite(data), data, 0.0)
     trial = None

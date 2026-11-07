@@ -37,6 +37,10 @@ class DeviceNotFoundError(LookupError):
     pass
 
 
+class DeviceOpenError(RuntimeError):
+    """The device exists but could not be opened (e.g. a dataset file became invalid)."""
+
+
 class DeviceRegistry:
     def __init__(
         self,
@@ -114,11 +118,11 @@ class DeviceRegistry:
         if device_id.startswith(REPLAY_PREFIX):
             return replay_descriptor(self._replay_source(device_id))
         if device_id.startswith(NWB_PREFIX):
-            self._nwb_path(device_id)  # raises DeviceNotFoundError
-            for d in self.catalog.list():
-                if d.device_id == device_id:
-                    return d
-            raise DeviceNotFoundError(device_id)
+            desc = self.catalog.describe(device_id)
+            if desc is None:
+                self._nwb_path(device_id)  # raises DeviceNotFoundError with the reason
+                raise DeviceNotFoundError(device_id)
+            return desc
         try:
             return self._factories[device_id][0]
         except KeyError:
@@ -128,9 +132,12 @@ class DeviceRegistry:
         if device_id.startswith(REPLAY_PREFIX):
             return ReplayAdapter(self._replay_source(device_id), loop=self._replay_loop)
         if device_id.startswith(NWB_PREFIX):
-            return ReplayAdapter(
-                self.catalog.source(self._nwb_path(device_id)), loop=self._replay_loop
-            )
+            path = self._nwb_path(device_id)
+            try:
+                source = self.catalog.source(path)
+            except (ValueError, OSError) as exc:  # NWBFormatError, DecoderLeakageError: ValueError
+                raise DeviceOpenError(f"{device_id}: cannot open {path.name}: {exc}") from exc
+            return ReplayAdapter(source, loop=self._replay_loop)
         try:
             return self._factories[device_id][1]()
         except KeyError:

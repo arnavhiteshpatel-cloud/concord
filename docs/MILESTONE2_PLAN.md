@@ -42,9 +42,12 @@ knob of motor cortex; 176 channels released). Details and verification in
 - **Playback control** added to `ReplayAdapter` (speed, position) and exposed through a
   generic runtime/REST endpoint that returns `unsupported_operation` for live/simulated
   devices.
-- **Decoder:** FALCON-style baseline (causal exponential filter, z-score, ridge) trained
-  on a session's calibration file, evaluated on that session's held-out minival file.
-  Model stored as JSON (no pickle). During replay of the held-out file only, it emits
+- **Decoder:** FALCON-style baseline (causal exponential filter, z-score, ridge). *Revised
+  during implementation:* the original idea of evaluating on the session's minival file
+  was dropped because minival is a subset of calib (verified: identical first 1,691 bins),
+  which would be total leakage. Evaluation is instead within-block chronological and
+  cross-block (next block the same day). Model stored as JSON (no pickle). During replay of
+  a held-out block only, it emits
   `intent.kinematics` with `provenance.kind = decoded_intent` and a `model_id`. Never
   mapped to `pointer_intent`/`selection`, so the communication board cannot react to it.
 

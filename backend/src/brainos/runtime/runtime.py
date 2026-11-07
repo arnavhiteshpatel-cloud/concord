@@ -52,7 +52,7 @@ from brainos.runtime.bus import DEFAULT_QUEUE_SIZE, EventBus, Subscriber
 from brainos.runtime.diagnostics import Diagnostics, DiagnosticsSnapshot
 from brainos.runtime.negotiation import negotiate
 from brainos.runtime.recorder import Recorder, RecorderError, RecordingInfo
-from brainos.runtime.registry import DeviceNotFoundError, DeviceRegistry
+from brainos.runtime.registry import DeviceNotFoundError, DeviceOpenError, DeviceRegistry
 
 log = logging.getLogger(__name__)
 
@@ -314,6 +314,9 @@ class Runtime:
         try:
             # off the event loop: opening a dataset file can take a few hundred ms
             adapter = await asyncio.to_thread(self.registry.create, device_id)
+        except DeviceOpenError as exc:
+            self._fail(str(exc), kind="connect_error")
+            raise RuntimeCommandError(ErrorCode.DEVICE_ERROR, str(exc)) from None
         except DeviceNotFoundError:
             raise RuntimeCommandError(
                 ErrorCode.DEVICE_NOT_FOUND, f"unknown device '{device_id}'"

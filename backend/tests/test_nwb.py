@@ -230,3 +230,99 @@ def test_source_files_are_not_mutated(tmp_path: Path) -> None:
     list(NWBUnitsSource(p).records())
     assert p.read_bytes() == before
     shutil.rmtree(tmp_path)
+
+
+# ------------------------------------------------- regression tests from review 2
+
+
+def test_nonzero_starting_time_is_accepted(tmp_path: Path) -> None:
+    """Review 2 #6: the timebase check must be relative to starting_time."""
+    rec = load(fx.units_with_behavior(tmp_path / "late.nwb", starting_time=100.0))
+    assert rec.t0_s == pytest.approx(100.0) and rec.bin_s == pytest.approx(0.02)
+    total = sum(int(c.sum()) for _, c in rec.iter_counts())
+    assert total > 0.95 * sum(ch.spike_count for ch in rec.channels)
+
+
+def test_nwb_offset_and_conversion_scale_values_not_time(tmp_path: Path) -> None:
+    """Review 2 #6: NWB `offset` is a value offset (data*conversion + offset), not a time shift."""
+    plain = load(fx.units_with_behavior(tmp_path / "a.nwb"))
+    scaled = load(fx.units_with_behavior(tmp_path / "b.nwb", conversion=2.0, offset=0.5))
+    assert plain.behavior is not None and scaled.behavior is not None
+    assert np.allclose(scaled.behavior.values, plain.behavior.values * 2.0 + 0.5)
+    assert scaled.t0_s == plain.t0_s
+    assert any("conversion" in n for n in scaled.notes)
+
+
+def test_older_blacklist_mask_is_honored(tmp_path: Path) -> None:
+    """Review 2 #6: older FALCON files mark excluded samples with Blacklist."""
+    black = np.zeros(500, dtype=bool)
+    black[:100] = True
+    rec = load(fx.units_with_behavior(tmp_path / "bl.nwb", blacklist=black))
+    assert rec.behavior is not None
+    assert not rec.behavior.valid[:100].any() and rec.behavior.valid[100:].all()
+    assert any("Blacklist" in n for n in rec.notes)
+
+
+def test_duplicate_device_ids_are_reported_not_merged(tmp_path: Path) -> None:
+    """Review 2 #3: same filename in two folders must not produce two devices with one id."""
+    ds = tmp_path / "datasets"
+    (ds / "a").mkdir(parents=True)
+    (ds / "b").mkdir()
+    fx.units_with_behavior(ds / "a" / "x.nwb")
+    fx.units_with_behavior(ds / "b" / "x.nwb", n=400)
+    cat = NWBCatalog(ds, tmp_path / "models")
+    assert [d.device_id for d in cat.list()] == ["nwb:x"]
+    assert len(cat.problems) == 1 and "already used" in cat.problems[0].error
+    assert cat.path_for("nwb:x") == ds / "a" / "x.nwb"
+
+
+async def test_set_speed_during_loop_gap_does_not_burst() -> None:
+    """Review 2 #1: changing speed between passes must not replay the next pass instantly."""
+
+    class Short(_BigSource):
+        def duration_ns(self) -> int | None:
+            return 200 * 1_000_000
+
+        def records(self) -> Iterator[ReplayRecord]:
+            for i in range(200):  # 0.2 s of recording
+                yield ReplayRecord(t_ns=i * 1_000_000, envelope={"event_type": "device.status"})
+
+    adapter = ReplayAdapter(Short(), speed=4.0, loop=True)
+    await adapter.open()
+    for _ in range(200):  # finish pass 1 (~50 ms)
+        await adapter.read()
+    # the read of pass 2's first record sleeps through the loop gap; change speed meanwhile,
+    # exactly as a REST call would while the pump is waiting
+    first = asyncio.create_task(adapter.read())
+    await asyncio.sleep(0.1)
+    adapter.set_speed(1.0)
+    await first
+    t0 = asyncio.get_running_loop().time()
+    for _ in range(100):
+        await adapter.read()
+    elapsed = asyncio.get_running_loop().time() - t0
+    assert elapsed > 0.08  # ~0.1 s of recording at 1x, not a burst
+    assert adapter.loops == 1
+
+
+def test_evaluation_reports_shift_null_distribution() -> None:
+    """Review 2 #8: the time-shift control is a 20-shift null, not a single shift."""
+    from brainos.decoding.ridge import evaluate
+
+    rng = np.random.default_rng(1)
+    counts = rng.poisson(3.0, size=(2000, 8)).astype(float)
+    filt = causal_filter(counts, exponential_kernel(20.0))
+    y = (filt - filt.mean(0)) / filt.std(0) @ rng.normal(size=(8, 2))
+    model = fit(
+        counts[:1500],
+        y[:1500],
+        np.ones(1500, bool),
+        dims=["a", "b"],
+        unit="u",
+        bin_ms=20.0,
+        space="s",
+        training={"behavior_mean": [0.0, 0.0]},
+    )
+    res = evaluate(model, counts[1500:], y[1500:], np.ones(500, bool), skip_first=12)
+    assert res["control_time_shift_n"] == 20
+    assert res["r2"] > res["control_time_shift_max_r2"] and res["beats_all_shifts"] is True
