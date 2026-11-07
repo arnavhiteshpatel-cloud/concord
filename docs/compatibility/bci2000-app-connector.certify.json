@@ -1,0 +1,1401 @@
+{
+ "notice": "SOFTWARE CERTIFICATION ONLY - this report is not hardware certification and not human-participant validation. A pass means the plugin satisfied the BrainOS adapter SDK contract, through the real plugin host, with the data source used in this run, on this machine. It does not show that any physical device, amplifier or implant works with BrainOS, and it says nothing about safety, clinical use or decoding performance. 'hardware_tested' appears only as an operator's signed attestation, which this toolkit does not verify; 'human_participant_validated' is never set by this toolkit.",
+ "report_version": "1.0",
+ "tool": {
+  "name": "brainos-certify",
+  "version": "0.1.0"
+ },
+ "generated_at": "2026-11-07T20:49:30Z",
+ "started_at": "2026-11-07T20:48:58Z",
+ "elapsed_s": 32.76,
+ "environment": {
+  "os": "Linux",
+  "os_release": "6.18.44-fc-v310",
+  "platform": "Linux-6.18.44-fc-v310-x86_64-with-glibc2.39",
+  "machine": "x86_64",
+  "cpu_model": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+  "cpu_count": 4,
+  "memory_total_mib": 16086,
+  "python": "3.12.3",
+  "python_implementation": "CPython",
+  "certify_version": "0.1.0",
+  "report_version": "1.0",
+  "sdk_version": "1.0.0",
+  "sdk_api_version": "1.0",
+  "brainos_version": "0.3.0",
+  "host_python": "3.12.3",
+  "host_sdk_version": "1.0.0",
+  "host_api_version": "1.0"
+ },
+ "plugin": {
+  "ref": "bci2000",
+  "entry_point": "bci2000",
+  "device_key": "app-connector",
+  "manifest": {
+   "name": "brainos-bci2000",
+   "version": "0.1.0",
+   "api_version": "1.0",
+   "display_name": "BCI2000 App Connector",
+   "author": "BrainOS",
+   "license": "Proprietary (internal preview)",
+   "homepage": "https://www.bci2000.org",
+   "ecosystem": "bci2000",
+   "network": true,
+   "roles": [
+    "behavior",
+    "decoder_output",
+    "markers"
+   ],
+   "options": {
+    "address": {
+     "type": "str",
+     "required": false
+    },
+    "port": {
+     "type": "int",
+     "required": false
+    },
+    "behavior_states": {
+     "type": "str",
+     "required": false
+    },
+    "marker_states": {
+     "type": "str",
+     "required": false
+    },
+    "sampling_rate_hz": {
+     "type": "float",
+     "required": false
+    },
+    "sample_block_size": {
+     "type": "int",
+     "required": false
+    },
+    "clock": {
+     "type": "choice",
+     "required": false
+    },
+    "open_timeout_s": {
+     "type": "float",
+     "required": false
+    },
+    "declare_synthetic": {
+     "type": "bool",
+     "required": false
+    },
+    "declare_prerecorded": {
+     "type": "bool",
+     "required": false
+    }
+   }
+  },
+  "identity": {
+   "ref": "bci2000",
+   "kind": "entry_point",
+   "entry_point": {
+    "group": "brainos.sources",
+    "name": "bci2000",
+    "count": 1,
+    "value": "brainos_bci2000.plugin:BCI2000AppConnectorPlugin",
+    "providers": [
+     "brainos-bci2000"
+    ]
+   },
+   "distribution": {
+    "name": "brainos-bci2000",
+    "version": "0.1.0",
+    "editable": true,
+    "direct_url": "file:///home/user/brainos/packages/brainos-bci2000",
+    "requires": [
+     {
+      "requirement": "brainos-adapter-sdk<2,>=1.0",
+      "installed": "1.0.0"
+     },
+     {
+      "requirement": "numpy>=1.26",
+      "installed": "2.5.4"
+     }
+    ],
+    "record": {
+     "files": 10,
+     "verified": 9,
+     "unhashed": 1,
+     "mismatched": [],
+     "missing": [],
+     "sha256": "da18e433519458dba84221bbd7b51bf2bbd78e105a3c2f2e743b5d5767ec4a4a"
+    }
+   },
+   "module": {
+    "name": "brainos_bci2000.plugin",
+    "package": "brainos_bci2000",
+    "path": "/home/user/brainos/packages/brainos-bci2000/src/brainos_bci2000",
+    "files": [
+     {
+      "path": "__init__.py",
+      "sha256": "cf5be8f02ff63002b2d1afb9e9fb54699b4f6cb3bd09fa6cda0dd904a6bcdc80",
+      "bytes": 264
+     },
+     {
+      "path": "convert.py",
+      "sha256": "4c07d2fe1da02c5ddc81e3f9b7ab691aa5751c8fcee4fa38c198d7a9f7702801",
+      "bytes": 7374
+     },
+     {
+      "path": "plugin.py",
+      "sha256": "c9b93099c65e5a2c15cfabd783ee58c25090ee09933bc0a129d2aae6a117491d",
+      "bytes": 19994
+     },
+     {
+      "path": "protocol.py",
+      "sha256": "74f45fe79e84f6d0614845c1d6e09fe941c072d7fb61f3b1b813afdd30a7cf34",
+      "bytes": 8056
+     },
+     {
+      "path": "py.typed",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+     }
+    ],
+    "file_count": 5,
+    "tree_sha256": "cc1a0ded75fc5b89f336ae251b9c1c8f19fd002bb4ad2a09cca95618cd6e5bd0"
+   },
+   "versions": {
+    "bci2000": null
+   },
+   "errors": [],
+   "git": {
+    "commit": "ef626ac26d6c59210dfb645964148d41f6ca31b1",
+    "dirty": false,
+    "dirty_files": 0
+   }
+  },
+  "session": {
+   "origin": "bci2000:127.0.0.1:20321 (processed control information, not raw signal)",
+   "synthetic": true,
+   "prerecorded": true,
+   "primary_stream": "control_signal",
+   "streams": [
+    {
+     "stream_id": "control_signal",
+     "role": "decoder_output",
+     "channels": 16,
+     "nominal_rate_hz": 32.0,
+     "clock": "source",
+     "clock_description": "BCI2000 SourceTime state (16-bit millisecond counter of BCI2000's monotonic clock at block acquisition), unwrapped; arbitrary origin.",
+     "modality": null,
+     "invasive": null,
+     "units": [
+      "None"
+     ],
+     "bin_ms": null,
+     "quantity": "control_signal",
+     "model_id": "bci2000-control-signal"
+    },
+    {
+     "stream_id": "states",
+     "role": "behavior",
+     "channels": 3,
+     "nominal_rate_hz": 32.0,
+     "clock": "source",
+     "clock_description": "BCI2000 SourceTime state (16-bit millisecond counter of BCI2000's monotonic clock at block acquisition), unwrapped; arbitrary origin.",
+     "modality": null,
+     "invasive": null,
+     "units": [
+      "None"
+     ],
+     "bin_ms": null,
+     "quantity": "bci2000_state",
+     "model_id": null
+    },
+    {
+     "stream_id": "state_changes",
+     "role": "markers",
+     "channels": 1,
+     "nominal_rate_hz": 0.0,
+     "clock": "source",
+     "clock_description": "BCI2000 SourceTime state (16-bit millisecond counter of BCI2000's monotonic clock at block acquisition), unwrapped; arbitrary origin.",
+     "modality": null,
+     "invasive": null,
+     "units": [
+      "None"
+     ],
+     "bin_ms": null,
+     "quantity": null,
+     "model_id": null
+    }
+   ]
+  }
+ },
+ "options": {
+  "plugin_options_requested": {
+   "port": "20321",
+   "sampling_rate_hz": "256",
+   "sample_block_size": "8",
+   "declare_synthetic": "true",
+   "declare_prerecorded": "true"
+  },
+  "plugin_options_resolved": {
+   "address": "127.0.0.1",
+   "port": 20321,
+   "behavior_states": "auto",
+   "marker_states": "auto",
+   "sampling_rate_hz": 256.0,
+   "sample_block_size": 8,
+   "clock": "auto",
+   "open_timeout_s": 10.0,
+   "declare_synthetic": true,
+   "declare_prerecorded": true
+  },
+  "run": {
+   "plugin": "bci2000",
+   "device": null,
+   "duration_s": 20.0,
+   "reopen_s": 2.0,
+   "rate_tolerance": 0.02,
+   "read_timeout_s": 0.1,
+   "read_grace_s": 5.0,
+   "start_timeout_s": 30.0,
+   "open_timeout_s": 30.0,
+   "discover_timeout_s": 2.0,
+   "kill_detect_limit_s": 2.0,
+   "python": null,
+   "extra_path": [],
+   "runtime": true,
+   "runtime_s": 5.0,
+   "protocol_reference": null,
+   "attestation": null,
+   "attestation_signature": null,
+   "attestation_public_key": null
+  }
+ },
+ "summary": {
+  "counts": {
+   "pass": 26,
+   "fail": 0,
+   "warn": 2,
+   "not_run": 1
+  },
+  "level": "adapter_implementation",
+  "level_statement": "adapter implementation: every required automated check passed",
+  "exit_code": 0,
+  "blocking": []
+ },
+ "levels": {
+  "achieved": [
+   "adapter_implementation"
+  ],
+  "highest": "adapter_implementation",
+  "levels": {
+   "adapter_implementation": {
+    "achieved": true,
+    "statement": "adapter implementation: every required automated check passed",
+    "why": "all required checks passed or warned; no check failed",
+    "missing": [],
+    "notes": []
+   },
+   "protocol_tested": {
+    "achieved": false,
+    "statement": "not achieved",
+    "why": "see missing",
+    "missing": [
+     "no --protocol-reference: name the external reference software that produced the data (e.g. \"BrainFlow 5.23 BoardShim SYNTHETIC_BOARD\")"
+    ],
+    "consistency": [
+     {
+      "rule": "reference_given",
+      "ok": false,
+      "detail": "no --protocol-reference given"
+     },
+     {
+      "rule": "ecosystem_declared",
+      "ok": true,
+      "detail": "manifest.ecosystem = 'bci2000'"
+     }
+    ]
+   },
+   "hardware_tested": {
+    "achieved": false,
+    "statement": "not achieved",
+    "why": "see missing",
+    "missing": [
+     "no operator attestation (--attestation): hardware testing cannot be established by software and is never inferred"
+    ]
+   },
+   "human_participant_validated": {
+    "achieved": false,
+    "statement": "never set by this toolkit",
+    "why": "human-participant validation is out of scope for software: it requires an approved human-research protocol run by qualified investigators",
+    "missing": [
+     "out of scope for software; never granted by brainos-certify"
+    ]
+   }
+  }
+ },
+ "protocol_reference": null,
+ "attestation": null,
+ "checks": [
+  {
+   "id": "manifest.load",
+   "group": "manifest",
+   "title": "Plugin host starts and the plugin loads",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "plugin loaded in its own host process (pid 32642) in 0.11 s",
+   "evidence": {
+    "pid": 32642,
+    "protocol": "brainos.plugin-ipc/1",
+    "host_sdk_version": "1.0.0",
+    "host_api_version": "1.0",
+    "host_python": "3.12.3",
+    "startup_s": 0.112
+   }
+  },
+  {
+   "id": "manifest.valid",
+   "group": "manifest",
+   "title": "Manifest passes validate_manifest (host and local)",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "manifest valid (host and local validation)",
+   "evidence": {
+    "manifest": {
+     "name": "brainos-bci2000",
+     "version": "0.1.0",
+     "api_version": "1.0",
+     "display_name": "BCI2000 App Connector",
+     "author": "BrainOS",
+     "license": "Proprietary (internal preview)",
+     "homepage": "https://www.bci2000.org",
+     "ecosystem": "bci2000",
+     "network": true,
+     "roles": [
+      "behavior",
+      "decoder_output",
+      "markers"
+     ],
+     "options": {
+      "address": {
+       "type": "str",
+       "required": false
+      },
+      "port": {
+       "type": "int",
+       "required": false
+      },
+      "behavior_states": {
+       "type": "str",
+       "required": false
+      },
+      "marker_states": {
+       "type": "str",
+       "required": false
+      },
+      "sampling_rate_hz": {
+       "type": "float",
+       "required": false
+      },
+      "sample_block_size": {
+       "type": "int",
+       "required": false
+      },
+      "clock": {
+       "type": "choice",
+       "required": false
+      },
+      "open_timeout_s": {
+       "type": "float",
+       "required": false
+      },
+      "declare_synthetic": {
+       "type": "bool",
+       "required": false
+      },
+      "declare_prerecorded": {
+       "type": "bool",
+       "required": false
+      }
+     }
+    },
+    "problems": [],
+    "host_says_compatible": true
+   }
+  },
+  {
+   "id": "manifest.api_compat",
+   "group": "manifest",
+   "title": "Plugin API version is compatible with the installed SDK",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "plugin API 1.0 runs on SDK API 1.0 (SDK 1.0.0)",
+   "evidence": {
+    "plugin_api_version": "1.0",
+    "host_api_version": "1.0",
+    "host_sdk_version": "1.0.0",
+    "certify_sdk_api_version": "1.0",
+    "certify_sdk_version": "1.0.0"
+   }
+  },
+  {
+   "id": "manifest.entry_point",
+   "group": "manifest",
+   "title": "Registered as a brainos.sources entry point",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "entry point bci2000 = brainos_bci2000.plugin:BCI2000AppConnectorPlugin (brainos-bci2000)",
+   "evidence": {
+    "entry_point": {
+     "group": "brainos.sources",
+     "name": "bci2000",
+     "count": 1,
+     "value": "brainos_bci2000.plugin:BCI2000AppConnectorPlugin",
+     "providers": [
+      "brainos-bci2000"
+     ]
+    }
+   }
+  },
+  {
+   "id": "manifest.distribution",
+   "group": "manifest",
+   "title": "Installed distribution identified (name, version, hashes)",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "brainos-bci2000 0.1.0: 9 of 9 hashed RECORD entries verified; module tree sha256 cc1a0ded75fc\u2026 (editable install: RECORD covers the .pth only; source files hashed)",
+   "evidence": {
+    "distribution": {
+     "name": "brainos-bci2000",
+     "version": "0.1.0",
+     "editable": true,
+     "direct_url": "file:///home/user/brainos/packages/brainos-bci2000"
+    },
+    "record": {
+     "files": 10,
+     "verified": 9,
+     "unhashed": 1,
+     "mismatched": [],
+     "missing": [],
+     "sha256": "da18e433519458dba84221bbd7b51bf2bbd78e105a3c2f2e743b5d5767ec4a4a"
+    },
+    "module": {
+     "name": "brainos_bci2000.plugin",
+     "path": "/home/user/brainos/packages/brainos-bci2000/src/brainos_bci2000",
+     "file_count": 5,
+     "tree_sha256": "cc1a0ded75fc5b89f336ae251b9c1c8f19fd002bb4ad2a09cca95618cd6e5bd0"
+    },
+    "git": {
+     "commit": "ef626ac26d6c59210dfb645964148d41f6ca31b1",
+     "dirty": false,
+     "dirty_files": 0
+    }
+   }
+  },
+  {
+   "id": "manifest.discover",
+   "group": "manifest",
+   "title": "discover() returns valid devices, including the one tested",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "1 device(s) ['app-connector'] in 0.00 s; testing 'app-connector'",
+   "evidence": {
+    "devices": [
+     {
+      "device_key": "app-connector",
+      "display_name": "BCI2000 App Connector (UDP)",
+      "description": "Receives BCI2000 ConnectorOutput datagrams (processed control information, not raw signal). Set BCI2000's ConnectorOutputAddress to this plugin's address and port.",
+      "details": {
+       "default_address": "127.0.0.1:20321"
+      }
+     }
+    ],
+    "discover_s": 0.0,
+    "problems": [],
+    "tested_device": "app-connector"
+   }
+  },
+  {
+   "id": "metadata.session_valid",
+   "group": "metadata",
+   "title": "open() succeeds; SessionInfo passes validation",
+   "required": true,
+   "status": "warn",
+   "applicable": true,
+   "reason": "session.synthetic_and_prerecorded: both synthetic and prerecorded are set; BrainOS treats the source as synthetic",
+   "evidence": {
+    "open_s": 0.115,
+    "primary_stream": "control_signal",
+    "synthetic": true,
+    "prerecorded": true,
+    "origin": "bci2000:127.0.0.1:20321 (processed control information, not raw signal)",
+    "streams": [
+     {
+      "stream_id": "control_signal",
+      "role": "decoder_output",
+      "channels": 16,
+      "nominal_rate_hz": 32.0,
+      "clock": "source",
+      "clock_description": "BCI2000 SourceTime state (16-bit millisecond counter of BCI2000's monotonic clock at block acquisition), unwrapped; arbitrary origin.",
+      "modality": null,
+      "invasive": null,
+      "units": [
+       "None"
+      ],
+      "bin_ms": null,
+      "quantity": "control_signal",
+      "model_id": "bci2000-control-signal"
+     },
+     {
+      "stream_id": "states",
+      "role": "behavior",
+      "channels": 3,
+      "nominal_rate_hz": 32.0,
+      "clock": "source",
+      "clock_description": "BCI2000 SourceTime state (16-bit millisecond counter of BCI2000's monotonic clock at block acquisition), unwrapped; arbitrary origin.",
+      "modality": null,
+      "invasive": null,
+      "units": [
+       "None"
+      ],
+      "bin_ms": null,
+      "quantity": "bci2000_state",
+      "model_id": null
+     },
+     {
+      "stream_id": "state_changes",
+      "role": "markers",
+      "channels": 1,
+      "nominal_rate_hz": 0.0,
+      "clock": "source",
+      "clock_description": "BCI2000 SourceTime state (16-bit millisecond counter of BCI2000's monotonic clock at block acquisition), unwrapped; arbitrary origin.",
+      "modality": null,
+      "invasive": null,
+      "units": [
+       "None"
+      ],
+      "bin_ms": null,
+      "quantity": null,
+      "model_id": null
+     }
+    ],
+    "options_resolved": {
+     "address": "127.0.0.1",
+     "port": 20321,
+     "behavior_states": "auto",
+     "marker_states": "auto",
+     "sampling_rate_hz": 256.0,
+     "sample_block_size": 8,
+     "clock": "auto",
+     "open_timeout_s": 10.0,
+     "declare_synthetic": true,
+     "declare_prerecorded": true
+    },
+    "problems": [
+     {
+      "code": "session.synthetic_and_prerecorded",
+      "message": "both synthetic and prerecorded are set; BrainOS treats the source as synthetic",
+      "severity": "warning",
+      "where": ""
+     }
+    ]
+   }
+  },
+  {
+   "id": "metadata.units",
+   "group": "metadata",
+   "title": "Channel units declared (unknown units are a warning)",
+   "required": true,
+   "status": "warn",
+   "applicable": true,
+   "reason": "19 of 19 channel(s) declare no unit (shown as 'arbitrary'; correct when the source does not state units)",
+   "evidence": {
+    "streams": {
+     "control_signal": {
+      "role": "decoder_output",
+      "channels": 16,
+      "unknown": 16,
+      "declared": []
+     },
+     "states": {
+      "role": "behavior",
+      "channels": 3,
+      "unknown": 3,
+      "declared": []
+     }
+    },
+    "unknown_channels": 19,
+    "notes": []
+   }
+  },
+  {
+   "id": "metadata.modality",
+   "group": "metadata",
+   "title": "Modality / invasiveness declared and consistent",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "no signal / spike-count stream: modality not applicable (BrainOS shows 'modality not declared')",
+   "evidence": {}
+  },
+  {
+   "id": "metadata.channel_identity",
+   "group": "metadata",
+   "title": "Identical streams and channels on every open",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "4 opens (open_1, reopen_same_host, fresh_host_after_kill, brainos_runtime): identical stream ids, labels, order, units, rates (20 channels)",
+   "evidence": {
+    "opens_compared": [
+     "open_1",
+     "reopen_same_host",
+     "fresh_host_after_kill",
+     "brainos_runtime"
+    ],
+    "differences": {},
+    "reference": "open_1",
+    "channels": 20
+   }
+  },
+  {
+   "id": "timing.monotonic",
+   "group": "timing",
+   "title": "Timestamps never decrease",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "1560 timestamps in 3 session(s) never decrease (within or across chunks)",
+   "evidence": {
+    "streams": {
+     "main.control_signal": {
+      "samples": 644,
+      "decreases": 0
+     },
+     "main.states": {
+      "samples": 644,
+      "decreases": 0
+     },
+     "reopen.control_signal": {
+      "samples": 68,
+      "decreases": 0
+     },
+     "reopen.states": {
+      "samples": 68,
+      "decreases": 0
+     },
+     "fresh_host.control_signal": {
+      "samples": 68,
+      "decreases": 0
+     },
+     "fresh_host.states": {
+      "samples": 68,
+      "decreases": 0
+     }
+    }
+   }
+  },
+  {
+   "id": "timing.rate",
+   "group": "timing",
+   "title": "Rate from source timestamps matches the nominal rate",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "primary 32.012347 Hz from timestamps vs nominal 32 Hz (+0.039 %, tolerance \u00b12 %)",
+   "evidence": {
+    "tolerance_percent": 2.0,
+    "streams": {
+     "control_signal": {
+      "nominal_hz": 32.0,
+      "clock": "source",
+      "samples": 644,
+      "time_span_s": 20.086,
+      "rate_hz": 32.012347,
+      "rate_hz_lsq": 32.011494,
+      "error_percent": 0.039
+     },
+     "states": {
+      "nominal_hz": 32.0,
+      "clock": "source",
+      "samples": 644,
+      "time_span_s": 20.086,
+      "rate_hz": 32.012347,
+      "rate_hz_lsq": 32.011494,
+      "error_percent": 0.039
+     }
+    }
+   }
+  },
+  {
+   "id": "timing.jitter",
+   "group": "timing",
+   "title": "Timestamp and arrival jitter distribution",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "primary timestamp residual p50/p99/max 0.2798/2.8644/2.8758 ms; arrival interval p50/p99 31.233/37.367 ms",
+   "evidence": {
+    "streams": {
+     "control_signal": {
+      "residual_ms": {
+       "n": 644,
+       "min": 0.0002,
+       "p50": 0.2798,
+       "p95": 0.7429,
+       "p99": 2.8644,
+       "max": 2.8758,
+       "mean": 0.3429
+      },
+      "interval_error_ms": {
+       "n": 643,
+       "min": 0.25,
+       "p50": 0.25,
+       "p95": 0.75,
+       "p99": 3.25,
+       "max": 3.25,
+       "mean": 0.446
+      },
+      "arrival_interval_ms": {
+       "n": 641,
+       "min": 24.2751,
+       "p50": 31.233,
+       "p95": 31.9526,
+       "p99": 37.367,
+       "max": 37.6669,
+       "mean": 31.2349
+      },
+      "samples_per_chunk": {
+       "n": 642,
+       "min": 1.0,
+       "p50": 1.0,
+       "p95": 1.0,
+       "p99": 1.0,
+       "max": 2.0,
+       "mean": 1.0031
+      },
+      "truncated_to_samples": null
+     },
+     "states": {
+      "residual_ms": {
+       "n": 644,
+       "min": 0.0002,
+       "p50": 0.2798,
+       "p95": 0.7429,
+       "p99": 2.8644,
+       "max": 2.8758,
+       "mean": 0.3429
+      },
+      "interval_error_ms": {
+       "n": 643,
+       "min": 0.25,
+       "p50": 0.25,
+       "p95": 0.75,
+       "p99": 3.25,
+       "max": 3.25,
+       "mean": 0.446
+      },
+      "arrival_interval_ms": {
+       "n": 641,
+       "min": 24.2751,
+       "p50": 31.233,
+       "p95": 31.9526,
+       "p99": 37.367,
+       "max": 37.6669,
+       "mean": 31.2349
+      },
+      "samples_per_chunk": {
+       "n": 642,
+       "min": 1.0,
+       "p50": 1.0,
+       "p95": 1.0,
+       "p99": 1.0,
+       "max": 2.0,
+       "mean": 1.0031
+      },
+      "truncated_to_samples": null
+     },
+     "state_changes": {
+      "residual_ms": {
+       "n": 58,
+       "min": 1.3687,
+       "p50": 198.7371,
+       "p95": 360.002,
+       "p99": 365.4785,
+       "max": 367.4294,
+       "mean": 192.9948
+      },
+      "arrival_interval_ms": {
+       "n": 37,
+       "min": 499.7215,
+       "p50": 505.7616,
+       "p95": 586.8924,
+       "p99": 587.0788,
+       "max": 587.1249,
+       "mean": 522.7809
+      },
+      "samples_per_chunk": {
+       "n": 38,
+       "min": 1.0,
+       "p50": 1.0,
+       "p95": 3.0,
+       "p99": 3.0,
+       "max": 3.0,
+       "mean": 1.5263
+      },
+      "truncated_to_samples": null
+     }
+    },
+    "warn_threshold_sample_periods": 1.0
+   }
+  },
+  {
+   "id": "timing.clock_domain",
+   "group": "timing",
+   "title": "Timestamps are plausible for the declared clock domain",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "source clock: offset to host monotonic 6520 s (origin unknown by declaration; not checkable); drift -21.4 ppm vs host monotonic",
+   "evidence": {
+    "domain": "source",
+    "description": "BCI2000 SourceTime state (16-bit millisecond counter of BCI2000's monotonic clock at block acquisition), unwrapped; arbitrary origin.",
+    "reference_clock": "host monotonic clock",
+    "offset_newest_s": {
+     "n": 642,
+     "min": 6519.7124,
+     "p50": 6519.7133,
+     "p95": 6519.7141,
+     "p99": 6519.7199,
+     "max": 6519.7469,
+     "mean": 6519.7135
+    },
+    "offset_oldest_s": {
+     "n": 642,
+     "min": 6519.7124,
+     "p50": 6519.7133,
+     "p95": 6519.7142,
+     "p99": 6519.7199,
+     "max": 6519.7779,
+     "mean": 6519.7136
+    },
+    "drift_ppm": -21.4,
+    "drift_span_s": 20.02
+   }
+  },
+  {
+   "id": "integrity.read",
+   "group": "integrity",
+   "title": "Session streams for the whole run without errors or hangs",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "642 reads over 20.0 s, 1346 samples (all streams), no errors",
+   "evidence": {
+    "requested_s": 20.0,
+    "ran_s": 20.023,
+    "reads": 642,
+    "empty_reads": 0,
+    "samples": 1346,
+    "first_data_after_s": 0.001,
+    "failure": null
+   }
+  },
+  {
+   "id": "integrity.chunk_validation",
+   "group": "integrity",
+   "title": "Every chunk passes validation (host and local)",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "1594 chunks validated by the host and again by the certifier",
+   "evidence": {
+    "chunks_validated": 1594,
+    "errors": [],
+    "warnings": [],
+    "host_notices": {}
+   }
+  },
+  {
+   "id": "integrity.sample_index",
+   "group": "integrity",
+   "title": "first_index continuity: gaps counted, no overlaps",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "1560 samples in 3 session(s): 0 gaps, 0 overlaps",
+   "evidence": {
+    "streams": {
+     "main.control_signal": {
+      "samples": 644,
+      "first_index": 0,
+      "gaps": 0,
+      "lost_samples": 0,
+      "overlaps": 0,
+      "loss_fraction": 0.0
+     },
+     "main.states": {
+      "samples": 644,
+      "first_index": 0,
+      "gaps": 0,
+      "lost_samples": 0,
+      "overlaps": 0,
+      "loss_fraction": 0.0
+     },
+     "reopen.control_signal": {
+      "samples": 68,
+      "first_index": 0,
+      "gaps": 0,
+      "lost_samples": 0,
+      "overlaps": 0,
+      "loss_fraction": 0.0
+     },
+     "reopen.states": {
+      "samples": 68,
+      "first_index": 0,
+      "gaps": 0,
+      "lost_samples": 0,
+      "overlaps": 0,
+      "loss_fraction": 0.0
+     },
+     "fresh_host.control_signal": {
+      "samples": 68,
+      "first_index": 0,
+      "gaps": 0,
+      "lost_samples": 0,
+      "overlaps": 0,
+      "loss_fraction": 0.0
+     },
+     "fresh_host.states": {
+      "samples": 68,
+      "first_index": 0,
+      "gaps": 0,
+      "lost_samples": 0,
+      "overlaps": 0,
+      "loss_fraction": 0.0
+     }
+    },
+    "gaps": 0,
+    "lost_samples": 0,
+    "samples": 1560
+   }
+  },
+  {
+   "id": "integrity.markers",
+   "group": "integrity",
+   "title": "Marker timestamps ordered and on the primary clock",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "58 marker(s) in order, within the primary stream's time span",
+   "evidence": {
+    "streams": {
+     "main.state_changes": {
+      "markers": 58,
+      "decreases": 0,
+      "outside_primary_span": 0
+     },
+     "reopen.state_changes": {
+      "markers": 6,
+      "decreases": 0
+     },
+     "fresh_host.state_changes": {
+      "markers": 6,
+      "decreases": 0
+     }
+    },
+    "primary_span": [
+     51.156,
+     71.242
+    ]
+   }
+  },
+  {
+   "id": "integrity.plugin_stats",
+   "group": "integrity",
+   "title": "stats() returns valid integrity counters",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "11 counter(s), none reporting loss",
+   "evidence": {
+    "plugin_stats": {
+     "datagrams": 19350,
+     "lines": 19350,
+     "malformed_lines": 0,
+     "unknown_names": 0,
+     "blocks": 644,
+     "incomplete_blocks": 0,
+     "nonfinite_blocks": 0,
+     "dropped_packets": 0,
+     "untimed_blocks": 0,
+     "out_of_order_blocks": 0,
+     "state_changes": 58
+    },
+    "invalid_stats": 0,
+    "host_counters": {
+     "samples": 1346,
+     "chunks": 1322,
+     "reads": 642,
+     "bytes": 108656
+    }
+   }
+  },
+  {
+   "id": "reconnect.clean_reopen",
+   "group": "reconnect",
+   "title": "Clean close, reopen, data again, identity unchanged",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "closed in 0.2 ms, reopened in 0.119 s, first data 0.120 s after open; identity unchanged",
+   "evidence": {
+    "close_s": 0.0,
+    "reopen_s": 0.119,
+    "first_data_after_open_s": 0.12,
+    "samples": 142,
+    "read_s": 2.03,
+    "failure": null,
+    "identity_unchanged": true,
+    "identity_differences": []
+   }
+  },
+  {
+   "id": "reconnect.host_killed",
+   "group": "reconnect",
+   "title": "Host killed mid-stream: link loss reported, fresh open",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "SIGKILL after 16 reads surfaced as a link loss in 3.3 ms; fresh host: first data 0.217 s after start (0.105 s after open); identity unchanged; exit code 0",
+   "evidence": {
+    "kill": {
+     "pid": 32642,
+     "signal": "SIGKILL",
+     "killed": true,
+     "reads_before_kill": 16,
+     "detected_as": "HostDied",
+     "message": "plugin host exited (code -9)",
+     "detect_s": 0.0033,
+     "host_exit_code": -9
+    },
+    "fresh_host_start_s": 0.111,
+    "open_s": 0.104,
+    "first_data_after_open_s": 0.105,
+    "first_data_after_host_start_s": 0.217,
+    "samples": 142,
+    "failure": null,
+    "identity_unchanged": true,
+    "identity_differences": [],
+    "fresh_host_exit_code": 0
+   }
+  },
+  {
+   "id": "performance.throughput",
+   "group": "performance",
+   "title": "Sustained delivery rate keeps up with the nominal rate",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "primary delivered 32.0122 samples/s over 20.0 s vs nominal 32 Hz (+0.038 %); 5426.6 B/s over IPC",
+   "evidence": {
+    "duration_s": 20.023,
+    "tolerance_percent": 2.0,
+    "streams": {
+     "control_signal": {
+      "samples": 644,
+      "chunks": 642,
+      "samples_per_s_overall": 32.163,
+      "nominal_hz": 32.0,
+      "arrival_span_s": 20.022,
+      "rate_hz": 32.0122,
+      "rate_hz_endpoints": 32.0654,
+      "error_percent": 0.038
+     },
+     "states": {
+      "samples": 644,
+      "chunks": 642,
+      "samples_per_s_overall": 32.163,
+      "nominal_hz": 32.0,
+      "arrival_span_s": 20.022,
+      "rate_hz": 32.0122,
+      "rate_hz_endpoints": 32.0654,
+      "error_percent": 0.038
+     },
+     "state_changes": {
+      "samples": 58,
+      "chunks": 38,
+      "samples_per_s_overall": 2.897,
+      "nominal_hz": 0.0
+     }
+    },
+    "ipc_bytes_received": 108656,
+    "ipc_bytes_per_s": 5426.6
+   }
+  },
+  {
+   "id": "performance.latency",
+   "group": "performance",
+   "title": "Read latency (now - sample timestamp)",
+   "required": true,
+   "status": "not_run",
+   "applicable": false,
+   "reason": "not applicable: clock domain 'source' has no known relation to a host clock (latency cannot be measured; see timing.clock_domain for the offset)",
+   "evidence": {}
+  },
+  {
+   "id": "performance.host_resources",
+   "group": "performance",
+   "title": "Plugin host process CPU and memory",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "host process CPU 1.8 % of one core, RSS peak 31.1 MiB (median 31.1 MiB)",
+   "evidence": {
+    "pid": 32642,
+    "wall_s": 20.023,
+    "cpu_s": 0.36,
+    "cpu_percent_of_one_core": 1.8,
+    "rss_mib_median": 31.1,
+    "rss_mib_max_sampled": 31.1,
+    "rss_mib_peak": 31.1,
+    "rss_samples": 80,
+    "clock_ticks_per_s": 100
+   }
+  },
+  {
+   "id": "performance.ipc",
+   "group": "performance",
+   "title": "IPC volume and round-trip time",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "5426.6 B/s, 32.06 reads/s; ping round trip p50/p99 0.161/0.2838 ms",
+   "evidence": {
+    "host_counters": {
+     "samples": 1346,
+     "chunks": 1322,
+     "reads": 642,
+     "bytes": 108656
+    },
+    "host_bytes_per_s": 5426.6,
+    "reads_per_s": 32.06,
+    "empty_read_fraction": 0.0,
+    "ping_round_trip_ms": {
+     "n": 30,
+     "min": 0.1428,
+     "p50": 0.161,
+     "p95": 0.2507,
+     "p99": 0.2838,
+     "max": 0.2916,
+     "mean": 0.1712
+    }
+   }
+  },
+  {
+   "id": "runtime.descriptor",
+   "group": "runtime",
+   "title": "BrainOS device descriptor matches the declarations",
+   "required": false,
+   "status": "pass",
+   "applicable": true,
+   "reason": "descriptor kind=simulated modality=None invasive=None integration=plugin matches the declarations",
+   "evidence": {
+    "device_id": "plugin:bci2000:app-connector",
+    "expected": {
+     "kind": "simulated",
+     "synthetic": true,
+     "modality": null,
+     "invasive": null,
+     "integration": {
+      "kind": "plugin",
+      "package": "brainos-bci2000",
+      "version": "0.1.0",
+      "api_version": "1.0",
+      "isolated": true,
+      "ecosystem": "bci2000"
+     },
+     "capabilities": [
+      "behavior",
+      "device_status",
+      "kinematic_intent",
+      "recording"
+     ]
+    },
+    "brainos": {
+     "kind": "simulated",
+     "synthetic": true,
+     "modality": null,
+     "invasive": null,
+     "integration": {
+      "kind": "plugin",
+      "package": "brainos-bci2000",
+      "version": "0.1.0",
+      "api_version": "1.0",
+      "isolated": true,
+      "ecosystem": "bci2000"
+     },
+     "adapter": "brainos-bci2000@0.1.0"
+    },
+    "brainos_capabilities": [
+     "recording",
+     "behavior",
+     "kinematic_intent",
+     "device_status"
+    ]
+   }
+  },
+  {
+   "id": "runtime.negotiation",
+   "group": "runtime",
+   "title": "Capability grants and rejections match the roles",
+   "required": false,
+   "status": "pass",
+   "applicable": true,
+   "reason": "granted ['behavior', 'device_status', 'kinematic_intent', 'recording']; every other capability rejected (unsupported_by_device); command app suspended",
+   "evidence": {
+    "expected_granted": [
+     "behavior",
+     "device_status",
+     "kinematic_intent",
+     "recording"
+    ],
+    "negotiations": {
+     "all_optional": {
+      "device_id": "plugin:bci2000:app-connector",
+      "status": "active",
+      "granted": [
+       "recording",
+       "device_status",
+       "behavior",
+       "kinematic_intent"
+      ],
+      "rejected": [
+       {
+        "capability": "pointer_intent",
+        "reason": "unsupported_by_device",
+        "required": false
+       },
+       {
+        "capability": "selection",
+        "reason": "unsupported_by_device",
+        "required": false
+       },
+       {
+        "capability": "text_intent",
+        "reason": "unsupported_by_device",
+        "required": false
+       },
+       {
+        "capability": "telemetry",
+        "reason": "unsupported_by_device",
+        "required": false
+       },
+       {
+        "capability": "neural_features",
+        "reason": "unsupported_by_device",
+        "required": false
+       }
+      ]
+     },
+     "roles_required": {
+      "device_id": "plugin:bci2000:app-connector",
+      "status": "active",
+      "granted": [
+       "behavior",
+       "device_status",
+       "kinematic_intent",
+       "recording"
+      ],
+      "rejected": []
+     },
+     "command_required": {
+      "device_id": "plugin:bci2000:app-connector",
+      "status": "suspended",
+      "granted": [],
+      "rejected": [
+       {
+        "capability": "pointer_intent",
+        "reason": "unsupported_by_device",
+        "required": true
+       },
+       {
+        "capability": "selection",
+        "reason": "unsupported_by_device",
+        "required": false
+       },
+       {
+        "capability": "text_intent",
+        "reason": "unsupported_by_device",
+        "required": false
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "runtime.envelopes",
+   "group": "runtime",
+   "title": "Every event validates against the BrainOS contracts",
+   "required": false,
+   "status": "pass",
+   "applicable": true,
+   "reason": "343 of 343 events validated against contract 1.3 (pydantic + JSON Schema); 0 invalid, 0 undeclared, 0 decode errors",
+   "evidence": {
+    "schema_version": "1.3",
+    "event_schema_versions": {
+     "1.3": 343
+    },
+    "events_published": 343,
+    "events_validated": 343,
+    "event_types": {
+     "device.status": 3,
+     "intent.kinematics": 163,
+     "behavior.sample": 163,
+     "recording.annotation": 14
+    },
+    "invalid": [],
+    "runtime_diagnostics": {
+     "validation_errors": 0,
+     "undeclared_capability": 0,
+     "decode_errors": 0,
+     "link_errors": 0,
+     "timestamp_regressions": 0
+    },
+    "runtime_state_at_end": "streaming",
+    "runtime_last_error": null,
+    "seconds": 5.0
+   }
+  },
+  {
+   "id": "runtime.provenance",
+   "group": "runtime",
+   "title": "Provenance correct; nothing becomes a command",
+   "required": false,
+   "status": "pass",
+   "applicable": true,
+   "reason": "provenance kinds, synthetic/replayed flags, origin and model ids as declared; no command events",
+   "evidence": {
+    "declared": {
+     "synthetic": true,
+     "prerecorded": true,
+     "origin": "bci2000:127.0.0.1:20321 (processed control information, not raw signal)"
+    },
+    "expected_provenance": {
+     "intent.kinematics": "decoded_intent",
+     "behavior.sample": "behavioral_label",
+     "recording.annotation": "behavioral_label"
+    },
+    "decoder_model_id": "brainos-bci2000:bci2000-control-signal",
+    "command_events": {},
+    "regular_streams_without_events": [],
+    "problems": []
+   }
+  }
+ ],
+ "host_log_tail": []
+}

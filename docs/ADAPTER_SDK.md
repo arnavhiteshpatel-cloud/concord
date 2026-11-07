@@ -241,6 +241,12 @@ The IPC is not the bottleneck; converting 30 kHz frames to JSON events is (as fo
    *Search again* if BrainOS was already running), set options, *Connect*.
 5. **Test** in CI with `brainos_adapter_sdk.client.SyncHostClient` (runs your plugin through
    a real host with BrainOS's validation; see the example's `tests/`).
+6. **Certify** with `brainos-certify my-device [--device KEY] [--option k=v]`
+   (`packages/brainos-certify`, docs/CERTIFICATION.md): 29 checks — metadata, channel identity
+   across reopens, timestamps, rate, jitter, loss, a killed host, throughput, CPU/RSS and, with
+   BrainOS installed, negotiation and event-contract compliance — in a JSON + Markdown report
+   with an explicit validation level; exit code 0 only for `adapter_implementation`. A pass is
+   a software result, never hardware certification.
 
 ## 9. Compatibility
 
