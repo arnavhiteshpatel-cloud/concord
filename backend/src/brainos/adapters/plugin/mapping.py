@@ -175,24 +175,22 @@ def plan_session(manifest: PluginManifest, info: SessionInfo) -> SessionPlan:
 
 
 def neural_modality(info: SessionInfo) -> tuple[Modality | None, bool | None]:
-    """Modality of the delivered neural stream (primary first). ``invasive`` follows the
-    declaration, or the contract's categories for a declared modality; never guessed."""
-    neural = [s for s in info.streams if s.role in (StreamRole.SIGNAL, StreamRole.SPIKE_COUNTS)]
-    neural.sort(key=lambda s: s.stream_id != info.primary_stream)
-    for s in neural:
-        if s.modality is None:
-            continue
-        mod = Modality(str(s.modality))
-        invasive = s.invasive
-        if invasive is None and mod in INVASIVE_MODALITIES:
-            invasive = True
-        elif invasive is None and mod in NONINVASIVE_MODALITIES:
-            invasive = False
-        return mod, invasive
-    for s in neural:
-        if s.invasive is not None:
-            return None, s.invasive
-    return None, None
+    """Modality of the device = that of its PRIMARY neural stream; never taken from a
+    secondary stream (e.g. an accelerometer group declared ``other`` must not relabel a
+    signal whose modality is unknown). ``invasive`` follows the declaration, or the
+    contract's categories for a declared modality; never guessed."""
+    primary = next((s for s in info.streams if s.stream_id == info.primary_stream), None)
+    if primary is None or primary.role not in (StreamRole.SIGNAL, StreamRole.SPIKE_COUNTS):
+        return None, None
+    invasive = primary.invasive
+    if primary.modality is None:
+        return None, invasive
+    mod = Modality(str(primary.modality))
+    if invasive is None and mod in INVASIVE_MODALITIES:
+        invasive = True
+    elif invasive is None and mod in NONINVASIVE_MODALITIES:
+        invasive = False
+    return mod, invasive
 
 
 def _capabilities(plan: SessionPlan) -> list[CapabilityDescriptor]:

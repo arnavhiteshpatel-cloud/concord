@@ -302,3 +302,35 @@ def test_ipc_error_types_cover_recoverable_set() -> None:
     from brainos.adapters.plugin.adapter import RECOVERABLE
 
     assert {ipc.LINK_LOST, ipc.CONFIGURATION_CHANGED} == RECOVERABLE
+
+
+def test_device_modality_comes_from_the_primary_stream_only() -> None:
+    """Regression (BrainFlow synthetic board): the primary EXG stream's modality is
+    ambiguous (undeclared) while a secondary sensor stream declares ``other``; the device
+    must report 'not declared', not 'other'."""
+    from brainos_adapter_sdk.api import (
+        Channel,
+        ClockInfo,
+        Modality,
+        SessionInfo,
+        StreamRole,
+        StreamSpec,
+    )
+
+    from brainos.adapters.plugin.mapping import neural_modality
+
+    clock = ClockInfo("unix")
+
+    def spec(sid: str, modality: Modality | None, invasive: bool | None = None) -> StreamSpec:
+        return StreamSpec(sid, StreamRole.SIGNAL, (Channel("a"),), 250.0, clock, modality, invasive)
+
+    def info(*streams: StreamSpec) -> SessionInfo:
+        return SessionInfo(streams, "exg", synthetic=True, prerecorded=False, origin="t")
+
+    assert neural_modality(info(spec("exg", None), spec("aux", Modality.OTHER))) == (None, None)
+    assert neural_modality(info(spec("exg", Modality.EEG), spec("aux", Modality.OTHER))) == (
+        Modality.EEG,
+        False,
+    )
+    assert neural_modality(info(spec("exg", Modality.ECOG))) == (Modality.ECOG, True)
+    assert neural_modality(info(spec("exg", None, invasive=False))) == (None, False)
