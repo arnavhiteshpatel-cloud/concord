@@ -32,6 +32,10 @@ READY_TIMEOUT_S = 90.0
 STOP_TIMEOUT_S = 30.0
 
 
+class WindowUnavailable(Exception):
+    pass
+
+
 @dataclass
 class ServerThread:
     """uvicorn in a background thread with its own event loop."""
@@ -98,12 +102,22 @@ def run_headless(srv: ServerThread, url: str, stop_event: threading.Event) -> in
 
 
 def run_window(
-    srv: ServerThread, url: str, stop_event: threading.Event, open_console: Callable[[], None]
+    srv: ServerThread,
+    url: str,
+    stop_event: threading.Event,
+    open_console: Callable[[], None],
+    on_ready: Callable[[Any], None] | None = None,
 ) -> int:
-    """A small Tk status window. Closing it, Cmd-Q or the Dock's Quit stop BrainOS."""
+    """A small Tk status window. Closing it, Cmd-Q or the Dock's Quit stop BrainOS.
+
+    Raises ``WindowUnavailable`` if no window can be created (the caller runs headless).
+    ``on_ready(root)`` is called before the event loop starts (tests drive the window)."""
     import tkinter as tk
 
-    root = tk.Tk()
+    try:
+        root = tk.Tk()
+    except Exception as exc:  # TclError: no display, broken Tcl/Tk installation
+        raise WindowUnavailable(str(exc)) from exc
     root.title("BrainOS")
     root.resizable(False, False)
     frame = tk.Frame(root, padx=18, pady=14)
@@ -120,9 +134,12 @@ def run_window(
     tk.Label(frame, textvariable=status, fg="#a33").pack(anchor="w")
     buttons = tk.Frame(frame, pady=10)
     buttons.pack(anchor="w")
-    result = {"code": 0}
+    result = {"code": 0, "quitting": 0}
 
     def quit_app() -> None:
+        if result["quitting"]:
+            return
+        result["quitting"] = 1
         status.set("Stopping…")
         root.update_idletasks()
         safe_stop_via_api(url)
@@ -148,6 +165,8 @@ def run_window(
         root.after(200, poll)
 
     root.after(200, poll)
+    if on_ready is not None:
+        on_ready(root)
     root.mainloop()
     return result["code"]
 
@@ -219,14 +238,18 @@ def main(argv: list[str] | None = None) -> int:
         print(f"BrainOS {__version__} is running at {url}", flush=True)
         if settings.open_browser and not args.no_browser:
             open_browser(url)
-        if args.headless or not has_window_toolkit():
-            if not args.headless:
-                log.info("no window toolkit available; running headless (stop: brainos stop)")
-            return run_headless(srv, url, stop_event)
+        if not args.headless and has_window_toolkit():
 
-        def show_console() -> None:
-            open_browser(url)
+            def show_console() -> None:
+                open_browser(url)
 
-        return run_window(srv, url, stop_event, show_console)
+            try:
+                log.info("BrainOS window open (quit: close it, Cmd-Q, or the Dock's Quit)")
+                return run_window(srv, url, stop_event, show_console)
+            except WindowUnavailable as exc:
+                log.warning("no window could be created (%s)", exc)
+        if not args.headless:
+            log.info("no window toolkit available; running headless (stop: brainos stop)")
+        return run_headless(srv, url, stop_event)
     finally:
         lock.release()
