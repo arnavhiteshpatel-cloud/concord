@@ -25,7 +25,7 @@ function Counters({ counters, testId }: { counters: Obj; testId: string }) {
       {entries.map(([k, v]) => (
         <div key={k} className={`counter ${ATTENTION.test(k) && v > 0 ? "counter-warn" : ""}`} data-counter={k}>
           <span className="counter-name">{label(k)}</span>
-          <span className="counter-value mono">{fmt.num(v)}</span>
+          <span className="counter-value num">{fmt.num(v)}</span>
         </div>
       ))}
     </div>
@@ -36,7 +36,7 @@ function Row({ k, v }: { k: string; v: ReactNode }) {
   return (
     <tr>
       <td>{k}</td>
-      <td className="mono">{v}</td>
+      <td>{v}</td>
     </tr>
   );
 }
@@ -49,13 +49,13 @@ function LslStreams({ streams }: { streams: unknown[] }) {
       <table className="table" data-testid="integrity-streams">
         <thead>
           <tr>
-            <th>role</th>
-            <th>stream</th>
-            <th className="r">received</th>
-            <th className="r">gaps</th>
-            <th className="r">est. missing</th>
-            <th className="r">time correction</th>
-            <th className="r">last timestamp</th>
+            <th>Role</th>
+            <th>Stream</th>
+            <th className="r">Received</th>
+            <th className="r">Gaps</th>
+            <th className="r">Est. missing</th>
+            <th className="r">Time correction</th>
+            <th className="r">Last timestamp</th>
           </tr>
         </thead>
         <tbody>
@@ -67,14 +67,14 @@ function LslStreams({ streams }: { streams: unknown[] }) {
             return (
               <tr key={`${String(s.role)}-${i}`}>
                 <td>{str(s.role) ?? "—"}</td>
-                <td className="mono">
+                <td>
                   {str(s.name) ?? "—"} {str(s.type) ? `(${str(s.type)})` : ""}
                 </td>
-                <td className="r mono">{fmt.num(num(s.received_samples))}</td>
-                <td className={`r mono ${gaps ? "text-warn" : ""}`}>{fmt.num(gaps)}</td>
-                <td className={`r mono ${miss ? "text-warn" : ""}`}>{fmt.num(miss)}</td>
-                <td className="r mono">{corr === null ? "—" : `${(corr * 1000).toFixed(3)} ms`}</td>
-                <td className="r mono">{last === null ? "—" : `${last.toFixed(3)} s`}</td>
+                <td className="r num">{fmt.num(num(s.received_samples))}</td>
+                <td className={`r num ${gaps ? "caution-text" : ""}`}>{fmt.num(gaps)}</td>
+                <td className={`r num ${miss ? "caution-text" : ""}`}>{fmt.num(miss)}</td>
+                <td className="r num">{corr === null ? "—" : `${(corr * 1000).toFixed(3)} ms`}</td>
+                <td className="r num">{last === null ? "—" : `${last.toFixed(3)} s`}</td>
               </tr>
             );
           })}
@@ -95,8 +95,8 @@ export function SignalIntegrity({
 }) {
   if (!meta) {
     return (
-      <Panel title="Signal integrity" testId="signal-integrity">
-        {error ? <div className="alert">{error}</div> : <div className="empty">Waiting for source counters…</div>}
+      <Panel title="Live source counters" testId="signal-integrity">
+        {error ? <p className="error-text">{error}</p> : <p className="value-muted">Waiting for source counters…</p>}
       </Panel>
     );
   }
@@ -114,27 +114,27 @@ export function SignalIntegrity({
 
   return (
     <Panel
-      title="Signal integrity"
+      title="Live source counters"
       testId="signal-integrity"
-      right={<span className="muted mono">{protocol ?? "live source"} · polled 1 s</span>}
+      right={<span className="hint">{protocol ?? "live source"} · polled every second</span>}
     >
       <table className="table kv">
         <tbody>
-          {str(meta.device_id) && <Row k="source" v={str(meta.device_id)} />}
-          {str(meta.library) && <Row k="library" v={str(meta.library)} />}
-          {str(meta.host) && <Row k="endpoint" v={`${str(meta.host)}:${num(meta.data_port) ?? "?"}`} />}
-          {str(meta.stream) && <Row k="stream" v={str(meta.stream)} />}
-          {num(meta.sample_rate_hz) !== null && <Row k="rate" v={`${num(meta.sample_rate_hz)} Hz`} />}
-          {str(meta.interpretation) && <Row k="interpreted as" v={str(meta.interpretation)} />}
-          {str(meta.unit) && <Row k="unit" v={str(meta.unit)} />}
+          {str(meta.device_id) && <Row k="Source" v={str(meta.device_id)} />}
+          {str(meta.library) && <Row k="Library" v={str(meta.library)} />}
+          {str(meta.host) && <Row k="Endpoint" v={`${str(meta.host)}:${num(meta.data_port) ?? "?"}`} />}
+          {str(meta.stream) && <Row k="Stream" v={str(meta.stream)} />}
+          {num(meta.sample_rate_hz) !== null && <Row k="Rate" v={`${num(meta.sample_rate_hz)} Hz`} />}
+          {str(meta.interpretation) && <Row k="Interpreted as" v={str(meta.interpretation)} />}
+          {str(meta.unit) && <Row k="Unit" v={str(meta.unit)} />}
           {str(meta.unit_configured) && (
-            <Row k="unit" v={`configured ${str(meta.unit_configured)} → emitted ${str(meta.unit_emitted) ?? "?"}`} />
+            <Row k="Unit" v={`configured ${str(meta.unit_configured)} → emitted ${str(meta.unit_emitted) ?? "?"}`} />
           )}
-          {heartbeat && str(heartbeat.status) && <Row k="heartbeat" v={str(heartbeat.status)} />}
-          {num(meta.last_message_num) !== null && <Row k="last message #" v={fmt.num(num(meta.last_message_num))} />}
+          {heartbeat && str(heartbeat.status) && <Row k="Heartbeat" v={str(heartbeat.status)} />}
+          {num(meta.last_message_num) !== null && <Row k="Last message #" v={fmt.num(num(meta.last_message_num))} />}
           {offset && (num(offset.last) !== null || num(offset.min) !== null) && (
             <Row
-              k="clock offset"
+              k="Clock offset"
               v={
                 <span title={str(offset.note) ?? undefined}>
                   last {fmt.num(num(offset.last), 3)} ms · min {fmt.num(num(offset.min), 3)} ms
@@ -144,7 +144,7 @@ export function SignalIntegrity({
           )}
           {rc && (
             <Row
-              k="runtime (since start)"
+              k="Runtime (since start)"
               v={`reconnect attempts ${fmt.num(rc.reconnect_attempts)} · successes ${fmt.num(rc.reconnect_successes)} · link errors ${fmt.num(rc.link_errors)}`}
             />
           )}
@@ -152,14 +152,14 @@ export function SignalIntegrity({
       </table>
       {counters && <Counters counters={counters} testId="integrity-counters" />}
       {streams && <LslStreams streams={streams} />}
-      {offset && str(offset.note) && <p className="muted small">Clock offset: {str(offset.note)}.</p>}
+      {offset && str(offset.note) && <p className="hint">Clock offset: {str(offset.note)}.</p>}
       {lastError && (
-        <div className="alert" data-testid="integrity-last-error">
+        <p className="error-text" data-testid="integrity-last-error">
           {lastError}
-        </div>
+        </p>
       )}
       {notes.length > 0 && (
-        <ul className="notes small" data-testid="integrity-notes">
+        <ul className="notes hint" data-testid="integrity-notes">
           {notes.map((n) => (
             <li key={n}>{n}</li>
           ))}

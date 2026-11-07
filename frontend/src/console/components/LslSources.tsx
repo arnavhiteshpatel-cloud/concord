@@ -3,8 +3,8 @@
 
 import { useEffect, useState } from "react";
 import { labApi, type LSLDiscovery, type LSLStreamInfo } from "../api";
-import { useAction } from "../hooks";
-import { Panel, fmt } from "./ui";
+import { useLog, useLoggedAction } from "../context";
+import { fmt } from "./ui";
 
 function declared(s: LSLStreamInfo): string {
   const parts: string[] = [];
@@ -18,23 +18,18 @@ function declared(s: LSLStreamInfo): string {
 function units(s: LSLStreamInfo): string {
   if (!s.channels_described) return "channels not described";
   const u = s.units.map((x) => x ?? "none");
-  return u.length ? u.join(", ") : "—";
+  return u.length ? [...new Set(u)].join(", ") : "—";
 }
 
 const streamLabel = (s: LSLStreamInfo) => `${s.name} (${s.type}, ${s.channel_count} ch)`;
 
-export function LslSources({
-  onSourcesChanged,
-  notify,
-}: {
-  onSourcesChanged: () => void;
-  notify: (text: string) => void;
-}) {
+export function LslSources({ onSourcesChanged }: { onSourcesChanged: () => void }) {
+  const log = useLog();
   const [disc, setDisc] = useState<LSLDiscovery | null>(null);
   const [signal, setSignal] = useState<string | null>(null);
   const [behavior, setBehavior] = useState("");
   const [markers, setMarkers] = useState("");
-  const action = useAction();
+  const action = useLoggedAction();
 
   useEffect(() => {
     labApi
@@ -55,7 +50,7 @@ export function LslSources({
     if (!signal) return;
     const desc = await action.run(() => labApi.lslRegister(signal, behavior || null, markers || null));
     if (!desc) return;
-    notify(`Registered ${desc.device_id} — connect it from Devices & sources`);
+    log("info", `Registered ${desc.display_name ?? desc.device_id}`);
     setSignal(null);
     onSourcesChanged();
   };
@@ -65,62 +60,65 @@ export function LslSources({
   const others = streams.filter((s) => s.key !== signal);
 
   return (
-    <Panel
-      title="Lab Streaming Layer"
-      testId="lsl-sources"
-      right={disc?.library ? <span className="muted small mono">{disc.library}</span> : undefined}
-    >
+    <div className="subsection" data-testid="lsl-sources">
       <div className="btn-row">
-        <button className="btn btn-primary" disabled={action.busy} onClick={discover} data-testid="lsl-discover">
-          {action.busy ? "Discovering…" : "Discover LSL streams"}
+        <button type="button" className="btn" disabled={action.busy} onClick={discover} data-testid="lsl-discover">
+          {action.busy ? "Searching…" : "Search the network"}
         </button>
-        <span className="muted small" style={{ alignSelf: "center" }}>
-          {disc?.discovered_at_ns ? `last discovery ${fmt.ago(disc.discovered_at_ns)} · ${streams.length} stream(s)` : "not run yet"}
+        <span className="hint">
+          {disc?.discovered_at_ns
+            ? `Last search ${fmt.ago(disc.discovered_at_ns)} · ${streams.length} stream${streams.length === 1 ? "" : "s"}`
+            : "Not searched yet"}
         </span>
       </div>
-      {disc?.error && <div className="alert">{disc.error}</div>}
+      {disc?.error && <p className="error-text">{disc.error}</p>}
       {action.error && (
-        <div className="alert" data-testid="lsl-error">
+        <p className="error-text" data-testid="lsl-error">
           {action.error}
-        </div>
+        </p>
       )}
 
       {streams.length > 0 && (
         <div className="table-scroll">
-          <table className="table lsl-table" data-testid="lsl-streams">
+          <table className="table" data-testid="lsl-streams">
             <thead>
               <tr>
-                <th>stream</th>
-                <th>type</th>
-                <th className="r">ch</th>
-                <th className="r">rate</th>
-                <th>format</th>
-                <th>units</th>
-                <th>declared</th>
-                <th>as signal</th>
+                <th>Stream</th>
+                <th className="r">Channels</th>
+                <th className="r">Rate</th>
+                <th>Units</th>
+                <th>Declared</th>
+                <th />
               </tr>
             </thead>
             <tbody>
               {streams.map((s) => (
-                <tr key={s.key} data-stream-key={s.key} title={`key ${s.key} · host ${s.hostname} · source_id ${s.source_id ?? "not set"}`}>
-                  <td className="mono">{s.name}</td>
-                  <td className="mono">{s.type}</td>
-                  <td className="r mono">{s.channel_count}</td>
-                  <td className="r mono">{s.nominal_srate > 0 ? `${fmt.num(s.nominal_srate)} Hz` : "irregular"}</td>
-                  <td className="mono">{s.channel_format}</td>
-                  <td className="mono">{units(s)}</td>
-                  <td>{declared(s)}</td>
+                <tr
+                  key={s.key}
+                  data-stream-key={s.key}
+                  title={`key ${s.key} · host ${s.hostname} · source_id ${s.source_id ?? "not set"} · ${s.channel_format}`}
+                >
                   <td>
+                    <div>{s.name}</div>
+                    <div className="hint">{s.type}</div>
+                  </td>
+                  <td className="r num">{s.channel_count}</td>
+                  <td className="r num">{s.nominal_srate > 0 ? `${fmt.num(s.nominal_srate)} Hz` : "irregular"}</td>
+                  <td>{units(s)}</td>
+                  <td>{declared(s)}</td>
+                  <td className="r">
                     {s.usable_as_signal ? (
                       <button
+                        type="button"
                         className={`btn btn-small ${signal === s.key ? "btn-primary" : ""}`}
+                        aria-pressed={signal === s.key}
                         onClick={() => setSignal(signal === s.key ? null : s.key)}
                         data-testid={`lsl-use-${s.key}`}
                       >
-                        configure
+                        Use
                       </button>
                     ) : (
-                      <span className="text-warn small">{s.reason ?? "not usable"}</span>
+                      <span className="hint">{s.reason ?? "not usable"}</span>
                     )}
                   </td>
                 </tr>
@@ -130,19 +128,19 @@ export function LslSources({
         </div>
       )}
       {disc && !streams.length && !disc.error && disc.discovered_at_ns && (
-        <div className="empty">No LSL streams found on the network.</div>
+        <p className="value-muted">No LSL streams found on the network.</p>
       )}
 
       {sig && (
         <div className="subform" data-testid="lsl-configure">
-          <div className="small">
-            Signal: <span className="mono">{streamLabel(sig)}</span> → device <span className="mono">lsl:{sig.key}</span>
-          </div>
+          <p>
+            Signal: <b>{streamLabel(sig)}</b>
+          </p>
           <div className="form-grid">
             <label>
-              behavior stream (optional)
+              Behavior stream (optional)
               <select value={behavior} onChange={(e) => setBehavior(e.target.value)} data-testid="lsl-behavior">
-                <option value="">none</option>
+                <option value="">None</option>
                 {others.map((s) => (
                   <option key={s.key} value={s.key}>
                     {streamLabel(s)}
@@ -151,9 +149,9 @@ export function LslSources({
               </select>
             </label>
             <label>
-              marker stream (optional)
+              Marker stream (optional)
               <select value={markers} onChange={(e) => setMarkers(e.target.value)} data-testid="lsl-markers">
-                <option value="">none</option>
+                <option value="">None</option>
                 {others.map((s) => (
                   <option key={s.key} value={s.key}>
                     {streamLabel(s)}
@@ -163,17 +161,17 @@ export function LslSources({
             </label>
           </div>
           <div className="btn-row">
-            <button className="btn btn-primary" disabled={action.busy} onClick={register} data-testid="lsl-register">
-              Register source
+            <button type="button" className="btn btn-primary" disabled={action.busy} onClick={register} data-testid="lsl-register">
+              Add source
             </button>
           </div>
         </div>
       )}
-      <p className="muted small">
-        Discovery offers every usable signal stream as a source; use <b>configure</b> to attach a behavior stream
-        (calibration labels) and a marker stream. Streams declared prerecorded or synthetic by their publisher are labelled
-        so; any other stream is shown as a live stream of unverified origin — LSL cannot tell hardware from playback.
+      <p className="hint">
+        A behavior stream provides calibration labels. Streams their publisher declares prerecorded or synthetic are
+        labelled so; any other stream is shown as a live stream of unverified origin, because LSL cannot tell hardware
+        from playback.
       </p>
-    </Panel>
+    </div>
   );
 }

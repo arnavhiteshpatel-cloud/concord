@@ -55,10 +55,14 @@ Requirements on the outlet (all standard LSL metadata):
 - stream type `SpikeCounts` (or `BinnedSpikes`) if it carries binned counts rather than
   voltages (a BrainOS convention; set `<desc><brainos><feature>spike_count`).
 
-Console: **Acquisition** → *Discover LSL streams* → pick the signal stream → optionally attach a
-behavior stream and a marker stream (they are mapped onto the signal stream's clock with
-liblsl `time_correction`) → *Register* → *Connect*. The integrity panel shows samples, gaps,
-estimated missing samples, stalls and clock corrections.
+Console: **Acquisition source** → **Connect a source** (or **Change source**) → *Live streams*
+→ **Find LSL streams** → *Search the network* → **Use** the signal stream → optionally attach
+a behavior stream and a marker stream (they are mapped onto the signal stream's clock with
+liblsl `time_correction`) → **Add source** → **Connect**. The **Signal integrity** row gives
+the verdict (*Good*, *Gaps detected*, *No signal*, *Interrupted — reconnecting*), the channel
+count, the percentage of samples received (samples vs estimated missing) and the delay to the
+console; **Advanced → Acquisition details** lists every counter: samples, gaps, estimated
+missing samples, stalls and clock corrections.
 
 Python (same endpoints the console uses):
 
@@ -87,16 +91,22 @@ In the GUI: add **ZMQ Interface** after your source (and filters/spike detector)
 stream, set *Data Port* (default 5556; heartbeat uses port + 1), select channels, start
 acquisition. Details: [OPEN_EPHYS.md](OPEN_EPHYS.md).
 
-Console: **Acquisition** → *Open Ephys* → host (the GUI machine; `127.0.0.1` if local), data
-port, and **unit**: the plugin does not transmit units, so enter the unit your signal chain
+Console: **Connect a source** → *Live streams* → **Add Open Ephys source** → host (the GUI
+machine; `127.0.0.1` if local), data port, and **unit**: the plugin does not transmit units, so enter the unit your signal chain
 outputs (electrode/headstage channels are usually µV in the GUI, ADC/AUX channels are
-not — check your source's channel settings, and send one kind per ZMQ Interface); leave *unknown* if unsure and data is labelled `arbitrary`. *Register* →
-*Connect*. Connection failures say whether the plugin answered the heartbeat but sent no data
+not — check your source's channel settings, and send one kind per ZMQ Interface); leave *unknown* if unsure and data is labelled `arbitrary`. **Add source** →
+**Connect**. Connection failures say whether the plugin answered the heartbeat but sent no data
 (acquisition stopped / no channels selected) or did not answer (host/port/firewall).
 
 Python: `await op.configure_openephys(host="192.168.1.20", data_port=5556, unit="uV")`.
 
 ## 4. Run a processing pipeline
+
+Console: **Decoder** → **Start decoding**. The processing preset is preselected from the
+source (passthrough if it already sends features, spike band at ≥ 10 kHz, high gamma at
+≥ 400 Hz, band power otherwise); a decoder model is optional (without one, the pipeline only
+computes features). Stages, counters and latency percentiles are under **Advanced → Pipeline
+details**.
 
 | Your signal | Preset | Output |
 | --- | --- | --- |
@@ -117,21 +127,23 @@ queue overflow) and the processing-time percentiles; on an M-series laptop 96 ch
    (headless: `--headless`). It publishes `brainos-center-out-behavior` (cue velocity) and
    `brainos-center-out-markers`.
 2. Register the neural stream with those two streams attached (section 2), connect, start
-   the pipeline (section 4).
-3. Start a recording with **features + labels only** (`exclude_raw`; raw 30 kHz frames
-   would hit the 200 MB recording limit within seconds), run all trials, stop the recording.
-4. *Calibrate* with that recording (`feature_source = brainos.pipeline` when features came
+   decoding without a model (section 4).
+3. **Decoder** → **Calibrate…** → *Start recording*: it records **features and labels only**
+   (`exclude_raw`; raw 30 kHz frames would hit the 200 MB recording limit within seconds).
+   Run all trials, then *Stop recording*.
+4. In the same panel, select that recording and **Train decoder** (`feature_source = brainos.pipeline` when features came
    from the pipeline). The report shows held-out R² per dimension and a mean-predictor
    control. Offline held-out R² does not establish closed-loop performance.
-5. Start the pipeline again with the new model. It is refused if the input does not match
+5. **Stop decoding**, then **Start decoding** again with the new model. It is refused if the input does not match
    (feature, bin, channel count/labels) or if the source differs from the calibration source.
 
 CLI equivalent of step 4: `.venv/bin/python -m brainos.decoding.calibrate data/recordings/<name>.brainos.jsonl --feature-source brainos.pipeline`.
 
 ## 6. Route commands to an application
 
-Decoded output (`intent.kinematics`) is never a command. To drive an app, enable the
-**command router**: choose the two decoded dimensions for x/y, gain, dead-zone, max speed.
+Decoded output (`intent.kinematics`) is never a command. To drive an app, use **Command
+output** → **Start control** (the command router; it is offered only while a decoder model
+runs). Its **Settings** choose the two decoded dimensions for x/y, gain, dead-zone, max speed.
 Only then can apps that require `pointer_intent` activate. Run the reference app in another
 terminal:
 
@@ -140,8 +152,8 @@ terminal:
 ```
 
 It prints whether it is suspended or active and where commands come from (model id,
-prerecorded/synthetic). Turn the router off or stop the pipeline to stop commands; disconnect
-to stop acquisition.
+prerecorded/synthetic). The red **Stop control** button in the title bar (always visible)
+stops commands; **Stop decoding** stops the pipeline; **Disconnect** stops acquisition.
 
 ## 7. Troubleshooting
 

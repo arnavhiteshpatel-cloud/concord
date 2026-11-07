@@ -17,16 +17,21 @@ export interface Action {
   clear: () => void;
 }
 
-export function useAction(): Action {
+/** `onError` also receives every refusal (the console writes them to the session log). */
+export function useAction(onError?: (text: string) => void): Action {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
   const run = useCallback(async <T,>(fn: () => Promise<T>): Promise<T | undefined> => {
     setBusy(true);
     setError(null);
     try {
       return await fn();
     } catch (e) {
-      setError(errorText(e));
+      const text = errorText(e);
+      setError(text);
+      onErrorRef.current?.(text);
       return undefined;
     } finally {
       setBusy(false);

@@ -86,20 +86,26 @@ make run
 
 Open **http://127.0.0.1:8000** and:
 
-1. In **Devices & sources**, under *Recorded human intracranial data · offline replay*, click
-   **Connect** on `held-in-calib · 19250108T111022` (the row marked *held-out decoder*).
-2. The header now reads **RECORDED HUMAN DATA · OFFLINE REPLAY**. The **Data source** panel
-   shows the dataset (DANDI 000954, CC-BY-4.0), a green "SHA-256 matches DANDI" check,
-   176 channels, 20 ms bins, the playback position, and the decoder's held-out R².
-3. Scroll down to **Recorded neural activity**: the raster shows real spike counts from 176
-   channels. The trace below compares the recorded velocity (solid) with the offline decoder's
-   output (dashed); pick a dimension (tx, ty, tz, …).
-4. Use **Pause / Resume**, the speed buttons (**0.5× … 8×**) and **Stop**.
-5. In **Live event stream**, click a `features.binned` row: `provenance.kind` is
+The console is one session screen: a title bar with the status line and the red **Stop
+control** button, four rows (*Acquisition source*, *Signal integrity*, *Decoder*, *Command
+output*), the *Session log* on the right, and a collapsed **Advanced** section at the bottom.
+
+1. In **Acquisition source**, click **Connect a source**. Under *Recorded human data (offline
+   replay)*, click **Connect** on *Session 19250108T111022* (show all files if it is not listed).
+2. The status line now reads **Streaming · Recorded human data, offline replay**. *Signal
+   integrity* shows the verdict, 176 of 176 channels, the measured delay, and four of the 176
+   channels' spike counts as live traces.
+3. Open **Advanced → Acquisition details**: the dataset (DANDI 000954, CC-BY-4.0), the
+   "SHA-256 matches DANDI" check, 176 channels at 20 ms bins, the attached decoder's offline
+   held-out R², the raster of all channels and the recorded velocity (solid) against the
+   offline decoder's output (dashed).
+4. In *Acquisition source*, open **Playback**: **Pause / Resume** and the speed buttons
+   (**0.5× … 8×**). **Disconnect** stops the replay.
+5. In **Advanced → Event stream**, click a `features.binned` row: `provenance.kind` is
    `processed_feature`, `synthetic` is `false`, and `origin` names the exact DANDI file.
-6. The Communication Board shows *suspended*. It does not react to neural data, because recorded
-   activity is never presented as intent.
-7. Click **Switch** on *Simulated Profile A*. Everything returns to the simulated demo below,
+6. *Command output* lists the Communication Board as *waiting for: selection*. It does not
+   react to neural data, because recorded activity is never presented as intent.
+7. **Change source** → *Simulated Profile A*. Everything returns to the simulated demo below,
    and you can switch back at any time.
 
 Want the full evaluation over 13 blocks (~66 MiB)? Run `make decoding-report`; it regenerates
@@ -114,9 +120,12 @@ prerecorded). With BrainOS running (`make run`), in a second terminal:
 .venv/bin/python -m brainos.testing.publish falcon data/datasets/dandi-000954/sub-HumanPitt-held-in-calib_ses-19250108T111022.nwb --loop
 ```
 
-In the console's acquisition controls: discover LSL streams, register the FALCON spike-count
-stream with its behavior and marker streams attached, connect (labelled prerecorded), start
-the `features_passthrough` pipeline with the trained model, then enable the command router.
+In the console: **Connect a source** → *Live streams* → **Find LSL streams** → *Search the
+network*; **Use** the FALCON spike-count stream, attach its behavior and marker streams, **Add
+source**, then **Connect** it (the status line reads *Recorded data, streamed replay
+(declared)*). In **Decoder**, **Start decoding**: *Source features (passthrough)* is preselected;
+choose the trained model. In **Command output**, **Start control**; the red **Stop control** in
+the title bar stops it at any time.
 In a third terminal, the reference app (SDK only) waits while no commands exist and moves once
 the router is on:
 
@@ -131,29 +140,31 @@ preset. Full researcher steps, including calibration with the center-out cue tas
 
 ## The 5-minute demo (simulated devices)
 
-1. **Console loads** — runtime `IDLE`; the Communication Board app is already connected
-   (see *Connected applications*) with status `no_device`.
-2. **Connect Simulated Profile A.** The event stream fills with `intent.pointer`,
-   `recording.frame`, `telemetry.sample`; the 32-channel synthetic signal renders; the board
-   switches to **pointer mode**.
-3. **Control the board.** Drag inside the *Simulated intention source* pad (or hold arrow
-   keys / WASD) to move the board's cursor; press **Select** (or Space) to activate a tile.
-   Click any event row to inspect its envelope — note `provenance.kind = simulated_intent`.
-4. **Inject a link drop** (Fault injection). Runtime goes `RECONNECTING` → `STREAMING`;
-   Diagnostics shows the reconnect.
-5. **Switch to Simulated Profile B.** The runtime renegotiates: no `pointer_intent`, but
-   `text_intent`. The board — unchanged code — switches to **scan mode**; Select picks the
+1. **Console loads** — status line *No source connected*; *Command output* shows the
+   Communication Board connected and *waiting for: selection*.
+2. **Connect a source → Simulated Profile A.** *Signal integrity* shows *Good* and four of
+   the 32 synthetic channels; the session log records the connection. Open **Advanced →
+   Communication board**: the board switches to **pointer mode**.
+3. **Control the board.** Open **Advanced → Simulator controls**; drag inside the pad (or
+   hold arrow keys / WASD) to move the board's cursor; press **Select** (or Space) to activate
+   a tile. In **Advanced → Event stream**, click any row to inspect its envelope — note
+   `provenance.kind = simulated_intent`.
+4. **Inject a link drop** (Simulator controls). The status line shows *Source link lost,
+   reconnecting*, then *Streaming*; the session log records both.
+5. **Change source → Simulated Profile B.** The runtime renegotiates: no `pointer_intent`,
+   but `text_intent`. The board — unchanged code — switches to **scan mode**; Select picks the
    highlighted tile; *Send text* types into the message.
-6. **Record** a few seconds, stop, then click the new `Replay · …` device. Replayed events
-   are marked `↺` / `replayed: true` and still drive the board.
-7. **Diagnostics** tab: measured rates, pipeline/delivery/client latency percentiles,
-   drops, contract violations, switch durations, errors. **Contract** tab: capability
-   matrix and provenance rules. **Tests** tab: results of the last `make test` / `make e2e`.
+6. **Advanced → Recording**: record a few seconds, stop, then **Change source** → the new
+   recording under *Session recordings*. Replayed events are marked `↺` / `replayed: true`
+   and still drive the board.
+7. **Advanced → Diagnostics**: measured rates, pipeline/delivery/client latency percentiles,
+   drops, contract violations, switch durations, errors. **Capability contract**: capability
+   matrix and provenance rules. **Tests**: results of the last `make test` / `make e2e`.
 
 ## Commands
 
 ```bash
-make test     # pytest (backend) + vitest (frontend); writes reports/ for the Tests tab
+make test     # pytest (backend) + vitest (frontend); writes reports/ for Advanced → Tests
 make lint     # ruff, mypy --strict, tsc
 make e2e      # real-browser demo (AT-25); run `make e2e-setup` once first
 make bench    # measured throughput/latency on this machine -> docs/BENCHMARKS.md

@@ -1,14 +1,14 @@
-// Milestone 3 acquisition controls: LSL discovery/registration, Open Ephys registration,
-// source removal and the signal-integrity view (only fields present are rendered).
+// Acquisition: the source picker (groups, connect, remove), LSL discovery/registration,
+// Open Ephys registration and the live-source counters (only fields present are rendered).
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { DeviceDescriptor, RuntimeSnapshot } from "../../sdk";
 import type { LSLStreamInfo } from "../api";
 import { apiError, stubFetch } from "../testFetch";
-import { AcquisitionView } from "./AcquisitionView";
 import { LslSources } from "./LslSources";
 import { OpenEphysForm } from "./OpenEphysForm";
 import { SignalIntegrity } from "./SignalIntegrity";
+import { SourcePicker } from "./SourcePicker";
 
 afterEach(() => {
   cleanup();
@@ -66,8 +66,7 @@ describe("LslSources", () => {
       "POST /sources/lsl": () => ({ device_id: "lsl:ephys" }),
     });
     const changed = vi.fn();
-    const notify = vi.fn();
-    render(<LslSources onSourcesChanged={changed} notify={notify} />);
+    render(<LslSources onSourcesChanged={changed} />);
     fireEvent.click(screen.getByTestId("lsl-discover"));
     const table = await screen.findByTestId("lsl-streams");
     expect(calls.find((c) => c.path === "/sources/lsl/discover")?.body).toEqual({ wait_s: 1.5 });
@@ -89,13 +88,12 @@ describe("LslSources", () => {
     fireEvent.change(behavior, { target: { value: "ephys-behavior" } });
     fireEvent.change(screen.getByTestId("lsl-markers"), { target: { value: "words" } });
     fireEvent.click(screen.getByTestId("lsl-register"));
-    await waitFor(() => expect(notify).toHaveBeenCalled());
+    await waitFor(() => expect(changed).toHaveBeenCalledTimes(2));
     expect(calls.at(-1)).toEqual({
       method: "POST",
       path: "/sources/lsl",
       body: { signal: "ephys", behavior: "ephys-behavior", markers: "words" },
     });
-    expect(changed).toHaveBeenCalledTimes(2);
   });
 
   it("shows the server's message when registration is refused", async () => {
@@ -103,7 +101,7 @@ describe("LslSources", () => {
       "GET /sources/lsl": () => discovered,
       "POST /sources/lsl": () => apiError(400, "protocol_error", "behavior stream has no numeric channels"),
     });
-    render(<LslSources onSourcesChanged={vi.fn()} notify={vi.fn()} />);
+    render(<LslSources onSourcesChanged={vi.fn()} />);
     fireEvent.click(await screen.findByTestId("lsl-use-ephys"));
     fireEvent.click(screen.getByTestId("lsl-register"));
     expect((await screen.findByTestId("lsl-error")).textContent).toBe(
@@ -116,7 +114,7 @@ describe("OpenEphysForm", () => {
   it("defaults to 127.0.0.1:5556 with unit unknown and says units are not transmitted", async () => {
     const calls = stubFetch({ "POST /sources/openephys": () => ({ device_id: "openephys:127.0.0.1:5556" }) });
     const changed = vi.fn();
-    render(<OpenEphysForm onSourcesChanged={changed} notify={vi.fn()} />);
+    render(<OpenEphysForm onSourcesChanged={changed} />);
     expect((screen.getByTestId("oe-host") as HTMLInputElement).value).toBe("127.0.0.1");
     expect((screen.getByTestId("oe-port") as HTMLInputElement).value).toBe("5556");
     expect((screen.getByTestId("oe-unit") as HTMLSelectElement).value).toBe("unknown");
@@ -129,7 +127,7 @@ describe("OpenEphysForm", () => {
 
   it("disables registration for an invalid port", () => {
     stubFetch({});
-    render(<OpenEphysForm onSourcesChanged={vi.fn()} notify={vi.fn()} />);
+    render(<OpenEphysForm onSourcesChanged={vi.fn()} />);
     fireEvent.change(screen.getByTestId("oe-port"), { target: { value: "70000" } });
     expect((screen.getByTestId("oe-register") as HTMLButtonElement).disabled).toBe(true);
   });
@@ -155,30 +153,88 @@ const runtimeOn = (device: DeviceDescriptor): RuntimeSnapshot => ({
   apps: [],
 });
 
-describe("AcquisitionView registered sources", () => {
-  it("removes an idle source and refuses (disabled) to remove the connected one", async () => {
+const sim = (id: string, name: string): DeviceDescriptor => ({ ...liveDev(id), kind: "simulated", synthetic: true, display_name: name });
+
+describe("SourcePicker", () => {
+  const devices = [
+    sim("sim-a", "Simulated Profile A"),
+    liveDev("lsl:a"),
+    liveDev("lsl:b"),
+    { ...liveDev("replay:rec-1"), kind: "replay" as const, display_name: "Replay · rec-1" },
+    {
+      ...liveDev("nwb:sub-x_ses-1"),
+      kind: "replay" as const,
+      display_name: "Recorded Human Intracranial Data — Offline Replay",
+      description: "sub-x_ses-1.nwb (DANDI 000954).",
+    },
+  ];
+  const lslIdle = { "GET /sources/lsl": () => ({ library: null, discovered_at_ns: null, streams: [], error: null }) };
+
+  it("groups sources: simulated, recorded data files only, session recordings, live streams", () => {
+    stubFetch(lslIdle);
+    render(<SourcePicker devices={devices} runtime={null} onClose={vi.fn()} onSourcesChanged={vi.fn()} />);
+    const sims = screen.getByTestId("sim-list");
+    expect(sims.querySelector('[data-testid="device-sim-a"]')).toBeTruthy();
+    const datasets = screen.getByTestId("dataset-list");
+    expect(datasets.querySelector('[data-testid="device-nwb:sub-x_ses-1"]')).toBeTruthy();
+    expect(datasets.querySelector('[data-testid="device-replay:rec-1"]')).toBeNull();
+    expect(datasets.querySelector('[data-testid="device-lsl:a"]')).toBeNull();
+    expect(screen.getByTestId("recording-list").querySelector('[data-testid="device-replay:rec-1"]')).toBeTruthy();
+    expect(screen.getByTestId("live-source-list").querySelector('[data-testid="device-lsl:a"]')).toBeTruthy();
+    // LSL discovery and Open Ephys stay collapsed until asked for
+    expect(screen.getByTestId("find-lsl-toggle").getAttribute("aria-expanded")).toBe("false");
+    expect(screen.queryByTestId("lsl-discover")).toBeNull();
+    expect(screen.queryByTestId("oe-register")).toBeNull();
+  });
+
+  it("shows four dataset files until 'Show all', labelled by session", () => {
+    stubFetch(lslIdle);
+    const files = Array.from({ length: 6 }, (_, i) => ({
+      ...liveDev(`nwb:f${i}`),
+      kind: "replay" as const,
+      description: `sub-HumanPitt-held-in-calib_ses-1925010${i}T111022.nwb (DANDI 000954).`,
+    }));
+    render(<SourcePicker devices={files} runtime={null} onClose={vi.fn()} onSourcesChanged={vi.fn()} />);
+    const list = screen.getByTestId("dataset-list");
+    expect(list.querySelectorAll("li").length).toBe(4);
+    expect(list.textContent).toContain("Session 19250100T111022");
+    expect(list.textContent).toContain("DANDI 000954 · held-in-calib");
+    fireEvent.click(screen.getByTestId("datasets-more"));
+    expect(screen.getByTestId("dataset-list").querySelectorAll("li").length).toBe(6);
+  });
+
+  it("connects when idle, switches when connected, and closes on success", async () => {
+    const calls = stubFetch({ ...lslIdle, "POST /runtime/connect": () => ({}), "POST /runtime/switch": () => ({}) });
+    const onClose = vi.fn();
+    const { unmount } = render(
+      <SourcePicker devices={devices} runtime={null} onClose={onClose} onSourcesChanged={vi.fn()} />,
+    );
+    fireEvent.click(screen.getByTestId("device-sim-a"));
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(calls.find((c) => c.path === "/runtime/connect")?.body).toEqual({ device_id: "sim-a" });
+    unmount();
+    render(<SourcePicker devices={devices} runtime={runtimeOn(devices[0]!)} onClose={vi.fn()} onSourcesChanged={vi.fn()} />);
+    expect(screen.getByTestId("device-lsl:a").textContent).toBe("Switch");
+    expect(screen.queryByTestId("device-sim-a")).toBeNull(); // the connected one is marked, not offered
+    fireEvent.click(screen.getByTestId("device-lsl:a"));
+    await waitFor(() => expect(calls.some((c) => c.path === "/runtime/switch")).toBe(true));
+  });
+
+  it("removes an idle live source but never the connected one, and shows refusals verbatim", async () => {
     const calls = stubFetch({
-      "GET /sources/lsl": () => ({ library: null, discovered_at_ns: null, streams: [], error: null }),
+      ...lslIdle,
       "DELETE /sources/lsl:b": () => ({ removed: true }),
+      "POST /runtime/switch": () => apiError(409, "invalid_state", "runtime is busy"),
     });
     const changed = vi.fn();
-    render(
-      <AcquisitionView
-        devices={[liveDev("lsl:a"), liveDev("lsl:b"), { ...liveDev("sim-a"), kind: "simulated" }]}
-        runtime={runtimeOn(liveDev("lsl:a"))}
-        liveMeta={{ protocol: "lsl", stats: { samples: 10 } }}
-        liveError={null}
-        diag={null}
-        onSourcesChanged={changed}
-        notify={vi.fn()}
-      />,
-    );
+    render(<SourcePicker devices={devices} runtime={runtimeOn(liveDev("lsl:a"))} onClose={vi.fn()} onSourcesChanged={changed} />);
     expect(screen.queryByTestId("remove-sim-a")).toBeNull();
-    expect((screen.getByTestId("remove-lsl:a") as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.queryByTestId("remove-lsl:a")).toBeNull();
     fireEvent.click(screen.getByTestId("remove-lsl:b"));
     await waitFor(() => expect(changed).toHaveBeenCalled());
     expect(calls.some((c) => c.method === "DELETE" && c.path === "/sources/lsl:b")).toBe(true);
-    expect(screen.getByTestId("signal-integrity")).toBeTruthy();
+    fireEvent.click(screen.getByTestId("device-sim-a"));
+    expect((await screen.findByTestId("picker-error")).textContent).toBe("invalid_state: runtime is busy");
   });
 });
 

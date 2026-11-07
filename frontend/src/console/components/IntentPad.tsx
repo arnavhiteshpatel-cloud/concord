@@ -6,19 +6,17 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as RPointerEvent } from "react";
 import type { RuntimeSnapshot } from "../../sdk";
 import { consoleApi } from "../api";
+import { useLog } from "../context";
+import { errorText } from "../hooks";
 import { Panel } from "./ui";
 
 const SEND_INTERVAL_MS = 50;
 const KEEPALIVE_MS = 200; // server dead-man is 500 ms
 const KEY_SPEED = 0.6;
 
-export function IntentPad({
-  runtime,
-  onError,
-}: {
-  runtime: RuntimeSnapshot | null;
-  onError: (e: unknown) => void;
-}) {
+export function IntentPad({ runtime }: { runtime: RuntimeSnapshot | null }) {
+  const log = useLog();
+  const onError = useCallback((e: unknown) => log("info", `Refused: ${errorText(e)}`), [log]);
   const device = runtime?.device;
   const live = device?.kind === "simulated" && runtime?.state === "streaming";
   const supports = (cap: string) => !!device?.capabilities.some((c) => c.capability === cap);
@@ -129,15 +127,10 @@ export function IntentPad({
   };
 
   return (
-    <Panel
-      title="Simulated intention source"
-      right={<span className="chip plain prov-simulated_intent">operator → simulator</span>}
-      className="intent-panel"
-      testId="intent-pad"
-    >
-      <p className="muted small">
-        Stands in for the participant's intent. Feeds the <b>simulated device</b>, which emits its own
-        native packets; the board only sees standardized runtime events. No neural decoding involved.
+    <Panel title="Simulated intention" className="intent-panel" testId="intent-pad">
+      <p className="hint">
+        You stand in for the participant's intent. Input goes to the simulated device, which emits its own packets;
+        apps only see standardized runtime events. No neural decoding is involved.
       </p>
       <div className="pad-row">
         <div
@@ -168,21 +161,18 @@ export function IntentPad({
           )}
           {!canPointer && (
             <div className="pad-overlay">
-              {live ? `${device?.display_name} has no pointer_intent` : "connect a simulated device"}
+              {live ? `${device?.display_name} has no pointer intent` : "Connect a simulated profile"}
             </div>
           )}
         </div>
         <div className="pad-side">
-          <button className="btn btn-primary btn-big" disabled={!canSelect} onClick={select} data-testid="sim-select">
+          <button type="button" className="btn btn-primary" disabled={!canSelect} onClick={select} data-testid="sim-select">
             Select
           </button>
-          <div className="kbd-hint">
-            <kbd>Space</kbd> select · <kbd>←↑↓→</kbd>/<kbd>WASD</kbd> move
-          </div>
-          <div className="vec mono">
-            v = ({knob.x.toFixed(2)}, {knob.y.toFixed(2)})
-          </div>
-          <div className="muted small">discrete intents sent: {sent}</div>
+          <p className="hint">Space selects. Arrow keys or W A S D move.</p>
+          <p className="hint num">
+            Velocity {knob.x.toFixed(2)}, {knob.y.toFixed(2)} · {sent} sent
+          </p>
         </div>
       </div>
       <form
@@ -196,7 +186,7 @@ export function IntentPad({
           value={text}
           onChange={(e) => setText(e.target.value)}
           maxLength={32}
-          placeholder={canText ? "text intent, e.g. hi" : "text_intent not supported by this device"}
+          placeholder={canText ? "Text intent, for example: hi" : "This profile has no text intent"}
           disabled={!canText}
           data-testid="sim-text"
         />
