@@ -57,3 +57,4 @@ ignore = ["RUF012"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["E501", "ASYNC109", "ASYNC110"]
+"../scripts/bench.py" = ["E501"]  # emits markdown tables

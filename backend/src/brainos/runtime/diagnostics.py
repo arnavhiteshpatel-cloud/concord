@@ -13,6 +13,7 @@ from pydantic import BaseModel
 from brainos.contracts.protocol import ConnectedApp
 
 RATE_WINDOW_S = 5.0
+MIN_RATE_WINDOW_S = 1.0  # avoid inflated rates in the first instants after (re)connect
 LATENCY_WINDOW = 4096
 
 
@@ -87,7 +88,7 @@ class _RollingRate:
 
     def rate(self, now: float, since: float) -> float:
         self._prune(now)
-        window = min(RATE_WINDOW_S, max(now - since, 1e-9))
+        window = min(RATE_WINDOW_S, max(now - since, MIN_RATE_WINDOW_S))
         return len(self._times) / window
 
 

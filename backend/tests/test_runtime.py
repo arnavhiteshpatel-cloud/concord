@@ -271,6 +271,13 @@ async def test_slow_subscriber_drops_oldest_others_unaffected(
     await rt.shutdown()
 
 
+async def test_rates_not_inflated_right_after_connect(runtime: Runtime) -> None:
+    """Regression: rolling rate window has a 1 s floor (was ~100 Hz for 2 status events)."""
+    await runtime.connect("sim-b")
+    rates = {t.event_type: t.rate_hz for t in runtime.diagnostics_snapshot().event_types}
+    assert rates["device.status"] <= 2.0
+
+
 async def test_disconnect_notifies_apps(runtime: Runtime) -> None:
     sub = subscribe(runtime, required=[Capability.SELECTION], optional=[])
     await runtime.connect("sim-a")
@@ -291,6 +298,8 @@ async def test_record_and_replay_preserves_provenance_and_order(
     rt = Runtime(registry, Recorder(rec_dir))
     await rt.connect("sim-b")
     name = rt.start_recording("unit-test")
+    # header is flushed immediately, so the in-progress recording is listable without errors
+    assert any(r.name == "unit-test" for r in rt.recorder.list())
     intents.submit_select()
     intents.submit_text("hi")
     await wait_for(lambda: rt.diagnostics.totals["intent.text"] == 1)
