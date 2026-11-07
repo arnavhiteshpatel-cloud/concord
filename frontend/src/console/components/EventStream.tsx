@@ -36,6 +36,10 @@ function payloadSummary(e: EventEnvelope): string {
     case "behavior.sample":
     case "intent.kinematics":
       return e.payload.dims.map((d, i) => `${d}=${(e.payload.values[i] ?? 0).toExponential(1)}`).join(" ");
+    case "intent.navigate":
+      return `${e.payload.direction}  conf ${e.payload.confidence.toFixed(2)}`;
+    case "control.state":
+      return `${e.payload.active ? "active" : "inactive"} ${e.payload.capabilities.join(",")} — ${e.payload.reason}`;
   }
 }
 

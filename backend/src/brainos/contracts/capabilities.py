@@ -22,6 +22,9 @@ class Capability(StrEnum):
     NEURAL_FEATURES = "neural_features"
     BEHAVIOR = "behavior"
     KINEMATIC_INTENT = "kinematic_intent"
+    # schema 1.4 (additive)
+    NAVIGATION = "navigation"  # discrete directional / sequential navigation commands
+    CONTROL_STATUS = "control_status"  # runtime notice: command output on/off -> safe state
 
 
 class EventType(StrEnum):
@@ -37,6 +40,8 @@ class EventType(StrEnum):
     FEATURES_VECTOR = "features.vector"  # 1.2
     BEHAVIOR_SAMPLE = "behavior.sample"
     INTENT_KINEMATICS = "intent.kinematics"
+    INTENT_NAVIGATE = "intent.navigate"  # 1.4
+    CONTROL_STATE = "control.state"  # 1.4
 
 
 EVENT_CAPABILITY: dict[EventType, Capability] = {
@@ -51,6 +56,8 @@ EVENT_CAPABILITY: dict[EventType, Capability] = {
     EventType.FEATURES_VECTOR: Capability.NEURAL_FEATURES,
     EventType.BEHAVIOR_SAMPLE: Capability.BEHAVIOR,
     EventType.INTENT_KINEMATICS: Capability.KINEMATIC_INTENT,
+    EventType.INTENT_NAVIGATE: Capability.NAVIGATION,
+    EventType.CONTROL_STATE: Capability.CONTROL_STATUS,
 }
 
 CAPABILITY_DESCRIPTIONS: dict[Capability, str] = {
@@ -63,6 +70,11 @@ CAPABILITY_DESCRIPTIONS: dict[Capability, str] = {
     Capability.NEURAL_FEATURES: "Processed neural features, e.g. binned threshold-crossing counts.",
     Capability.BEHAVIOR: "Recorded behavioral ground truth, e.g. measured or cued kinematics.",
     Capability.KINEMATIC_INTENT: "Multi-dimensional movement intent (simulated or model-decoded).",
+    Capability.NAVIGATION: "Discrete navigation commands: up/down/left/right/next/previous.",
+    Capability.CONTROL_STATUS: (
+        "Runtime notices that command output for this app started or stopped "
+        "(enter a safe state when inactive)."
+    ),
 }
 
 

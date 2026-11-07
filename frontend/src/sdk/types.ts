@@ -16,6 +16,9 @@ export const CAPABILITIES = [
   "neural_features",
   "behavior",
   "kinematic_intent",
+  // schema 1.4
+  "navigation",
+  "control_status",
 ] as const;
 export type Capability = (typeof CAPABILITIES)[number];
 
@@ -32,6 +35,9 @@ export const EVENT_CAPABILITY = {
   "features.vector": "neural_features", // 1.2
   "behavior.sample": "behavior",
   "intent.kinematics": "kinematic_intent",
+  // schema 1.4
+  "intent.navigate": "navigation",
+  "control.state": "control_status",
 } as const satisfies Record<string, Capability>;
 export type EventType = keyof typeof EVENT_CAPABILITY;
 
@@ -58,6 +64,8 @@ export const ALLOWED_PROVENANCE: Record<EventType, readonly ProvenanceKind[]> = 
   "features.vector": ["processed_feature"],
   "behavior.sample": ["behavioral_label"],
   "intent.kinematics": ["simulated_intent", "decoded_intent"],
+  "intent.navigate": ["simulated_intent", "decoded_intent"],
+  "control.state": ["runtime"],
 };
 
 export type QualityFlag =
@@ -80,6 +88,9 @@ export interface Provenance {
   model_id: string | null;
   origin: string;
   replayed: boolean;
+  /** 1.4: who produced a decoded_intent: a BrainOS model, an external live decoder, or the
+   * recorded outputs of a research system's original decoder ("historical"). */
+  model_origin?: "brainos" | "external" | "historical" | null;
 }
 
 export interface RecordingFramePayload {
@@ -163,6 +174,18 @@ export interface KinematicIntentPayload {
   space: string;
 }
 
+/** schema 1.4: discrete navigation (moves a highlight/focus, not a cursor). */
+export interface NavigateIntentPayload {
+  direction: "up" | "down" | "left" | "right" | "next" | "previous";
+  confidence: number;
+}
+/** schema 1.4: runtime notice to one app; active=false means stop acting (safe state). */
+export interface ControlStatePayload {
+  active: boolean;
+  capabilities: string[];
+  reason: string;
+}
+
 export interface PayloadByType {
   "recording.frame": RecordingFramePayload;
   "recording.annotation": RecordingAnnotationPayload;
@@ -175,6 +198,8 @@ export interface PayloadByType {
   "features.vector": FeaturesVectorPayload;
   "behavior.sample": BehaviorSamplePayload;
   "intent.kinematics": KinematicIntentPayload;
+  "intent.navigate": NavigateIntentPayload;
+  "control.state": ControlStatePayload;
 }
 
 interface EnvelopeBase {

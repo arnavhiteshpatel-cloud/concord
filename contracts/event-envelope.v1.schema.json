@@ -140,10 +140,117 @@
         "device_status",
         "neural_features",
         "behavior",
-        "kinematic_intent"
+        "kinematic_intent",
+        "navigation",
+        "control_status"
       ],
       "title": "Capability",
       "type": "string"
+    },
+    "ControlStateEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "$ref": "#/$defs/Capability"
+        },
+        "device_id": {
+          "pattern": "^[a-z0-9][a-z0-9_.:\\-]{0,63}$",
+          "title": "Device Id",
+          "type": "string"
+        },
+        "device_timestamp_ns": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Device clock from the native packet, if any",
+          "title": "Device Timestamp Ns"
+        },
+        "event_type": {
+          "const": "control.state",
+          "title": "Event Type",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/ControlStatePayload"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "quality": {
+          "$ref": "#/$defs/Quality"
+        },
+        "schema_version": {
+          "pattern": "^\\d+\\.\\d+$",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "seq": {
+          "minimum": 0,
+          "title": "Seq",
+          "type": "integer"
+        },
+        "session_id": {
+          "pattern": "^ses_[A-Za-z0-9]{6,64}$",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "timestamp_ns": {
+          "description": "Runtime wall clock at ingest, UTC ns",
+          "minimum": 0,
+          "title": "Timestamp Ns",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "session_id",
+        "device_id",
+        "seq",
+        "timestamp_ns",
+        "capability",
+        "quality",
+        "provenance",
+        "event_type",
+        "payload"
+      ],
+      "title": "ControlStateEvent",
+      "type": "object"
+    },
+    "ControlStatePayload": {
+      "additionalProperties": false,
+      "description": "Runtime notice to ONE application (schema 1.4): whether decoded command output is\ncurrently delivered to it. ``active: false`` = stop acting and enter a safe state.",
+      "properties": {
+        "active": {
+          "title": "Active",
+          "type": "boolean"
+        },
+        "capabilities": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 16,
+          "title": "Capabilities",
+          "type": "array"
+        },
+        "reason": {
+          "maxLength": 256,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "active",
+        "reason"
+      ],
+      "title": "ControlStatePayload",
+      "type": "object"
     },
     "DeviceState": {
       "enum": [
@@ -662,6 +769,112 @@
       "title": "KinematicIntentPayload",
       "type": "object"
     },
+    "NavigateIntentEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "$ref": "#/$defs/Capability"
+        },
+        "device_id": {
+          "pattern": "^[a-z0-9][a-z0-9_.:\\-]{0,63}$",
+          "title": "Device Id",
+          "type": "string"
+        },
+        "device_timestamp_ns": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Device clock from the native packet, if any",
+          "title": "Device Timestamp Ns"
+        },
+        "event_type": {
+          "const": "intent.navigate",
+          "title": "Event Type",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/NavigateIntentPayload"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "quality": {
+          "$ref": "#/$defs/Quality"
+        },
+        "schema_version": {
+          "pattern": "^\\d+\\.\\d+$",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "seq": {
+          "minimum": 0,
+          "title": "Seq",
+          "type": "integer"
+        },
+        "session_id": {
+          "pattern": "^ses_[A-Za-z0-9]{6,64}$",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "timestamp_ns": {
+          "description": "Runtime wall clock at ingest, UTC ns",
+          "minimum": 0,
+          "title": "Timestamp Ns",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "session_id",
+        "device_id",
+        "seq",
+        "timestamp_ns",
+        "capability",
+        "quality",
+        "provenance",
+        "event_type",
+        "payload"
+      ],
+      "title": "NavigateIntentEvent",
+      "type": "object"
+    },
+    "NavigateIntentPayload": {
+      "additionalProperties": false,
+      "description": "Discrete navigation (schema 1.4): move a highlight/focus, not a cursor.",
+      "properties": {
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "direction": {
+          "enum": [
+            "up",
+            "down",
+            "left",
+            "right",
+            "next",
+            "previous"
+          ],
+          "title": "Direction",
+          "type": "string"
+        }
+      },
+      "required": [
+        "direction",
+        "confidence"
+      ],
+      "title": "NavigateIntentPayload",
+      "type": "object"
+    },
     "PointerIntentEvent": {
       "additionalProperties": false,
       "properties": {
@@ -787,6 +1000,23 @@
           ],
           "default": null,
           "title": "Model Id"
+        },
+        "model_origin": {
+          "anyOf": [
+            {
+              "enum": [
+                "brainos",
+                "external",
+                "historical"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model Origin"
         },
         "origin": {
           "maxLength": 128,
@@ -1447,10 +1677,12 @@
   "discriminator": {
     "mapping": {
       "behavior.sample": "#/$defs/BehaviorSampleEvent",
+      "control.state": "#/$defs/ControlStateEvent",
       "device.status": "#/$defs/DeviceStatusEvent",
       "features.binned": "#/$defs/FeaturesBinnedEvent",
       "features.vector": "#/$defs/FeaturesVectorEvent",
       "intent.kinematics": "#/$defs/KinematicIntentEvent",
+      "intent.navigate": "#/$defs/NavigateIntentEvent",
       "intent.pointer": "#/$defs/PointerIntentEvent",
       "intent.selection": "#/$defs/SelectionIntentEvent",
       "intent.text": "#/$defs/TextIntentEvent",
@@ -1493,7 +1725,13 @@
     },
     {
       "$ref": "#/$defs/KinematicIntentEvent"
+    },
+    {
+      "$ref": "#/$defs/NavigateIntentEvent"
+    },
+    {
+      "$ref": "#/$defs/ControlStateEvent"
     }
   ],
-  "title": "BrainOS EventEnvelope 1.3"
+  "title": "BrainOS EventEnvelope 1.4"
 }
