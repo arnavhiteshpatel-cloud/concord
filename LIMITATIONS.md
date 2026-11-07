@@ -181,8 +181,9 @@ See docs/ECOSYSTEMS.md for details and evidence.
   its synthetic, playback-file and streaming boards (and a real driver's failure path);
   BCI2000 only with a locally built SignalGenerator + DummySignalProcessing +
   DummyApplication from a public source fork (bci2000.org was not reachable).
-- Not yet wired through the plugin host / runtime (built in parallel); tested directly
-  through the public adapter API.
+- Run through the plugin host and the runtime by `test_plugin_ecosystems.py` and by
+  `brainos-certify` (docs/COMPATIBILITY.md): BrainFlow with its synthetic board, BCI2000 with
+  a replayed capture of genuine BCI2000 output (not live BCI2000).
 - BrainFlow: only the DEFAULT preset is read; board configuration (`config_board`) is not
   offered (it writes to the device); BrainFlow markers cannot reach a read-only consumer
   (BrainFlow overwrites the marker row), so there is no markers stream; units are taken from
@@ -195,3 +196,24 @@ See docs/ECOSYSTEMS.md for details and evidence.
   wire). `synthetic`/`prerecorded` are operator declarations (App Connector does not reveal
   BCI2000's source module). The live test against BCI2000 is opt-in (`BCI2000_PROG_DIR`); CI
   replays a capture recorded from that build.
+
+## Certification toolkit (Milestone 4, `brainos-certify`)
+
+See docs/CERTIFICATION.md §6.
+
+- Software checks only. It grants `adapter_implementation` by itself; `protocol_tested` rests
+  on the operator's statement of which reference software produced the data (checked only for
+  consistency with the declared ecosystem, origin and installed version); `hardware_tested` on
+  an operator-signed attestation whose signature and plugin identity are verified but whose
+  hardware claims are not; `human_participant_validated` is never set.
+- Certifies plugins only; built-in adapters are covered by their own test suites.
+- A plugin's declarations (synthetic / prerecorded, origin, units, modality) are checked for
+  consistency, not truth. Timing numbers are machine-dependent; latency only for `unix` / `lsl`
+  clocks; CPU / RSS need Linux `/proc`. Thresholds (±2 % rate, one sample period of jitter,
+  1000 ppm drift) are engineering choices, not standards.
+- The fault-injection test kills the plugin host; it does not simulate a device disappearing.
+- Attestation signatures need the `openssl` command (OpenSSL 3, Ed25519).
+- No plugin for real acquisition hardware has been certified; the committed reports
+  (docs/compatibility/) are for a synthetic generator, BrainFlow's synthetic board and a
+  replayed BCI2000 capture.
+

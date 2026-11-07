@@ -51,5 +51,22 @@ not closed-loop control.
 
 | Component | Level reached | Evidence (all executed) | Not yet done |
 | --- | --- | --- | --- |
-| `brainos-brainflow` plugin | **2** | 41 tests against the official BrainFlow 5.23.0 library: SYNTHETIC_BOARD (rate, timestamps, ordering), PLAYBACK_FILE_BOARD replaying a `DataFilter.write_file` file bit-for-bit, STREAMING_BOARD fed over multicast by a second official session (bit-exact), a real driver's `prepare_session` failure; metadata from every shipped board description | No hardware board; not yet run through the plugin host |
-| `brainos-bci2000` plugin (App Connector) | **2** | Genuine BCI2000 3.6 build (source fork) — SignalGenerator → DummySignalProcessing → DummyApplication's own ConnectorOutput — received live by the plugin (opt-in test); a capture of it replayed in CI; byte-for-byte reproduction sender for loss/reorder/wrap/malformed cases | No amplifier, no real BCI2000 application module, not run through the plugin host |
+| `brainos-brainflow` plugin | **2** | 41 tests against the official BrainFlow 5.23.0 library: SYNTHETIC_BOARD (rate, timestamps, ordering), PLAYBACK_FILE_BOARD replaying a `DataFilter.write_file` file bit-for-bit, STREAMING_BOARD fed over multicast by a second official session (bit-exact), a real driver's `prepare_session` failure; metadata from every shipped board description; through the plugin host and the runtime in `test_plugin_ecosystems.py` and a 20 s `brainos-certify` run (`protocol_tested`, docs/compatibility/brainflow-synthetic.certify.md) | No hardware board |
+| `brainos-bci2000` plugin (App Connector) | **2** | Genuine BCI2000 3.6 build (source fork) — SignalGenerator → DummySignalProcessing → DummyApplication's own ConnectorOutput — received live by the plugin (opt-in test); a capture of it replayed in CI; byte-for-byte reproduction sender for loss/reorder/wrap/malformed cases; the capture through the plugin host and the runtime in `test_plugin_ecosystems.py` and a 20 s `brainos-certify` run (`adapter_implementation`, docs/compatibility/bci2000-app-connector.certify.md) | No amplifier, no real BCI2000 application module; the certification run used the replayed capture, not live BCI2000 |
+
+## Certification toolkit (Milestone 4, workstream D)
+
+`brainos-certify` (docs/CERTIFICATION.md) reports four levels for a plugin. They map onto the
+levels above as follows; the toolkit can grant only the first by itself.
+
+| Certification level | Project level | Basis |
+| --- | --- | --- |
+| `adapter_implementation` | 1 (through the real plugin host) | 25 required automated checks + 4 optional BrainOS-runtime checks |
+| `protocol_tested` | 2, if the named reference software really produced the data | operator statement (`--protocol-reference`) + consistency of ecosystem, origin and installed version |
+| `hardware_tested` | not 3 by itself | an operator-signed attestation; level 3 additionally needs a documented comparison against an independent reference |
+| `human_participant_validated` | 4 | never set by the toolkit |
+
+| Component | Level reached | Evidence (all executed) | Not yet done |
+| --- | --- | --- | --- |
+| `brainos-certify` toolkit | 1 | `packages/brainos-certify/tests` (every check passes on a good plugin; each check that can fail or warn does so on a crafted defect; installed entry points and RECORD hash verification on a temporary distribution; level logic; signed / tampered / foreign-key / malformed attestations with OpenSSL Ed25519; report schema; CLI exit codes; a run with BrainOS hidden); every broken test plugin in `backend/tests/plugins` caught by a specific check (docs/COMPATIBILITY.md); real runs of the example, BrainFlow and BCI2000 plugins (docs/compatibility/) | Never run against a plugin for real acquisition hardware; thresholds are engineering choices, not standards |
+
