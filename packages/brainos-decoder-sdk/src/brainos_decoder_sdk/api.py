@@ -158,6 +158,10 @@ class OutputSpec:
     # typical magnitude of each continuous dim (e.g. the training targets' std); BrainOS's
     # command router divides by it before applying gain / dead-zone. None = not declared.
     scale: tuple[float, ...] | None = None
+    # direction of +y in ``space`` ("up" or "down"; None = not declared). The pointer
+    # workspace's +y is down: BrainOS's router refuses to map an "up" y dim to the pointer
+    # unless the operator enables invert_y.
+    y_axis: str | None = None
 
 
 @dataclass(frozen=True, slots=True)

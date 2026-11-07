@@ -207,6 +207,8 @@ def _validate_output(o: object, out: list[Problem]) -> None:
             _err(out, f"output.{key}", f"{key} must be a 1-64 character string", w)
     if o.kind in (OutputKind.CLASSES, OutputKind.EVENT) and o.unit != "probability":
         _err(out, "output.unit", f"{o.kind} outputs are probabilities (unit 'probability')", w)
+    if o.y_axis not in (None, "up", "down"):
+        _err(out, "output.y_axis", f"y_axis must be 'up', 'down' or None, got {o.y_axis!r}", w)
     if o.scale is not None:
         if o.kind is not OutputKind.CONTINUOUS:
             _err(out, "output.scale", "scale applies to continuous outputs only", w)
@@ -359,6 +361,7 @@ def manifest_to_dict(m: ModelManifest) -> dict[str, Any]:
             "unit": o.unit,
             "space": o.space,
             "scale": list(o.scale) if o.scale is not None else None,
+            "y_axis": o.y_axis,
         },
         "confidence": str(m.confidence),
         "preprocessing": {
@@ -476,6 +479,7 @@ def manifest_from_dict(d: Mapping[str, Any]) -> ModelManifest:
                 unit=str(_req(o, "unit")),
                 space=str(_req(o, "space")),
                 scale=None if scale is None else tuple(float(x) for x in scale),
+                y_axis=o.get("y_axis"),
             ),
             confidence=Confidence(conf),
             preprocessing=Preprocessing(

@@ -76,8 +76,14 @@ class AsyncHostClient:
         extra_path: Sequence[str] = (),
         label: str | None = None,
         pending_timeout_s: float = 6.0,
+        module: str = "brainos_adapter_sdk.host",
+        protocol: str = ipc.PROTOCOL,
+        args: Sequence[str] | None = None,
     ) -> None:
         self.plugin_ref = plugin_ref
+        # Milestone 5: the decoder host (brainos_decoder_sdk.host) speaks the same framing
+        self.module, self.protocol = module, protocol
+        self.args = list(args) if args is not None else [plugin_ref]
         # a request cancelled while waiting for its answer (e.g. the runtime stopping the
         # pump on disconnect) leaves that answer in the pipe: it is drained before the next
         # request, waiting at most this long, so close() can still shut the plugin down cleanly
@@ -107,8 +113,8 @@ class AsyncHostClient:
         self.proc = await asyncio.create_subprocess_exec(
             self.python,
             "-m",
-            "brainos_adapter_sdk.host",
-            self.plugin_ref,
+            self.module,
+            *self.args,
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
@@ -123,7 +129,7 @@ class AsyncHostClient:
         except TimeoutError:
             await self._fail(f"no hello from the plugin host within {timeout_s:g} s")
             raise HostTimeout(f"plugin host did not start within {timeout_s:g} s") from None
-        if header.get("type") != "hello" or header.get("protocol") != ipc.PROTOCOL:
+        if header.get("type") != "hello" or header.get("protocol") != self.protocol:
             await self._fail("bad hello")
             raise HostProtocolError(
                 f"unexpected first message from the plugin host: {header!r}"[:300]
@@ -206,7 +212,12 @@ class AsyncHostClient:
                 await asyncio.wait_for(self.proc.wait(), 2.0)
 
     async def request(
-        self, cmd: str, args: Mapping[str, Any] | None = None, *, timeout_s: float
+        self,
+        cmd: str,
+        args: Mapping[str, Any] | None = None,
+        *,
+        timeout_s: float,
+        buffers: Sequence[NDArray[Any]] = (),
     ) -> tuple[dict[str, Any], list[NDArray[Any]]]:
         """One request/response. Raises RemoteError (typed plugin error) or HostFailure."""
         async with self._lock:
@@ -221,7 +232,7 @@ class AsyncHostClient:
             rid = self._id
             try:
                 self.proc.stdin.write(
-                    ipc.encode_message({"id": rid, "cmd": cmd, "args": dict(args or {})})
+                    ipc.encode_message({"id": rid, "cmd": cmd, "args": dict(args or {})}, buffers)
                 )
                 await self.proc.stdin.drain()
             except (BrokenPipeError, ConnectionResetError) as exc:
