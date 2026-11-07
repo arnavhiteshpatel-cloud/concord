@@ -98,15 +98,15 @@ class MenuApp:
         env = self.guard.handle(item)
         if not is_event(item):
             return
+        if item.event_type.value == "control.state":  # shown even while suspended
+            p = item.payload
+            on = "active" if p.active else "inactive"  # type: ignore[union-attr]
+            self.control = f"{on}: {p.reason}"  # type: ignore[union-attr]
+            return
         if env is None or self.status != "active":
             self.ignored += 1
             return
         et = env.event_type.value
-        if et == "control.state":
-            p = env.payload
-            on = "active" if p.active else "inactive"  # type: ignore[union-attr]
-            self.control = f"{on}: {p.reason}"  # type: ignore[union-attr]
-            return
         if et == "intent.selection":
             self._act(str(env.payload.action))  # type: ignore[union-attr]
         elif et == "intent.text":
