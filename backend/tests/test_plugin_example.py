@@ -32,7 +32,8 @@ from brainos.contracts.events import EventEnvelope
 from brainos.sdk import BrainOSError, EventStream, RuntimeClient, is_event
 from brainos.server import create_app
 
-from .conftest import _free_port, make_settings
+from .conftest import free_port as _free_port
+from .conftest import make_settings
 
 PLUGIN = "example-mi-eeg"
 DEVICE = "plugin:example-mi-eeg:mi-eeg"
