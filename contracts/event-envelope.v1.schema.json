@@ -1187,10 +1187,15 @@
     },
     "SelectionIntentPayload": {
       "additionalProperties": false,
+      "description": "Discrete action. ``primary`` = select the highlighted item; 1.3 adds ``activate``\n(trigger / confirm) and ``cancel`` (back / undo).",
       "properties": {
         "action": {
-          "const": "primary",
           "default": "primary",
+          "enum": [
+            "primary",
+            "activate",
+            "cancel"
+          ],
           "title": "Action",
           "type": "string"
         },
@@ -1490,5 +1495,5 @@
       "$ref": "#/$defs/KinematicIntentEvent"
     }
   ],
-  "title": "BrainOS EventEnvelope 1.2"
+  "title": "BrainOS EventEnvelope 1.3"
 }

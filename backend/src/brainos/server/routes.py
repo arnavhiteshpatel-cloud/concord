@@ -45,6 +45,8 @@ class DeviceRequest(_Body):
 
 class NegotiateRequest(_Body):
     device_id: str | None = None
+    # schema 1.3: dry-run as this application id (decoded commands need its authorization)
+    app_id: str | None = Field(default=None, max_length=64)
     required: list[str] = Field(default_factory=list, max_length=16)
     optional: list[str] = Field(default_factory=list, max_length=16)
 
@@ -144,6 +146,9 @@ async def device_source(device_id: str, svc: Svc) -> SourceMetadata | dict[str, 
     ):
         meta: dict[str, Any] = adapter.source_metadata()
         return meta
+    plugin_meta = rt.registry.plugins.source_metadata(device_id)
+    if plugin_meta is not None:  # configured plugin device, not connected: probe-time facts
+        return plugin_meta
     if rt.registry.live.owns(device_id):
         idle = await asyncio.to_thread(rt.registry.live.create, device_id)
         meta = idle.source_metadata()  # type: ignore[attr-defined]
@@ -221,7 +226,7 @@ async def negotiate_preview(body: NegotiateRequest, svc: Svc) -> NegotiationResu
         optional = parse_capabilities(body.optional)
     except UnknownCapabilityError as exc:
         raise RuntimeCommandError(ErrorCode.UNKNOWN_CAPABILITY, str(exc)) from None
-    return svc.runtime.preview_negotiation(body.device_id, required, optional)
+    return svc.runtime.preview_negotiation(body.device_id, required, optional, body.app_id)
 
 
 @router.get("/schema/event")

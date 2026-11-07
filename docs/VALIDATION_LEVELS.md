@@ -16,7 +16,7 @@ console and docs must be consistent with this page.
 path reproduces offline results on real neural statistics. It is not live acquisition and
 not closed-loop control.
 
-## Where each component is today (Milestone 3)
+## Where each component is today (Milestone 4, workstream A)
 
 | Component | Level reached | Evidence (all executed) | Not yet done |
 | --- | --- | --- | --- |
@@ -28,8 +28,11 @@ not closed-loop control.
 | Decoder compatibility + leakage guards | 1 | Tests refuse wrong channel count / feature / bin, training-session streams, cross-source models without override | — |
 | Calibration from recordings | 2 + real-data replay | Recording of FALCON-over-LSL → calibration gives the same held-out R² as fitting the file directly (within float32 tolerance); synthetic tuned units calibrate (R² > 0.3); unrelated signal gives R² < 0.2 | Never calibrated on live neural data or with a participant |
 | Center-out cue task | 2 | Cue + marker streams attach to a neural stream on one clock (`test_center_out_task.py`) | Never shown to a participant; display timing (monitor latency) unmeasured |
-| Command router + reference app | 1–2 | Same unchanged SDK-only app across simulator, FALCON-over-LSL (suspended until the router is enabled, then decoded commands), Open Ephys (suspended) | No person has controlled anything with it |
+| Command router + reference app | 1–2 | Same unchanged SDK-only app across simulator, FALCON-over-LSL (suspended until the router is enabled and the operator authorizes the app, then decoded commands), Open Ephys (suspended) | No person has controlled anything with it |
+| Control bridge (M4): authorization, discrete actions, LDA, stop paths, SDK guard, menu app | 1 (+ real server and WebSocket in tests) | `test_control.py` (authorization, bus, router provenance, hysteresis, every stop path incl. input stall), `test_lda.py`, `test_sdk_guard.py`, `guard.test.ts`, `test_control_e2e.py` (real server + SDK + both reference apps: default deny, authorize, revoke / stop / disconnect within 1 s, raw-only and label-only sources yield no commands); LDA only on synthetic motor-imagery-like data generated in the tests; e2e demo M3-6 authorizes and revokes the board app | Never run on a real EEG/ECoG/intracortical source, with a participant, or with a third-party application |
 | Operator console | 1–2 | Vitest (API helpers and every Acquisition/Pipeline/Router/Calibration control against a mocked server); Playwright `e2e/demo.cjs` steps M3-1…M3-5 against a real server with an LSL synthetic-ephys publisher and an Open Ephys ZMQ test publisher (discover, register, connect, integrity counters, spikeband pipeline counters, stop, remove) | Calibration, model loading and the router are not exercised in the browser demo (component + backend tests only) |
+| Source plugins (M4): adapter SDK, validation, plugin host, isolation, `PluginAdapter`, REST, console | 1 | `test_plugin_validate.py` (one malformed-input test per rule), `test_plugin_host.py` (IPC bit-exactness, typed errors, stdout isolation, crash/hang/exit, `--list` with broken plugins), `test_plugin_runtime.py` (every broken test plugin is rejected or stopped and the runtime stays healthy), `test_plugin_example.py` (REST → WebSocket → record → replay → pipeline → host killed → reconnect), Vitest `Plugins.test.tsx`, Playwright step M4-1; IPC throughput measured (`scripts/bench_plugins.py`) | The isolation is fault isolation, not a security sandbox (docs/ADAPTER_SDK.md §5). Only test plugins and a synthetic example exist; no plugin for a real acquisition system has been run here (BrainFlow/BCI2000 plugins are separate work) |
+| Example adapter (motor-imagery EEG generator) | 1 | Same seed → bit-identical samples through host, runtime, WebSocket and replay; mu ERD at C3/C4 measured in `test_generator_mu_desynchronisation` | Synthetic, declared so; not physiologically validated; never presented as brain data |
 | **Anything** | **3 / 4** | **Nothing in BrainOS has reached level 3 or 4.** | Requires lab hardware, and for level 4 an approved protocol |
 
 ## What would move a component up a level
@@ -43,3 +46,27 @@ not closed-loop control.
   alignment with a known pulse generator.
 - **Any → 4:** only within an approved human-research protocol run by qualified
   investigators. BrainOS provides no clinical functions and is not a medical device.
+
+## Ecosystem plugins (Milestone 4, workstream B)
+
+| Component | Level reached | Evidence (all executed) | Not yet done |
+| --- | --- | --- | --- |
+| `brainos-brainflow` plugin | **2** | 41 tests against the official BrainFlow 5.23.0 library: SYNTHETIC_BOARD (rate, timestamps, ordering), PLAYBACK_FILE_BOARD replaying a `DataFilter.write_file` file bit-for-bit, STREAMING_BOARD fed over multicast by a second official session (bit-exact), a real driver's `prepare_session` failure; metadata from every shipped board description; through the plugin host and the runtime in `test_plugin_ecosystems.py` and a 20 s `brainos-certify` run (`protocol_tested`, docs/compatibility/brainflow-synthetic.certify.md) | No hardware board |
+| `brainos-bci2000` plugin (App Connector) | **2** | Genuine BCI2000 3.6 build (source fork) — SignalGenerator → DummySignalProcessing → DummyApplication's own ConnectorOutput — received live by the plugin (opt-in test); a capture of it replayed in CI; byte-for-byte reproduction sender for loss/reorder/wrap/malformed cases; the capture through the plugin host and the runtime in `test_plugin_ecosystems.py` and a 20 s `brainos-certify` run (`adapter_implementation`, docs/compatibility/bci2000-app-connector.certify.md) | No amplifier, no real BCI2000 application module; the certification run used the replayed capture, not live BCI2000 |
+
+## Certification toolkit (Milestone 4, workstream D)
+
+`brainos-certify` (docs/CERTIFICATION.md) reports four levels for a plugin. They map onto the
+levels above as follows; the toolkit can grant only the first by itself.
+
+| Certification level | Project level | Basis |
+| --- | --- | --- |
+| `adapter_implementation` | 1 (through the real plugin host) | 25 required automated checks + 4 optional BrainOS-runtime checks |
+| `protocol_tested` | 2, if the named reference software really produced the data | operator statement (`--protocol-reference`) + consistency of ecosystem, origin and installed version |
+| `hardware_tested` | not 3 by itself | an operator-signed attestation; level 3 additionally needs a documented comparison against an independent reference |
+| `human_participant_validated` | 4 | never set by the toolkit |
+
+| Component | Level reached | Evidence (all executed) | Not yet done |
+| --- | --- | --- | --- |
+| `brainos-certify` toolkit | 1 | `packages/brainos-certify/tests` (every check passes on a good plugin; each check that can fail or warn does so on a crafted defect; installed entry points and RECORD hash verification on a temporary distribution; level logic; signed / tampered / foreign-key / malformed attestations with OpenSSL Ed25519; report schema; CLI exit codes; a run with BrainOS hidden); every broken test plugin in `backend/tests/plugins` caught by a specific check (docs/COMPATIBILITY.md); real runs of the example, BrainFlow and BCI2000 plugins (docs/compatibility/) | Never run against a plugin for real acquisition hardware; thresholds are engineering choices, not standards |
+

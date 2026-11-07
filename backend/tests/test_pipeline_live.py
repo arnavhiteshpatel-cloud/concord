@@ -245,6 +245,12 @@ async def test_falcon_over_lsl_decodes_like_offline_and_routes_only_on_request(
     assert events(before, "intent.pointer") == []
 
     rt.set_router(RouterSpec(enabled=True, x_dim="tx", y_dim="ty", gain=0.5))
+    # M4: decoded commands need the operator's authorization of the app (default deny)
+    assert pointer_app.negotiation.status is AppStatus.SUSPENDED
+    ptr = [r for r in pointer_app.negotiation.rejected if r.capability is Capability.POINTER_INTENT]
+    assert [r.reason.value for r in ptr] == ["not_authorized"]
+    rt.authorize_app("pointer-app", [Capability.POINTER_INTENT])
+    rt.authorize_app("test", [Capability.POINTER_INTENT])
     assert pointer_app.negotiation.status is AppStatus.ACTIVE
     n = load(EVAL_FILE).n_bins
     after = await _collect(sub, lambda: rt.pipeline.counters["decoded_out"] >= n, 60)
@@ -385,6 +391,7 @@ async def test_synthetic_raw_stream_full_loop(tmp_path: Path, publishers: list[A
         )
     )
     assert st.decoder is not None and not st.cross_source_override
+    rt.authorize_app("test", [Capability.POINTER_INTENT])  # authorizations survive reconnects
     sub = subscribe(rt)
     await wait_for(lambda: rt.pipeline.counters["commands_out"] >= 20, timeout=20)
     ptr = events(drain(sub), "intent.pointer")

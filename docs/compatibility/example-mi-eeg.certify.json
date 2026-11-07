@@ -1,0 +1,1322 @@
+{
+ "notice": "SOFTWARE CERTIFICATION ONLY - this report is not hardware certification and not human-participant validation. A pass means the plugin satisfied the BrainOS adapter SDK contract, through the real plugin host, with the data source used in this run, on this machine. It does not show that any physical device, amplifier or implant works with BrainOS, and it says nothing about safety, clinical use or decoding performance. 'hardware_tested' appears only as an operator's signed attestation, which this toolkit does not verify; 'human_participant_validated' is never set by this toolkit.",
+ "report_version": "1.0",
+ "tool": {
+  "name": "brainos-certify",
+  "version": "0.1.0"
+ },
+ "generated_at": "2026-11-07T20:56:03Z",
+ "started_at": "2026-11-07T20:55:31Z",
+ "elapsed_s": 32.01,
+ "environment": {
+  "os": "Linux",
+  "os_release": "6.18.44-fc-v310",
+  "platform": "Linux-6.18.44-fc-v310-x86_64-with-glibc2.39",
+  "machine": "x86_64",
+  "cpu_model": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+  "cpu_count": 4,
+  "memory_total_mib": 16086,
+  "python": "3.12.3",
+  "python_implementation": "CPython",
+  "certify_version": "0.1.0",
+  "report_version": "1.0",
+  "sdk_version": "1.0.0",
+  "sdk_api_version": "1.0",
+  "brainos_version": "0.3.0",
+  "host_python": "3.12.3",
+  "host_sdk_version": "1.0.0",
+  "host_api_version": "1.0"
+ },
+ "plugin": {
+  "ref": "example-mi-eeg",
+  "entry_point": "example-mi-eeg",
+  "device_key": "mi-eeg",
+  "manifest": {
+   "name": "brainos-example-adapter",
+   "version": "0.1.0",
+   "api_version": "1.0",
+   "display_name": "Example: motor-imagery EEG generator",
+   "author": "BrainOS developers",
+   "license": "Proprietary (internal preview)",
+   "homepage": "",
+   "ecosystem": null,
+   "network": false,
+   "roles": [
+    "behavior",
+    "markers",
+    "signal"
+   ],
+   "options": {
+    "seed": {
+     "type": "int",
+     "required": false
+    },
+    "montage": {
+     "type": "choice",
+     "required": false
+    },
+    "cue_duration_s": {
+     "type": "float",
+     "required": false
+    },
+    "effect_size": {
+     "type": "float",
+     "required": false
+    }
+   }
+  },
+  "identity": {
+   "ref": "example-mi-eeg",
+   "kind": "entry_point",
+   "entry_point": {
+    "group": "brainos.sources",
+    "name": "example-mi-eeg",
+    "count": 1,
+    "value": "brainos_example_adapter.plugin:MotorImageryEEGPlugin",
+    "providers": [
+     "brainos-example-adapter"
+    ]
+   },
+   "distribution": {
+    "name": "brainos-example-adapter",
+    "version": "0.1.0",
+    "editable": true,
+    "direct_url": "file:///home/user/brainos/examples/adapters/brainos-example-adapter",
+    "requires": [
+     {
+      "requirement": "brainos-adapter-sdk<2,>=1.0",
+      "installed": "1.0.0"
+     },
+     {
+      "requirement": "numpy>=1.26",
+      "installed": "2.5.4"
+     }
+    ],
+    "record": {
+     "files": 10,
+     "verified": 9,
+     "unhashed": 1,
+     "mismatched": [],
+     "missing": [],
+     "sha256": "acee28b3645b2c0e47124908127d6dc3d9f49bcff606807d9abd30763d6a5657"
+    }
+   },
+   "module": {
+    "name": "brainos_example_adapter.plugin",
+    "package": "brainos_example_adapter",
+    "path": "/home/user/brainos/examples/adapters/brainos-example-adapter/src/brainos_example_adapter",
+    "files": [
+     {
+      "path": "__init__.py",
+      "sha256": "85834b066347d9ee2298727fe9aaebff76164e1aee29fa6980651ed4216a9d11",
+      "bytes": 110
+     },
+     {
+      "path": "generator.py",
+      "sha256": "57697b2924d3a1576d5591ae2edaf9c3f00e00e1bd669fbdc27f4e79379659c5",
+      "bytes": 7449
+     },
+     {
+      "path": "plugin.py",
+      "sha256": "5513bea4dd64ab8dd78770903e6c5720304283352f76e36dfd844369ecd7b253",
+      "bytes": 7640
+     },
+     {
+      "path": "py.typed",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+     }
+    ],
+    "file_count": 4,
+    "tree_sha256": "e9decc29c0a4e68a2c743b411402462c61eef991c0a355267d28deaf1a9fc9b8"
+   },
+   "versions": {},
+   "errors": [],
+   "git": {
+    "commit": "89e11674a08cab367a543f20a2bcfe6b463c0d42",
+    "dirty": false,
+    "dirty_files": 0
+   }
+  },
+  "session": {
+   "origin": "brainos-example-adapter:mi-eeg:seed=1",
+   "synthetic": true,
+   "prerecorded": false,
+   "primary_stream": "eeg",
+   "streams": [
+    {
+     "stream_id": "eeg",
+     "role": "signal",
+     "channels": 8,
+     "nominal_rate_hz": 250.0,
+     "clock": "source",
+     "clock_description": "generator sample clock: monotonic time at open() + sample index / 250 Hz",
+     "modality": "eeg",
+     "invasive": false,
+     "units": [
+      "microvolts"
+     ],
+     "bin_ms": null,
+     "quantity": null,
+     "model_id": null
+    },
+    {
+     "stream_id": "cue",
+     "role": "behavior",
+     "channels": 1,
+     "nominal_rate_hz": 50.0,
+     "clock": "source",
+     "clock_description": "generator sample clock: monotonic time at open() + sample index / 250 Hz",
+     "modality": null,
+     "invasive": null,
+     "units": [
+      "None"
+     ],
+     "bin_ms": null,
+     "quantity": "class",
+     "model_id": null
+    },
+    {
+     "stream_id": "markers",
+     "role": "markers",
+     "channels": 1,
+     "nominal_rate_hz": 0.0,
+     "clock": "source",
+     "clock_description": "generator sample clock: monotonic time at open() + sample index / 250 Hz",
+     "modality": null,
+     "invasive": null,
+     "units": [
+      "None"
+     ],
+     "bin_ms": null,
+     "quantity": null,
+     "model_id": null
+    }
+   ]
+  }
+ },
+ "options": {
+  "plugin_options_requested": {},
+  "plugin_options_resolved": {
+   "seed": 1,
+   "montage": "8",
+   "cue_duration_s": 4.0,
+   "effect_size": 0.5
+  },
+  "run": {
+   "plugin": "example-mi-eeg",
+   "device": null,
+   "duration_s": 20.0,
+   "reopen_s": 2.0,
+   "rate_tolerance": 0.02,
+   "read_timeout_s": 0.1,
+   "read_grace_s": 5.0,
+   "start_timeout_s": 30.0,
+   "open_timeout_s": 30.0,
+   "discover_timeout_s": 2.0,
+   "kill_detect_limit_s": 2.0,
+   "python": null,
+   "extra_path": [],
+   "runtime": true,
+   "runtime_s": 5.0,
+   "protocol_reference": null,
+   "attestation": null,
+   "attestation_signature": null,
+   "attestation_public_key": null
+  }
+ },
+ "summary": {
+  "counts": {
+   "pass": 27,
+   "fail": 0,
+   "warn": 1,
+   "not_run": 1
+  },
+  "level": "adapter_implementation",
+  "level_statement": "adapter implementation: every required automated check passed",
+  "exit_code": 0,
+  "blocking": []
+ },
+ "levels": {
+  "achieved": [
+   "adapter_implementation"
+  ],
+  "highest": "adapter_implementation",
+  "levels": {
+   "adapter_implementation": {
+    "achieved": true,
+    "statement": "adapter implementation: every required automated check passed",
+    "why": "all required checks passed or warned; no check failed",
+    "missing": [],
+    "notes": []
+   },
+   "protocol_tested": {
+    "achieved": false,
+    "statement": "not achieved",
+    "why": "see missing",
+    "missing": [
+     "no --protocol-reference: name the external reference software that produced the data (e.g. \"BrainFlow 5.23 BoardShim SYNTHETIC_BOARD\")"
+    ],
+    "consistency": [
+     {
+      "rule": "reference_given",
+      "ok": false,
+      "detail": "no --protocol-reference given"
+     },
+     {
+      "rule": "ecosystem_declared",
+      "ok": false,
+      "detail": "manifest.ecosystem = None"
+     }
+    ]
+   },
+   "hardware_tested": {
+    "achieved": false,
+    "statement": "not achieved",
+    "why": "see missing",
+    "missing": [
+     "no operator attestation (--attestation): hardware testing cannot be established by software and is never inferred"
+    ]
+   },
+   "human_participant_validated": {
+    "achieved": false,
+    "statement": "never set by this toolkit",
+    "why": "human-participant validation is out of scope for software: it requires an approved human-research protocol run by qualified investigators",
+    "missing": [
+     "out of scope for software; never granted by brainos-certify"
+    ]
+   }
+  }
+ },
+ "protocol_reference": null,
+ "attestation": null,
+ "checks": [
+  {
+   "id": "manifest.load",
+   "group": "manifest",
+   "title": "Plugin host starts and the plugin loads",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "plugin loaded in its own host process (pid 1353) in 0.12 s",
+   "evidence": {
+    "pid": 1353,
+    "protocol": "brainos.plugin-ipc/1",
+    "host_sdk_version": "1.0.0",
+    "host_api_version": "1.0",
+    "host_python": "3.12.3",
+    "startup_s": 0.125
+   }
+  },
+  {
+   "id": "manifest.valid",
+   "group": "manifest",
+   "title": "Manifest passes validate_manifest (host and local)",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "manifest valid (host and local validation)",
+   "evidence": {
+    "manifest": {
+     "name": "brainos-example-adapter",
+     "version": "0.1.0",
+     "api_version": "1.0",
+     "display_name": "Example: motor-imagery EEG generator",
+     "author": "BrainOS developers",
+     "license": "Proprietary (internal preview)",
+     "homepage": "",
+     "ecosystem": null,
+     "network": false,
+     "roles": [
+      "behavior",
+      "markers",
+      "signal"
+     ],
+     "options": {
+      "seed": {
+       "type": "int",
+       "required": false
+      },
+      "montage": {
+       "type": "choice",
+       "required": false
+      },
+      "cue_duration_s": {
+       "type": "float",
+       "required": false
+      },
+      "effect_size": {
+       "type": "float",
+       "required": false
+      }
+     }
+    },
+    "problems": [],
+    "host_says_compatible": true
+   }
+  },
+  {
+   "id": "manifest.api_compat",
+   "group": "manifest",
+   "title": "Plugin API version is compatible with the installed SDK",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "plugin API 1.0 runs on SDK API 1.0 (SDK 1.0.0)",
+   "evidence": {
+    "plugin_api_version": "1.0",
+    "host_api_version": "1.0",
+    "host_sdk_version": "1.0.0",
+    "certify_sdk_api_version": "1.0",
+    "certify_sdk_version": "1.0.0"
+   }
+  },
+  {
+   "id": "manifest.entry_point",
+   "group": "manifest",
+   "title": "Registered as a brainos.sources entry point",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "entry point example-mi-eeg = brainos_example_adapter.plugin:MotorImageryEEGPlugin (brainos-example-adapter)",
+   "evidence": {
+    "entry_point": {
+     "group": "brainos.sources",
+     "name": "example-mi-eeg",
+     "count": 1,
+     "value": "brainos_example_adapter.plugin:MotorImageryEEGPlugin",
+     "providers": [
+      "brainos-example-adapter"
+     ]
+    }
+   }
+  },
+  {
+   "id": "manifest.distribution",
+   "group": "manifest",
+   "title": "Installed distribution identified (name, version, hashes)",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "brainos-example-adapter 0.1.0: 9 of 9 hashed RECORD entries verified; module tree sha256 e9decc29c0a4\u2026 (editable install: RECORD covers the .pth only; source files hashed)",
+   "evidence": {
+    "distribution": {
+     "name": "brainos-example-adapter",
+     "version": "0.1.0",
+     "editable": true,
+     "direct_url": "file:///home/user/brainos/examples/adapters/brainos-example-adapter"
+    },
+    "record": {
+     "files": 10,
+     "verified": 9,
+     "unhashed": 1,
+     "mismatched": [],
+     "missing": [],
+     "sha256": "acee28b3645b2c0e47124908127d6dc3d9f49bcff606807d9abd30763d6a5657"
+    },
+    "module": {
+     "name": "brainos_example_adapter.plugin",
+     "path": "/home/user/brainos/examples/adapters/brainos-example-adapter/src/brainos_example_adapter",
+     "file_count": 4,
+     "tree_sha256": "e9decc29c0a4e68a2c743b411402462c61eef991c0a355267d28deaf1a9fc9b8"
+    },
+    "git": {
+     "commit": "89e11674a08cab367a543f20a2bcfe6b463c0d42",
+     "dirty": false,
+     "dirty_files": 0
+    }
+   }
+  },
+  {
+   "id": "manifest.discover",
+   "group": "manifest",
+   "title": "discover() returns valid devices, including the one tested",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "1 device(s) ['mi-eeg'] in 0.00 s; testing 'mi-eeg'",
+   "evidence": {
+    "devices": [
+     {
+      "device_key": "mi-eeg",
+      "display_name": "Motor-imagery EEG generator",
+      "description": "Synthetic EEG with a rest / left / right cue schedule.",
+      "details": {
+       "rate": "250 Hz",
+       "channels": "8 or 16 (10-20)"
+      }
+     }
+    ],
+    "discover_s": 0.001,
+    "problems": [],
+    "tested_device": "mi-eeg"
+   }
+  },
+  {
+   "id": "metadata.session_valid",
+   "group": "metadata",
+   "title": "open() succeeds; SessionInfo passes validation",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "3 stream(s), primary 'eeg', synthetic=True prerecorded=False, opened in 0.01 s",
+   "evidence": {
+    "open_s": 0.011,
+    "primary_stream": "eeg",
+    "synthetic": true,
+    "prerecorded": false,
+    "origin": "brainos-example-adapter:mi-eeg:seed=1",
+    "streams": [
+     {
+      "stream_id": "eeg",
+      "role": "signal",
+      "channels": 8,
+      "nominal_rate_hz": 250.0,
+      "clock": "source",
+      "clock_description": "generator sample clock: monotonic time at open() + sample index / 250 Hz",
+      "modality": "eeg",
+      "invasive": false,
+      "units": [
+       "microvolts"
+      ],
+      "bin_ms": null,
+      "quantity": null,
+      "model_id": null
+     },
+     {
+      "stream_id": "cue",
+      "role": "behavior",
+      "channels": 1,
+      "nominal_rate_hz": 50.0,
+      "clock": "source",
+      "clock_description": "generator sample clock: monotonic time at open() + sample index / 250 Hz",
+      "modality": null,
+      "invasive": null,
+      "units": [
+       "None"
+      ],
+      "bin_ms": null,
+      "quantity": "class",
+      "model_id": null
+     },
+     {
+      "stream_id": "markers",
+      "role": "markers",
+      "channels": 1,
+      "nominal_rate_hz": 0.0,
+      "clock": "source",
+      "clock_description": "generator sample clock: monotonic time at open() + sample index / 250 Hz",
+      "modality": null,
+      "invasive": null,
+      "units": [
+       "None"
+      ],
+      "bin_ms": null,
+      "quantity": null,
+      "model_id": null
+     }
+    ],
+    "options_resolved": {
+     "seed": 1,
+     "montage": "8",
+     "cue_duration_s": 4.0,
+     "effect_size": 0.5
+    },
+    "problems": []
+   }
+  },
+  {
+   "id": "metadata.units",
+   "group": "metadata",
+   "title": "Channel units declared (unknown units are a warning)",
+   "required": true,
+   "status": "warn",
+   "applicable": true,
+   "reason": "1 of 9 channel(s) declare no unit (shown as 'arbitrary'; correct when the source does not state units)",
+   "evidence": {
+    "streams": {
+     "eeg": {
+      "role": "signal",
+      "channels": 8,
+      "unknown": 0,
+      "declared": [
+       "microvolts"
+      ],
+      "brainos_unit": "uV"
+     },
+     "cue": {
+      "role": "behavior",
+      "channels": 1,
+      "unknown": 1,
+      "declared": []
+     }
+    },
+    "unknown_channels": 1,
+    "notes": []
+   }
+  },
+  {
+   "id": "metadata.modality",
+   "group": "metadata",
+   "title": "Modality / invasiveness declared and consistent",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "declared and consistent: eeg=eeg/invasive=False",
+   "evidence": {
+    "eeg": {
+     "role": "signal",
+     "modality": "eeg",
+     "invasive": false
+    }
+   }
+  },
+  {
+   "id": "metadata.channel_identity",
+   "group": "metadata",
+   "title": "Identical streams and channels on every open",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "4 opens (open_1, reopen_same_host, fresh_host_after_kill, brainos_runtime): identical stream ids, labels, order, units, rates (10 channels)",
+   "evidence": {
+    "opens_compared": [
+     "open_1",
+     "reopen_same_host",
+     "fresh_host_after_kill",
+     "brainos_runtime"
+    ],
+    "differences": {},
+    "reference": "open_1",
+    "channels": 10
+   }
+  },
+  {
+   "id": "timing.monotonic",
+   "group": "timing",
+   "title": "Timestamps never decrease",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "7200 timestamps in 3 session(s) never decrease (within or across chunks)",
+   "evidence": {
+    "streams": {
+     "main.eeg": {
+      "samples": 5000,
+      "decreases": 0
+     },
+     "main.cue": {
+      "samples": 1000,
+      "decreases": 0
+     },
+     "reopen.eeg": {
+      "samples": 500,
+      "decreases": 0
+     },
+     "reopen.cue": {
+      "samples": 100,
+      "decreases": 0
+     },
+     "fresh_host.eeg": {
+      "samples": 500,
+      "decreases": 0
+     },
+     "fresh_host.cue": {
+      "samples": 100,
+      "decreases": 0
+     }
+    }
+   }
+  },
+  {
+   "id": "timing.rate",
+   "group": "timing",
+   "title": "Rate from source timestamps matches the nominal rate",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "primary 250.0 Hz from timestamps vs nominal 250 Hz (+0.000 %, tolerance \u00b12 %)",
+   "evidence": {
+    "tolerance_percent": 2.0,
+    "streams": {
+     "eeg": {
+      "nominal_hz": 250.0,
+      "clock": "source",
+      "samples": 5000,
+      "time_span_s": 19.996,
+      "rate_hz": 250.0,
+      "rate_hz_lsq": 250.0,
+      "error_percent": 0.0
+     },
+     "cue": {
+      "nominal_hz": 50.0,
+      "clock": "source",
+      "samples": 1000,
+      "time_span_s": 19.98,
+      "rate_hz": 50.0,
+      "rate_hz_lsq": 50.0,
+      "error_percent": 0.0
+     }
+    }
+   }
+  },
+  {
+   "id": "timing.jitter",
+   "group": "timing",
+   "title": "Timestamp and arrival jitter distribution",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "primary timestamp residual p50/p99/max 0.0/0.0/0.0 ms; arrival interval p50/p99 100.0102/101.6239 ms",
+   "evidence": {
+    "streams": {
+     "eeg": {
+      "residual_ms": {
+       "n": 5000,
+       "min": 0.0,
+       "p50": 0.0,
+       "p95": 0.0,
+       "p99": 0.0,
+       "max": 0.0,
+       "mean": 0.0
+      },
+      "interval_error_ms": {
+       "n": 4999,
+       "min": 0.0,
+       "p50": 0.0,
+       "p95": 0.0,
+       "p99": 0.0,
+       "max": 0.0,
+       "mean": 0.0
+      },
+      "arrival_interval_ms": {
+       "n": 199,
+       "min": 93.758,
+       "p50": 100.0102,
+       "p95": 100.552,
+       "p99": 101.6239,
+       "max": 106.3189,
+       "mean": 100.0013
+      },
+      "samples_per_chunk": {
+       "n": 200,
+       "min": 25.0,
+       "p50": 25.0,
+       "p95": 25.0,
+       "p99": 25.0,
+       "max": 25.0,
+       "mean": 25.0
+      },
+      "truncated_to_samples": null
+     },
+     "cue": {
+      "residual_ms": {
+       "n": 1000,
+       "min": 0.0,
+       "p50": 0.0,
+       "p95": 0.0,
+       "p99": 0.0,
+       "max": 0.0,
+       "mean": 0.0
+      },
+      "interval_error_ms": {
+       "n": 999,
+       "min": 0.0,
+       "p50": 0.0,
+       "p95": 0.0,
+       "p99": 0.0,
+       "max": 0.0,
+       "mean": 0.0
+      },
+      "arrival_interval_ms": {
+       "n": 199,
+       "min": 93.758,
+       "p50": 100.0102,
+       "p95": 100.552,
+       "p99": 101.6239,
+       "max": 106.3189,
+       "mean": 100.0013
+      },
+      "samples_per_chunk": {
+       "n": 200,
+       "min": 5.0,
+       "p50": 5.0,
+       "p95": 5.0,
+       "p99": 5.0,
+       "max": 5.0,
+       "mean": 5.0
+      },
+      "truncated_to_samples": null
+     },
+     "markers": {
+      "residual_ms": {
+       "n": 5,
+       "min": 0.0,
+       "p50": 0.0,
+       "p95": 0.0,
+       "p99": 0.0,
+       "max": 0.0,
+       "mean": 0.0
+      },
+      "arrival_interval_ms": {
+       "n": 4,
+       "min": 3998.2073,
+       "p50": 3999.8883,
+       "p95": 4001.5984,
+       "p99": 4001.8055,
+       "max": 4001.8573,
+       "mean": 3999.9603
+      },
+      "samples_per_chunk": {
+       "n": 5,
+       "min": 1.0,
+       "p50": 1.0,
+       "p95": 1.0,
+       "p99": 1.0,
+       "max": 1.0,
+       "mean": 1.0
+      },
+      "truncated_to_samples": null
+     }
+    },
+    "warn_threshold_sample_periods": 1.0
+   }
+  },
+  {
+   "id": "timing.clock_domain",
+   "group": "timing",
+   "title": "Timestamps are plausible for the declared clock domain",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "source clock: offset to host monotonic 0.0056 s (origin unknown by declaration; not checkable); drift -4.1 ppm vs host monotonic",
+   "evidence": {
+    "domain": "source",
+    "description": "generator sample clock: monotonic time at open() + sample index / 250 Hz",
+    "reference_clock": "host monotonic clock",
+    "offset_newest_s": {
+     "n": 200,
+     "min": 0.0052,
+     "p50": 0.0056,
+     "p95": 0.0063,
+     "p99": 0.0072,
+     "max": 0.0116,
+     "mean": 0.0057
+    },
+    "offset_oldest_s": {
+     "n": 200,
+     "min": 0.1012,
+     "p50": 0.1016,
+     "p95": 0.1023,
+     "p99": 0.1032,
+     "max": 0.1076,
+     "mean": 0.1017
+    },
+    "drift_ppm": -4.1,
+    "drift_span_s": 19.9
+   }
+  },
+  {
+   "id": "integrity.read",
+   "group": "integrity",
+   "title": "Session streams for the whole run without errors or hangs",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "200 reads over 20.0 s, 6005 samples (all streams), no errors",
+   "evidence": {
+    "requested_s": 20.0,
+    "ran_s": 20.001,
+    "reads": 200,
+    "empty_reads": 0,
+    "samples": 6005,
+    "first_data_after_s": 0.1,
+    "failure": null
+   }
+  },
+  {
+   "id": "integrity.chunk_validation",
+   "group": "integrity",
+   "title": "Every chunk passes validation (host and local)",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "487 chunks validated by the host and again by the certifier",
+   "evidence": {
+    "chunks_validated": 487,
+    "errors": [],
+    "warnings": [],
+    "host_notices": {}
+   }
+  },
+  {
+   "id": "integrity.sample_index",
+   "group": "integrity",
+   "title": "first_index continuity: gaps counted, no overlaps",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "7200 samples in 3 session(s): 0 gaps, 0 overlaps",
+   "evidence": {
+    "streams": {
+     "main.eeg": {
+      "samples": 5000,
+      "first_index": 0,
+      "gaps": 0,
+      "lost_samples": 0,
+      "overlaps": 0,
+      "loss_fraction": 0.0
+     },
+     "main.cue": {
+      "samples": 1000,
+      "first_index": 0,
+      "gaps": 0,
+      "lost_samples": 0,
+      "overlaps": 0,
+      "loss_fraction": 0.0
+     },
+     "reopen.eeg": {
+      "samples": 500,
+      "first_index": 0,
+      "gaps": 0,
+      "lost_samples": 0,
+      "overlaps": 0,
+      "loss_fraction": 0.0
+     },
+     "reopen.cue": {
+      "samples": 100,
+      "first_index": 0,
+      "gaps": 0,
+      "lost_samples": 0,
+      "overlaps": 0,
+      "loss_fraction": 0.0
+     },
+     "fresh_host.eeg": {
+      "samples": 500,
+      "first_index": 0,
+      "gaps": 0,
+      "lost_samples": 0,
+      "overlaps": 0,
+      "loss_fraction": 0.0
+     },
+     "fresh_host.cue": {
+      "samples": 100,
+      "first_index": 0,
+      "gaps": 0,
+      "lost_samples": 0,
+      "overlaps": 0,
+      "loss_fraction": 0.0
+     }
+    },
+    "gaps": 0,
+    "lost_samples": 0,
+    "samples": 7200
+   }
+  },
+  {
+   "id": "integrity.markers",
+   "group": "integrity",
+   "title": "Marker timestamps ordered and on the primary clock",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "5 marker(s) in order, within the primary stream's time span",
+   "evidence": {
+    "streams": {
+     "main.markers": {
+      "markers": 5,
+      "decreases": 0,
+      "outside_primary_span": 0
+     },
+     "reopen.markers": {
+      "markers": 1,
+      "decreases": 0
+     },
+     "fresh_host.markers": {
+      "markers": 1,
+      "decreases": 0
+     }
+    },
+    "primary_span": [
+     6964.159864597,
+     6984.155864597
+    ]
+   }
+  },
+  {
+   "id": "integrity.plugin_stats",
+   "group": "integrity",
+   "title": "stats() returns valid integrity counters",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "2 counter(s), none reporting loss",
+   "evidence": {
+    "plugin_stats": {
+     "samples": 5000,
+     "catch_up_reads": 0
+    },
+    "invalid_stats": 0,
+    "host_counters": {
+     "samples": 6005,
+     "chunks": 405,
+     "reads": 200,
+     "bytes": 212040
+    }
+   }
+  },
+  {
+   "id": "reconnect.clean_reopen",
+   "group": "reconnect",
+   "title": "Clean close, reopen, data again, identity unchanged",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "closed in 0.5 ms, reopened in 0.001 s, first data 0.102 s after open; identity unchanged",
+   "evidence": {
+    "close_s": 0.0,
+    "reopen_s": 0.001,
+    "first_data_after_open_s": 0.102,
+    "samples": 601,
+    "read_s": 2.001,
+    "failure": null,
+    "identity_unchanged": true,
+    "identity_differences": []
+   }
+  },
+  {
+   "id": "reconnect.host_killed",
+   "group": "reconnect",
+   "title": "Host killed mid-stream: link loss reported, fresh open",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "SIGKILL after 5 reads surfaced as a link loss in 4.8 ms; fresh host: first data 0.226 s after start (0.111 s after open); identity unchanged; exit code 0",
+   "evidence": {
+    "kill": {
+     "pid": 1353,
+     "signal": "SIGKILL",
+     "killed": true,
+     "reads_before_kill": 5,
+     "detected_as": "HostDied",
+     "message": "plugin host exited (code -9)",
+     "detect_s": 0.0048,
+     "host_exit_code": -9
+    },
+    "fresh_host_start_s": 0.115,
+    "open_s": 0.009,
+    "first_data_after_open_s": 0.111,
+    "first_data_after_host_start_s": 0.226,
+    "samples": 601,
+    "failure": null,
+    "identity_unchanged": true,
+    "identity_differences": [],
+    "fresh_host_exit_code": 0
+   }
+  },
+  {
+   "id": "performance.throughput",
+   "group": "performance",
+   "title": "Sustained delivery rate keeps up with the nominal rate",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "primary delivered 250.001 samples/s over 20.0 s vs nominal 250 Hz (+0.000 %); 10601.6 B/s over IPC",
+   "evidence": {
+    "duration_s": 20.001,
+    "tolerance_percent": 2.0,
+    "streams": {
+     "eeg": {
+      "samples": 5000,
+      "chunks": 200,
+      "samples_per_s_overall": 249.99,
+      "nominal_hz": 250.0,
+      "arrival_span_s": 19.9,
+      "rate_hz": 250.001,
+      "rate_hz_endpoints": 249.9967,
+      "error_percent": 0.0
+     },
+     "cue": {
+      "samples": 1000,
+      "chunks": 200,
+      "samples_per_s_overall": 49.998,
+      "nominal_hz": 50.0,
+      "arrival_span_s": 19.9,
+      "rate_hz": 50.0002,
+      "rate_hz_endpoints": 49.9993,
+      "error_percent": 0.0
+     },
+     "markers": {
+      "samples": 5,
+      "chunks": 5,
+      "samples_per_s_overall": 0.25,
+      "nominal_hz": 0.0
+     }
+    },
+    "ipc_bytes_received": 212040,
+    "ipc_bytes_per_s": 10601.6
+   }
+  },
+  {
+   "id": "performance.latency",
+   "group": "performance",
+   "title": "Read latency (now - sample timestamp)",
+   "required": true,
+   "status": "not_run",
+   "applicable": false,
+   "reason": "not applicable: clock domain 'source' has no known relation to a host clock (latency cannot be measured; see timing.clock_domain for the offset)",
+   "evidence": {}
+  },
+  {
+   "id": "performance.host_resources",
+   "group": "performance",
+   "title": "Plugin host process CPU and memory",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "host process CPU 1.2 % of one core, RSS peak 37.4 MiB (median 37.4 MiB)",
+   "evidence": {
+    "pid": 1353,
+    "wall_s": 20.002,
+    "cpu_s": 0.24,
+    "cpu_percent_of_one_core": 1.2,
+    "rss_mib_median": 37.4,
+    "rss_mib_max_sampled": 37.4,
+    "rss_mib_peak": 37.4,
+    "rss_samples": 80,
+    "clock_ticks_per_s": 100
+   }
+  },
+  {
+   "id": "performance.ipc",
+   "group": "performance",
+   "title": "IPC volume and round-trip time",
+   "required": true,
+   "status": "pass",
+   "applicable": true,
+   "reason": "10601.6 B/s, 10.0 reads/s; ping round trip p50/p99 0.1853/0.499 ms",
+   "evidence": {
+    "host_counters": {
+     "samples": 6005,
+     "chunks": 405,
+     "reads": 200,
+     "bytes": 212040
+    },
+    "host_bytes_per_s": 10601.6,
+    "reads_per_s": 10.0,
+    "empty_read_fraction": 0.0,
+    "ping_round_trip_ms": {
+     "n": 30,
+     "min": 0.1077,
+     "p50": 0.1853,
+     "p95": 0.4396,
+     "p99": 0.499,
+     "max": 0.5171,
+     "mean": 0.2294
+    }
+   }
+  },
+  {
+   "id": "runtime.descriptor",
+   "group": "runtime",
+   "title": "BrainOS device descriptor matches the declarations",
+   "required": false,
+   "status": "pass",
+   "applicable": true,
+   "reason": "descriptor kind=simulated modality=eeg invasive=False integration=plugin matches the declarations",
+   "evidence": {
+    "device_id": "plugin:example-mi-eeg:mi-eeg",
+    "expected": {
+     "kind": "simulated",
+     "synthetic": true,
+     "modality": "eeg",
+     "invasive": false,
+     "integration": {
+      "kind": "plugin",
+      "package": "brainos-example-adapter",
+      "version": "0.1.0",
+      "api_version": "1.0",
+      "isolated": true,
+      "ecosystem": null
+     },
+     "capabilities": [
+      "behavior",
+      "device_status",
+      "recording"
+     ]
+    },
+    "brainos": {
+     "kind": "simulated",
+     "synthetic": true,
+     "modality": "eeg",
+     "invasive": false,
+     "integration": {
+      "kind": "plugin",
+      "package": "brainos-example-adapter",
+      "version": "0.1.0",
+      "api_version": "1.0",
+      "isolated": true,
+      "ecosystem": null
+     },
+     "adapter": "brainos-example-adapter@0.1.0"
+    },
+    "brainos_capabilities": [
+     "recording",
+     "behavior",
+     "device_status"
+    ]
+   }
+  },
+  {
+   "id": "runtime.negotiation",
+   "group": "runtime",
+   "title": "Capability grants and rejections match the roles",
+   "required": false,
+   "status": "pass",
+   "applicable": true,
+   "reason": "granted ['behavior', 'device_status', 'recording']; every other capability rejected (unsupported_by_device); command app suspended",
+   "evidence": {
+    "expected_granted": [
+     "behavior",
+     "device_status",
+     "recording"
+    ],
+    "negotiations": {
+     "all_optional": {
+      "device_id": "plugin:example-mi-eeg:mi-eeg",
+      "status": "active",
+      "granted": [
+       "recording",
+       "device_status",
+       "behavior"
+      ],
+      "rejected": [
+       {
+        "capability": "pointer_intent",
+        "reason": "unsupported_by_device",
+        "required": false
+       },
+       {
+        "capability": "selection",
+        "reason": "unsupported_by_device",
+        "required": false
+       },
+       {
+        "capability": "text_intent",
+        "reason": "unsupported_by_device",
+        "required": false
+       },
+       {
+        "capability": "telemetry",
+        "reason": "unsupported_by_device",
+        "required": false
+       },
+       {
+        "capability": "neural_features",
+        "reason": "unsupported_by_device",
+        "required": false
+       },
+       {
+        "capability": "kinematic_intent",
+        "reason": "unsupported_by_device",
+        "required": false
+       }
+      ]
+     },
+     "roles_required": {
+      "device_id": "plugin:example-mi-eeg:mi-eeg",
+      "status": "active",
+      "granted": [
+       "behavior",
+       "device_status",
+       "recording"
+      ],
+      "rejected": []
+     },
+     "command_required": {
+      "device_id": "plugin:example-mi-eeg:mi-eeg",
+      "status": "suspended",
+      "granted": [],
+      "rejected": [
+       {
+        "capability": "pointer_intent",
+        "reason": "unsupported_by_device",
+        "required": true
+       },
+       {
+        "capability": "selection",
+        "reason": "unsupported_by_device",
+        "required": false
+       },
+       {
+        "capability": "text_intent",
+        "reason": "unsupported_by_device",
+        "required": false
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "runtime.envelopes",
+   "group": "runtime",
+   "title": "Every event validates against the BrainOS contracts",
+   "required": false,
+   "status": "pass",
+   "applicable": true,
+   "reason": "305 of 305 events validated against contract 1.3 (pydantic + JSON Schema); 0 invalid, 0 undeclared, 0 decode errors",
+   "evidence": {
+    "schema_version": "1.3",
+    "event_schema_versions": {
+     "1.3": 305
+    },
+    "events_published": 305,
+    "events_validated": 305,
+    "event_types": {
+     "device.status": 3,
+     "recording.frame": 50,
+     "behavior.sample": 250,
+     "recording.annotation": 2
+    },
+    "invalid": [],
+    "runtime_diagnostics": {
+     "validation_errors": 0,
+     "undeclared_capability": 0,
+     "decode_errors": 0,
+     "link_errors": 0,
+     "timestamp_regressions": 0
+    },
+    "runtime_state_at_end": "streaming",
+    "runtime_last_error": null,
+    "seconds": 5.0
+   }
+  },
+  {
+   "id": "runtime.provenance",
+   "group": "runtime",
+   "title": "Provenance correct; nothing becomes a command",
+   "required": false,
+   "status": "pass",
+   "applicable": true,
+   "reason": "provenance kinds, synthetic/replayed flags, origin and model ids as declared; no command events",
+   "evidence": {
+    "declared": {
+     "synthetic": true,
+     "prerecorded": false,
+     "origin": "brainos-example-adapter:mi-eeg:seed=1"
+    },
+    "expected_provenance": {
+     "recording.frame": "raw_signal",
+     "behavior.sample": "behavioral_label",
+     "recording.annotation": "behavioral_label"
+    },
+    "decoder_model_id": null,
+    "command_events": {},
+    "regular_streams_without_events": [],
+    "problems": []
+   }
+  }
+ ],
+ "host_log_tail": []
+}

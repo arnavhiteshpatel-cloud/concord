@@ -115,6 +115,73 @@ export interface OpenEphysConfigInput {
 /** `/devices/{id}/source` for a live source: the adapter's own metadata dict (shape differs per protocol). */
 export type LiveSourceMetadata = Record<string, unknown>;
 
+// ------------------------------------------------------------------ Milestone 4: source plugins
+// Shapes mirror backend/src/brainos/server/plugin_routes.py.
+
+export type OptionValue = string | number | boolean | null;
+
+export interface PluginOptionInfo {
+  name: string;
+  type: "str" | "int" | "float" | "bool" | "choice";
+  description: string;
+  default: OptionValue;
+  required: boolean;
+  choices: string[];
+}
+
+export interface PluginProblem {
+  code: string;
+  message: string;
+  severity: "error" | "warning" | "info";
+  where: string;
+}
+
+export interface PluginDeviceInfo {
+  device_key: string;
+  display_name: string;
+  description: string;
+  details: Record<string, string>;
+  /** null when no valid BrainOS device id can be formed (reason says why) */
+  device_id: string | null;
+  reason: string | null;
+  configured: boolean;
+}
+
+export interface PluginInfo {
+  name: string;
+  entry: string;
+  package: string | null;
+  package_version: string | null;
+  status: "compatible" | "rejected" | "load_error";
+  reason: string | null;
+  display_name: string | null;
+  description: string | null;
+  version: string | null;
+  api_version: string | null;
+  author: string | null;
+  license: string | null;
+  homepage: string | null;
+  ecosystem: string | null;
+  network: boolean | null;
+  roles: string[];
+  options: PluginOptionInfo[];
+  problems: PluginProblem[];
+  error: { type: string; message: string; traceback: string | null } | null;
+  devices: PluginDeviceInfo[];
+  discovery_error: string | null;
+  log_tail: string[];
+}
+
+export interface PluginsStatus {
+  host_api_version: string;
+  sdk_version: string;
+  python: string;
+  discovering: boolean;
+  discovered_at_ns: number | null;
+  error: string | null;
+  plugins: PluginInfo[];
+}
+
 // ------------------------------------------------------------------ pipeline
 
 export type PresetName = "spikeband_threshold" | "ecog_high_gamma" | "band_power" | "features_passthrough";
@@ -127,14 +194,31 @@ export interface ProcessingSpecInput {
   band_high_hz?: number;
 }
 
+export type DiscreteAction = "primary" | "activate" | "cancel" | "text";
+
+/** One discrete action from a classifier's class posterior (Milestone 4). */
+export interface DiscreteRule {
+  output: string;
+  threshold: number;
+  release?: number | null;
+  hold_ms: number;
+  refractory_ms: number;
+  action: DiscreteAction;
+  text?: string | null;
+}
+
 export interface RouterSpec {
   enabled: boolean;
-  x_dim: string;
-  y_dim: string;
+  /** pointer mapping (continuous decoders); both or neither */
+  x_dim: string | null;
+  y_dim: string | null;
   gain: number;
   deadzone: number;
   invert_y: boolean;
   max_speed: number;
+  /** discrete actions (classifier decoders) */
+  discrete?: DiscreteRule[];
+  stall_ms?: number;
 }
 
 export interface PipelineStartRequest {
@@ -163,6 +247,10 @@ export interface PipelineOutputSpec {
 
 export interface ModelSummary {
   model_id: string;
+  /** Milestone 4: classifiers output class posteriors (dims = class names) */
+  outputs?: { type: "classes"; classes: string[] } | { type: "continuous" };
+  held_out_balanced_accuracy?: number | null;
+  chance_balanced_accuracy?: number | null;
   method?: string;
   space?: string;
   dims: string[];
@@ -197,6 +285,56 @@ export interface PipelineStatus {
   pipeline_latency_ms: LatencyStats;
   last_error: string | null;
   started_at_ns: number | null;
+  // Milestone 4
+  router_capabilities?: string[];
+  stall_limit_ms?: number | null;
+  last_router_stop?: RouterEvent | null;
+  router_log?: RouterEvent[];
+}
+
+export interface RouterEvent {
+  at_ns: number;
+  on: boolean;
+  reason: string;
+}
+
+// ------------------------------------------------------------------ control bridge (M4)
+// Shapes mirror backend/src/brainos/server/control_routes.py.
+
+export type CommandCapability = "pointer_intent" | "selection" | "text_intent";
+
+export interface AppControl {
+  app_id: string;
+  name: string | null;
+  kind: "application" | "console" | "sdk" | null;
+  connections: number;
+  status: "active" | "suspended" | "no_device" | null;
+  requested: CommandCapability[];
+  required: CommandCapability[];
+  authorized: CommandCapability[];
+  authorized_at_ns: number | null;
+  receiving: CommandCapability[];
+  waiting: { capability: CommandCapability; reason: "unsupported_by_device" | "no_device" | "not_authorized"; required: boolean }[];
+  refused_commands: number;
+}
+
+export interface ControlEvent {
+  at_ns: number;
+  kind: "authorized" | "revoked" | "router_on" | "router_off";
+  app_id: string | null;
+  capabilities: string[];
+  detail: string;
+}
+
+export interface ControlStatus {
+  router_on: boolean;
+  model_id: string | null;
+  provides: CommandCapability[];
+  router: RouterSpec | null;
+  stall_limit_ms: number | null;
+  last_stop: RouterEvent | null;
+  apps: AppControl[];
+  history: ControlEvent[];
 }
 
 export interface ModelInfo {
@@ -212,6 +350,10 @@ export interface CalibrationRequest {
   train_fraction?: number;
   gap_bins?: number;
   feature_source?: string | null;
+  /** "classifier": LDA on a class-label behavior stream (Milestone 4) */
+  kind?: "regression" | "classifier";
+  label_dim?: string | null;
+  class_names?: string[] | null;
 }
 
 export interface CalibrationReport {
@@ -250,6 +392,13 @@ export const labApi = {
     apiCall<DeviceDescriptor>("/sources/lsl", { method: "POST", body: { signal, behavior, markers } }),
   openEphysRegister: (config: OpenEphysConfigInput) =>
     apiCall<DeviceDescriptor>("/sources/openephys", { method: "POST", body: config }),
+  plugins: () => apiCall<PluginsStatus>("/plugins"),
+  discoverPlugins: () => apiCall<PluginsStatus>("/plugins/discover", { method: "POST", body: {} }),
+  configurePlugin: (name: string, deviceKey: string, options: Record<string, OptionValue>) =>
+    apiCall<DeviceDescriptor>(`/plugins/${enc(name)}/configure`, {
+      method: "POST",
+      body: { device_key: deviceKey, options },
+    }),
   removeSource: (deviceId: string) => apiCall<{ removed: boolean }>(`/sources/${enc(deviceId)}`, { method: "DELETE" }),
   liveSource: (deviceId: string) => apiCall<LiveSourceMetadata>(`/devices/${enc(deviceId)}/source`),
   pipeline: () => apiCall<PipelineStatus>("/pipeline"),
@@ -258,6 +407,12 @@ export const labApi = {
     apiCall<PipelineStatus>("/pipeline/start", { method: "POST", body: req }),
   stopPipeline: () => apiCall<PipelineStatus>("/pipeline/stop", { method: "POST" }),
   setRouter: (router: RouterSpec) => apiCall<PipelineStatus>("/pipeline/router", { method: "POST", body: router }),
+  control: () => apiCall<ControlStatus>("/control"),
+  authorizeApp: (appId: string, capabilities: CommandCapability[]) =>
+    apiCall<ControlStatus>(`/control/apps/${enc(appId)}/authorize`, { method: "POST", body: { capabilities } }),
+  revokeApp: (appId: string) => apiCall<ControlStatus>(`/control/apps/${enc(appId)}/revoke`, { method: "POST" }),
+  stopControl: (reason?: string) =>
+    apiCall<ControlStatus>("/control/stop", { method: "POST", body: reason ? { reason } : undefined }),
   models: () => apiCall<ModelInfo[]>("/models"),
   calibrate: (req: CalibrationRequest) =>
     apiCall<CalibrationResult>("/calibration/train", { method: "POST", body: req }),
@@ -268,6 +423,11 @@ const LIVE_PREFIXES = ["lsl:", "openephys:"];
 /** A source registered at runtime (LSL / Open Ephys), as opposed to simulators and local files. */
 export function isLiveSource(device: Pick<DeviceDescriptor, "device_id"> | null | undefined): boolean {
   return !!device && LIVE_PREFIXES.some((p) => device.device_id.startsWith(p));
+}
+
+/** A device provided by an installed source plugin (adapter SDK), run in its own process. */
+export function isPluginSource(device: Pick<DeviceDescriptor, "device_id"> | null | undefined): boolean {
+  return !!device && device.device_id.startsWith("plugin:");
 }
 
 /** Offline dataset files (verified NWB) — the only sources with dataset SourceMetadata + playback. */
