@@ -199,7 +199,7 @@ async function main() {
       await expectState("idle");
       await expectText(status, /No source connected/);
       await expectText(page.getByTestId("apps-line"), /Communication Board waiting for: selection/);
-      await expectText(board().getByTestId("board-mode"), /inactive/);
+      await expectText(board().getByTestId("board-mode"), /Waiting/);
       // the default view: four rows, the session log, one collapsed Advanced section
       if (await expanded("advanced")) throw new Error("Advanced is open by default");
       if ((await page.getByTestId("stop-control").isDisabled()) !== true) throw new Error("Stop control enabled with output off");
@@ -214,7 +214,7 @@ async function main() {
       await pick("sim-a");
       await expectState("streaming");
       await expectText(status, /Streaming · Simulated data/);
-      await expectText(board().getByTestId("board-mode"), /pointer/);
+      await expectText(board().getByTestId("board-mode"), /Pointer/);
       await expectText(page.getByTestId("verdict"), /Good/);
       await page.waitForTimeout(2500); // the 2 s trace window fills
       await designShot("2-simulated-profile", { fullPage: true });
@@ -253,6 +253,36 @@ async function main() {
       return `message: "${msg.trim()}"`;
     });
 
+    await step("4b. open the participant screen: the board in its own window follows the same intents", async () => {
+      const [popup] = await Promise.all([
+        page.waitForEvent("popup", { timeout: 5000 }),
+        page.getByTestId("open-participant").click(),
+      ]);
+      await popup.setViewportSize({ width: 1280, height: 800 });
+      await expectText(popup.getByTestId("board-conn"), /Connected/);
+      await expectText(popup.getByTestId("board-mode"), /Pointer/);
+      // steer with the simulator pad in the console; the participant window's cursor follows
+      const pad = page.getByTestId("pointer-pad");
+      await pad.evaluate((el) => el.scrollIntoView({ block: "center" }));
+      const box = await pad.boundingBox();
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(box.x + box.width * 0.4, box.y + box.height * 0.15, { steps: 5 });
+      await page.waitForTimeout(1300);
+      await page.mouse.up();
+      const activeTile = popup.locator('[role="gridcell"][data-active="true"]');
+      if ((await activeTile.count()) !== 1) throw new Error("participant window shows no single highlighted tile");
+      const word = (await activeTile.first().textContent()).trim();
+      await page.getByTestId("sim-select").click();
+      const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const msg = await expectText(popup.getByTestId("board-message"), new RegExp(escaped));
+      fs.mkdirSync(DESIGN, { recursive: true });
+      await popup.waitForTimeout(300);
+      await popup.screenshot({ path: path.join(DESIGN, "6-participant-screen.png") });
+      await popup.close();
+      return `participant window connected, pointer mode, message "${msg.trim()}"`;
+    });
+
     await step("5. events carry provenance simulated_intent", async () => {
       const row = page.locator('[data-event-type="intent.selection"]').first();
       await row.waitFor({ timeout: 5000 });
@@ -276,7 +306,7 @@ async function main() {
       boardMsgBefore = (await text(board().getByTestId("board-message"))).trim();
       await pick("sim-b");
       await expectText(page.getByTestId("runtime-device"), /Profile B/);
-      await expectText(board().getByTestId("board-mode"), /scan/);
+      await expectText(board().getByTestId("board-mode"), /Scan/);
       const diag = await api("/diagnostics");
       const sw = diag.switches[diag.switches.length - 1];
       return `switch ${sw.from_device} -> ${sw.to_device} in ${sw.duration_ms} ms`;
@@ -352,7 +382,7 @@ async function main() {
       await page.getByTestId("tests-view").waitFor();
       await open("adv-apps");
       await page.getByTestId("app-communication-board").waitFor({ timeout: 3000 });
-      await expectText(board().getByTestId("board-conn"), /connected/);
+      await expectText(board().getByTestId("board-conn"), /Connected/);
       return null;
     });
 
@@ -397,7 +427,7 @@ async function main() {
     });
 
     await step("17. the communication board does not react to neural data", async () => {
-      await expectText(board().getByTestId("board-mode"), /inactive/);
+      await expectText(board().getByTestId("board-mode"), /Waiting/);
       const msgBefore = (await text(board().getByTestId("board-message"))).trim();
       await page.waitForTimeout(800);
       if ((await text(board().getByTestId("board-message"))).trim() !== msgBefore) throw new Error("board changed");
@@ -433,7 +463,7 @@ async function main() {
     await step("19. switch back to a simulated device: platform and board keep working", async () => {
       await pick("sim-a");
       await expectText(status, /Simulated data/);
-      await expectText(board().getByTestId("board-mode"), /pointer/);
+      await expectText(board().getByTestId("board-mode"), /Pointer/);
       await open("adv-simulator");
       await page.getByTestId("sim-select").click();
       await expectText(board().getByTestId("board-message"), /\S/);

@@ -67,7 +67,7 @@ describe("<Board />", () => {
         runtime: null,
       }),
     );
-    expect(screen.getByTestId("board-mode").textContent).toBe("pointer");
+    expect(screen.getByTestId("board-mode").getAttribute("data-mode")).toBe("pointer");
     expect(screen.getByTestId("board-cursor")).toBeTruthy();
 
     // move up-left into tile 0 and select it
@@ -89,7 +89,7 @@ describe("<Board />", () => {
         },
       }),
     );
-    expect(screen.getByTestId("board-mode").textContent).toBe("scan");
+    expect(screen.getByTestId("board-mode").getAttribute("data-mode")).toBe("scan");
     expect(screen.queryByTestId("board-cursor")).toBeNull();
     expect(screen.getByTestId("tile-0").dataset.active).toBe("true");
 

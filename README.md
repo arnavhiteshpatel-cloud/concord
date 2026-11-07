@@ -143,8 +143,10 @@ preset. Full researcher steps, including calibration with the center-out cue tas
 1. **Console loads** — status line *No source connected*; *Command output* shows the
    Communication Board connected and *waiting for: selection*.
 2. **Connect a source → Simulated Profile A.** *Signal integrity* shows *Good* and four of
-   the 32 synthetic channels; the session log records the connection. Open **Advanced →
-   Communication board**: the board switches to **pointer mode**.
+   the 32 synthetic channels; the session log records the connection. Click **Open participant
+   screen** (in *Command output*): the communication board opens in its own window, for a
+   second screen facing the participant, and switches to **pointer mode**. (It is also under
+   **Advanced → Communication board**.)
 3. **Control the board.** Open **Advanced → Simulator controls**; drag inside the pad (or
    hold arrow keys / WASD) to move the board's cursor; press **Select** (or Space) to activate
    a tile. In **Advanced → Event stream**, click any row to inspect its envelope — note

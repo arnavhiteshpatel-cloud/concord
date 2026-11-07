@@ -155,6 +155,11 @@ It prints whether it is suspended or active and where commands come from (model 
 prerecorded/synthetic). The red **Stop control** button in the title bar (always visible)
 stops commands; **Stop decoding** stops the pipeline; **Disconnect** stops acquisition.
 
+The communication board is the reference participant display: **Open participant screen** in the
+*Command output* row opens it in its own window, to put on a second monitor facing the
+participant. It needs pointer movement **and** a selection, so with a movement-only decoder it
+stays in "Waiting"; with a simulated profile it works end to end.
+
 ## 7. Troubleshooting
 
 | Symptom | Likely cause |

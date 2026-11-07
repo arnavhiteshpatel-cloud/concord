@@ -13,11 +13,33 @@ import { COLS, TILES, boardReducer, initialBoard, type BoardState } from "./mode
 
 const SCAN_INTERVAL_MS = 1100;
 
-const MODE_TEXT: Record<BoardState["mode"], string> = {
-  pointer: "Pointer mode — move with pointer intent, activate with selection",
-  scan: "Scan mode — tiles highlight in turn, activate with selection",
-  inactive: "Waiting for a device that provides selection",
+const MODE_LABEL: Record<BoardState["mode"], string> = {
+  pointer: "Pointer mode",
+  scan: "Scan mode",
+  inactive: "Waiting",
 };
+
+const MODE_TEXT: Record<BoardState["mode"], string> = {
+  pointer: "Move the cursor to a phrase, then select it.",
+  scan: "Phrases are highlighted in turn. Select when the one you want is highlighted.",
+  inactive: "Waiting for a source that can make a selection.",
+};
+
+const CONN_TEXT: Record<ConnectionStatus, string> = {
+  idle: "Not connected",
+  connecting: "Connecting",
+  open: "Connected to BrainOS",
+  reconnecting: "Reconnecting",
+  closed: "Disconnected",
+  rejected: "Connection refused",
+};
+
+const INPUT_TEXT: Partial<Record<ProvenanceKind, string>> = {
+  simulated_intent: "simulated",
+  decoded_intent: "decoded by a model",
+};
+
+const plural = (n: number, word: string): string => `${n} ${word}${n === 1 ? "" : "s"}`;
 
 export function Board({ streamUrl }: { streamUrl?: string }) {
   const [state, dispatch] = useReducer(boardReducer, undefined, initialBoard);
@@ -93,29 +115,23 @@ export function Board({ streamUrl }: { streamUrl?: string }) {
 
   const active = state.mode === "pointer" ? state.hover : state.mode === "scan" ? state.scanIndex : null;
   const textEnabled = state.granted.includes("text_intent");
-  const connLabel = conn === "open" ? "connected to runtime" : conn;
   const rows = useMemo(() => Math.ceil(TILES.length / COLS), []);
 
   return (
     <div className="board" data-mode={state.mode}>
       <header className="board-head">
-        <div className="board-title">
-          <span className="board-name">Communication Board</span>
-          <span className="board-sub">demo application · not for clinical use</span>
-        </div>
-        <div className="board-chips">
-          <span className={`chip conn-${conn}`} data-testid="board-conn">
-            {connLabel}
+        <span className="board-name">Communication board</span>
+        <span className="board-tag">Research use only</span>
+        <span className="board-status" aria-live="polite">
+          <span className={`dot dot-${state.mode}`} aria-hidden />
+          <span data-testid="board-mode" data-mode={state.mode}>
+            {MODE_LABEL[state.mode]}
           </span>
-          <span className={`chip mode-${state.mode}`} data-testid="board-mode">
-            {state.mode}
-          </span>
-          {lastKind && (
-            <span className={`chip prov-${lastKind}`} title="provenance of the last intent">
-              input: {lastKind.replace("_", " ")}
-            </span>
-          )}
-        </div>
+        </span>
+        <span className="board-spacer" />
+        <span className={`board-conn conn-${conn}`} data-testid="board-conn" data-conn={conn}>
+          {CONN_TEXT[conn] ?? conn}
+        </span>
       </header>
 
       <div className="board-message" aria-live="polite" data-testid="board-message">
@@ -161,11 +177,11 @@ export function Board({ streamUrl }: { streamUrl?: string }) {
 
       <footer className="board-foot">
         <span>
-          granted: {state.granted.length ? state.granted.join(", ") : "—"}
-          {device ? ` · device ${device}` : ""}
+          {lastKind ? `Last input: ${INPUT_TEXT[lastKind] ?? lastKind.replace("_", " ")}` : "No input yet"}
+          {device ? ` · source ${device}` : ""}
         </span>
         <span data-testid="board-stats">
-          events {stats.received} · gaps {stats.deliveryGaps} · selections {state.selections}
+          {plural(state.selections, "selection")} · {plural(stats.received, "event")} · {plural(stats.deliveryGaps, "delivery gap")}
         </span>
       </footer>
     </div>
