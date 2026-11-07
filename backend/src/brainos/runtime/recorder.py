@@ -80,6 +80,7 @@ class Recorder:
         self._fh = path.open("w", encoding="utf-8")
         line = header.model_dump_json() + "\n"
         self._fh.write(line)
+        self._fh.flush()  # header must be readable while recording (device listing)
         self._name, self._device = name, device
         self._started, self._bytes, self._events = time.monotonic(), len(line), 0
         self.stop_reason = None

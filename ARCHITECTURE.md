@@ -134,7 +134,7 @@ The authoritative definition is the Pydantic model in
 | --- | --- |
 | `recording.frame` | `sample_rate_hz`, `channel_count`, `first_sample_index`, `unit` (`uV`), `samples[channel][sample]` (shape validated) |
 | `recording.annotation` | `label`, `value` (number/string/null), `duration_ms` |
-| `intent.pointer` | `vx`, `vy` — velocity in workspace units/s, workspace = unit square, `|v| ≤ 10` |
+| `intent.pointer` | `vx`, `vy` — velocity in workspace units/s; workspace = unit square, x → right, y → down; `|v| ≤ 10` |
 | `intent.selection` | `action` (`primary`), `confidence` ∈ [0,1] |
 | `intent.text` | `text` (1–64 chars), `mode` (`character`/`word`), `confidence` |
 | `telemetry.sample` | `metrics: [{name, value, unit}]` |
@@ -311,3 +311,15 @@ operator approval, signed adapters, audit log, TLS.
    is a v2 design item.
 4. **New capability**: requires a schema minor version bump, a payload model,
    provenance rules, and SDK type updates — deliberately not a plugin.
+
+## 10. Diagnostics definitions
+
+All values are measured in-process; nothing is estimated.
+
+| Metric | Definition |
+| --- | --- |
+| pipeline latency | adapter produced/read the native packet → validated envelope enqueued to all subscriber queues (includes waiting behind packets read in the same tick) |
+| delivery latency | envelope enqueued for a subscriber → written to its WebSocket |
+| client latency (console) | envelope `timestamp_ns` → received in the browser tab (same-machine clocks, ms resolution) |
+| rate | events in the last 5 s ÷ min(5 s, max(time since connect, 1 s)) |
+| switch duration | wall time of `switch()` (disconnect + connect + renegotiation) |
