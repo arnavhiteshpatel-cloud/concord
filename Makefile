@@ -88,3 +88,9 @@ schema:  ## regenerate contracts/event-envelope.v1.schema.json
 
 clean:
 	rm -rf frontend/dist reports e2e/screenshots
+
+# ---- M5-E: performance at scale (docs/PERFORMANCE.md) -------------------------------------
+.PHONY: bench-scale
+bench-scale:  ## scaling to 4096 ch, multi-stream, 10-min soak, end-to-end over WS (~30 min) -> docs/BENCHMARKS_SCALE.md
+	@mkdir -p reports
+	$(PY) scripts/bench_scale.py --json reports/bench_scale.json --write docs/BENCHMARKS_SCALE.md

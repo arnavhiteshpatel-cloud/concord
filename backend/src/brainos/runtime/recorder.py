@@ -96,14 +96,19 @@ class Recorder:
         log.info("recording %s started for %s", name, device.device_id)
         return name
 
+    def wants(self, envelope: EventEnvelope) -> bool:
+        """Whether ``on_event`` would write ``envelope`` (the bus serializes only then)."""
+        return self._fh is not None and not (
+            self._exclude_raw and envelope.event_type.value == RAW_EVENT
+        )
+
     def on_event(self, envelope: EventEnvelope, event_json: str) -> None:
-        if self._fh is None:
-            return
-        if self._exclude_raw and envelope.event_type.value == RAW_EVENT:
+        fh = self._fh
+        if fh is None or not self.wants(envelope):
             return
         try:
-            self._fh.write(event_json)
-            self._fh.write("\n")
+            fh.write(event_json)
+            fh.write("\n")
         except OSError as exc:
             log.error("recording %s write failed: %s", self._name, exc)
             self.stop(f"write failed: {exc}")

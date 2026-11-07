@@ -25,6 +25,16 @@ from brainos.contracts.capabilities import EventType
 from brainos.contracts.events import Provenance, Quality
 from brainos.contracts.protocol import DeviceDescriptor, PlaybackStatus
 
+# M5-E: a recording.frame's JSON must stay well under WebSocket message limits (the Python
+# SDK accepts 8 MiB; one value is up to ~25 bytes of JSON), so adapters split frames at this
+# many values (channels x samples). At <= 131 channels 2000-sample frames are unaffected.
+MAX_FRAME_VALUES = 262_144
+
+
+def frame_samples_limit(channels: int, limit: int) -> int:
+    """Samples per ``recording.frame`` for ``channels``: ``limit`` capped by MAX_FRAME_VALUES."""
+    return max(1, min(limit, MAX_FRAME_VALUES // max(1, channels)))
+
 
 class AdapterError(Exception):
     """Base class for adapter errors."""

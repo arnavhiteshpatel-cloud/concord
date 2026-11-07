@@ -26,6 +26,7 @@ from brainos.adapters.base import (
     DeviceLinkError,
     EndOfStream,
     EventDraft,
+    NativePacket,
     PacketDecodeError,
     PlaybackControl,
 )
@@ -88,7 +89,8 @@ class Runtime:
         self.registry = registry
         self.recorder = recorder
         self.bus = EventBus()
-        self.bus.add_tap(recorder.on_event)
+        # serialized only for envelopes the recorder writes (M5-E: lazy JSON)
+        self.bus.add_tap(recorder.on_event, when=recorder.wants)
         # Operator authorizations for decoded commands: in memory, empty on every start,
         # kept across source switches (the router itself is off after any source change).
         self.authorizations = AuthorizationStore()
@@ -98,7 +100,7 @@ class Runtime:
             self._renegotiate_all,
             self._commands_stopped,
         )
-        self.bus.add_tap(self.pipeline.tap)
+        self.bus.add_tap(self.pipeline.tap, json=False)  # reads envelopes, never the text
         self.diagnostics = Diagnostics()
         self._queue_size = queue_size
         self._backoff = tuple(reconnect_backoff_s)
@@ -552,26 +554,31 @@ class Runtime:
                 if not await self._reconnect(adapter, DeviceLinkError(f"adapter error: {exc!r}")):
                     return
                 continue
+            self._deliver(adapter, packet)
+            # Fairness (M5-E): an adapter with a backlog returns from read() without
+            # suspending; yield so the pipeline, WebSocket senders and REST keep running
+            # when acquisition outpaces processing (measured: docs/PERFORMANCE.md).
+            await asyncio.sleep(0)
 
-            if self._paused:
-                self.diagnostics.discarded_while_paused += 1
-                continue
-            try:
-                drafts = adapter.normalize(packet)
-            except PacketDecodeError as exc:
-                self.diagnostics.decode_errors += 1
-                self.diagnostics.record_error("decode_error", device_id, str(exc))
-                log.warning("%s: dropped undecodable packet: %s", device_id, exc)
-                continue
-            except Exception as exc:
-                self.diagnostics.decode_errors += 1
-                self.diagnostics.record_error(
-                    "decode_error", device_id, f"normalize crashed: {exc!r}"
-                )
-                log.exception("%s: normalize() raised unexpectedly", device_id)
-                continue
-            for draft in drafts:
-                self._ingest(draft, packet.read_monotonic_ns)
+    def _deliver(self, adapter: DeviceAdapter, packet: NativePacket) -> None:
+        device_id = adapter.device_id
+        if self._paused:
+            self.diagnostics.discarded_while_paused += 1
+            return
+        try:
+            drafts = adapter.normalize(packet)
+        except PacketDecodeError as exc:
+            self.diagnostics.decode_errors += 1
+            self.diagnostics.record_error("decode_error", device_id, str(exc))
+            log.warning("%s: dropped undecodable packet: %s", device_id, exc)
+            return
+        except Exception as exc:
+            self.diagnostics.decode_errors += 1
+            self.diagnostics.record_error("decode_error", device_id, f"normalize crashed: {exc!r}")
+            log.exception("%s: normalize() raised unexpectedly", device_id)
+            return
+        for draft in drafts:
+            self._ingest(draft, packet.read_monotonic_ns)
 
     async def _reconnect(self, adapter: DeviceAdapter, error: DeviceLinkError) -> bool:
         device_id = adapter.device_id
@@ -694,6 +701,5 @@ class Runtime:
             log.warning("%s: dropped invalid event: %s", device.device_id, msg)
             return
         self._seq += 1
-        event_json = envelope.model_dump_json()
-        self.bus.publish(envelope, capability, event_json)
+        self.bus.publish(envelope, capability)  # JSON produced on first use (bus.EventJson)
         self.diagnostics.record_event(draft.event_type.value, time.monotonic_ns() - read_ns)
