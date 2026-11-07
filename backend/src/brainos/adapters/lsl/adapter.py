@@ -418,17 +418,21 @@ class LSLAdapter(DeviceAdapter):
                 part: dict[str, Any] = {"data": data, "ts": ts, "first_index": st.received}
                 if st.role == "signal":
                     gap_missing = 0
+                    gap_starts: list[int] = []  # indices in this chunk that follow a gap
                     prev = st.last_ts
-                    seq = [prev, *ts] if prev is not None else ts
-                    for a, b in itertools.pairwise(seq):
+                    seq = [prev, *ts] if prev is not None else list(ts)
+                    offset = 0 if prev is not None else 1
+                    for k, (a, b) in enumerate(itertools.pairwise(seq)):
                         dt = b - a
                         if dt > 1.5 * sig_period and dt - sig_period > JITTER_TOLERANCE_S:
                             gap_missing += max(1, round(dt / sig_period) - 1)
+                            gap_starts.append(k + offset)
                             st.gaps += 1
                             self.stats.gaps += 1
                     st.est_missing += gap_missing
                     self.stats.est_missing_samples += gap_missing
                     part["gap_missing"] = gap_missing
+                    part["gap_starts"] = gap_starts
                     self.stats.samples += len(ts)
                     self.stats.chunks += 1
                 else:
@@ -472,7 +476,7 @@ class LSLAdapter(DeviceAdapter):
         data = np.asarray(part["data"])
         ts: list[float] = part["ts"]
         first = int(part["first_index"])
-        gap = int(part.get("gap_missing", 0)) > 0
+        gap_starts: set[int] = set(part.get("gap_starts", []))
         s = self.signal
         if data.ndim != 2 or data.shape[1] != s.channel_count or data.shape[0] != len(ts):
             raise PacketDecodeError(
@@ -503,7 +507,7 @@ class LSLAdapter(DeviceAdapter):
                             "channel_count": s.channel_count,
                             "counts": counts[i].tolist(),
                         },
-                        self._quality(gap and i == 0),
+                        self._quality(i in gap_starts),
                         self._p_feat,
                         _ns(ts[i]),
                     )
@@ -514,8 +518,11 @@ class LSLAdapter(DeviceAdapter):
             raise PacketDecodeError("LSL chunk contains NaN/Inf samples")
         if self._units.scales is not None:
             values = values * np.asarray(self._units.scales)
-        for start in range(0, values.shape[0], MAX_FRAME_SAMPLES):
-            block = values[start : start + MAX_FRAME_SAMPLES]
+        # Each frame must be contiguous in time: split at every gap and at the size limit.
+        n = values.shape[0]
+        cuts = sorted({0, *gap_starts, *range(0, n, MAX_FRAME_SAMPLES)} - {n})
+        for start, end in zip(cuts, [*cuts[1:], n], strict=True):
+            block = values[start:end]
             out.append(
                 EventDraft(
                     EventType.RECORDING_FRAME,
@@ -526,7 +533,7 @@ class LSLAdapter(DeviceAdapter):
                         "unit": self._units.unit,
                         "samples": block.T.tolist(),
                     },
-                    self._quality(gap and start == 0),
+                    self._quality(start in gap_starts),
                     self._p_raw,
                     _ns(ts[start]),
                 )

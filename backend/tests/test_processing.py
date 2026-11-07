@@ -7,17 +7,17 @@ import pytest
 
 pytest.importorskip("scipy")
 
-from scipy import signal as sps  # noqa: E402
+from scipy import signal as sps
 
-from brainos.processing import ProcessingSpec, SignalChain, StageConfigError  # noqa: E402
-from brainos.processing.stages import (  # noqa: E402
+from brainos.processing import ProcessingSpec, SignalChain, StageConfigError
+from brainos.processing.stages import (
     BandPower,
     ThresholdCrossings,
     bandpass,
     common_average_reference,
     notch,
 )
-from brainos.testing.lsl_publishers import SyntheticEphys  # noqa: E402
+from brainos.testing.lsl_publishers import SyntheticEphys
 
 
 def _chunks(x: np.ndarray, seed: int = 0) -> list[np.ndarray]:
