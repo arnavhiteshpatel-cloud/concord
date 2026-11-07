@@ -17,7 +17,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install
-        run: python -m pip install -e packages/brainos-adapter-sdk -e "backend[server,dev,nwb,dsp,live]" -e examples/adapters/brainos-example-adapter -e packages/brainos-brainflow -e packages/brainos-bci2000 -e "packages/brainos-certify[dev]"
+        run: python -m pip install -e packages/brainos-adapter-sdk -e "backend[server,dev,nwb,dsp,live]" -e examples/adapters/brainos-example-adapter -e packages/brainos-brainflow -e packages/brainos-bci2000 -e "packages/brainos-certify[dev]" -e "packages/brainos-decoder-sdk[onnx,sklearn,dev]" -e examples/decoders/brainos-example-decoder
       - name: Cache verified datasets
         uses: actions/cache@v4
         with:
@@ -51,8 +51,8 @@ jobs:
         run: |
           ruff check src tests examples ../scripts
           ruff format --check src tests examples ../scripts
-          ruff check ../packages ../examples/adapters/brainos-example-adapter
-          ruff format --check ../packages ../examples/adapters/brainos-example-adapter
+          ruff check ../packages ../examples/adapters/brainos-example-adapter ../examples/decoders
+          ruff format --check ../packages ../examples/adapters/brainos-example-adapter ../examples/decoders
       - name: Type check (mypy --strict)
         working-directory: backend
         run: |
@@ -62,6 +62,8 @@ jobs:
           (cd ../packages/brainos-brainflow && mypy --strict src/brainos_brainflow)
           (cd ../packages/brainos-bci2000 && mypy --strict src/brainos_bci2000)
           (cd ../packages/brainos-certify && mypy)
+          (cd ../packages/brainos-decoder-sdk && mypy src/brainos_decoder_sdk)
+          (cd ../examples/decoders/brainos-example-decoder && mypy --strict src/brainos_example_decoder)
       - name: Tests (real-data tests must not be skipped)
         working-directory: backend
         run: |
@@ -78,7 +80,7 @@ jobs:
             echo "::error::real ECoG tests were skipped"; exit 1; fi
       - name: Package tests (plugins against official BrainFlow / BCI2000 capture; certify toolkit)
         run: |
-          for p in packages/brainos-brainflow packages/brainos-bci2000 examples/adapters/brainos-example-adapter packages/brainos-certify; do
+          for p in packages/brainos-brainflow packages/brainos-bci2000 examples/adapters/brainos-example-adapter packages/brainos-certify packages/brainos-decoder-sdk examples/decoders/brainos-example-decoder; do
             (cd $p && pytest -q -rs) || exit 1
           done
       - uses: actions/upload-artifact@v4
@@ -135,7 +137,7 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - name: Install backend
-        run: python -m pip install -e packages/brainos-adapter-sdk -e "backend[server,dev,nwb,dsp,live]" -e examples/adapters/brainos-example-adapter -e packages/brainos-brainflow -e packages/brainos-bci2000
+        run: python -m pip install -e packages/brainos-adapter-sdk -e "backend[server,dev,nwb,dsp,live]" -e examples/adapters/brainos-example-adapter -e packages/brainos-brainflow -e packages/brainos-bci2000 -e "packages/brainos-decoder-sdk[onnx,sklearn]" -e examples/decoders/brainos-example-decoder
       - name: Cache verified datasets
         uses: actions/cache@v4
         with:
