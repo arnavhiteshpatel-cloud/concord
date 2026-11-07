@@ -364,7 +364,8 @@ function choose(s: BoardState, index: number, via: Via, ref: EventRef | null, no
     cursor: via === "click" || via === "dwell" ? { ...s.cursor } : null,
     event: ref,
   };
-  const applied = applyTile({ ...s, pending: null }, tile, ref?.input ?? null, nowMs);
+  // dwell has no triggering event: the text comes from the input that positioned the cursor
+  const applied = applyTile({ ...s, pending: null }, tile, ref?.input ?? s.lastInput, nowMs);
   return settle({
     ...applied,
     selectionCount: n,
