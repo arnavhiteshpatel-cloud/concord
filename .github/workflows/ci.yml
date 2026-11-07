@@ -17,7 +17,16 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install
-        run: python -m pip install -e "backend[dev]"
+        run: python -m pip install -e "backend[dev,nwb]"
+      - name: Cache verified datasets
+        uses: actions/cache@v4
+        with:
+          path: data/datasets
+          key: datasets-${{ hashFiles('backend/src/brainos/datasets/*.json') }}
+      - name: Download real data (DANDI 000954, checksum-verified) and train demo model
+        run: |
+          python -m brainos.datasets.fetch
+          python -m brainos.decoding.evaluate_falcon
       - name: Lint
         working-directory: backend
         run: |
@@ -26,11 +35,14 @@ jobs:
       - name: Type check (mypy --strict)
         working-directory: backend
         run: mypy
-      - name: Tests
+      - name: Tests (real-data tests must not be skipped)
         working-directory: backend
         run: |
+          set -o pipefail
           mkdir -p ../reports
-          pytest -q --junitxml=../reports/pytest-junit.xml
+          pytest -q -rs --junitxml=../reports/pytest-junit.xml | tee ../reports/pytest.log
+          if grep -q "real FALCON H1 files not found" ../reports/pytest.log; then
+            echo "::error::real-data tests were skipped"; exit 1; fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -73,7 +85,16 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - name: Install backend
-        run: python -m pip install -e "backend[dev]"
+        run: python -m pip install -e "backend[dev,nwb]"
+      - name: Cache verified datasets
+        uses: actions/cache@v4
+        with:
+          path: data/datasets
+          key: datasets-${{ hashFiles('backend/src/brainos/datasets/*.json') }}
+      - name: Download real data and train demo model
+        run: |
+          python -m brainos.datasets.fetch
+          python -m brainos.decoding.evaluate_falcon
       - name: Build frontend
         working-directory: frontend
         run: npm ci && npm run build

@@ -16,8 +16,9 @@ until its gate passes in CI. Days are working days for one engineer.
 | **— MVP vertical slice ends here (days 1–4 are this PR) —** ||||
 | 5 | Run E2E in CI (Playwright job, headless Chromium) | AT-25 | CI job green on PR |
 | 5 | Per-app auth tokens + operator-approved grants | server | tests: unauthenticated hello rejected; grant approval flow |
-| 6 | Public-dataset `ReplaySource` (NWB reader, optional extra dep) mapping to `raw_signal` + `behavioral_label` only | replay | test on a small public NWB file fetched at test time (not committed); no intents produced |
-| 7 | Decoder interface spec (v2 draft): `decoded_intent` with `model_id`, offline evaluation harness on replayed data | dataset replay | design review; harness runs a trivial baseline decoder and reports honest offline metrics |
+| ~~6~~ | ✅ **Done in Milestone 2:** NWB `ReplaySource` for DANDI 000954 (FALCON H1), schema 1.1 (`features.binned`, `behavior.sample`, `intent.kinematics`), verified downloads | replay | 13 real-data tests in CI; binning bit-identical to the dataset authors' reference |
+| ~~7~~ | ✅ **Done in Milestone 2:** leakage-free offline evaluation harness + baseline decoder (`decoded_intent` with `model_id`) | dataset replay | docs/DECODING.md, with mean-predictor and time-shift controls |
+| next | Runtime-level decoder stage (decode `features.binned` from any source), cross-day evaluation on FALCON held-out sessions, raw-voltage NWB reader | M2 | design doc; held-out-day metrics reported |
 | 8 | Adapter conformance test kit (`brainos.testing.conformance`) any vendor adapter can run | adapter contract | both simulated adapters + replay pass the kit |
 | 9 | Adapter SDK docs + "write your own adapter" tutorial with a third toy adapter (e.g. LSL-style stream bridge) | conformance kit | tutorial adapter passes kit, no runtime changes |
 | 10 | Timing: clock-sync model (device↔runtime offset estimation), jitter diagnostics | runtime | tests with injected clock skew; diagnostics show estimated offset |

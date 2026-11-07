@@ -8,6 +8,9 @@ const SHORT: Record<string, string> = {
   text_intent: "text",
   telemetry: "telem",
   device_status: "status",
+  neural_features: "features",
+  behavior: "behavior",
+  kinematic_intent: "decoded",
 };
 
 function paramSummary(d: DeviceDescriptor): string {
@@ -17,6 +20,15 @@ function paramSummary(d: DeviceDescriptor): string {
   if (rec) parts.push(`${rec.params.channel_count} ch @ ${rec.params.sample_rate_hz} Hz`);
   if (ptr) parts.push(`pointer ${ptr.params.rate_hz} Hz`);
   return parts.join(" · ");
+}
+
+/** "sub-HumanPitt-held-in-calib_ses-19250108T111022.nwb (DANDI 000954). …" -> short label */
+function datasetLabel(d: DeviceDescriptor): { file: string; where: string } {
+  const m = /^(\S+)\s+\(([^)]+)\)/.exec(d.description);
+  const file = m?.[1] ?? d.device_id;
+  const ses = /ses-([0-9T]+)/.exec(file)?.[1];
+  const split = /held-(in|out)-(calib|minival)/.exec(file)?.[0];
+  return { file: ses ? `${split ?? ""} · ${ses}` : file, where: m?.[2] ?? "" };
 }
 
 export function DevicesPanel({
@@ -32,12 +44,16 @@ export function DevicesPanel({
 }) {
   const activeId = runtime?.device?.device_id ?? null;
   const connected = !!activeId && runtime?.state !== "idle";
+  const isDataset = (d: DeviceDescriptor) => d.kind === "replay" && !d.synthetic;
+  const cards = devices.filter((d) => !isDataset(d));
+  const datasets = devices.filter(isDataset);
+  const label = (id: string) => (id === activeId && connected ? "Active" : connected ? "Switch" : "Connect");
+
   return (
-    <Panel title="Devices" right={<span className="muted">{devices.length} available</span>}>
+    <Panel title="Devices & sources" right={<span className="muted">{devices.length} available</span>}>
       <div className="device-list">
-        {devices.map((d) => {
+        {cards.map((d) => {
           const isActive = d.device_id === activeId && connected;
-          const label = isActive ? "Active" : connected ? "Switch" : "Connect";
           return (
             <div key={d.device_id} className={`device ${isActive ? "device-active" : ""}`}>
               <div className="device-top">
@@ -54,7 +70,7 @@ export function DevicesPanel({
                   onClick={() => onConnect(d.device_id)}
                   data-testid={`device-${d.device_id}`}
                 >
-                  {label}
+                  {label(d.device_id)}
                 </button>
               </div>
               <div className="cap-chips">
@@ -69,6 +85,41 @@ export function DevicesPanel({
           );
         })}
       </div>
+
+      <div className="device-group">Recorded human intracranial data · offline replay</div>
+      {datasets.length ? (
+        <div className="dataset-rows" data-testid="dataset-list">
+          {datasets.map((d) => {
+            const isActive = d.device_id === activeId && connected;
+            const { file, where } = datasetLabel(d);
+            const decoded = d.capabilities.some((c) => c.capability === "kinematic_intent");
+            return (
+              <div key={d.device_id} className={`dataset-row ${isActive ? "device-active" : ""}`} title={d.description}>
+                <div>
+                  <div className="dataset-name">{file}</div>
+                  <div className="device-meta">
+                    {where}
+                    {decoded && <span className="cap cap-dec"> held-out decoder</span>}
+                  </div>
+                </div>
+                <button
+                  className={`btn btn-small ${isActive ? "btn-ghost" : ""}`}
+                  disabled={busy || isActive}
+                  onClick={() => onConnect(d.device_id)}
+                  data-testid={`device-${d.device_id}`}
+                >
+                  {label(d.device_id)}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <p className="muted small" data-testid="no-datasets">
+          No recorded datasets found in <code>data/datasets/</code>. Download the verified FALCON H1 files with{" "}
+          <code>make dataset</code>, then reload.
+        </p>
+      )}
     </Panel>
   );
 }

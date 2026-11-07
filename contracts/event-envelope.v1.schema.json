@@ -1,5 +1,135 @@
 {
   "$defs": {
+    "BehaviorSampleEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "$ref": "#/$defs/Capability"
+        },
+        "device_id": {
+          "pattern": "^[a-z0-9][a-z0-9_.:\\-]{0,63}$",
+          "title": "Device Id",
+          "type": "string"
+        },
+        "device_timestamp_ns": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Device clock from the native packet, if any",
+          "title": "Device Timestamp Ns"
+        },
+        "event_type": {
+          "const": "behavior.sample",
+          "title": "Event Type",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/BehaviorSamplePayload"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "quality": {
+          "$ref": "#/$defs/Quality"
+        },
+        "schema_version": {
+          "pattern": "^\\d+\\.\\d+$",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "seq": {
+          "minimum": 0,
+          "title": "Seq",
+          "type": "integer"
+        },
+        "session_id": {
+          "pattern": "^ses_[A-Za-z0-9]{6,64}$",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "timestamp_ns": {
+          "description": "Runtime wall clock at ingest, UTC ns",
+          "minimum": 0,
+          "title": "Timestamp Ns",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "session_id",
+        "device_id",
+        "seq",
+        "timestamp_ns",
+        "capability",
+        "quality",
+        "provenance",
+        "event_type",
+        "payload"
+      ],
+      "title": "BehaviorSampleEvent",
+      "type": "object"
+    },
+    "BehaviorSamplePayload": {
+      "additionalProperties": false,
+      "description": "Recorded behavioral ground truth (schema 1.1). Never an intent.\n\n``valid`` is false where the dataset marks the sample as excluded from\ntraining/evaluation (e.g. FALCON ``eval_mask``).",
+      "properties": {
+        "dims": {
+          "items": {
+            "maxLength": 32,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Dims",
+          "type": "array"
+        },
+        "quantity": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Quantity",
+          "type": "string"
+        },
+        "sample_index": {
+          "minimum": 0,
+          "title": "Sample Index",
+          "type": "integer"
+        },
+        "unit": {
+          "maxLength": 32,
+          "title": "Unit",
+          "type": "string"
+        },
+        "valid": {
+          "default": true,
+          "title": "Valid",
+          "type": "boolean"
+        },
+        "values": {
+          "items": {
+            "type": "number"
+          },
+          "title": "Values",
+          "type": "array"
+        }
+      },
+      "required": [
+        "quantity",
+        "dims",
+        "unit",
+        "values",
+        "sample_index"
+      ],
+      "title": "BehaviorSamplePayload",
+      "type": "object"
+    },
     "Capability": {
       "enum": [
         "recording",
@@ -7,7 +137,10 @@
         "selection",
         "text_intent",
         "telemetry",
-        "device_status"
+        "device_status",
+        "neural_features",
+        "behavior",
+        "kinematic_intent"
       ],
       "title": "Capability",
       "type": "string"
@@ -118,6 +251,263 @@
         "state"
       ],
       "title": "DeviceStatusPayload",
+      "type": "object"
+    },
+    "FeaturesBinnedEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "$ref": "#/$defs/Capability"
+        },
+        "device_id": {
+          "pattern": "^[a-z0-9][a-z0-9_.:\\-]{0,63}$",
+          "title": "Device Id",
+          "type": "string"
+        },
+        "device_timestamp_ns": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Device clock from the native packet, if any",
+          "title": "Device Timestamp Ns"
+        },
+        "event_type": {
+          "const": "features.binned",
+          "title": "Event Type",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/FeaturesBinnedPayload"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "quality": {
+          "$ref": "#/$defs/Quality"
+        },
+        "schema_version": {
+          "pattern": "^\\d+\\.\\d+$",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "seq": {
+          "minimum": 0,
+          "title": "Seq",
+          "type": "integer"
+        },
+        "session_id": {
+          "pattern": "^ses_[A-Za-z0-9]{6,64}$",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "timestamp_ns": {
+          "description": "Runtime wall clock at ingest, UTC ns",
+          "minimum": 0,
+          "title": "Timestamp Ns",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "session_id",
+        "device_id",
+        "seq",
+        "timestamp_ns",
+        "capability",
+        "quality",
+        "provenance",
+        "event_type",
+        "payload"
+      ],
+      "title": "FeaturesBinnedEvent",
+      "type": "object"
+    },
+    "FeaturesBinnedPayload": {
+      "additionalProperties": false,
+      "description": "One time bin of a processed neural feature per channel (schema 1.1).\n\n``counts[c]`` is the feature value for channel ``c`` in the bin that *ends* at the\nenvelope's ``device_timestamp_ns`` and spans ``bin_ms`` before it.",
+      "properties": {
+        "bin_index": {
+          "minimum": 0,
+          "title": "Bin Index",
+          "type": "integer"
+        },
+        "bin_ms": {
+          "exclusiveMinimum": 0,
+          "maximum": 10000,
+          "title": "Bin Ms",
+          "type": "number"
+        },
+        "channel_count": {
+          "maximum": 4096,
+          "minimum": 1,
+          "title": "Channel Count",
+          "type": "integer"
+        },
+        "counts": {
+          "items": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "title": "Counts",
+          "type": "array"
+        },
+        "feature": {
+          "enum": [
+            "threshold_crossing_count",
+            "spike_count"
+          ],
+          "title": "Feature",
+          "type": "string"
+        },
+        "unit": {
+          "const": "count",
+          "default": "count",
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "feature",
+        "bin_ms",
+        "bin_index",
+        "channel_count",
+        "counts"
+      ],
+      "title": "FeaturesBinnedPayload",
+      "type": "object"
+    },
+    "KinematicIntentEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "$ref": "#/$defs/Capability"
+        },
+        "device_id": {
+          "pattern": "^[a-z0-9][a-z0-9_.:\\-]{0,63}$",
+          "title": "Device Id",
+          "type": "string"
+        },
+        "device_timestamp_ns": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Device clock from the native packet, if any",
+          "title": "Device Timestamp Ns"
+        },
+        "event_type": {
+          "const": "intent.kinematics",
+          "title": "Event Type",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/KinematicIntentPayload"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "quality": {
+          "$ref": "#/$defs/Quality"
+        },
+        "schema_version": {
+          "pattern": "^\\d+\\.\\d+$",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "seq": {
+          "minimum": 0,
+          "title": "Seq",
+          "type": "integer"
+        },
+        "session_id": {
+          "pattern": "^ses_[A-Za-z0-9]{6,64}$",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "timestamp_ns": {
+          "description": "Runtime wall clock at ingest, UTC ns",
+          "minimum": 0,
+          "title": "Timestamp Ns",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "session_id",
+        "device_id",
+        "seq",
+        "timestamp_ns",
+        "capability",
+        "quality",
+        "provenance",
+        "event_type",
+        "payload"
+      ],
+      "title": "KinematicIntentEvent",
+      "type": "object"
+    },
+    "KinematicIntentPayload": {
+      "additionalProperties": false,
+      "description": "Multi-dimensional movement intent (schema 1.1), in the source's own dimension space.",
+      "properties": {
+        "dims": {
+          "items": {
+            "maxLength": 32,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Dims",
+          "type": "array"
+        },
+        "quantity": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Quantity",
+          "type": "string"
+        },
+        "space": {
+          "description": "e.g. falcon_h1_7dof",
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Space",
+          "type": "string"
+        },
+        "unit": {
+          "maxLength": 32,
+          "title": "Unit",
+          "type": "string"
+        },
+        "values": {
+          "items": {
+            "type": "number"
+          },
+          "title": "Values",
+          "type": "array"
+        }
+      },
+      "required": [
+        "quantity",
+        "dims",
+        "unit",
+        "values",
+        "space"
+      ],
+      "title": "KinematicIntentPayload",
       "type": "object"
     },
     "PointerIntentEvent": {
@@ -278,7 +668,8 @@
         "simulated_intent",
         "decoded_intent",
         "device_report",
-        "runtime"
+        "runtime",
+        "processed_feature"
       ],
       "title": "ProvenanceKind",
       "type": "string"
@@ -895,7 +1286,10 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "discriminator": {
     "mapping": {
+      "behavior.sample": "#/$defs/BehaviorSampleEvent",
       "device.status": "#/$defs/DeviceStatusEvent",
+      "features.binned": "#/$defs/FeaturesBinnedEvent",
+      "intent.kinematics": "#/$defs/KinematicIntentEvent",
       "intent.pointer": "#/$defs/PointerIntentEvent",
       "intent.selection": "#/$defs/SelectionIntentEvent",
       "intent.text": "#/$defs/TextIntentEvent",
@@ -926,7 +1320,16 @@
     },
     {
       "$ref": "#/$defs/DeviceStatusEvent"
+    },
+    {
+      "$ref": "#/$defs/FeaturesBinnedEvent"
+    },
+    {
+      "$ref": "#/$defs/BehaviorSampleEvent"
+    },
+    {
+      "$ref": "#/$defs/KinematicIntentEvent"
     }
   ],
-  "title": "BrainOS EventEnvelope 1.0"
+  "title": "BrainOS EventEnvelope 1.1"
 }

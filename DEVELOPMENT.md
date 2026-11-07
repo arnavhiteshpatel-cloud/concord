@@ -15,9 +15,16 @@ truth, in this order:
 - **Never imply real device compatibility.** No Neuralink, Synchron, Blackrock,
   Paradromics, Precision, or any vendor name in device IDs, profiles, UI copy
   or docs as a supported device. Simulated profiles are "Simulated Profile A/B".
-- **Never fabricate neural decoding or benchmark numbers.** Intents in v1 are
-  `simulated_intent`. Performance numbers must come from `make bench` output
-  on a named machine.
+- **Never fabricate neural decoding or benchmark numbers.** Simulated-device intents are
+  `simulated_intent`. Decoding results must come from `make model` /
+  `make decoding-report` on real files; performance numbers from `make bench`.
+- **Real data rules.** Datasets are pinned by SHA-256 in `brainos/datasets/*.json` and
+  downloaded, never committed (`data/` is git-ignored; DANDI terms forbid
+  redistribution). Recorded neural activity is `processed_feature`/`raw_signal`, never an
+  intent. Offline sources are labelled "Offline Replay", never live.
+- **No leakage.** A decoder must never be scored or replayed on its training session.
+  FALCON `held-in-minival` files are subsets of `held-in-calib`; never use one to evaluate
+  a model trained on the other. Keep `DecoderLeakageError` checks intact.
 - **Read-only.** No write/stimulate/command path to devices: not in the adapter
   contract, not in the API, not in the SDKs.
 - **Provenance rules** (ARCHITECTURE.md §4.2) are enforced in
@@ -34,8 +41,11 @@ truth, in this order:
 ```
 backend/src/brainos/
   contracts/   capability vocabulary, envelope, provenance, stream protocol (no I/O)
-  adapters/    base.py (contract), simulated/ (profiles A/B), replay/
-  runtime/     runtime.py (orchestrator), bus.py, negotiation.py, diagnostics.py, recorder.py, registry.py
+  adapters/    base.py (contract), simulated/ (profiles A/B), replay/, nwb/ (real recordings)
+  datasets/    pinned dataset manifests + verified downloader
+  decoding/    offline-evaluated baseline decoder (numpy, JSON models)
+  runtime/     runtime.py (orchestrator), bus.py, negotiation.py, diagnostics.py, recorder.py,
+               registry.py, catalog.py (offline dataset devices)
   server/      FastAPI app, REST routes, WebSocket, test-report reader
   sdk/         Python client SDK
 backend/tests/ pytest suite (AT-* ids in docstrings)
@@ -58,6 +68,9 @@ make lint         # ruff + mypy (strict) + tsc
 make e2e          # Playwright demo against a fresh server (needs playwright + chromium)
 make bench        # measured throughput/latency
 make schema       # regenerate contracts JSON Schema after changing models
+make dataset      # download + verify demo recordings (DANDI 000954) -> data/datasets/
+make model        # baseline decoder on downloaded blocks -> data/models/, reports/decoding.json
+make decoding-report  # all 13 blocks -> docs/DECODING.md
 ```
 
 Backend only: `cd backend && ../.venv/bin/pytest -q`.
@@ -82,6 +95,8 @@ Frontend only: `cd frontend && npm test`.
   (`backend/tests/helpers.py: wait_for`).
 - Rate tests measure real intervals with generous tolerance; never assert on
   machine-dependent absolute latency.
+- Real-data tests (`test_nwb_real.py`) must run, not skip, in CI. Synthetic NWB
+  fixtures are only for error paths real files cannot exercise.
 - Run `make lint test` before every commit. Do not claim something works
   unless it was executed.
 

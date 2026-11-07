@@ -91,6 +91,41 @@ def valid_event(event_type: str = "intent.pointer", **overrides: Any) -> dict[st
             "device_report",
         ),
         "device.status": ("device_status", {"state": "streaming", "detail": ""}, "runtime"),
+        "features.binned": (
+            "neural_features",
+            {
+                "feature": "threshold_crossing_count",
+                "unit": "count",
+                "bin_ms": 20.0,
+                "bin_index": 3,
+                "channel_count": 3,
+                "counts": [0, 2, 1],
+            },
+            "processed_feature",
+        ),
+        "behavior.sample": (
+            "behavior",
+            {
+                "quantity": "velocity",
+                "dims": ["tx", "ty"],
+                "unit": "arbitrary",
+                "values": [0.1, -0.2],
+                "sample_index": 3,
+                "valid": True,
+            },
+            "behavioral_label",
+        ),
+        "intent.kinematics": (
+            "kinematic_intent",
+            {
+                "quantity": "velocity",
+                "dims": ["tx", "ty"],
+                "unit": "arbitrary",
+                "values": [0.1, -0.2],
+                "space": "falcon_h1_7dof",
+            },
+            "simulated_intent",
+        ),
     }
     cap, payload, kind = payloads[event_type]
     ev: dict[str, Any] = {

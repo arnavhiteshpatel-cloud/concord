@@ -212,3 +212,29 @@ input:disabled { opacity: .5; }
 .toast-ok { border-color: rgba(63, 207, 142, .5); color: #c4f3dc; }
 .live[hidden] { display: none; }
 .pad-overlay { background: rgba(10, 13, 18, .55); border-radius: 50%; }
+
+/* ------------------------------------------------------------------ offline recorded data */
+.badge-real { color: var(--amber); border-color: rgba(224, 164, 88, .45); font-weight: 600; letter-spacing: .04em; }
+.source-label { font-size: 15px; font-weight: 650; color: var(--amber); }
+.playback { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.progress { height: 6px; border-radius: 3px; background: var(--bg-2); border: 1px solid var(--border); overflow: hidden; }
+.progress-bar { height: 100%; background: var(--amber); transition: width .25s linear; }
+.playback-row { display: flex; justify-content: space-between; color: var(--muted); }
+.speed-group { display: inline-flex; gap: 4px; margin-left: auto; }
+.meta { margin-top: 12px; }
+.table.kv td:first-child { color: var(--faint); width: 76px; white-space: nowrap; }
+.meta details { margin-top: 8px; font-size: 12px; }
+.meta summary { cursor: pointer; color: var(--muted); }
+.notes { margin: 6px 0 0; padding-left: 18px; color: var(--muted); display: flex; flex-direction: column; gap: 4px; }
+.channel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); gap: 2px 8px; margin-top: 6px; font-size: 10.5px; color: var(--muted); max-height: 140px; overflow: auto; }
+.raster-canvas { width: 100%; height: 190px; display: block; border-radius: 8px; border: 1px solid var(--border); }
+.trace-canvas { width: 100%; height: 110px; display: block; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-2); }
+.trace-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 8px 0 6px; flex-wrap: wrap; }
+.trace-head select { background: var(--bg-2); color: var(--text); border: 1px solid var(--border-2); border-radius: 5px; padding: 1px 4px; font: inherit; }
+.legend { display: flex; gap: 12px; font-size: 11px; flex-wrap: wrap; }
+.device-group { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--faint); margin: 12px 0 6px; }
+.dataset-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 5px 8px; border: 1px solid var(--border); border-radius: 7px; background: var(--bg-2); }
+.dataset-row.device-active { border-color: rgba(224, 164, 88, .6); }
+.dataset-rows { display: flex; flex-direction: column; gap: 4px; max-height: 260px; overflow: auto; }
+.dataset-name { font-family: var(--mono); font-size: 11px; }
+.cap-dec { color: var(--violet); border-color: rgba(179, 146, 240, .4); }

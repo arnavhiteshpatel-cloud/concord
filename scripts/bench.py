@@ -167,6 +167,74 @@ def run_server(tmp: Path) -> tuple[str, uvicorn.Server, threading.Thread]:
     return f"http://127.0.0.1:{port}", server, th
 
 
+# ------------------------------------------------- 3. real-data replay (M2)
+
+REAL_FILE = "sub-HumanPitt-held-in-calib_ses-19250108T111022.nwb"
+
+
+async def bench_replay(data_dir: Path, speed: float, seconds: float) -> dict[str, float] | None:
+    """Replay the real FALCON H1 file through the runtime; measure throughput + timing error."""
+    src = data_dir / "datasets" / "dandi-000954" / REAL_FILE
+    if not src.exists():
+        return None
+    tmp = Path(tempfile.mkdtemp())
+    (tmp / "datasets").mkdir()
+    (tmp / "datasets" / REAL_FILE).symlink_to(src)
+    models = data_dir / "models"
+    reg = DeviceRegistry(
+        OperatorIntentSource(),
+        tmp / "recordings",
+        datasets_dir=tmp / "datasets",
+        models_dir=models if models.exists() else tmp / "models",
+        replay_loop=False,
+    )
+    rt = Runtime(reg, Recorder(tmp / "recordings"), queue_size=1_000_000)
+    sub = rt.register_app(AppInfo(id="bench", name="bench"), [], list(Capability))
+    did = next(d.device_id for d in reg.list() if d.device_id.startswith("nwb:"))
+    await rt.connect(did)
+    await rt.set_playback_speed(speed)
+    t0 = time.monotonic()
+    first: tuple[float, int] | None = None
+    errors_ms: list[float] = []
+    events = 0
+    bins = 0
+    while time.monotonic() - t0 < seconds and rt.state.value == "streaming":
+        try:
+            frame, _ = await asyncio.wait_for(sub.next_message(), 1.0)
+        except TimeoutError:
+            break
+        now = time.monotonic()
+        if '"type":"event"' not in frame[:40]:
+            continue
+        events += 1
+        if '"event_type":"features.binned"' in frame:
+            bins += 1
+            i = frame.index('"device_timestamp_ns":') + 22
+            dev = int(frame[i : frame.index(",", i)])
+            if first is None:
+                first = (now, dev)
+            else:
+                expected = (dev - first[1]) / 1e9 / speed
+                errors_ms.append(((now - first[0]) - expected) * 1000)
+    elapsed = time.monotonic() - t0
+    diag = rt.diagnostics_snapshot()
+    await rt.shutdown()
+    abs_err = [abs(e) for e in errors_ms] or [float("nan")]
+    return {
+        "speed": speed,
+        "seconds": elapsed,
+        "events_per_s": events / elapsed,
+        "bins_per_s": bins / elapsed,
+        "recording_s_per_s": bins * 0.02 / elapsed,
+        "timing_p50_ms": pct(abs_err, 0.5),
+        "timing_p99_ms": pct(abs_err, 0.99),
+        "timing_max_ms": max(abs_err),
+        "drift_ms": errors_ms[-1] if errors_ms else float("nan"),
+        "pipeline_p50_us": diag.pipeline_latency.p50_us or 0.0,
+        "pipeline_p99_us": diag.pipeline_latency.p99_us or 0.0,
+    }
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--seconds", type=float, default=10.0)
@@ -176,6 +244,10 @@ def main() -> None:
     lines: list[str] = []
     p = lines.append
     p("# BrainOS benchmarks\n")
+    p(
+        "> Every number below was measured on the machine listed in the table, by this script. "
+        "Regenerate on your own hardware with `make bench` (real-data rows need `make dataset model`).\n"
+    )
     p(
         f"Measured {time.strftime('%Y-%m-%d %H:%M %Z')} with `python scripts/bench.py --seconds {args.seconds:g}`.\n"
     )
@@ -220,9 +292,38 @@ def main() -> None:
         server.should_exit = True
         th.join(timeout=10)
     p("")
+    p("## 3. Real recorded data replay (FALCON H1, DANDI 000954, Milestone 2)\n")
+    p(
+        f"File `{REAL_FILE}` (176 channels, 20 ms bins, with behavior and the held-out decoder "
+        "attached = 3 events per bin). In-process subscriber. *Timing error* = wall-clock time "
+        "of delivery minus the recording-clock time scaled by speed, relative to the first bin "
+        "(absolute value); *drift* = signed error at the last bin. 64x is the maximum speed: "
+        "it measures throughput when replay is CPU-bound.\n"
+    )
+    p(
+        "| speed | duration s | events/s | bins/s | recording s per s | timing error p50 / p99 / max ms "
+        "| drift ms | pipeline p50 / p99 µs |"
+    )
+    p("|---:|---:|---:|---:|---:|---:|---:|---:|")
+    data_dir = Path(__file__).resolve().parents[1] / "data"
+    any_real = False
+    for speed, secs in ((1.0, args.seconds), (8.0, args.seconds / 2), (64.0, args.seconds / 2)):
+        r3 = asyncio.run(bench_replay(data_dir, speed, secs))
+        if r3 is None:
+            continue
+        any_real = True
+        p(
+            f"| {speed:g}x | {r3['seconds']:.1f} | {r3['events_per_s']:,.0f} | {r3['bins_per_s']:,.0f} "
+            f"| {r3['recording_s_per_s']:.2f} | {r3['timing_p50_ms']:.2f} / {r3['timing_p99_ms']:.2f} / "
+            f"{r3['timing_max_ms']:.2f} | {r3['drift_ms']:+.2f} | {r3['pipeline_p50_us']:.0f} / {r3['pipeline_p99_us']:.0f} |"
+        )
+    if not any_real:
+        p("| — | not measured: real data not downloaded (`make dataset model`) | | | | | | |")
+    p("")
     p(
         "Notes: numbers depend on the machine and its load; re-run on your own hardware. "
-        "These are software-pipeline numbers with simulated devices — they say nothing about "
+        "These are software-pipeline numbers (simulated devices and offline file replay) — they "
+        "say nothing about "
         "any real implant's latency."
     )
     text = "\n".join(lines) + "\n"

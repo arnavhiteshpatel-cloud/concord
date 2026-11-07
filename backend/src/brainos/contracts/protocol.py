@@ -26,6 +26,7 @@ class ErrorCode(StrEnum):
     READ_ONLY_RUNTIME = "read_only_runtime"
     DEVICE_NOT_FOUND = "device_not_found"
     INVALID_STATE = "invalid_state"
+    UNSUPPORTED_OPERATION = "unsupported_operation"
     DEVICE_ERROR = "device_error"
     SIMULATION_DISABLED = "simulation_disabled"
     RECORDING_ERROR = "recording_error"
@@ -135,6 +136,101 @@ class ConnectedApp(_Wire):
     delivered: int
     dropped: int
     queue_depth: int
+
+
+class PlaybackStatus(_Wire):
+    """Playback state of a replay source (recordings and offline datasets)."""
+
+    device_id: str
+    speed: float
+    position_s: float = Field(
+        description="Recording time of the last emitted record, from the start of this pass"
+    )
+    duration_s: float | None
+    loops: int
+    loop: bool
+    paused: bool
+    records_emitted: int
+    origin: str
+
+
+class DatasetInfo(_Wire):
+    id: str
+    title: str
+    dandiset: str
+    version: str
+    url: str
+    license: str
+    access: str
+    citation: str
+    asset_id: str
+    asset_path: str
+
+
+class SourceFile(_Wire):
+    name: str
+    size_bytes: int
+    sha256: str
+    verified: bool
+    verification: str
+
+
+class SourceChannel(_Wire):
+    index: int
+    unit_id: int
+    spike_count: int
+    electrode: str | None
+
+
+class SourceBehavior(_Wire):
+    series: str
+    quantity: str
+    dims: list[str]
+    unit: str
+    valid_fraction: float
+
+
+class SourceDecoder(_Wire):
+    model_id: str
+    method: str
+    dims: list[str]
+    alpha: float
+    trained_on: str
+    evaluated_r2: float | None
+    evaluated_samples: int | None
+    control_mean_predictor_r2: float | None
+    control_time_shift_r2: float | None
+
+
+class SourceMetadata(_Wire):
+    """Everything known (and explicitly not known) about an offline data source."""
+
+    device_id: str
+    label: str
+    source_type: Literal["nwb_units"]
+    live: Literal[False] = False
+    dataset: DatasetInfo | None
+    file: SourceFile
+    species: str | None
+    subject_id: str | None
+    identifier: str
+    session_description: str
+    session_start_time: str
+    experiment_description: str
+    institution: str
+    lab: str
+    recording_type: str
+    profile: str
+    feature: str
+    feature_unit: str
+    bin_ms: float
+    n_bins: int
+    duration_s: float
+    channel_count: int
+    channels: list[SourceChannel]
+    behavior: SourceBehavior | None
+    decoder: SourceDecoder | None
+    notes: list[str]
 
 
 class RuntimeSnapshot(_Wire):

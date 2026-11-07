@@ -102,6 +102,30 @@ Note for JavaScript: `timestamp_ns` values exceed `Number.MAX_SAFE_INTEGER`; aft
 `JSON.parse` they are accurate to roughly ±256 ns, which is fine for display and
 millisecond latency math but not for nanosecond arithmetic.
 
+## Schema 1.1: recorded neural data (Milestone 2)
+
+Request these capabilities to receive genuine recorded data from offline sources
+(e.g. `nwb:` devices). Apps that don't request them never receive them.
+
+| Capability | Event | Provenance | Payload |
+| --- | --- | --- | --- |
+| `neural_features` | `features.binned` | `processed_feature` | `counts[channel]` for the bin ending at `device_timestamp_ns`; `bin_ms`, `bin_index`, `feature` |
+| `behavior` | `behavior.sample` | `behavioral_label` | recorded ground truth `values[dims]`, `valid` |
+| `kinematic_intent` | `intent.kinematics` | `decoded_intent` + `model_id` (or `simulated_intent`) | `values[dims]` in `space` (e.g. `falcon_h1_7dof`) |
+
+```python
+async with await EventStream.connect(
+    app_id="analysis", app_name="Analysis",
+    optional=["neural_features", "behavior", "kinematic_intent"],
+) as stream:
+    async for ev in stream.events():
+        if ev.event_type == "features.binned":
+            print(ev.payload.bin_index, sum(ev.payload.counts), ev.provenance.origin)
+```
+
+REST: `GET /api/v1/devices/{id}/source` (dataset, license, SHA-256 verification, channels,
+notes), `GET/POST /api/v1/runtime/playback` (position, duration, speed).
+
 ## Units and conventions
 
 | Field | Convention |

@@ -11,7 +11,7 @@ import pytest
 from brainos.adapters.base import DeviceLinkError, EndOfStream, EventDraft
 from brainos.adapters.simulated import Fault, OperatorIntentSource
 from brainos.contracts.capabilities import Capability, EventType
-from brainos.contracts.events import Quality
+from brainos.contracts.events import SCHEMA_VERSION, Quality
 from brainos.contracts.protocol import AppStatus, ErrorCode, RejectionReason, RuntimeState
 from brainos.runtime import DeviceRegistry, Recorder, Runtime, RuntimeCommandError
 
@@ -42,7 +42,7 @@ async def test_connect_stamps_session_and_strictly_increasing_seq(runtime: Runti
     assert seqs[0] == 0  # app subscribed before connect and sees the session from the start
     statuses = [e["payload"]["state"] for e in evs if e["event_type"] == "device.status"]
     assert statuses[:2] == ["connected", "streaming"]
-    assert all(e["schema_version"] == "1.0" for e in evs)
+    assert all(e["schema_version"] == SCHEMA_VERSION for e in evs)
 
 
 async def test_connect_twice_is_invalid_state(runtime: Runtime) -> None:

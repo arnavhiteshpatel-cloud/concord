@@ -5,16 +5,26 @@ the PR description and delete it here.
 
 ## What is not real
 
-- **No real devices.** Simulated Profile A and B are synthetic and do not model any
-  commercial implant. There is no hardware adapter. Nothing implies compatibility with
-  any company's device.
-- **No neural decoding.** All intents are `simulated_intent`, produced from operator input
-  (console pad / `/api/v1/sim/*`). The contract supports `decoded_intent` (requires a
-  `model_id`), but no decoder exists.
+- **No live implant connection.** Simulated Profile A and B are synthetic and do not model
+  any commercial implant. The only genuine neural data is **offline replay** of published
+  recordings (DANDI 000954). There is no hardware adapter, and nothing implies compatibility
+  with any company's device.
+- **Decoding is offline only.** The one decoder is a linear baseline trained and scored on
+  recorded blocks (held-out R² ≈ 0.08–0.14, see docs/DECODING.md). It emits
+  `intent.kinematics` (`decoded_intent`) only while replaying the block it was evaluated on.
+  It is not a real-time BCI, it has never been run closed-loop, and it does not drive any
+  application. Intents on the simulated devices remain `simulated_intent`.
 - **Synthetic signal.** `recording.frame` data is Gaussian noise + sinusoids. Not
   physiological, not coupled to intents. Do not draw conclusions from it.
-- **No real datasets.** Replay works only for BrainOS recordings made by this runtime.
-  A public-dataset reader (e.g. NWB) is designed for (`ReplaySource`) but not implemented.
+- **Real-data scope.** The NWB reader supports spike-time `units` tables, plus the FALCON H1
+  behavior layout. Raw voltage (`ElectricalSeries`), LFP/ECoG, imaging and processed-only
+  files are rejected with an explicit "unsupported modality" error. Behavior is read only from
+  the FALCON H1 layout; other datasets replay neural features without behavior.
+- **One dataset, one participant.** FALCON H1 is one person, one cued task, within-day
+  blocks. Kinematics are cued, in arbitrary units. No electrode geometry is available.
+  See docs/DATASETS.md.
+- **Dataset is a DANDI draft.** 000954 has no published version; BrainOS pins every file by
+  SHA-256, so a changed upstream file fails verification instead of silently changing results.
 
 ## Security (local demo only)
 
@@ -38,8 +48,8 @@ the PR description and delete it here.
   during the first second after a connect.
 - **Recording limits**: 300 s or 200 MB per recording, then auto-stop. Re-recording a
   replay is not supported. Recordings cannot be deleted from the UI.
-- **Replay** loops by default; speed control exists in the adapter but is not exposed in
-  the API/UI.
+- **Replay** loops by default (no UI toggle). Speed is adjustable 0.1–64× via
+  `/api/v1/runtime/playback` (console offers 0.5–8×). Seeking to a position is not supported.
 - **Pause** discards packets at the runtime (simulators also stop generating). Discarded
   counts are shown; nothing is buffered for later.
 - **Backpressure** drops the oldest events per slow subscriber; there is no per-app QoS or
@@ -51,13 +61,21 @@ the PR description and delete it here.
 
 ## Engineering gaps
 
-- **E2E in CI is unverified until the first CI run.** The `e2e` job was added to
-  `.github/workflows/ci.yml` and `make e2e` passes locally, but whether the workflow itself
-  is green is only known once GitHub Actions has run it on the PR.
+- **CI downloads ~8.7 MiB from DANDI per run** (cached by manifest hash). If DANDI is
+  unreachable, CI fails rather than skipping real-data tests (by design).
+- **Old (0.1) SDK clients** parse device descriptors with a closed capability enum, so they
+  cannot list or receive runtime snapshots that contain the 1.1 capabilities. Their event
+  streams are unaffected (they never receive 1.1 event types). Upgrade SDKs together with
+  the server.
+- **Opening a dataset file** takes ~0.1–0.3 s (it runs off the event loop), and the spike
+  times for one block are held in memory (~5 MB). Very long recordings would need a
+  streaming spike reader.
 - The TypeScript wire types are hand-maintained mirrors of the JSON Schema (drift is guarded
   only by review and the SDK tests, not by code generation).
-- Benchmarks in `docs/BENCHMARKS.md` were measured in a 4-vCPU Linux cloud container,
-  **not on an M4 MacBook**. Run `make bench` locally for your numbers.
+- Benchmarks in `docs/BENCHMARKS.md` and decoding results in `docs/DECODING.md` were
+  produced in a 4-vCPU Linux cloud container, **not on an M4 MacBook**. Decoding results are
+  deterministic (same model id on rerun); timing numbers are machine-dependent, so run
+  `make bench` locally for yours.
 - npm uses `legacy-peer-deps` (frontend/.npmrc) to work around an npm 10 resolver bug with
   Vitest 4's optional peer dependencies; peers we need are pinned explicitly.
 - No packaging/publishing of the SDKs yet (installed from the repo).
