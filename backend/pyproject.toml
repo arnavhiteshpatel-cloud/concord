@@ -26,9 +26,12 @@ server = [
     "brainos-adapter-sdk>=1.0,<2",
 ]
 # Offline neural datasets (NWB) + baseline decoder. numpy is used by both.
+# remfile (M5): HTTP range reads of pinned slices of multi-GB DANDI assets (AJILE12 ECoG,
+# 8-18 GiB per file) instead of downloading whole files; h5py comes with pynwb.
 nwb = [
     "pynwb>=2.8",
     "numpy>=1.26",
+    "remfile>=0.1.13",
 ]
 # Streaming signal processing + online decoding (causal filters, features).
 dsp = [
@@ -71,7 +74,7 @@ packages = ["brainos"]
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["pynwb", "pynwb.*", "hdmf", "hdmf.*", "h5py", "pylsl", "pylsl.*", "scipy", "scipy.*", "brainflow", "brainflow.*"]
+module = ["pynwb", "pynwb.*", "hdmf", "hdmf.*", "h5py", "remfile", "pylsl", "pylsl.*", "scipy", "scipy.*", "brainflow", "brainflow.*"]
 ignore_missing_imports = true
 
 [tool.ruff]
@@ -86,3 +89,4 @@ ignore = ["RUF012"]
 "tests/**" = ["E501", "ASYNC109", "ASYNC110"]
 "../scripts/bench.py" = ["E501"]  # emits markdown tables
 "src/brainos/decoding/evaluate_falcon.py" = ["E501"]  # emits markdown tables
+"src/brainos/decoding/evaluate_ecog.py" = ["E501"]  # emits markdown tables

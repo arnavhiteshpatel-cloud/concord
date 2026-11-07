@@ -11,6 +11,7 @@
   "species": "Homo sapiens",
   "recording_type": "intracortical microelectrode arrays (2 x 96-ch, motor cortex hand knob); multi-unit spiking activity",
   "verified_at": "2026-11-07",
+  "modality": "intracortical",
   "assets": [
     {
       "path": "sub-HumanPitt-held-in-calib/sub-HumanPitt-held-in-calib_ses-19250101T111740.nwb",

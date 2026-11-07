@@ -217,3 +217,18 @@ async with await EventStream.connect(
 ```
 
 See [docs/SDK.md](docs/SDK.md) and `backend/examples/print_events.py`.
+
+## Milestone 5, workstream B: human ECoG (offline replay)
+
+A second neural modality: raw-voltage ECoG from AJILE12 (DANDI 000055, CC-BY-4.0), streamed as
+pinned, digest-verified slices (the source files are ~10 GB each) and replayed as
+"Recorded Human ECoG — Offline Replay" (`modality: ecog`). The `ecog_high_gamma` pipeline uses
+the source's 60 Hz mains and leaves bad electrodes out of the common average; a move-vs-rest
+LDA trained on one day is scored on two held-out days (docs/ECOG_DECODING.md), and the unchanged
+SDK-only menu app receives its decoded selections only after operator authorization. Models are
+refused on a different recording modality. Details, results and limitations: docs/ECOG.md.
+
+```bash
+make dataset-ecog       # 2 demo slices (~157 MiB) -> data/datasets/dandi-000055/
+make ecog-report        # all 6 slices; model -> data/models/; docs/ECOG_DECODING.md
+```

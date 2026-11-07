@@ -21,9 +21,11 @@ from brainos.adapters.replay.format import ReplayRecord
 from brainos.contracts.capabilities import Capability, CapabilityDescriptor, EventType
 from brainos.contracts.events import Provenance, ProvenanceKind, Quality
 from brainos.contracts.protocol import (
+    INVASIVE_MODALITIES,
     DatasetInfo,
     DeviceDescriptor,
     DeviceKind,
+    Modality,
     SourceBehavior,
     SourceChannel,
     SourceDecoder,
@@ -175,6 +177,8 @@ class NWBUnitsSource:
         human = _is_human(rec.species)
         m = self.verification.manifest
         where = f"DANDI {m.dandiset}" if m else "unverified local file"
+        # M5: modality only as declared by the pinned dataset manifest (never guessed)
+        modality = Modality(m.modality) if m is not None and m.modality else None
         return DeviceDescriptor(
             device_id=device_id_for(self.path),
             display_name=HUMAN_LABEL if human else OTHER_LABEL,
@@ -187,6 +191,8 @@ class NWBUnitsSource:
             native_format="NWB 2.x / HDF5: Units spike times + behavioral TimeSeries",
             capabilities=caps,
             synthetic=False,
+            modality=modality,
+            invasive=None if modality is None else modality in INVASIVE_MODALITIES,
         )
 
     def records(self) -> Iterator[ReplayRecord]:

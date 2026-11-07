@@ -322,10 +322,42 @@ export interface PlaybackStatus {
   origin: string;
 }
 
+/** M5: one electrode of a raw-signal (e.g. ECoG) source, as the file describes it. */
+export interface SourceElectrode {
+  index: number;
+  id: number;
+  label: string;
+  group: string | null;
+  group_description: string | null;
+  location: string | null;
+  x: number | null;
+  y: number | null;
+  z: number | null;
+  /** from the file's good/bad column; null = not stated */
+  bad: boolean | null;
+  filtering: string | null;
+}
+
+/** M5: raw-signal layout of an offline source. */
+export interface SourceSignal {
+  series: string;
+  sample_rate_hz: number;
+  unit: "uV" | "arbitrary";
+  declared_unit: string;
+  conversion: number | null;
+  n_samples: number;
+  start_s: number;
+  first_sample_index: number;
+  frame_samples: number;
+  line_hz: number | null;
+  bad_channels: string[];
+}
+
 export interface SourceMetadata {
   device_id: string;
   label: string;
-  source_type: "nwb_units";
+  /** nwb_units: spike times (M2); nwb_electrical_series: raw voltage, e.g. ECoG (M5) */
+  source_type: "nwb_units" | "nwb_electrical_series";
   live: false;
   dataset: {
     id: string;
@@ -370,6 +402,21 @@ export interface SourceMetadata {
     control_time_shift_r2: number | null;
   } | null;
   notes: string[];
+  // Milestone 5 (additive, optional)
+  modality?: Modality | null;
+  invasive?: boolean | null;
+  signal?: SourceSignal | null;
+  electrodes?: SourceElectrode[] | null;
+  intervals?: { table: string; description: string; rows: number; emitted_as: string }[];
+  slice?: {
+    id: string;
+    asset_path: string;
+    asset_sha256: string;
+    series: string;
+    samples: number[];
+    data_sha256: string;
+    role: string;
+  } | null;
 }
 
 export type ServerMessage =
