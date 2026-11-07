@@ -70,3 +70,15 @@ levels above as follows; the toolkit can grant only the first by itself.
 | --- | --- | --- | --- |
 | `brainos-certify` toolkit | 1 | `packages/brainos-certify/tests` (every check passes on a good plugin; each check that can fail or warn does so on a crafted defect; installed entry points and RECORD hash verification on a temporary distribution; level logic; signed / tampered / foreign-key / malformed attestations with OpenSSL Ed25519; report schema; CLI exit codes; a run with BrainOS hidden); every broken test plugin in `backend/tests/plugins` caught by a specific check (docs/COMPATIBILITY.md); real runs of the example, BrainFlow and BCI2000 plugins (docs/compatibility/) | Never run against a plugin for real acquisition hardware; thresholds are engineering choices, not standards |
 
+## Compatibility registry (Milestone 5, workstream F)
+
+`compat/registry.json` records, per integration, the level on this page that its evidence
+supports. The levels in it are **derived** by fixed rules (docs/COMPATIBILITY.md, "Registry
+(M5-F)") from the evidence files and the brainos-certify reports; they are never typed in, and
+the build refuses evidence that would claim level 3 or 4 without what those levels require.
+The registry itself is software:
+
+| Component | Level reached | Evidence (all executed) | Not yet done |
+| --- | --- | --- | --- |
+| Compatibility registry: generator, level rules, `--check`, `GET /api/v1/compatibility`, console view | 1 | `test_compat_registry.py` (schema; every rule with a malformed or over-claiming input that is refused or not counted, e.g. a typed-in level, a protocol claim without an anchor, an opt-in test without a recorded execution, a certify report for another version or changed plugin source, inconsistent or tampered certify reports, a reference-comparison or level-4 claim; `--check` on stale registry, schema and docs; live status; the REST route with real plugin discovery); Vitest `CompatibilityView.test.tsx`; CI runs `python -m brainos.compat.build --check` | It checks that evidence exists and says what it claims (paths, anchors, report consistency, source hashes); it does not re-run tests or read their results. Dates of curated evidence are curated |
+
