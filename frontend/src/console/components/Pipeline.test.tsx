@@ -1,13 +1,16 @@
-// Milestone 3 pipeline controls: start request built from the form, server refusals shown
-// verbatim, status counters rendered, router mapping posted, calibration report shown.
+// Decoder and Command output rows: start request built from the form, server refusals shown
+// verbatim, status counters rendered (Advanced), router mapping posted, calibration report shown.
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { RuntimeSnapshot } from "../../sdk";
 import type { CalibrationResult, ModelInfo, PipelineStatus, RecordingInfo } from "../api";
 import { apiError, stubFetch } from "../testFetch";
+import type { PipelineState } from "../pipeline";
 import { CalibrationPanel } from "./CalibrationPanel";
+import { ControlRow, appsLine } from "./ControlRow";
+import { DecoderRow } from "./DecoderRow";
 import { buildStartRequest } from "./PipelineControl";
-import { PipelineView } from "./PipelineView";
+import { PipelineStatusPanel } from "./PipelineStatusPanel";
 
 afterEach(() => {
   cleanup();
@@ -124,20 +127,57 @@ describe("buildStartRequest", () => {
   });
 });
 
-describe("PipelineView", () => {
-  it("starts with the form's request and shows an incompatible-decoder refusal verbatim", async () => {
+const pipelineState = (status: PipelineStatus | null, set = vi.fn()): PipelineState => ({ status, error: null, set });
+const lslDevice = {
+  device_id: "lsl:ephys",
+  display_name: "LSL ephys",
+  kind: "stream" as const,
+  adapter: "brainos.lsl@0.1.0",
+  description: "",
+  native_format: "",
+  capabilities: [
+    { capability: "recording" as const, params: { channel_count: 16, sample_rate_hz: 30000 }, description: "" },
+  ],
+  synthetic: false,
+};
+const connected: RuntimeSnapshot = { ...runtime, device: lslDevice };
+const decoderRow = (status: PipelineStatus | null, set = vi.fn(), rt: RuntimeSnapshot = connected) =>
+  render(
+    <DecoderRow
+      runtime={rt}
+      pipeline={pipelineState(status, set)}
+      recordings={[]}
+      replayedModel={null}
+      onRecordingsChanged={vi.fn()}
+    />,
+  );
+
+describe("Decoder row", () => {
+  it("shows no actions until a source is connected", () => {
+    stubFetch({});
+    decoderRow(stopped, vi.fn(), { ...runtime, state: "idle" });
+    expect(screen.getByTestId("decoder-state").textContent).toBe("Off");
+    expect(screen.queryByTestId("start-decoding-open")).toBeNull();
+    expect(screen.queryByTestId("calibrate-open")).toBeNull();
+    expect(screen.getByText("Connect a source first.")).toBeTruthy();
+  });
+
+  it("starts decoding from the form (default preset for the source) and shows a refusal verbatim", async () => {
     const calls = stubFetch({
-      "GET /pipeline": () => stopped,
       "GET /pipeline/presets": () => presets,
       "GET /models": () => [model],
       "POST /pipeline/start": () =>
         apiError(409, "incompatible_decoder", "model expects 20 ms bins; pipeline outputs 50 ms"),
     });
-    render(<PipelineView runtime={runtime} recordings={[]} notify={vi.fn()} />);
+    decoderRow(stopped);
+    fireEvent.click(screen.getByTestId("start-decoding-open"));
     await screen.findByRole("option", { name: "ridge-abc" });
+    // 30 kHz broadband source -> spike-band threshold crossings by default
+    expect((screen.getByTestId("pl-preset") as HTMLSelectElement).value).toBe("spikeband_threshold");
     fireEvent.change(screen.getByTestId("pl-bin"), { target: { value: "50" } });
     fireEvent.change(screen.getByTestId("pl-model"), { target: { value: "ridge-abc" } });
     expect(screen.getByTestId("model-details").textContent).toContain("0.612");
+    expect(screen.getByTestId("model-details").textContent).toContain("Offline held-out R²");
     expect(screen.getByTestId("model-compat").textContent).toMatch(/checked against the pipeline output when it starts/);
     fireEvent.click(screen.getByTestId("pl-cross"));
     expect(screen.getByTestId("pl-cross-warning").textContent).toMatch(/not expected to be meaningful/);
@@ -152,18 +192,45 @@ describe("PipelineView", () => {
     });
   });
 
-  it("cannot start without a connected device", async () => {
-    stubFetch({ "GET /pipeline": () => stopped, "GET /pipeline/presets": () => presets, "GET /models": () => [] });
-    render(<PipelineView runtime={{ ...runtime, state: "idle" }} recordings={[]} notify={vi.fn()} />);
-    await screen.findByRole("option", { name: "band_power" });
-    expect((screen.getByTestId("pl-start") as HTMLButtonElement).disabled).toBe(true);
+  it("closes the form and shows the server's status after a successful start", async () => {
+    stubFetch({ "GET /pipeline/presets": () => presets, "GET /models": () => [], "POST /pipeline/start": () => running });
+    const set = vi.fn();
+    decoderRow(stopped, set);
+    fireEvent.click(screen.getByTestId("start-decoding-open"));
+    fireEvent.click(await screen.findByTestId("pl-start"));
+    await waitFor(() => expect(set).toHaveBeenCalledWith(running));
+    expect(screen.queryByTestId("start-decoding")).toBeNull();
   });
 
-  it("renders status: stages, output, warm-up, counters, latency percentiles, warnings", async () => {
-    stubFetch({ "GET /pipeline": () => running, "GET /pipeline/presets": () => presets, "GET /models": () => [] });
-    render(<PipelineView runtime={runtime} recordings={[]} notify={vi.fn()} />);
-    await screen.findByTestId("pl-stages");
-    expect(screen.getByTestId("pl-running").textContent).toBe("running");
+  it("describes a running decoder in plain words and stops it", async () => {
+    const calls = stubFetch({ "POST /pipeline/stop": () => stopped });
+    const set = vi.fn();
+    decoderRow({ ...running, decoder: { ...decoder, trained_on: "syn-cal", held_out_r2: 0.612 } }, set);
+    expect(screen.getByTestId("decoder-state").textContent).toBe("Running · Spike-band threshold crossings");
+    expect(screen.getByTestId("decoder-model").textContent).toBe("Model ridge-abc · offline held-out R² 0.612");
+    expect(screen.getByTestId("decoder-trained-on").textContent).toBe("Trained on syn-cal");
+    expect(screen.getByTestId("decoder-warnings").textContent).toBe("Trained on another session.");
+    expect(screen.queryByTestId("start-decoding-open")).toBeNull();
+    fireEvent.click(screen.getByTestId("pl-stop"));
+    await waitFor(() => expect(set).toHaveBeenCalledWith(stopped));
+    expect(calls[0]).toMatchObject({ method: "POST", path: "/pipeline/stop" });
+  });
+
+  it("opens calibration: records features + labels only", async () => {
+    const calls = stubFetch({ "POST /recordings/start": () => ({ name: "cal-1" }) });
+    decoderRow(stopped);
+    fireEvent.click(screen.getByTestId("calibrate-open"));
+    expect(screen.getByTestId("cal-disclaimer").textContent).toMatch(/does not establish closed-loop performance/);
+    fireEvent.click(screen.getByTestId("cal-rec-start"));
+    await waitFor(() => expect(calls.length).toBe(1));
+    expect(calls[0]).toEqual({ method: "POST", path: "/recordings/start", body: { exclude_raw: true } });
+  });
+});
+
+describe("PipelineStatusPanel (Advanced)", () => {
+  it("renders stages, output, warm-up, counters, latency percentiles, warnings", () => {
+    render(<PipelineStatusPanel status={running} />);
+    expect(screen.getByTestId("pl-running").textContent).toBe("Running");
     expect(screen.getByTestId("pl-output").textContent).toBe(
       "features.binned · threshold_crossing_count · 20 ms · 16 ch · count",
     );
@@ -183,26 +250,35 @@ describe("PipelineView", () => {
     const lat = screen.getByTestId("pl-latency").textContent!;
     expect(lat).toContain("210");
     expect(lat).toContain("1.25");
-    expect(screen.getByTestId("pl-warnings").textContent).toContain("trained on another session");
-    expect(screen.getByTestId("router-state").textContent).toMatch(/OFF — no commands reach apps/);
+    expect(screen.getByTestId("pl-warnings").textContent).toBe("Trained on another session.");
+  });
+});
+
+describe("Command output row", () => {
+  it("offers no Start control without a running decoder, and says why", () => {
+    render(<ControlRow pipeline={pipelineState(stopped)} apps={[]} />);
+    expect(screen.queryByTestId("router-on")).toBeNull();
+    expect(screen.getByTestId("control-reason").textContent).toBe("Start decoding with a model first.");
+    cleanup();
+    render(<ControlRow pipeline={pipelineState({ ...running, decoder: null })} apps={[]} />);
+    expect(screen.queryByTestId("router-on")).toBeNull();
+    expect(screen.getByTestId("control-reason").textContent).toMatch(/no model/);
   });
 
-  it("turns the router on with dims from the loaded decoder", async () => {
-    const calls = stubFetch({
-      "GET /pipeline": () => running,
-      "GET /pipeline/presets": () => presets,
-      "GET /models": () => [],
-      "POST /pipeline/router": (b) => ({ ...running, router: b }),
-    });
-    const notify = vi.fn();
-    render(<PipelineView runtime={runtime} recordings={[]} notify={notify} />);
-    const x = (await screen.findByTestId("router-x")) as HTMLSelectElement;
+  it("starts control with the decoder's dims and the settings, and says what will happen", async () => {
+    const calls = stubFetch({ "POST /pipeline/router": (b) => ({ ...running, router: b }) });
+    const set = vi.fn();
+    render(<ControlRow pipeline={pipelineState(running, set)} apps={[]} />);
+    expect(screen.getByTestId("control-what").textContent).toMatch(/follows the decoder's vx\/vy output/);
+    expect(screen.getByTestId("control-settings-toggle").getAttribute("aria-expanded")).toBe("false");
+    fireEvent.click(screen.getByTestId("control-settings-toggle"));
+    const x = screen.getByTestId("router-x") as HTMLSelectElement;
     expect([...x.options].map((o) => o.value)).toEqual(["vx", "vy"]);
     expect((screen.getByTestId("router-y") as HTMLSelectElement).value).toBe("vy");
     fireEvent.change(screen.getByTestId("router-gain"), { target: { value: "0.5" } });
     fireEvent.click(screen.getByTestId("router-invert"));
     fireEvent.click(screen.getByTestId("router-on"));
-    await waitFor(() => expect(notify).toHaveBeenCalledWith("Router ON: vx/vy → pointer"));
+    await waitFor(() => expect(set).toHaveBeenCalled());
     expect(calls.find((c) => c.path === "/pipeline/router")?.body).toEqual({
       enabled: true,
       x_dim: "vx",
@@ -214,16 +290,38 @@ describe("PipelineView", () => {
     });
   });
 
-  it("shows no router controls without a decoder", async () => {
-    stubFetch({
-      "GET /pipeline": () => ({ ...running, decoder: null }),
-      "GET /pipeline/presets": () => presets,
-      "GET /models": () => [],
-    });
-    render(<PipelineView runtime={runtime} recordings={[]} notify={vi.fn()} />);
-    await screen.findByTestId("pl-stages");
+  it("when on, states the mapping and leaves stopping to the title bar (no second red button)", () => {
+    const router = { enabled: true, x_dim: "vx", y_dim: "vy", gain: 1, deadzone: 0.3, invert_y: false, max_speed: 2 };
+    render(<ControlRow pipeline={pipelineState({ ...running, router })} apps={[]} />);
+    expect(screen.getByTestId("router-state").textContent).toBe("On · x ← vx, y ← vy, gain 1");
+    expect(screen.queryByTestId("router-off")).toBeNull();
     expect(screen.queryByTestId("router-on")).toBeNull();
-    expect(screen.getByTestId("router-panel").textContent).toMatch(/only while the router is ON/);
+  });
+
+  it("summarises connected applications and what they wait for", () => {
+    const app = (id: string, name: string, kind: "application" | "console", status: "active" | "suspended") => ({
+      connection_id: `con_${id}`,
+      app: { id, name, kind },
+      negotiation: {
+        device_id: null,
+        status,
+        granted: [],
+        rejected:
+          status === "active" ? [] : [{ capability: "selection" as const, reason: "no_device" as const, required: true }],
+      },
+      connected_at_ns: 1,
+      delivered: 0,
+      dropped: 0,
+      queue_depth: 0,
+    });
+    expect(appsLine([])).toBe("No applications connected.");
+    expect(
+      appsLine([
+        app("operator-console", "Operator Console", "console", "active"),
+        app("board", "Communication Board", "application", "suspended"),
+        app("cursor", "Cursor app", "application", "active"),
+      ]),
+    ).toBe("2 applications connected · Communication Board waiting for: selection");
   });
 });
 

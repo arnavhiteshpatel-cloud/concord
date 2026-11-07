@@ -481,3 +481,32 @@ def test_frames_split_at_gaps_inside_one_pulled_block() -> None:
         frames[1].device_timestamp_ns == round(1.5e9)
         and frames[1].payload["first_sample_index"] == 10
     )
+
+
+def test_lost_stream_raises_link_error_and_is_counted() -> None:
+    """Regression: pylsl >= 1.17 has LostError only in pylsl.util; a lost inlet must still
+    become a DeviceLinkError (not an AttributeError) and be counted in `lost`."""
+    from pylsl import util as pylsl_util
+
+    base = dict(
+        name="x",
+        type="EEG",
+        source_id="x",
+        hostname="h",
+        uid="u",
+        channel_count=1,
+        nominal_srate=100.0,
+        channel_format="float32",
+        created_at=0.0,
+    )
+    a = LSLAdapter(LSLSourceSpec(device_id="lsl:x", signal=StreamMeta(**base)))
+
+    class LostInlet:
+        def pull_chunk(self, **_: Any) -> Any:
+            raise pylsl_util.LostError("the stream has been lost.")
+
+    st = a._streams[0]
+    st.inlet = LostInlet()
+    with pytest.raises(DeviceLinkError, match="lost"):
+        a._pull(st)
+    assert a.stats.lost == 1

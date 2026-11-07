@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { NEURAL_WINDOW_BINS, type NeuralBuffer } from "../neuralBuffer";
 import { Panel } from "./ui";
 
-const RECORDED = "#e3b341"; // behavioral ground truth
-const DECODED = "#b392f0"; // decoded_intent (offline model)
+const RECORDED = "#1b1f22"; // behavioral ground truth: solid ink
+const DECODED = "#5f686d"; // decoded_intent (offline model): dashed grey
 
 function sizeCanvas(c: HTMLCanvasElement): CanvasRenderingContext2D | null {
   const dpr = window.devicePixelRatio || 1;
@@ -22,8 +22,9 @@ function sizeCanvas(c: HTMLCanvasElement): CanvasRenderingContext2D | null {
  * "offline": a verified dataset file replayed by BrainOS (features + recorded behavior + an
  * offline-evaluated decoder). "pipeline": features computed by the BrainOS pipeline from the
  * connected raw source, plus that source's behavior stream and the loaded decoder, if any.
+ * "stream": binned features delivered by a live stream (e.g. LSL SpikeCounts), same overlays.
  */
-export function NeuralView({ neural, source }: { neural: NeuralBuffer; source: "offline" | "pipeline" }) {
+export function NeuralView({ neural, source }: { neural: NeuralBuffer; source: "offline" | "stream" | "pipeline" }) {
   const raster = useRef<HTMLCanvasElement>(null);
   const traces = useRef<HTMLCanvasElement>(null);
   const [dim, setDim] = useState(0);
@@ -41,7 +42,7 @@ export function NeuralView({ neural, source }: { neural: NeuralBuffer; source: "
       if (rc && ctx) {
         const w = rc.clientWidth;
         const h = rc.clientHeight;
-        ctx.fillStyle = "#0b0f14";
+        ctx.fillStyle = "#15181a";
         ctx.fillRect(0, 0, w, h);
         const ch = n.channelCount;
         if (ch > 0 && n.counts.length) {
@@ -55,7 +56,7 @@ export function NeuralView({ neural, source }: { neural: NeuralBuffer; source: "
               const v = row[c]!;
               if (v === 0) continue;
               const a = Math.min(1, v / 4);
-              ctx.fillStyle = `rgba(90, 209, 230, ${0.25 + 0.75 * a})`;
+              ctx.fillStyle = `rgba(76, 194, 122, ${0.25 + 0.75 * a})`;
               ctx.fillRect(x, c * rh, Math.max(1, cw), Math.max(1, rh));
             }
           }
@@ -68,7 +69,7 @@ export function NeuralView({ neural, source }: { neural: NeuralBuffer; source: "
         const w = tc.clientWidth;
         const h = tc.clientHeight;
         tx.clearRect(0, 0, w, h);
-        tx.strokeStyle = "rgba(139,155,176,0.15)";
+        tx.strokeStyle = "#d6dadb";
         tx.beginPath();
         tx.moveTo(0, h / 2);
         tx.lineTo(w, h / 2);
@@ -112,20 +113,26 @@ export function NeuralView({ neural, source }: { neural: NeuralBuffer; source: "
   const hasDecoded = neural.decoded.size > 0;
   return (
     <Panel
-      title={source === "offline" ? "Recorded neural activity · offline replay" : "Pipeline features · processed_feature"}
+      title={
+        source === "offline"
+          ? "Recorded neural activity (offline replay)"
+          : source === "stream"
+            ? "Source features"
+            : "Pipeline features"
+      }
       className="neural-panel"
-      testId={source === "offline" ? "neural-view" : "pipeline-neural-view"}
+      testId={source === "offline" ? "neural-view" : `${source}-neural-view`}
       right={
-        <span className="muted">
-          {neural.channelCount} ch · {neural.binMs} ms bins · {neural.feature.replace(/_/g, " ")} · last{" "}
+        <span className="hint num">
+          {neural.channelCount} channels · {neural.binMs} ms bins · {neural.feature.replace(/_/g, " ")} · last{" "}
           {neural.binMs ? `${((NEURAL_WINDOW_BINS * neural.binMs) / 1000).toFixed(0)} s` : "—"}
         </span>
       }
     >
       <canvas ref={raster} className="raster-canvas" data-testid="raster-canvas" />
       <div className="trace-head">
-        <label className="small muted">
-          velocity dimension{" "}
+        <label className="inline-label">
+          Velocity dimension{" "}
           <select value={dim} onChange={(e) => setDim(Number(e.target.value))} data-testid="dim-select">
             {(neural.dims.length ? neural.dims : ["—"]).map((d, i) => (
               <option key={d} value={i}>
@@ -136,14 +143,14 @@ export function NeuralView({ neural, source }: { neural: NeuralBuffer; source: "
         </label>
         <span className="legend">
           {neural.behavior.size > 0 && (
-            <span style={{ color: RECORDED }}>━ recorded (behavioral ground truth, valid samples)</span>
+            <span>Solid: recorded behavior (ground truth, valid samples)</span>
           )}
-          {hasDecoded && <span style={{ color: DECODED }}>┅ decoded_intent ({neural.modelId})</span>}
+          {hasDecoded && <span>Dashed: decoded ({neural.modelId})</span>}
         </span>
       </div>
       <canvas ref={traces} className="trace-canvas" data-testid="trace-canvas" />
       {source === "offline" ? (
-        <p className="muted small">
+        <p className="hint">
           Real spike counts from a human intracortical recording, replayed from a file. Kinematics are the dataset's
           recorded (cued) velocity in arbitrary units.{" "}
           {hasDecoded
@@ -151,9 +158,11 @@ export function NeuralView({ neural, source }: { neural: NeuralBuffer; source: "
             : "No decoder is attached to this file."}
         </p>
       ) : (
-        <p className="muted small">
-          Binned features computed by the BrainOS pipeline from the connected source (see the data badge for what that
-          source is). Solid: the source's behavior stream, if one is attached.{" "}
+        <p className="hint">
+          {source === "stream"
+            ? "Binned features delivered by the connected stream"
+            : "Binned features computed by the BrainOS pipeline from the connected source"}{" "}
+          (see the status line for what that source is). Solid: the source's behavior stream, if one is attached.{" "}
           {hasDecoded
             ? "Dashed: decoded_intent from the loaded model — calibrated offline, not validated for closed-loop control."
             : "No decoder loaded."}

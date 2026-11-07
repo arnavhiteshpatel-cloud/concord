@@ -91,13 +91,19 @@ the PR description and delete it here.
   recalibration). Labels are the nearest behavior sample within half a bin. The center-out
   task's display latency is not measured, so cue timing on screen vs. on the LSL clock may
   differ by a monitor frame or more.
-- **Console (M3)**: the Acquisition and Pipeline tabs poll REST once per second (counters
-  can be up to ~1 s old). The live feature view plots binned counts only (spikeband /
-  passthrough); `features.vector` output (band power, high gamma) appears only in the event
-  stream. Discovery uses a fixed 1.5 s wait. The Playwright demo exercises LSL discovery →
-  registration → connect → spikeband pipeline and Open Ephys registration → connect;
-  calibration, model loading and the router are covered by component tests with a mocked
-  server and by backend tests, not by the browser demo.
+- **Console**: live-source counters and the pipeline status are polled once per second
+  (up to ~1 s old). The signal-integrity verdict uses only what the console can measure: data
+  events arriving in this browser tab, the runtime state, and loss counters reported by the
+  adapter, pipeline and runtime; "Data received" is shown only for LSL (samples vs estimated
+  missing) and Open Ephys (messages vs missed), never estimated for other sources. The four
+  live traces show raw samples (first four channels) or binned counts (the four most active
+  channels); `features.vector` output (band power, high gamma) appears only in the event
+  stream. The status line does not show the reconnect attempt number (the runtime does not
+  report it per attempt). Discovery uses a fixed 1.5 s wait. The Playwright demo exercises
+  LSL discovery → registration → connect → spikeband pipeline, Open Ephys registration →
+  connect, and real data over LSL → passthrough + trained model → Start control → title-bar
+  Stop control; calibration is covered by component tests with a mocked server and by
+  backend tests, not by the browser demo.
 - **Backpressure** drops the oldest events per slow subscriber; there is no per-app QoS or
   priority (e.g. "never drop selections").
 - The board's **Speak** tile uses the browser's Web Speech API; it is labelled unavailable
