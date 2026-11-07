@@ -230,3 +230,12 @@ e2e/screenshots/
 
 # Playwright for e2e (installed by make e2e-setup)
 /node_modules/
+
+# --- M5-D (packaging, release) ---
+# the built console staged into the package for wheels / the desktop app (packaging/stage_console.py)
+backend/src/brainos/server/console/
+# PyInstaller work and output directories
+packaging/build/
+packaging/dist/
+# the PyInstaller spec is source here (the template above ignores *.spec)
+!packaging/*.spec
