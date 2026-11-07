@@ -891,6 +891,77 @@ async function main() {
       return `resumed (${s.selections.length} selections in total); after revoke: "${s.control?.reason}"`;
     });
 
+    // ------------------------------------------- M5-D: researcher workflow and stored data
+    let m5Session = null;
+    let m5Recording = null;
+    await step("M5-D-1. New session from the strip; Safe stop & disconnect closes the recording and the source", async () => {
+      await closeAll();
+      await page.getByTestId("new-session").click();
+      const sheet = page.getByTestId("new-session-sheet");
+      await sheet.getByTestId("session-name-input").fill("e2e session");
+      await sheet.getByTestId("session-operator-input").fill("E2E Operator");
+      await sheet.getByTestId("session-notes-input").fill("browser demo (synthetic data)");
+      await sheet.getByTestId("session-create").click();
+      await expectText(page.getByTestId("session-name"), /^e2e session$/);
+      m5Session = (await api("/sessions")).active;
+      if (!m5Session || m5Session.operator !== "E2E Operator") throw new Error("session not created on the server");
+      if (!(await page.getByTestId("safe-stop").isDisabled())) throw new Error("Safe stop enabled with nothing running");
+      await pick("sim-a");
+      await expectState("streaming");
+      await open("adv-recording");
+      await page.getByTestId("rec-start").click();
+      await page.getByTestId("recording-indicator").waitFor({ timeout: 5000 });
+      m5Recording = (await api("/runtime")).recording;
+      await page.waitForTimeout(1500);
+      await closeAll();
+      await designShot("6-m5-session-strip", { fullPage: true });
+      await page.getByTestId("safe-stop").click();
+      await expectState("idle");
+      await expectText(page.getByTestId("session-log"), /Safe stop: stopped recording, source/);
+      const rt = await api("/runtime");
+      if (rt.recording !== null || rt.state !== "idle") throw new Error(`still running: ${JSON.stringify(rt)}`);
+      const rec = (await api("/recordings")).find((r) => r.name === m5Recording);
+      if (!rec || rec.active || rec.complete === false) throw new Error(`recording not closed: ${JSON.stringify(rec)}`);
+      return `session ${m5Session.id}; recording ${m5Recording} closed (${rec.size_bytes} bytes); source disconnected`;
+    });
+
+    await step("M5-D-2. Session and export: bundle with the recording, download, End session", async () => {
+      await page.getByTestId("session-details").click();
+      const sheet = page.getByTestId("session-sheet");
+      await expectText(sheet.getByTestId("session-recordings"), new RegExp(m5Recording));
+      await sheet.getByTestId("export-recordings").check();
+      await sheet.getByTestId("export-create").click();
+      await sheet.getByTestId("export-result").waitFor({ timeout: 15000 });
+      const href = await sheet.getByTestId("export-download").getAttribute("href");
+      const zip = await fetch(`${base}${href}`);
+      const bytes = Buffer.from(await zip.arrayBuffer());
+      if (zip.status !== 200 || bytes.subarray(0, 2).toString() !== "PK") throw new Error(`download failed: ${zip.status}`);
+      await designShot("7-m5-session-export");
+      await sheet.getByTestId("session-end").click();
+      await sheet.getByTestId("session-end-confirm").click();
+      await page.getByTestId("no-session").waitFor({ timeout: 8000 });
+      const s = (await api(`/sessions/${m5Session.id}`)).session;
+      if (s.status !== "closed") throw new Error(`session ${s.status}`);
+      return `${href.split("/").pop()} (${bytes.length} bytes, zip); session closed`;
+    });
+
+    await step("M5-D-3. Stored data: delete the recording after confirmation; support report", async () => {
+      await open("adv-storage");
+      const del = page.getByTestId(`delete-recording-${m5Recording}`);
+      await del.click();
+      if (!(await api("/recordings")).some((r) => r.name === m5Recording)) throw new Error("deleted without confirmation");
+      await page.getByTestId(`delete-recording-${m5Recording}-confirm`).click();
+      await del.waitFor({ state: "detached", timeout: 8000 });
+      if ((await api("/recordings")).some((r) => r.name === m5Recording)) throw new Error("recording still listed by the server");
+      await expectText(page.getByTestId("session-log"), new RegExp(`Deleted recording ${m5Recording}`));
+      await open("adv-support");
+      await page.getByTestId("support-create").click();
+      const summary = await expectText(page.getByTestId("support-summary"), /\d+ failed · \d+ warnings · \d+ ok/, 30000);
+      await designShot("8-m5-stored-data-support");
+      await closeAll();
+      return `recording deleted; support report: ${summary}`;
+    });
+
     await step("21. no uncaught page errors", async () => {
       if (errors.length) throw new Error(errors.join(" | "));
       return null;

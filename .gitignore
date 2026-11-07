@@ -233,3 +233,12 @@ e2e/screenshots/
 
 # agent worktrees
 .claude/worktrees/
+
+# --- M5-D (packaging, release) ---
+# the built console staged into the package for wheels / the desktop app (packaging/stage_console.py)
+backend/src/brainos/server/console/
+# PyInstaller work and output directories
+packaging/build/
+packaging/dist/
+# the PyInstaller spec is source here (the template above ignores *.spec)
+!packaging/*.spec

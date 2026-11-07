@@ -9,6 +9,7 @@ import { Advanced } from "./components/Advanced";
 import { ControlRow } from "./components/ControlRow";
 import { DecoderRow } from "./components/DecoderRow";
 import { IntegrityRow, type IntegrityFigures } from "./components/IntegrityRow";
+import { SessionBar } from "./components/SessionBar";
 import { SessionLogView } from "./components/SessionLogView";
 import { SourcePicker } from "./components/SourcePicker";
 import { SourceRow } from "./components/SourceRow";
@@ -185,6 +186,13 @@ export function App() {
       <div className="shell">
         <TitleBar conn={data.conn} runtime={runtime} controlOn={on} stopping={stopAction.busy} onStopControl={stopControl} />
         <main className="session">
+          <SessionBar
+            runtime={data.conn === "open" ? runtime : null}
+            pipelineRunning={!!pst?.running}
+            controlOn={on}
+            recordings={recordings}
+            onChanged={refreshLists}
+          />
           <div className="session-grid">
             <div className="rows">
               <SourceRow runtime={runtime} onPick={() => setPicker(true)} />

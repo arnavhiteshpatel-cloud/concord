@@ -90,13 +90,21 @@ def free_port() -> int:
         return port
 
 
-def http(method: str, url: str, body: dict[str, object] | None = None) -> object:
+def http(
+    method: str, url: str, body: dict[str, object] | None = None, timeout: float = 30
+) -> object:
     data = json.dumps(body).encode() if body is not None else None
     req = urllib.request.Request(
         url, data=data, method=method, headers={"content-type": "application/json"}
     )
-    with urllib.request.urlopen(req, timeout=30) as r:
+    with urllib.request.urlopen(req, timeout=timeout) as r:
         return json.loads(r.read())
+
+
+def http_text(url: str) -> str:
+    """GET a page as text (M5-D lab acceptance: the console served from the wheel)."""
+    with urllib.request.urlopen(url, timeout=30) as r:
+        return str(r.read().decode("utf-8", "replace"))
 
 
 APP = r"""
