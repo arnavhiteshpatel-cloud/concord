@@ -16,7 +16,7 @@ console and docs must be consistent with this page.
 path reproduces offline results on real neural statistics. It is not live acquisition and
 not closed-loop control.
 
-## Where each component is today (Milestone 3)
+## Where each component is today (Milestone 4, workstream A)
 
 | Component | Level reached | Evidence (all executed) | Not yet done |
 | --- | --- | --- | --- |
@@ -30,6 +30,8 @@ not closed-loop control.
 | Center-out cue task | 2 | Cue + marker streams attach to a neural stream on one clock (`test_center_out_task.py`) | Never shown to a participant; display timing (monitor latency) unmeasured |
 | Command router + reference app | 1–2 | Same unchanged SDK-only app across simulator, FALCON-over-LSL (suspended until the router is enabled, then decoded commands), Open Ephys (suspended) | No person has controlled anything with it |
 | Operator console | 1–2 | Vitest (API helpers and every Acquisition/Pipeline/Router/Calibration control against a mocked server); Playwright `e2e/demo.cjs` steps M3-1…M3-5 against a real server with an LSL synthetic-ephys publisher and an Open Ephys ZMQ test publisher (discover, register, connect, integrity counters, spikeband pipeline counters, stop, remove) | Calibration, model loading and the router are not exercised in the browser demo (component + backend tests only) |
+| Source plugins (M4): adapter SDK, validation, plugin host, isolation, `PluginAdapter`, REST, console | 1 | `test_plugin_validate.py` (one malformed-input test per rule), `test_plugin_host.py` (IPC bit-exactness, typed errors, stdout isolation, crash/hang/exit, `--list` with broken plugins), `test_plugin_runtime.py` (every broken test plugin is rejected or stopped and the runtime stays healthy), `test_plugin_example.py` (REST → WebSocket → record → replay → pipeline → host killed → reconnect), Vitest `Plugins.test.tsx`, Playwright step M4-1; IPC throughput measured (`scripts/bench_plugins.py`) | The isolation is fault isolation, not a security sandbox (docs/ADAPTER_SDK.md §5). Only test plugins and a synthetic example exist; no plugin for a real acquisition system has been run here (BrainFlow/BCI2000 plugins are separate work) |
+| Example adapter (motor-imagery EEG generator) | 1 | Same seed → bit-identical samples through host, runtime, WebSocket and replay; mu ERD at C3/C4 measured in `test_generator_mu_desynchronisation` | Synthetic, declared so; not physiologically validated; never presented as brain data |
 | **Anything** | **3 / 4** | **Nothing in BrainOS has reached level 3 or 4.** | Requires lab hardware, and for level 4 an approved protocol |
 
 ## What would move a component up a level

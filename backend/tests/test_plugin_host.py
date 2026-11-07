@@ -245,6 +245,7 @@ def test_list_probes_each_plugin_in_isolation(tmp_path: Path) -> None:
             "t-api2": "bos_test_plugins:Api2Plugin",
             "t-hang-open": "bos_test_plugins:HangPlugin",  # discover works; only read hangs
             "t-not-plugin": "bos_test_plugins:NotAPlugin",
+            "t-hang-discover": "bos_test_plugins:HangDiscoverPlugin",
             "Bad_Name": "bos_test_plugins:GoodPlugin",
         },
     )
@@ -253,7 +254,10 @@ def test_list_probes_each_plugin_in_isolation(tmp_path: Path) -> None:
         "PYTHONPATH": os.pathsep.join([str(site), str(PLUGINS_DIR)]),
     }
     out = subprocess.run(
-        [sys.executable, "-m", "brainos_adapter_sdk.host", "--list", "--discover-timeout", "0.5"],
+        [
+            *(sys.executable, "-m", "brainos_adapter_sdk.host", "--list"),
+            *("--discover-timeout", "0.5", "--timeout", "2"),
+        ],
         capture_output=True,
         env=env,
         timeout=120,
@@ -271,3 +275,7 @@ def test_list_probes_each_plugin_in_isolation(tmp_path: Path) -> None:
     assert by["t-not-plugin"]["status"] == "load_error"
     assert by["Bad_Name"]["status"] == "rejected" and by["Bad_Name"]["manifest"] is None
     assert by["t-hang-open"]["status"] == "compatible"
+    # hung in discover(): killed after the bounded wait, still listed, other plugins unaffected
+    assert by["t-hang-discover"]["status"] == "compatible"
+    assert by["t-hang-discover"]["devices"] is None
+    assert "did not answer" in by["t-hang-discover"]["discovery_error"]["message"]

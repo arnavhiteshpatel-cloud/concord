@@ -89,6 +89,48 @@ async def test_good_plugin_events_are_valid_and_bit_exact(runtime: Runtime) -> N
     await runtime.disconnect()
 
 
+async def test_disconnect_closes_the_plugin_session_gracefully(
+    runtime: Runtime, tmp_path: Path
+) -> None:
+    """The pump is cancelled mid-read on disconnect; the pending answer is drained and the
+    host shut down cleanly, so the plugin's close() runs (it releases the device)."""
+    marker = tmp_path / "closed.txt"
+    opts = {"fail_after": 0, "unit": "microvolts", "close_marker": str(marker)}
+    await _connect(runtime, "GoodPlugin", options=opts)
+    adapter = runtime.adapter
+    assert isinstance(adapter, PluginAdapter)
+    await wait_for(lambda: adapter.counters["chunks"] > 3, timeout=10)
+    probe_closes = marker.read_text().count("closed")  # configure's probe also closed once
+    await runtime.disconnect()
+    assert marker.read_text().count("closed") == probe_closes + 1
+    assert adapter.last_exit is None or "code 0" in adapter.last_exit
+
+
+async def test_cancelled_request_is_drained(tmp_path: Path) -> None:
+    import asyncio
+
+    from brainos.adapters.plugin.host_client import AsyncHostClient
+
+    marker = tmp_path / "closed.txt"
+    c = AsyncHostClient("bos_test_plugins:SlowReadPlugin", extra_path=[str(PLUGINS_DIR)])
+    try:
+        await c.start(10)
+        opts = {"close_marker": str(marker)}
+        await c.request("open", {"device_key": "dev0", "options": opts}, timeout_s=10)
+        task = asyncio.create_task(c.request("read", {"timeout_s": 1.0}, timeout_s=5))
+        await asyncio.sleep(0.1)  # the plugin is inside read() now
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+        assert c.alive  # not killed
+        result, _ = await c.request("ping", {"nonce": 1}, timeout_s=5)  # read answer drained
+        assert result["nonce"] == 1
+    finally:
+        code = await c.close()
+    assert code == 0
+    assert "closed" in marker.read_text()
+
+
 async def test_unknown_unit_is_arbitrary(runtime: Runtime) -> None:
     sub = subscribe(runtime)
     await _connect(runtime, "GoodPlugin", options={"fail_after": 0, "unit": "none"})

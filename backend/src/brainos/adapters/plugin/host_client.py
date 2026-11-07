@@ -75,8 +75,15 @@ class AsyncHostClient:
         python: str | None = None,
         extra_path: Sequence[str] = (),
         label: str | None = None,
+        pending_timeout_s: float = 6.0,
     ) -> None:
         self.plugin_ref = plugin_ref
+        # a request cancelled while waiting for its answer (e.g. the runtime stopping the
+        # pump on disconnect) leaves that answer in the pipe: it is drained before the next
+        # request, waiting at most this long, so close() can still shut the plugin down cleanly
+        self.pending_timeout_s = pending_timeout_s
+        self._pending: int | None = None
+        self._in_message = False
         self.python = python or sys.executable
         self.extra_path = list(extra_path)
         self.label = label or plugin_ref
@@ -151,9 +158,9 @@ class AsyncHostClient:
 
     async def _read_message(self) -> tuple[dict[str, Any], list[NDArray[Any]]]:
         try:
-            n = ipc.check_length(
-                ipc.LENGTH.unpack(await self._read_exact(4))[0], ipc.MAX_HEADER_BYTES
-            )
+            head = await self._read_exact(4)
+            self._in_message = True  # from here on, a cancellation desynchronises the stream
+            n = ipc.check_length(ipc.LENGTH.unpack(head)[0], ipc.MAX_HEADER_BYTES)
             header = ipc.decode_header(await self._read_exact(n))
             arrays = []
             for dt, shape in ipc.buffer_specs(header):
@@ -162,6 +169,7 @@ class AsyncHostClient:
         except ipc.WireError as exc:
             await self._fail(f"protocol error: {exc}")
             raise HostProtocolError(f"plugin host broke the IPC protocol: {exc}") from None
+        self._in_message = False
         return header, arrays
 
     async def _wait_exit(self) -> int | None:
@@ -208,6 +216,7 @@ class AsyncHostClient:
                 raise HostExited(f"plugin host stopped earlier: {self._broken}")
             if self.proc.returncode is not None:
                 raise HostExited(self._exit_message(self.proc.returncode))
+            await self._drain_pending()
             self._id += 1
             rid = self._id
             try:
@@ -226,8 +235,11 @@ class AsyncHostClient:
                     f"plugin did not answer '{cmd}' within {timeout_s:g} s; host stopped"
                 ) from None
             except asyncio.CancelledError:
-                # a half-read response would desynchronise the stream: stop the host
-                await asyncio.shield(self._fail(f"{cmd} cancelled"))
+                if self._in_message:
+                    # a half-read response would desynchronise the stream: stop the host
+                    await asyncio.shield(self._fail(f"{cmd} cancelled mid-message"))
+                else:  # nothing consumed yet: drain the answer before the next request
+                    self._pending = rid
                 raise
             if header.get("id") != rid:
                 await self._fail("response id mismatch")
@@ -245,6 +257,27 @@ class AsyncHostClient:
                 )
             result = header.get("result")
             return (result if isinstance(result, dict) else {}), arrays
+
+    async def _drain_pending(self) -> None:
+        rid, self._pending = self._pending, None
+        if rid is None:
+            return
+        try:
+            header, _ = await asyncio.wait_for(self._read_message(), self.pending_timeout_s)
+        except asyncio.CancelledError:
+            if not self._in_message:
+                self._pending = rid  # still unread: try again next time
+            else:
+                await asyncio.shield(self._fail("cancelled while draining"))
+            raise
+        except TimeoutError:
+            await self._fail("cancelled request never answered")
+            raise HostTimeout(
+                f"plugin did not finish a cancelled request within {self.pending_timeout_s:g} s"
+            ) from None
+        if header.get("id") != rid:
+            await self._fail("response id mismatch")
+            raise HostProtocolError(f"response id {header.get('id')!r} != request id {rid}")
 
     def kill_now(self) -> None:
         """Synchronous emergency stop (e.g. when an open() is cancelled)."""

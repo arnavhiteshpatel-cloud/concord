@@ -474,9 +474,16 @@ def _probe(
         rec["status"] = "compatible" if m.get("compatible") else "rejected"
         if m.get("compatible") and discover_timeout_s > 0:
             try:
-                rec["devices"] = client.discover(discover_timeout_s)["devices"]
+                # discover() may scan for discover_timeout_s; a little slack, never unbounded
+                rec["devices"] = client.request(
+                    "discover",
+                    {"timeout_s": discover_timeout_s},
+                    timeout_s=discover_timeout_s + min(5.0, timeout_s),
+                )[0]["devices"]
             except HostError as exc:
                 rec["discovery_error"] = {"type": exc.type, "message": exc.message}
+            except HostDied as exc:  # hung or crashed in discover(): still listed, no devices
+                rec["discovery_error"] = {"type": "HostDied", "message": str(exc)}
     except HostDied as exc:
         rec.setdefault("status", "load_error")
         rec["error"] = {"type": "HostDied", "message": str(exc), "traceback": None}
@@ -491,7 +498,7 @@ def _probe(
 
 
 def list_plugins(
-    discover_timeout_s: float = 0.0, timeout_s: float = 20.0, python: str | None = None
+    discover_timeout_s: float = 0.0, timeout_s: float = 15.0, python: str | None = None
 ) -> dict[str, Any]:
     """All installed ``brainos.sources`` entry points, each probed in its own process."""
     eps = list(metadata.entry_points(group=ENTRY_POINT_GROUP))
@@ -639,7 +646,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         help="with --list: also call discover() with this timeout (s)",
     )
     ap.add_argument(
-        "--timeout", type=float, default=20.0, help="with --list: per-plugin timeout (s)"
+        "--timeout",
+        type=float,
+        default=15.0,
+        help="with --list: per-plugin start / manifest timeout (s)",
     )
     ap.add_argument("--check", action="store_true", help="run the plugin and print a report")
     ap.add_argument("--device", help="with --check: device key to open")
