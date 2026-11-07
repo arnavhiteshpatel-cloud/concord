@@ -243,9 +243,8 @@ input:disabled { opacity: .5; }
 .badge-stream { color: var(--warn); border-color: rgba(227, 179, 65, .45); font-weight: 600; letter-spacing: .04em; }
 .lab { display: flex; flex-direction: column; gap: 14px; }
 .lab > p { margin: 0; }
-.lab-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 14px; align-items: start; }
-.lab-col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
-@media (max-width: 1200px) { .lab-grid { grid-template-columns: minmax(0, 1fr); } }
+.lab-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 14px; align-items: start; }
+.table-scroll { overflow-x: auto; max-width: 100%; }
 .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px 10px; margin: 8px 0; }
 .form-grid label { display: flex; flex-direction: column; gap: 3px; font-size: 11px; color: var(--faint); min-width: 0; }
 .form-grid .span-all { grid-column: 1 / -1; }

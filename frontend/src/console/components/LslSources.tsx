@@ -68,13 +68,7 @@ export function LslSources({
     <Panel
       title="Lab Streaming Layer"
       testId="lsl-sources"
-      right={
-        disc?.library ? (
-          <span className="muted small" title={disc.library}>
-            liblsl {/v\d+\.\d+\.\d+/.exec(disc.library)?.[0] ?? ""}
-          </span>
-        ) : undefined
-      }
+      right={disc?.library ? <span className="muted small mono">{disc.library}</span> : undefined}
     >
       <div className="btn-row">
         <button className="btn btn-primary" disabled={action.busy} onClick={discover} data-testid="lsl-discover">
@@ -92,46 +86,48 @@ export function LslSources({
       )}
 
       {streams.length > 0 && (
-        <table className="table lsl-table" data-testid="lsl-streams">
-          <thead>
-            <tr>
-              <th>stream</th>
-              <th>type</th>
-              <th className="r">ch</th>
-              <th className="r">rate</th>
-              <th>format</th>
-              <th>units</th>
-              <th>declared</th>
-              <th>as signal</th>
-            </tr>
-          </thead>
-          <tbody>
-            {streams.map((s) => (
-              <tr key={s.key} data-stream-key={s.key} title={`key ${s.key} · host ${s.hostname} · source_id ${s.source_id ?? "not set"}`}>
-                <td className="mono">{s.name}</td>
-                <td className="mono">{s.type}</td>
-                <td className="r mono">{s.channel_count}</td>
-                <td className="r mono">{s.nominal_srate > 0 ? `${fmt.num(s.nominal_srate)} Hz` : "irregular"}</td>
-                <td className="mono">{s.channel_format}</td>
-                <td className="mono">{units(s)}</td>
-                <td>{declared(s)}</td>
-                <td>
-                  {s.usable_as_signal ? (
-                    <button
-                      className={`btn btn-small ${signal === s.key ? "btn-primary" : ""}`}
-                      onClick={() => setSignal(signal === s.key ? null : s.key)}
-                      data-testid={`lsl-use-${s.key}`}
-                    >
-                      configure
-                    </button>
-                  ) : (
-                    <span className="text-warn small">{s.reason ?? "not usable"}</span>
-                  )}
-                </td>
+        <div className="table-scroll">
+          <table className="table lsl-table" data-testid="lsl-streams">
+            <thead>
+              <tr>
+                <th>stream</th>
+                <th>type</th>
+                <th className="r">ch</th>
+                <th className="r">rate</th>
+                <th>format</th>
+                <th>units</th>
+                <th>declared</th>
+                <th>as signal</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {streams.map((s) => (
+                <tr key={s.key} data-stream-key={s.key} title={`key ${s.key} · host ${s.hostname} · source_id ${s.source_id ?? "not set"}`}>
+                  <td className="mono">{s.name}</td>
+                  <td className="mono">{s.type}</td>
+                  <td className="r mono">{s.channel_count}</td>
+                  <td className="r mono">{s.nominal_srate > 0 ? `${fmt.num(s.nominal_srate)} Hz` : "irregular"}</td>
+                  <td className="mono">{s.channel_format}</td>
+                  <td className="mono">{units(s)}</td>
+                  <td>{declared(s)}</td>
+                  <td>
+                    {s.usable_as_signal ? (
+                      <button
+                        className={`btn btn-small ${signal === s.key ? "btn-primary" : ""}`}
+                        onClick={() => setSignal(signal === s.key ? null : s.key)}
+                        data-testid={`lsl-use-${s.key}`}
+                      >
+                        configure
+                      </button>
+                    ) : (
+                      <span className="text-warn small">{s.reason ?? "not usable"}</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
       {disc && !streams.length && !disc.error && disc.discovered_at_ns && (
         <div className="empty">No LSL streams found on the network.</div>

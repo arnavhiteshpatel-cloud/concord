@@ -45,40 +45,42 @@ function LslStreams({ streams }: { streams: unknown[] }) {
   const rows = streams.filter(isObj);
   if (!rows.length) return null;
   return (
-    <table className="table" data-testid="integrity-streams">
-      <thead>
-        <tr>
-          <th>role</th>
-          <th>stream</th>
-          <th className="r">received</th>
-          <th className="r">gaps</th>
-          <th className="r">est. missing</th>
-          <th className="r">time correction</th>
-          <th className="r">last timestamp</th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((s, i) => {
-          const corr = num(s.time_correction_s);
-          const last = num(s.last_timestamp_s);
-          const gaps = num(s.gaps);
-          const miss = num(s.estimated_missing_samples);
-          return (
-            <tr key={`${String(s.role)}-${i}`}>
-              <td>{str(s.role) ?? "—"}</td>
-              <td className="mono">
-                {str(s.name) ?? "—"} {str(s.type) ? `(${str(s.type)})` : ""}
-              </td>
-              <td className="r mono">{fmt.num(num(s.received_samples))}</td>
-              <td className={`r mono ${gaps ? "text-warn" : ""}`}>{fmt.num(gaps)}</td>
-              <td className={`r mono ${miss ? "text-warn" : ""}`}>{fmt.num(miss)}</td>
-              <td className="r mono">{corr === null ? "—" : `${(corr * 1000).toFixed(3)} ms`}</td>
-              <td className="r mono">{last === null ? "—" : `${last.toFixed(3)} s`}</td>
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
+    <div className="table-scroll">
+      <table className="table" data-testid="integrity-streams">
+        <thead>
+          <tr>
+            <th>role</th>
+            <th>stream</th>
+            <th className="r">received</th>
+            <th className="r">gaps</th>
+            <th className="r">est. missing</th>
+            <th className="r">time correction</th>
+            <th className="r">last timestamp</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((s, i) => {
+            const corr = num(s.time_correction_s);
+            const last = num(s.last_timestamp_s);
+            const gaps = num(s.gaps);
+            const miss = num(s.estimated_missing_samples);
+            return (
+              <tr key={`${String(s.role)}-${i}`}>
+                <td>{str(s.role) ?? "—"}</td>
+                <td className="mono">
+                  {str(s.name) ?? "—"} {str(s.type) ? `(${str(s.type)})` : ""}
+                </td>
+                <td className="r mono">{fmt.num(num(s.received_samples))}</td>
+                <td className={`r mono ${gaps ? "text-warn" : ""}`}>{fmt.num(gaps)}</td>
+                <td className={`r mono ${miss ? "text-warn" : ""}`}>{fmt.num(miss)}</td>
+                <td className="r mono">{corr === null ? "—" : `${(corr * 1000).toFixed(3)} ms`}</td>
+                <td className="r mono">{last === null ? "—" : `${last.toFixed(3)} s`}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -142,7 +144,7 @@ export function SignalIntegrity({
           )}
           {rc && (
             <Row
-              k="runtime"
+              k="runtime (since start)"
               v={`reconnect attempts ${fmt.num(rc.reconnect_attempts)} · successes ${fmt.num(rc.reconnect_successes)} · link errors ${fmt.num(rc.link_errors)}`}
             />
           )}
