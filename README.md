@@ -5,11 +5,15 @@ brain-computer interfaces. Applications declare the capabilities they need, rece
 standardized, provenance-labelled events, and keep working when the underlying device
 changes.
 
-> **Status: MVP + Milestone 2.** Sources are **simulated devices** or **offline replays**,
-> including genuine recorded human intracortical data (DANDI 000954). There is **no live
-> implant connection**, and no write/stimulation path. The only decoder is an offline baseline,
-> evaluated on held-out recordings; it does not establish real-time control. This is not a
-> medical device. See [LIMITATIONS.md](LIMITATIONS.md).
+> **Status: Milestone 3 — lab-ready software, not yet lab-verified.** BrainOS now acquires
+> live streams over **Lab Streaming Layer** and the **Open Ephys ZMQ Interface**, runs a
+> streaming processing → decoding pipeline, calibrates decoders from recorded sessions, and
+> routes decoded commands to applications only when an operator enables it. These paths are
+> **protocol-tested** with software publishers and with genuine recorded human data streamed
+> as *prerecorded* (DANDI 000954) — **never with acquisition hardware or a participant**
+> ([docs/VALIDATION_LEVELS.md](docs/VALIDATION_LEVELS.md)). No implant vendor is supported,
+> and there is no write/stimulation path. Not a medical device. See
+> [LIMITATIONS.md](LIMITATIONS.md).
 
 | Document | Purpose |
 | --- | --- |
@@ -23,6 +27,11 @@ changes.
 | [docs/DATASETS.md](docs/DATASETS.md) | The real dataset: provenance, license, verification, pitfalls |
 | [docs/DECODING.md](docs/DECODING.md) | Offline decoding results with controls (generated) |
 | [docs/MILESTONE2_PLAN.md](docs/MILESTONE2_PLAN.md) | Milestone 2 audit, plan, acceptance criteria |
+| [docs/LAB_GUIDE.md](docs/LAB_GUIDE.md) | **Researchers:** exact steps for LSL / Open Ephys, pipeline, calibration, routing |
+| [docs/VALIDATION_LEVELS.md](docs/VALIDATION_LEVELS.md) | Software-implemented vs protocol-tested vs hardware-verified vs human-validated, per component |
+| [docs/OPEN_EPHYS.md](docs/OPEN_EPHYS.md) | Open Ephys ZMQ Interface protocol facts, sources, setup |
+| [docs/BENCHMARKS_LIVE.md](docs/BENCHMARKS_LIVE.md) | Measured live-protocol throughput, loss, latency, soak |
+| [docs/MILESTONE3_PLAN.md](docs/MILESTONE3_PLAN.md) | Milestone 3 audit, design, acceptance criteria |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Rules for engineers working in this repo |
 
 ## Quick start (macOS, Apple Silicon)
@@ -96,6 +105,30 @@ Open **http://127.0.0.1:8000** and:
 Want the full evaluation over 13 blocks (~66 MiB)? Run `make decoding-report`; it regenerates
 [docs/DECODING.md](docs/DECODING.md).
 
+## Demo: live acquisition without hardware (Milestone 3)
+
+Protocol-level publishers stand in for acquisition software (each declares itself synthetic or
+prerecorded). With BrainOS running (`make run`), in a second terminal:
+
+```bash
+.venv/bin/python -m brainos.testing.publish falcon data/datasets/dandi-000954/sub-HumanPitt-held-in-calib_ses-19250108T111022.nwb --loop
+```
+
+In the console's acquisition controls: discover LSL streams, register the FALCON spike-count
+stream with its behavior and marker streams attached, connect (labelled prerecorded), start
+the `features_passthrough` pipeline with the trained model, then enable the command router.
+In a third terminal, the reference app (SDK only) waits while no commands exist and moves once
+the router is on:
+
+```bash
+.venv/bin/python backend/examples/reference_app/cursor_app.py --seconds 60
+```
+
+Broadband synthetic ephys over LSL (`... publish lsl-ephys`) or an Open Ephys ZMQ stream
+(`... publish openephys --port 5556`) work the same way with the `spikeband_threshold`
+preset. Full researcher steps, including calibration with the center-out cue task:
+[docs/LAB_GUIDE.md](docs/LAB_GUIDE.md).
+
 ## The 5-minute demo (simulated devices)
 
 1. **Console loads** — runtime `IDLE`; the Communication Board app is already connected
@@ -124,6 +157,7 @@ make test     # pytest (backend) + vitest (frontend); writes reports/ for the Te
 make lint     # ruff, mypy --strict, tsc
 make e2e      # real-browser demo (AT-25); run `make e2e-setup` once first
 make bench    # measured throughput/latency on this machine -> docs/BENCHMARKS.md
+make bench-live  # LSL / Open Ephys -> pipeline -> decoder, measured here -> docs/BENCHMARKS_LIVE.md
 make dataset  # download + verify the demo recordings (DANDI 000954) into data/datasets/
 make model    # train/evaluate the baseline decoder on downloaded blocks -> data/models/
 ```
@@ -131,8 +165,10 @@ make model    # train/evaluate the baseline decoder on downloaded blocks -> data
 ## Repository layout
 
 ```
-backend/src/brainos/   contracts · adapters (simulated, replay) · runtime · server · sdk
-backend/tests/         pytest suite (AT-1..AT-21)
+backend/src/brainos/   contracts · adapters (simulated, replay, nwb, lsl, openephys) · processing
+                       · decoding · runtime (incl. pipeline) · server · sdk · testing (publishers)
+backend/examples/      print_events.py · reference_app/ (SDK-only) · center_out_task.py
+backend/tests/         pytest suite (AT-*, M2-AT-*, M3-AT-*)
 frontend/src/sdk/      TypeScript SDK
 frontend/src/console/  operator console
 frontend/src/apps/     communication board (imports only src/sdk)

@@ -73,9 +73,11 @@ LSL inlet / OE SUB socket  ->  DeviceAdapter (read/normalize, unchanged contract
   - Record a session (the existing `Recorder`) and align features with behavior on the device
     clock.
   - Chronological split, ridge fit, held-out report, versioned model JSON.
-  - A built-in center-out cue task generates labelled cue kinematics on the device clock, via a
-    clock model.
-- **Reference app:** `examples/reference_app` uses only `brainos.sdk`. Tests run it against
+  - Calibration task: `backend/examples/center_out_task.py` publishes cue kinematics and trial
+    markers as LSL streams (the standard way task software integrates); the LSL adapter maps
+    them onto the neural stream's clock with `time_correction`. (Chosen over an
+    app → runtime label channel, which would have added a new write-like API.)
+- **Reference app:** `backend/examples/reference_app` uses only `brainos.sdk`. Tests run it against
   simulation, LSL and Open Ephys sources, plus a raw-only source.
 - **Console:**
   - discover/connect LSL and Open Ephys sources
