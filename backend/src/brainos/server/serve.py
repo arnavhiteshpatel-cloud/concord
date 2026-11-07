@@ -157,7 +157,9 @@ def run(settings: Settings) -> int:
         return 3
     try:
         server = uvicorn.Server(uvicorn_config(settings, create_app(settings)))
-        server.run()
+        # uvicorn re-raises Ctrl-C after its graceful shutdown (uvicorn.run swallows it too)
+        with contextlib.suppress(KeyboardInterrupt):
+            server.run()
         return 0 if server.started else 1
     finally:
         lock.release()

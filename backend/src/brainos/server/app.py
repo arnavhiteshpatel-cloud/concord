@@ -30,6 +30,7 @@ from brainos.server import (
 )
 from brainos.server.audit import SessionAuditMiddleware
 from brainos.server.deps import AppServices, error_response
+from brainos.server.origin import LocalOriginMiddleware
 from brainos.server.settings import Settings
 
 log = logging.getLogger(__name__)
@@ -50,12 +51,10 @@ def startup_maintenance(svc: AppServices) -> None:
     """
     s = svc.settings
     try:
+        # the data directory itself; subdirectories are created 0700 by their owners when
+        # first needed (recorder, sessions, logging) and existing ones are tightened here.
+        # Public datasets are left as they are (they may be shared with other users).
         ensure_private_dir(s.data_dir)
-        for d in (s.recordings_dir, s.sessions_dir, s.logs_dir):
-            ensure_private_dir(d)
-        if not s.models_dir.is_symlink():
-            ensure_private_dir(s.models_dir)
-        # public datasets are left as they are (they may be shared with other users)
         fixed = harden_tree(s.data_dir, skip=("datasets",))
         if fixed.dirs_fixed or fixed.files_fixed:
             log.info(
@@ -148,6 +147,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return session_routes.api_error_response(exc)
 
     app.add_middleware(SessionAuditMiddleware)
+    # outermost: web pages on other sites must not reach the unauthenticated local API
+    app.add_middleware(LocalOriginMiddleware, allow_remote=settings.allow_remote)
     app.include_router(routes.router)
     app.include_router(live_routes.router)
     app.include_router(plugin_routes.router)

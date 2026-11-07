@@ -165,6 +165,7 @@ class SessionManager:
             raise SessionError("a session name is required")
         now = time.time_ns()
         sid = time.strftime("%Y%m%d-%H%M%S", time.localtime(now / 1e9)) + "-" + secrets.token_hex(2)
+        ensure_private_dir(self.directory)
         folder = ensure_private_dir(self.folder(sid))
         ensure_private_dir(folder / "exports")
         info = SessionInfo(
