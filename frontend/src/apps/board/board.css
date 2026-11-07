@@ -1,102 +1,87 @@
-/* The board is a separate demo app with its own (dark) look; it shares nothing with the
-   console's stylesheet. */
+/* Communication board: the participant's screen. A separate app (it may import only src/sdk),
+   so it carries its own copy of the console's visual language: graphite title bar over a
+   light workspace, system font, colour only for status. Tiles are large for reading at a
+   distance; the highlighted tile is shown by a heavy outline, not by colour alone. */
 :root {
-  --bg: #0a0d12;
-  --bg-2: #0f141b;
-  --panel: #121922;
-  --panel-2: #17202b;
-  --border: #223041;
-  --border-2: #2d3d52;
-  --text: #e6edf3;
-  --muted: #8b9bb0;
-  --faint: #5d6b7e;
-  --accent: #5ad1e6;
-  --accent-2: #3aa8bd;
-  --ok: #3fcf8e;
-  --warn: #e3b341;
-  --err: #f47067;
-  --violet: #b392f0;
-  --blue: #6cb6ff;
-  --amber: #e0a458;
-  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", system-ui, sans-serif;
-  --mono: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace;
-  --radius: 10px;
-  color-scheme: dark;
+  --bg: #eceeef;
+  --surface: #ffffff;
+  --ink: #1b1f22;
+  --muted: #5f686d;
+  --line: #c9cecf;
+  --bar: #2a2e33;
+  --bar-ink: #f2f3f3;
+  --bar-muted: #aeb4b8;
+  --ok: #2f7d4f;
+  --caution: #b7791f;
+  --alarm: #c0392b;
+  --inactive: #a9b0b3;
+  --focus-fill: #e4e7e8;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; margin: 0; }
 body {
   background: var(--bg);
-  color: var(--text);
-  font-family: var(--font);
-  font-size: 13px;
-  line-height: 1.45;
+  color: var(--ink);
+  font: 15px/1.45 var(--font);
   -webkit-font-smoothing: antialiased;
 }
-button { font: inherit; color: inherit; }
-code, .mono { font-family: var(--mono); }
 
-.chip {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 2px 8px; border-radius: 999px;
-  border: 1px solid var(--border-2); background: var(--panel-2);
-  font-size: 11px; color: var(--muted); white-space: nowrap;
+.board { height: 100%; display: flex; flex-direction: column; user-select: none; }
+
+.board-head {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  background: var(--bar); color: var(--bar-ink); padding: 10px 20px; min-height: 52px;
 }
-.chip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: .9; }
-.chip.plain::before { display: none; }
+.board-name { font-size: 17px; font-weight: 600; }
+.board-tag { font-size: 12px; color: var(--bar-muted); border: 1px solid var(--bar-muted); border-radius: 4px; padding: 1px 6px; }
+.board-status { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; }
+.board-spacer { flex: 1; }
+.board-conn { font-size: 13px; color: var(--bar-muted); }
+.conn-reconnecting, .conn-connecting { color: #e7c27a; }
+.conn-closed, .conn-rejected { color: #f1a39a; }
 
-.prov-raw_signal { color: var(--blue); }
-.prov-behavioral_label { color: var(--amber); }
-.prov-simulated_intent { color: var(--violet); }
-.prov-decoded_intent { color: var(--ok); }
-.prov-device_report { color: var(--muted); }
-.prov-runtime { color: var(--faint); }
-
-
-body { background: #0d1117; }
-.board {
-  height: 100%; display: flex; flex-direction: column; gap: 10px;
-  padding: 14px 16px; user-select: none;
-}
-.board-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
-.board-title { display: flex; flex-direction: column; }
-.board-name { font-size: 16px; font-weight: 650; letter-spacing: -0.01em; }
-.board-sub { color: var(--faint); font-size: 11px; }
-.board-chips { display: flex; gap: 6px; flex-wrap: wrap; }
-.conn-open { color: var(--ok); }
-.conn-reconnecting, .conn-connecting { color: var(--warn); }
-.conn-closed, .conn-rejected { color: var(--err); }
-.mode-pointer { color: var(--accent); }
-.mode-scan { color: var(--warn); }
-.mode-inactive { color: var(--faint); }
+.dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: none; background: var(--inactive); }
+.dot-pointer, .dot-scan { background: #5fbf85; }
 
 .board-message {
-  min-height: 52px; padding: 12px 14px; border-radius: var(--radius);
-  background: #f4f1ea; color: #14181f; font-size: 22px; font-weight: 550;
-  letter-spacing: -0.01em; word-break: break-word;
+  margin: 20px 20px 0; min-height: 64px; padding: 14px 18px; border-radius: 6px;
+  background: var(--surface); border: 1px solid var(--line);
+  font-size: 28px; font-weight: 500; word-break: break-word;
 }
-.board-message .placeholder { color: #8a8f98; font-weight: 450; font-size: 18px; }
-.caret { display: inline-block; width: 2px; height: 22px; margin-left: 2px; vertical-align: -3px; background: #14181f; animation: blink 1s steps(2) infinite; }
+.board-message .placeholder { color: var(--muted); font-weight: 400; font-size: 20px; }
+.caret { display: inline-block; width: 2px; height: 28px; margin-left: 3px; vertical-align: -4px; background: var(--ink); animation: blink 1s steps(2) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
-.board-hint { color: var(--muted); font-size: 12px; }
+@media (prefers-reduced-motion: reduce) { .caret { animation: none; } }
 
-.board-grid { position: relative; flex: 1; display: grid; gap: 8px; min-height: 0; }
+.board-hint { margin: 10px 20px 0; color: var(--muted); font-size: 15px; }
+
+.board-grid { position: relative; flex: 1; display: grid; gap: 12px; min-height: 0; margin: 14px 20px 0; }
 .tile {
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-  border-radius: 12px; border: 2px solid var(--border-2); background: var(--panel-2);
-  font-size: 18px; font-weight: 600; text-align: center; padding: 6px;
-  transition: background .12s, border-color .12s, transform .12s;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  border-radius: 6px; border: 1px solid var(--line); background: var(--surface);
+  font-size: 26px; font-weight: 600; text-align: center; padding: 8px;
+  transition: background .1s, outline-color .1s;
+  outline: 4px solid transparent; outline-offset: -4px;
 }
-.tile small { font-size: 10px; font-weight: 450; color: var(--faint); }
-.tile-space, .tile-delete, .tile-clear, .tile-speak { background: #141b24; color: #c9d4e0; font-size: 15px; }
-.tile-active { border-color: var(--accent); background: #16303a; box-shadow: 0 0 0 3px rgba(90, 209, 230, .18); }
-.board[data-mode="scan"] .tile-active { border-color: var(--warn); background: #3a3016; box-shadow: 0 0 0 3px rgba(227, 179, 65, .2); }
-.tile-flash { background: var(--ok) !important; color: #06240f !important; transform: scale(.97); }
+.tile small { font-size: 12px; font-weight: 400; color: var(--muted); }
+.tile-space, .tile-delete, .tile-clear, .tile-speak { font-size: 20px; font-weight: 500; color: var(--muted); background: #f6f7f7; }
+.tile-active { outline-color: var(--bar); background: var(--focus-fill); color: var(--ink); }
+.tile-flash { background: #d7eadf !important; outline-color: var(--ok) !important; }
 .tile-disabled { opacity: .5; }
+
 .cursor {
-  position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px; pointer-events: none;
-  border-radius: 50%; border: 3px solid #fff; background: rgba(90, 209, 230, .55);
-  box-shadow: 0 0 0 2px rgba(0,0,0,.6), 0 0 18px rgba(90, 209, 230, .8);
+  position: absolute; width: 26px; height: 26px; margin: -13px 0 0 -13px; pointer-events: none;
+  border-radius: 50%; border: 3px solid var(--bar); background: rgba(255, 255, 255, .85);
 }
-.board-foot { display: flex; justify-content: space-between; color: var(--faint); font-size: 11px; gap: 10px; flex-wrap: wrap; }
+.cursor::after {
+  content: ""; position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px;
+  border-radius: 50%; background: var(--bar);
+}
+
+.board-foot {
+  display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  margin: 14px 20px 16px; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums;
+}

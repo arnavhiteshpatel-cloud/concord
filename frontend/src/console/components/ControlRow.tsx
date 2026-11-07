@@ -1,7 +1,7 @@
 // Row 4 — Command output: the command router, the only path from decoded output to an
 // application command. Off unless the operator starts it; stopped from the title bar's Stop control.
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type MouseEvent } from "react";
 import type { ConnectedApp } from "../../sdk";
 import { labApi, type RouterSpec } from "../api";
 import { useLoggedAction } from "../context";
@@ -51,6 +51,19 @@ export function appsLine(apps: ConnectedApp[]): string {
   return [head, ...waiting].join(" · ");
 }
 
+const PARTICIPANT_URL = "/board.html";
+const PARTICIPANT_WINDOW = "brainos-participant";
+
+/** Open (or bring forward) the participant screen as its own window, sized for a second display.
+ *  Falls back to the link's normal new-tab behaviour if the browser blocks the window. */
+function openParticipantScreen(e: MouseEvent<HTMLAnchorElement>): void {
+  const w = window.open(PARTICIPANT_URL, PARTICIPANT_WINDOW, "popup=yes,width=1280,height=800");
+  if (w) {
+    e.preventDefault();
+    w.focus();
+  }
+}
+
 export function ControlRow({ pipeline, apps }: { pipeline: PipelineState; apps: ConnectedApp[] }) {
   const action = useLoggedAction();
   const st = pipeline.status;
@@ -87,18 +100,32 @@ export function ControlRow({ pipeline, apps }: { pipeline: PipelineState; apps: 
   const reason = !st?.running ? "Start decoding with a model first." : !decoder ? "The decoder has no model. Start decoding with a model." : null;
 
   // When on, stopping is the title bar's Stop control (one red button on screen, not two).
-  const actions =
-    decoder && !on ? (
-      <button
-        type="button"
-        className="btn btn-primary"
-        disabled={action.busy || !spec}
-        onClick={() => spec && apply(spec)}
-        data-testid="router-on"
+  const actions = (
+    <>
+      {decoder && !on && (
+        <button
+          type="button"
+          className="btn btn-primary"
+          disabled={action.busy || !spec}
+          onClick={() => spec && apply(spec)}
+          data-testid="router-on"
+        >
+          Start control
+        </button>
+      )}
+      <a
+        className="btn"
+        href={PARTICIPANT_URL}
+        target={PARTICIPANT_WINDOW}
+        rel="opener"
+        onClick={openParticipantScreen}
+        data-testid="open-participant"
+        title="Opens the communication board in its own window, for a second screen facing the participant."
       >
-        Start control
-      </button>
-    ) : undefined;
+        Open participant screen
+      </a>
+    </>
+  );
 
   return (
     <Row
