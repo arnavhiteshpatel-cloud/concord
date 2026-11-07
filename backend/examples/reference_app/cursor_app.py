@@ -93,6 +93,7 @@ class CursorApp:
     sources: dict[tuple[str, str, str | None], SourceSeen] = field(default_factory=dict)
     device_id: str | None = None
     stops: list[str] = field(default_factory=list)  # why command input stopped, in order
+    control: str | None = None  # the runtime's last control.state (schema 1.4), as text
     guard: CommandGuard = field(init=False)
     _last_ts: int | None = None
     _dwell_s: float = 0.0
@@ -120,6 +121,12 @@ class CursorApp:
                 self.device_id = dev.device_id if dev else None
                 self._last_ts = None
         env = self.guard.handle(item)
+        if is_event(item) and item.event_type.value == "control.state":
+            p = item.payload
+            self.control = f"{'active' if p.active else 'inactive'}: {p.reason}"  # type: ignore[union-attr]
+            if not p.active:  # type: ignore[union-attr]
+                self._last_ts = None  # never integrate across a stop
+            return
         if is_event(item):
             if env is None or env.event_type.value != "intent.pointer" or self.status != "active":
                 self.ignored += 1
@@ -165,6 +172,7 @@ class CursorApp:
             "dropped_stale": g.dropped_stale + g.dropped_late,
             "deadman_stops": g.deadman,
             "stops": self.stops,
+            "control": self.control,
             "targets_acquired": self.acquired,
             "sources": [s.label + f" — {s.commands} commands" for s in self.sources.values()],
         }
@@ -177,6 +185,8 @@ class CursorApp:
             )
         if self.status != "active":
             return f"[{self.status}] waiting: no source currently provides pointer commands"
+        if not self.guard.is_active("pointer_intent") and self.control:
+            return f"[{self.status}] stopped (runtime: {self.control})"
         src = next(reversed(self.sources.values()), None)
         where = src.label if src else "no commands yet"
         vx, vy = self.guard.velocity
@@ -193,6 +203,7 @@ async def run(app: CursorApp, base_url: str, stop: asyncio.Event) -> CursorApp:
         app_id=APP_ID,
         app_name="Reference cursor app",
         required=["pointer_intent"],
+        optional=["control_status"],
         base_url=base_url,
     ) as stream:
         app.status = stream.negotiation.status.value
