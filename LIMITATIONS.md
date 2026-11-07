@@ -51,8 +51,9 @@ the PR description and delete it here.
 
 ## Engineering gaps
 
-- **E2E test is not in CI yet.** `make e2e` (Playwright, AT-25) passes locally but CI runs
-  only unit/integration tests, typecheck, and build.
+- **E2E in CI is unverified until the first CI run.** The `e2e` job was added to
+  `.github/workflows/ci.yml` and `make e2e` passes locally, but whether the workflow itself
+  is green is only known once GitHub Actions has run it on the PR.
 - The TypeScript wire types are hand-maintained mirrors of the JSON Schema (drift is guarded
   only by review and the SDK tests, not by code generation).
 - Benchmarks in `docs/BENCHMARKS.md` were measured in a 4-vCPU Linux cloud container,
