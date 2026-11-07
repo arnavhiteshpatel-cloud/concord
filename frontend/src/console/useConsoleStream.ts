@@ -6,15 +6,18 @@ import {
   BrainOSStream,
   CAPABILITIES,
   type ConnectionStatus,
+  type EnvelopeOf,
   type EventEnvelope,
   type NegotiationResult,
   type RuntimeSnapshot,
   type TelemetryMetric,
 } from "../sdk";
+import { DATA_EVENT_TYPES } from "./integrity";
 import { NeuralBuffer } from "./neuralBuffer";
 import { SignalBuffer } from "./signalBuffer";
 
 export const EVENT_LOG_SIZE = 400;
+const STATUS_LOG_SIZE = 200;
 const LATENCY_WINDOW = 1000;
 
 export interface ConsoleStreamData {
@@ -26,6 +29,10 @@ export interface ConsoleStreamData {
   signal: SignalBuffer;
   neural: NeuralBuffer;
   clientLatencyMs: number[];
+  /** the most recent raw-signal / feature event: when it arrived here, and its channel count */
+  lastData: { at: number; session: string; channels: number } | null;
+  /** device.status events (kept apart from the ring above so none is missed); total = ever received */
+  statusEvents: { list: EnvelopeOf<"device.status">[]; total: number };
   stats: BrainOSStream["stats"];
   tick: number;
 }
@@ -40,6 +47,8 @@ export function useConsoleStream(): ConsoleStreamData {
   const signal = useRef(new SignalBuffer());
   const neural = useRef(new NeuralBuffer());
   const latency = useRef<number[]>([]);
+  const lastData = useRef<ConsoleStreamData["lastData"]>(null);
+  const statusEvents = useRef<ConsoleStreamData["statusEvents"]>({ list: [], total: 0 });
   const streamRef = useRef<BrainOSStream | null>(null);
 
   useEffect(() => {
@@ -60,6 +69,14 @@ export function useConsoleStream(): ConsoleStreamData {
         const lat = Date.now() - e.timestamp_ns / 1e6;
         latency.current.push(lat);
         if (latency.current.length > LATENCY_WINDOW) latency.current.shift();
+        if (DATA_EVENT_TYPES.has(e.event_type) && "channel_count" in e.payload)
+          lastData.current = { at: Date.now(), session: e.session_id, channels: e.payload.channel_count };
+        if (e.event_type === "device.status") {
+          const st = statusEvents.current;
+          st.list.push(e);
+          st.total += 1;
+          if (st.list.length > STATUS_LOG_SIZE) st.list.splice(0, st.list.length - STATUS_LOG_SIZE);
+        }
         if (e.event_type === "recording.frame") signal.current.push(e.session_id, e.payload);
         else if (e.event_type === "features.binned") neural.current.pushFeatures(e.session_id, e.payload);
         else if (e.event_type === "behavior.sample") neural.current.pushBehavior(e.session_id, e.payload);
@@ -93,6 +110,8 @@ export function useConsoleStream(): ConsoleStreamData {
     signal: signal.current,
     neural: neural.current,
     clientLatencyMs: latency.current,
+    lastData: lastData.current,
+    statusEvents: statusEvents.current,
     stats: streamRef.current?.stats ?? {
       received: 0,
       invalid: 0,

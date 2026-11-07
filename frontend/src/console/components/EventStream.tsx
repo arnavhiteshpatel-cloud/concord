@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { EVENT_CAPABILITY, type EventEnvelope, type EventType } from "../../sdk";
-import { Panel } from "./ui";
 
 const TYPES = Object.keys(EVENT_CAPABILITY) as EventType[];
 const VISIBLE_ROWS = 60;
@@ -80,52 +79,49 @@ export function EventStream({ events, tick }: { events: EventEnvelope[]; tick: n
     });
 
   return (
-    <Panel
-      title="Live event stream"
-      className="events-panel"
-      testId="event-stream"
-      right={
+    <div className="events-panel" data-testid="event-stream">
+      <div className="btn-row">
         <button
-          className={`btn btn-small ${frozen ? "btn-primary" : ""}`}
+          type="button"
+          className="btn btn-small"
+          aria-pressed={!!frozen}
           onClick={() => setFrozen(frozen ? null : [...events])}
           data-testid="freeze"
         >
           {frozen ? "Resume view" : "Freeze view"}
         </button>
-      }
-    >
-      <div className="type-filters">
+        <span className="hint">Latest {VISIBLE_ROWS} events. Select a row to inspect its envelope.</span>
+      </div>
+      <div className="type-filters" role="group" aria-label="Show event types">
         {TYPES.map((t) => (
-          <button
-            key={t}
-            className={`filter ${hidden.has(t) ? "off" : ""}`}
-            onClick={() => toggle(t)}
-            title={hidden.has(t) ? "show" : "hide"}
-          >
+          <label key={t} className="check filter">
+            <input type="checkbox" checked={!hidden.has(t)} onChange={() => toggle(t)} />
             {t}
-          </button>
+          </label>
         ))}
       </div>
       <div className="event-table" role="table">
         <div className="event-row event-head" role="row">
-          <span>seq</span>
-          <span>type</span>
-          <span>device</span>
-          <span>provenance</span>
-          <span>q</span>
-          <span>payload</span>
+          <span>Seq</span>
+          <span>Type</span>
+          <span>Device</span>
+          <span>Provenance</span>
+          <span>Quality</span>
+          <span>Payload</span>
         </div>
         {rows.map((e) => (
           <div
             key={`${e.session_id}:${e.seq}`}
             className={`event-row ${selected === e ? "sel" : ""}`}
             role="row"
+            tabIndex={0}
             onClick={() => setSelected(e)}
+            onKeyDown={(k) => (k.key === "Enter" || k.key === " ") && setSelected(e)}
             data-event-type={e.event_type}
           >
-            <span className="mono">{e.seq}</span>
-            <span className="mono etype">{e.event_type}</span>
-            <span className="mono muted">{e.device_id}</span>
+            <span className="num">{e.seq}</span>
+            <span className="etype">{e.event_type}</span>
+            <span className="hint">{e.device_id}</span>
             <span
               className={`prov prov-${e.provenance.kind}`}
               title={e.provenance.model_id ? `model ${e.provenance.model_id}` : e.provenance.adapter}
@@ -133,25 +129,23 @@ export function EventStream({ events, tick }: { events: EventEnvelope[]; tick: n
               {e.provenance.kind}
               {e.provenance.replayed ? " ↺" : ""}
             </span>
-            <span className={`mono q ${e.quality.score < 0.7 ? "q-low" : ""}`}>{e.quality.score.toFixed(2)}</span>
-            <span className="mono payload">{summary(e)}</span>
+            <span className={`num q ${e.quality.score < 0.7 ? "q-low" : ""}`}>{e.quality.score.toFixed(2)}</span>
+            <span className="payload">{summary(e)}</span>
           </div>
         ))}
-        {rows.length === 0 && <div className="empty">No events yet. Connect a device.</div>}
+        {rows.length === 0 && <p className="value-muted">No events yet. Connect a source.</p>}
       </div>
       {selected && (
         <div className="inspector">
           <div className="inspector-head">
-            <span>
-              Envelope <span className="mono">seq {selected.seq}</span>
-            </span>
-            <button className="btn btn-small btn-ghost" onClick={() => setSelected(null)}>
+            <span>Envelope, seq {selected.seq}</span>
+            <button type="button" className="btn btn-small" onClick={() => setSelected(null)}>
               Close
             </button>
           </div>
           <pre data-testid="inspector-json">{compactJson(selected)}</pre>
         </div>
       )}
-    </Panel>
+    </div>
   );
 }

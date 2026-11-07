@@ -1,146 +1,125 @@
+// Advanced: session recording, and fault injection into the built-in simulator.
+
 import { useState } from "react";
 import type { RuntimeSnapshot } from "../../sdk";
-import { isLiveSource, isRecordable, type Fault, type RecordingInfo } from "../api";
-import { Panel, fmt } from "./ui";
+import { consoleApi, isLiveSource, isRecordable, type Fault, type RecordingInfo } from "../api";
+import { useLog, useLoggedAction } from "../context";
+import { fmt } from "./ui";
 
 const FAULTS: { fault: Fault; label: string; hint: string }[] = [
-  { fault: "link_drop", label: "Link drop", hint: "Recoverable: runtime reconnects automatically" },
-  { fault: "link_fail", label: "Link failure", hint: "Unrecoverable: reconnect attempts fail → error" },
+  { fault: "link_drop", label: "Link drop", hint: "Recoverable: the runtime reconnects automatically" },
+  { fault: "link_fail", label: "Link failure", hint: "Unrecoverable: reconnect attempts fail, then error" },
   { fault: "malformed_packet", label: "Malformed packet", hint: "Corrupt native packet: dropped and counted" },
   { fault: "timestamp_regression", label: "Clock regression", hint: "Device clock jumps back: flagged" },
 ];
 
-export function ControlsPanel({
+/** Fault injection exists only for the built-in simulator (an LSL stream declared synthetic is
+ * kind "simulated" too, but it is an external publisher: nothing can be injected into it). */
+export function isBuiltInSimulator(runtime: RuntimeSnapshot | null): boolean {
+  const state = runtime?.state;
+  return (
+    runtime?.device?.kind === "simulated" &&
+    !isLiveSource(runtime.device) &&
+    state !== "error" &&
+    state !== "idle" &&
+    state !== undefined
+  );
+}
+
+export function RecordingPanel({
   runtime,
-  busy,
   recordings,
-  onPause,
-  onResume,
-  onDisconnect,
-  onStartRecording,
-  onStopRecording,
-  onFault,
+  onRecordingsChanged,
 }: {
   runtime: RuntimeSnapshot | null;
-  busy: boolean;
   recordings: RecordingInfo[];
-  onPause: () => void;
-  onResume: () => void;
-  onDisconnect: () => void;
-  onStartRecording: (excludeRaw: boolean) => void;
-  onStopRecording: () => void;
-  onFault: (f: Fault) => void;
+  onRecordingsChanged: () => void;
 }) {
+  const action = useLoggedAction();
   const state = runtime?.state ?? "idle";
-  const hasDevice = !!runtime?.device;
-  // Fault injection exists only for the built-in simulator (an LSL stream declared synthetic is
-  // kind "simulated" too, but it is an external publisher: nothing can be injected into it).
-  const simulated =
-    runtime?.device?.kind === "simulated" && !isLiveSource(runtime.device) && state !== "error" && state !== "idle";
   const canRecord = (state === "streaming" || state === "paused") && isRecordable(runtime?.device);
   const [excludeRaw, setExcludeRaw] = useState(false);
+  const start = async () => {
+    // the session log entries come from the runtime's recording state
+    await action.run(() => consoleApi.startRecording(undefined, excludeRaw));
+  };
+  const stop = async () => {
+    if (await action.run(() => consoleApi.stopRecording())) onRecordingsChanged();
+  };
   return (
-    <>
-      <Panel title="Runtime">
-        <div className="btn-row">
-          {state === "paused" ? (
-            <button className="btn" disabled={busy} onClick={onResume} data-testid="resume">
-              Resume
-            </button>
-          ) : (
-            <button
-              className="btn"
-              disabled={busy || state !== "streaming"}
-              onClick={onPause}
-              data-testid="pause"
-            >
-              Pause
-            </button>
-          )}
-          <button
-            className="btn btn-danger"
-            disabled={busy || (!hasDevice && state === "idle")}
-            onClick={onDisconnect}
-            data-testid="disconnect"
-          >
-            {state === "error" || state === "ended" ? "Reset" : "Disconnect"}
+    <div data-testid="recording-panel">
+      <div className="btn-row">
+        {runtime?.recording ? (
+          <button type="button" className="btn" disabled={action.busy} onClick={stop} data-testid="rec-stop">
+            Stop recording
           </button>
-        </div>
-        {runtime?.last_error && (
-          <div className="alert" data-testid="last-error">
-            {runtime.last_error}
-          </div>
+        ) : (
+          <button type="button" className="btn" disabled={action.busy || !canRecord} onClick={start} data-testid="rec-start">
+            Start recording
+          </button>
         )}
-      </Panel>
-
-      <Panel
-        title="Recording"
-        right={runtime?.recording ? <span className="chip rec">recording</span> : undefined}
-      >
-        <div className="btn-row">
-          {runtime?.recording ? (
-            <button className="btn btn-danger" disabled={busy} onClick={onStopRecording} data-testid="rec-stop">
-              Stop recording
-            </button>
-          ) : (
-            <button
-              className="btn"
-              disabled={busy || !canRecord}
-              onClick={() => onStartRecording(excludeRaw)}
-              data-testid="rec-start"
-            >
-              Start recording
-            </button>
-          )}
-        </div>
         {!runtime?.recording && (
-          <label className="check small" title="Everything except recording.frame; limit 3600 s instead of 300 s">
+          <label className="check" title="Everything except raw frames; limit 3600 s instead of 300 s">
             <input
               type="checkbox"
               checked={excludeRaw}
               onChange={(e) => setExcludeRaw(e.target.checked)}
               data-testid="rec-exclude-raw"
             />
-            features + labels only (for calibration)
+            Features and labels only (for calibration)
           </label>
         )}
-        <p className="muted small">
-          Writes the standardized events of the connected session (simulator or live LSL / Open Ephys source,
-          plus pipeline features and decoder output while the pipeline runs) to <code>data/recordings/</code>.
-          Recordings appear as replay devices and can be used for calibration (Pipeline tab). With a raw
-          high-rate source, record <b>features + labels only</b>: raw frames would reach the size cap in seconds.
-        </p>
-        {recordings.length > 0 && (
-          <ul className="rec-list">
-            {recordings.slice(0, 4).map((r) => (
-              <li key={r.name}>
-                <span className="mono">{r.name}</span>
-                <span className="muted">
-                  {fmt.bytes(r.size_bytes)} · {fmt.ago(r.created_at_ns)}
-                </span>
-              </li>
+      </div>
+      {action.error && <p className="error-text">{action.error}</p>}
+      <p className="hint">
+        Writes the standardized events of the connected session to <code>data/recordings/</code>, including pipeline
+        features and decoder output while decoding runs. Recordings appear as replay sources and can be used for
+        calibration. With a raw high-rate source, record features and labels only: raw frames reach the size cap in
+        seconds. Local file replays cannot be recorded.
+      </p>
+      {recordings.length > 0 && (
+        <table className="table">
+          <tbody>
+            {recordings.slice(0, 8).map((r) => (
+              <tr key={r.name}>
+                <td>{r.name}</td>
+                <td className="r num">{fmt.bytes(r.size_bytes)}</td>
+                <td className="r">{r.active ? "recording" : fmt.ago(r.created_at_ns)}</td>
+              </tr>
             ))}
-          </ul>
-        )}
-      </Panel>
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
 
-      <Panel title="Fault injection" right={<span className="muted">simulated devices</span>}>
-        <div className="fault-grid">
-          {FAULTS.map((f) => (
-            <button
-              key={f.fault}
-              className="btn btn-small"
-              disabled={busy || !simulated}
-              title={f.hint}
-              onClick={() => onFault(f.fault)}
-              data-testid={`fault-${f.fault}`}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-        {!simulated && <p className="muted small">Connect a simulated profile to inject faults.</p>}
-      </Panel>
-    </>
+export function FaultInjection() {
+  const log = useLog();
+  const action = useLoggedAction();
+  const inject = async (f: (typeof FAULTS)[number]) => {
+    const r = await action.run(() => consoleApi.simFault(f.fault));
+    if (r !== undefined) log("info", `Injected fault: ${f.label.toLowerCase()}`);
+  };
+  return (
+    <div data-testid="fault-injection">
+      <h3 className="minor">Fault injection</h3>
+      <div className="btn-row">
+        {FAULTS.map((f) => (
+          <button
+            key={f.fault}
+            type="button"
+            className="btn btn-small"
+            disabled={action.busy}
+            title={f.hint}
+            onClick={() => inject(f)}
+            data-testid={`fault-${f.fault}`}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+      {action.error && <p className="error-text">{action.error}</p>}
+    </div>
   );
 }
