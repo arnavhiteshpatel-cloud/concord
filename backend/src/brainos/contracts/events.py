@@ -219,7 +219,8 @@ class FeaturesVectorPayload(_Strict):
     @model_validator(mode="after")
     def _shape(self) -> Self:
         if len(self.values) != self.channel_count:
-            raise ValueError(f"values has {len(self.values)} entries, channel_count={self.channel_count}")
+            n = len(self.values)
+            raise ValueError(f"values has {n} entries, channel_count={self.channel_count}")
         if self.band_hz is not None and not 0 <= self.band_hz[0] < self.band_hz[1]:
             raise ValueError("band_hz must be (low, high) with 0 <= low < high")
         return self
