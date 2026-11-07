@@ -72,7 +72,14 @@ export function Board({ streamUrl, search }: { streamUrl?: string; search?: stri
       onControlState: (c) => setControl({ ...c }),
     });
     extraRef.current.guard = guard;
-    const usable = () => dispatch({ type: "usable", caps: guard.active, reason: guard.stopReason ?? guard.controlState?.reason ?? null });
+    const usable = () =>
+      dispatch({
+        type: "usable",
+        caps: guard.active,
+        // after a loss: the runtime's own reason (control.state) when it has one
+        reason: guard.stopReason === null ? null : (guard.controlState?.active === false && guard.controlState.reason) || guard.stopReason,
+        waiting: guard.waitingForAuthorization,
+      });
     const onCommand = (e: EventEnvelope) => {
       const ref = refOf(e);
       const t = now();
@@ -176,10 +183,11 @@ export function Board({ streamUrl, search }: { streamUrl?: string; search?: stri
   const row = scanRow(state);
   const label = compositionLabel(state.sources);
   const method = state.method;
-  const cursorMode = method === "cursor_click" || method === "cursor_dwell";
+  const shown = method ?? state.heldMethod;
+  const cursorMode = shown === "cursor_click" || shown === "cursor_dwell";
   const grid = state.settings.layout === "grid";
   const modeText = method ? METHOD_LABEL[method] : "Waiting";
-  const paused = method !== null && !state.active;
+  const paused = !state.active && state.stopReason !== null;
   const input = state.lastInput;
 
   return (
@@ -212,7 +220,13 @@ export function Board({ streamUrl, search }: { streamUrl?: string; search?: stri
         data-active={state.active ? "true" : "false"}
         aria-live="assertive"
       >
-        {state.active ? "Input active" : paused ? `Paused — ${state.stopReason ?? "input not available"}` : "No input"}
+        {state.active
+          ? "Input active"
+          : state.waiting.length
+            ? `Waiting for the operator to authorize this board (${state.waiting.map((c) => c.replace(/_/g, " ")).join(", ")})`
+            : paused
+              ? `Paused — ${state.stopReason ?? "input not available"}`
+              : "No input"}
         {input && (
           <span className="board-input" data-testid="board-input">
             Input: {inputLabel(input)}
@@ -321,7 +335,7 @@ export function Board({ streamUrl, search }: { streamUrl?: string; search?: stri
       </div>
 
       <footer className="board-foot">
-        <span>{control ? `Runtime: ${control.active ? "command input active" : "command input off"} (${control.reason})` : "No control state yet"}</span>
+        <span data-testid="board-runtime">{control ? `Runtime: ${control.reason}` : "Runtime: no control state yet"}</span>
         <span data-testid="board-stats">
           {plural(state.selectionCount, "selection")} · {plural(stats.received, "event")} · {plural(stats.deliveryGaps, "delivery gap")}
         </span>

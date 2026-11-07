@@ -20,6 +20,8 @@ export interface BoardSnapshot {
   status: AppStatus;
   granted: Capability[];
   usable: Capability[];
+  /** command capabilities waiting for the operator's authorization of this app */
+  waitingForAuthorization: Capability[];
   method: Method | null;
   methodLabel: string;
   /** the method may act now */
@@ -67,6 +69,7 @@ export function snapshot(
     status: s.status,
     granted: s.granted,
     usable: s.usable,
+    waitingForAuthorization: s.waiting,
     method: s.method,
     methodLabel: s.method ? METHOD_LABEL[s.method] : "Waiting",
     active: s.active,

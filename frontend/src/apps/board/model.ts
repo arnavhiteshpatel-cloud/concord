@@ -66,9 +66,13 @@ export interface BoardState {
   granted: Capability[];
   /** command capabilities the guard says are usable now */
   usable: Capability[];
+  /** command capabilities the runtime withholds until the operator authorizes this app */
+  waiting: Capability[];
   stopReason: string | null;
   sawDirectActions: boolean;
   method: Method | null;
+  /** the method that was in effect when input was lost (its frozen cursor stays visible) */
+  heldMethod: Method | null;
   /** the method may act now (all it needs is usable) */
   active: boolean;
   page: PageKind;
@@ -102,7 +106,7 @@ export type Direction = "up" | "down" | "left" | "right" | "next" | "previous";
 
 export type BoardAction =
   | { type: "negotiation"; negotiation: NegotiationResult }
-  | { type: "usable"; caps: Capability[]; reason: string | null }
+  | { type: "usable"; caps: Capability[]; reason: string | null; waiting?: Capability[] }
   | { type: "settings"; settings: BoardSettings }
   | { type: "words"; words: string[] }
   | { type: "speechAvailable"; available: boolean }
@@ -213,9 +217,11 @@ export function initialBoard(settings: BoardSettings = DEFAULT_SETTINGS): BoardS
     status: "no_device",
     granted: [],
     usable: [],
+    waiting: [],
     stopReason: null,
     sawDirectActions: false,
     method: null,
+    heldMethod: null,
     active: false,
     page: settings.layout === "grid" ? "grid" : "phrases",
     cursor: { x: 0.5, y: 0.5 },
@@ -257,7 +263,8 @@ function settle(s: BoardState): BoardState {
   const method = chooseMethod(s.settings.method, s.granted, s.sawDirectActions);
   const page: PageKind = s.settings.layout === "grid" ? "grid" : s.page === "grid" ? "phrases" : s.page;
   const active = s.status === "active" && method !== null && methodNeeds(method, s.granted).every((c) => s.usable.includes(c));
-  let next: BoardState = { ...s, method, page, active };
+  const heldMethod = method !== null ? null : s.method !== null && s.active ? s.method : s.heldMethod;
+  let next: BoardState = { ...s, method, page, active, heldMethod };
   if (method !== s.method || page !== s.page || (s.active && !active)) next = freeze(next);
   const [cols, rows] = pageDims(next);
   if (next.highlight >= cols * rows) next = { ...next, highlight: 0 };
@@ -409,7 +416,7 @@ export function boardReducer(s: BoardState, a: BoardAction): BoardState {
     case "negotiation":
       return settle({ ...s, status: a.negotiation.status, granted: a.negotiation.granted });
     case "usable":
-      return settle({ ...s, usable: a.caps, stopReason: a.reason });
+      return settle({ ...s, usable: a.caps, stopReason: a.reason, waiting: a.waiting ?? [] });
     case "settings": {
       const layoutChanged = a.settings.layout !== s.settings.layout;
       const base: BoardState = { ...s, settings: a.settings };

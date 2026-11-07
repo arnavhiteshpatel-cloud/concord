@@ -255,6 +255,7 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("--data-dir", type=Path, required=True)
     s.add_argument("--click-at", type=_point, action="append", default=[], metavar="X,Y")
     s.add_argument("--start-after-s", type=float, default=2.0)
+    s.add_argument("--loop", action="store_true", help="repeat the program")
     args = ap.parse_args(argv)
 
     import uvicorn
@@ -262,13 +263,15 @@ def main(argv: list[str] | None = None) -> int:
     from brainos.server import create_app
     from brainos.server.settings import Settings
 
-    settings = Settings(port=args.port, data_dir=args.data_dir, log_level="WARNING")
+    settings = Settings(
+        port=args.port, data_dir=args.data_dir, log_level="WARNING", discover_plugins=False
+    )
     write_identity_model(settings.models_dir)
     app = create_app(settings)
     program = click_program(args.click_at)
     app.state.services.runtime.registry.register(
         descriptor(),
-        lambda: ScriptedFeatureSource(program, start_after_s=args.start_after_s),
+        lambda: ScriptedFeatureSource(program, start_after_s=args.start_after_s, loop=args.loop),
     )
     uvicorn.run(app, host="127.0.0.1", port=args.port, log_level="warning")
     return 0
