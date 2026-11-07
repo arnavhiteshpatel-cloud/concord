@@ -255,7 +255,9 @@ class FalconLSLPublisher(_Thread):
         speed: float = 1.0,
         source_prefix: str | None = None,
         loop: bool = False,
+        hold: threading.Event | None = None,
     ) -> None:
+        """``hold``: if given, outlets are created but data starts only once it is set."""
         super().__init__()
         from brainos.adapters.nwb.reader import load
         from brainos.datasets import verify_file
@@ -270,6 +272,8 @@ class FalconLSLPublisher(_Thread):
         )
         self.speed = speed
         self.loop = loop
+        self.hold = hold
+        self.finished = threading.Event()
         self.prefix = source_prefix or f"falcon-h1-{self.path.stem.split('_ses-')[-1].lower()}"
         self.bins_published = 0
         self.push_log: list[tuple[float, int, float]] = []  # (local_clock at push, bin, ts)
@@ -327,6 +331,10 @@ class FalconLSLPublisher(_Thread):
         mk_out = pylsl.StreamOutlet(minfo)
 
         time.sleep(0.5)  # let consumers discover and connect before data starts
+        if self.hold is not None:
+            while not self.hold.wait(0.05):
+                if self._stop.is_set():
+                    return
         while not self._stop.is_set():
             t0 = pylsl.local_clock() + 0.05
             last_trial = None
@@ -350,4 +358,5 @@ class FalconLSLPublisher(_Thread):
                     self.push_log.append((pylsl.local_clock(), i, stamp))
             if not self.loop:
                 break
+        self.finished.set()
         time.sleep(0.5)
