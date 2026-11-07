@@ -150,7 +150,7 @@ export interface FeaturesBinnedPayload {
   counts: number[];
 }
 export interface FeaturesVectorPayload {
-  feature: "band_power" | "log_band_power";
+  feature: "band_power" | "log_band_power" | "spike_band_power";
   unit: string;
   band_hz: [number, number] | null;
   bin_ms: number;

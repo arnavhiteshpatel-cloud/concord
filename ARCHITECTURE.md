@@ -116,11 +116,11 @@ An application's `hello` lists `required` and `optional` capabilities.
 `POST /api/v1/negotiate` offers the same algorithm as a dry run against any
 registered device.
 
-## 4. Event envelope (schema `1.2`; 1.1 and 1.2 are additive over 1.0)
+## 4. Event envelope (schema `1.4`; 1.1–1.4 are additive over 1.0)
 
 ```jsonc
 {
-  "schema_version": "1.2",           // major.minor; consumers accept same major
+  "schema_version": "1.4",           // major.minor; consumers accept same major
   "session_id": "ses_8f3a…",        // one per device connection
   "device_id": "sim-a",
   "seq": 1042,                       // runtime-assigned, strictly increasing per session
@@ -156,10 +156,12 @@ The authoritative definition is the Pydantic model in
 | `intent.text` | `text` (1–64 chars), `mode` (`character`/`word`), `confidence` |
 | `telemetry.sample` | `metrics: [{name, value, unit}]` |
 | `device.status` | `state` (`connected`/`streaming`/`paused`/`reconnecting`/`disconnected`/`error`/`ended`), `detail` |
-| `features.vector` (1.2) | `feature` (`band_power`/`log_band_power`), `unit`, `band_hz` [lo, hi] or null, `bin_ms`, `bin_index`, `channel_count`, `values[channel]` (finite). The bin ends at `device_timestamp_ns`. |
+| `features.vector` (1.2) | `feature` (`band_power`/`log_band_power`; 1.4 adds `spike_band_power`), `unit`, `band_hz` [lo, hi] or null, `bin_ms`, `bin_index`, `channel_count`, `values[channel]` (finite). The bin ends at `device_timestamp_ns`. |
 | `features.binned` | `feature` (`spike_count`/`threshold_crossing_count`), `unit` (`count`), `bin_ms`, `bin_index`, `channel_count`, `counts[channel]` (non-negative ints). The bin ends at `device_timestamp_ns`. |
 | `behavior.sample` | `quantity`, `dims[]`, `unit`, `values[dim]`, `sample_index`, `valid` (false where the dataset excludes the sample) |
 | `intent.kinematics` | `quantity`, `dims[]`, `unit`, `values[dim]`, `space` (e.g. `falcon_h1_7dof`) |
+| `intent.navigate` (1.4) | `direction` (`up`/`down`/`left`/`right`/`next`/`previous`), `confidence` ∈ [0,1]; capability `navigation` |
+| `control.state` (1.4) | `active` (strict boolean), `capabilities[]`, `reason`; capability `control_status`; tells one application whether decoded commands currently reach it |
 
 All numbers reject NaN/Infinity.
 
@@ -174,7 +176,7 @@ All numbers reject NaN/Infinity.
 | `simulated_intent` | Intent produced by a simulator | `intent.*` | `synthetic` must be `true` |
 | `decoded_intent` | Intent produced by a decoding model | `intent.*` | `model_id` required |
 | `device_report` | Device self-report | `telemetry.sample`, `device.status` | — |
-| `runtime` | Runtime-originated status | `device.status` | — |
+| `runtime` | Runtime-originated status | `device.status`, `control.state` (1.4) | — |
 | `processed_feature` (1.1) | Features computed from neural data (e.g. binned spike counts, band power) | `features.binned`, `features.vector` | — |
 
 `behavior.sample` uses `behavioral_label`; `intent.kinematics` uses `simulated_intent` or
@@ -192,6 +194,11 @@ These rules are enforced by the envelope validator. Consequences:
   Without the router no application that requires a command capability is activated.
 - Replayed events keep their original `kind`, and set `replayed: true` plus a
   `replayed` quality flag.
+- (1.4) `provenance.model_origin` says whose decoder produced a `decoded_intent`:
+  `brainos` (a model BrainOS trained or loaded), `external` (a live external decoder, e.g.
+  BCI2000's or a device's own), `historical` (recorded outputs of a research system's original
+  online decoder). It is rejected on any other kind, and `historical` requires
+  `replayed: true`. Historical outputs are never attributed to BrainOS.
 
 ### 4.3 Ordering and timing
 

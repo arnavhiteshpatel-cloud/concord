@@ -446,3 +446,12 @@ def test_control_state_1_4() -> None:
         parse_envelope(bad)
     with pytest.raises(ValidationError):
         parse_envelope({**ev, "payload": {"active": "no", "capabilities": [], "reason": ""}})
+
+
+def test_spike_band_power_feature_1_4() -> None:
+    ev = valid_event("features.vector")
+    ev["payload"] = {**ev["payload"], "feature": "spike_band_power", "band_hz": None}
+    assert parse_envelope(ev).payload.feature == "spike_band_power"  # type: ignore[union-attr]
+    ev["payload"]["feature"] = "spike_power"
+    with pytest.raises(ValidationError, match="feature"):
+        parse_envelope(ev)
