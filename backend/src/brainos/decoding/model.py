@@ -88,6 +88,29 @@ def model_source(model: Decoder) -> str | None:
     return None
 
 
+_DANDISET = re.compile(r"^dandi:(\d+):")
+
+
+def model_modality(model: Decoder) -> str | None:
+    """Recording modality of the model's training data (a contract ``Modality`` value).
+
+    Declared in ``input.modality`` (M5). Models without it inherit the modality that the
+    pinned manifest of their training dataset declares (e.g. FALCON H1 -> intracortical);
+    otherwise unknown. Never guessed from features or channel counts.
+    """
+    declared = model.input.get("modality") if model.input else None
+    if isinstance(declared, str) and declared:
+        return declared
+    m = _DANDISET.match(model_source(model) or "")
+    if m:
+        from brainos.datasets import manifests
+
+        for man in manifests():
+            if man.dandiset == m.group(1) and man.modality:
+                return man.modality
+    return None
+
+
 @dataclass
 class Compatibility:
     errors: list[str] = field(default_factory=list)
@@ -110,9 +133,32 @@ def check(
     stream_identity: str | None,
     stream_session: str | None = None,
     allow_cross_source: bool = False,
+    stream_modality: str | None = None,
+    stream_bad_channels: list[str] | None = None,
 ) -> Compatibility:
     c = Compatibility()
     want = model_input(model)
+    # M5: a model is never run on a different recording modality (ECoG high gamma, intracortical
+    # spike counts and scalp EEG band power are not interchangeable). Not overridable.
+    trained_modality = model_modality(model)
+    if trained_modality and stream_modality and trained_modality != stream_modality:
+        c.errors.append(
+            f"model was trained on {trained_modality} recordings; this source is "
+            f"{stream_modality}. Features from different recording modalities are not "
+            "interchangeable (refused; no override)"
+        )
+    elif trained_modality and not stream_modality:
+        c.warnings.append(
+            f"model was trained on {trained_modality} recordings; this source does not declare "
+            "its modality"
+        )
+    elif stream_modality and not trained_modality:
+        c.warnings.append("model does not declare the recording modality of its training data")
+    excluded = set(want.get("excluded_channels") or [])
+    labels_in = want.get("channel_labels") or []
+    used_bad = [b for b in stream_bad_channels or [] if b in labels_in and b not in excluded]
+    if used_bad:
+        c.warnings.append(f"the model uses channel(s) this source marks bad: {', '.join(used_bad)}")
     if want["event_type"] != event_type or want["feature"] != feature:
         c.errors.append(
             f"model expects {want['event_type']}/{want['feature']}, "
@@ -194,6 +240,7 @@ def summary(model: Decoder) -> dict[str, Any]:
         "unit": model.unit,
         "input": model_input(model),
         "source_identity": model_source(model),
+        "modality": model_modality(model),
         "trained_on": model.training.get("file") or model.training.get("recording"),
         "training_session": model.training.get("session"),
         "held_out_r2": ev.get("r2"),

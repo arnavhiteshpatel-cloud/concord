@@ -6,6 +6,7 @@ returns completed feature bins. It is causal and chunk-invariant (see stages.py)
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Literal
 
@@ -31,8 +32,9 @@ PRESET_INFO: dict[str, str] = {
         "negative threshold crossings at k x RMS (RMS from the first second), counts per bin."
     ),
     "ecog_high_gamma": (
-        "ECoG/sEEG/LFP (>= 400 Hz): line-noise notch (+ harmonics), 70-150 Hz bandpass, "
-        "log10 mean power per bin."
+        "ECoG/sEEG/LFP (>= 400 Hz): line-noise notch (+ harmonics; the source's declared mains "
+        "frequency if it states one), common average reference without the electrodes the "
+        "source marks bad, 70-150 Hz bandpass, log10 mean power per bin."
     ),
     "band_power": "Any rate: log10 mean power in one configurable band per bin.",
     "features_passthrough": (
@@ -76,7 +78,19 @@ class OutputSpec:
 
 
 class SignalChain:
-    def __init__(self, spec: ProcessingSpec, fs: float, channels: int, unit: str) -> None:
+    def __init__(
+        self,
+        spec: ProcessingSpec,
+        fs: float,
+        channels: int,
+        unit: str,
+        *,
+        car_exclude: Sequence[int] = (),
+        channel_labels: Sequence[str] | None = None,
+    ) -> None:
+        """``car_exclude`` (M5): channel indices left out of the common average (e.g. the
+        electrodes the source marks bad); they are still referenced and still produce features.
+        """
         if spec.preset == "features_passthrough":
             raise StageConfigError("features_passthrough has no signal chain")
         if channels < 1 or fs <= 0:
@@ -84,6 +98,20 @@ class SignalChain:
         self.spec, self.fs, self.channels, self.unit = spec, fs, channels, unit
         self.pre: list[SOSFilter] = []
         self.car = spec.car if spec.car is not None else channels >= 8
+        excl = sorted({int(i) for i in car_exclude})
+        if any(not 0 <= i < channels for i in excl):
+            raise StageConfigError(f"CAR exclusion {excl} outside 0..{channels - 1}")
+        if len(excl) >= channels:
+            raise StageConfigError("CAR would exclude every channel")
+        self.car_reference: NDArray[np.bool_] | None = None
+        if excl:
+            self.car_reference = np.ones(channels, dtype=bool)
+            self.car_reference[excl] = False
+        self._car_excluded = (
+            [channel_labels[i] for i in excl]
+            if channel_labels is not None and len(channel_labels) == channels
+            else [str(i) for i in excl]
+        )
         self.processed = 0
         self._bins = 0
         self.stages: list[str] = []
@@ -130,7 +158,13 @@ class SignalChain:
         else:  # pragma: no cover - Literal guards this
             raise StageConfigError(f"unknown preset {p}")
         self.stages = [f.description for f in self.pre]
-        if self.car:
+        if self.car and self.car_reference is not None:
+            n_ref = int(self.car_reference.sum())
+            self.stages.append(
+                f"common average reference over {n_ref} of {channels} channels "
+                f"(excluded as bad: {', '.join(self._car_excluded)})"
+            )
+        elif self.car:
             self.stages.append("common average reference")
         if self.tc is not None:
             self.stages.append(
@@ -156,7 +190,7 @@ class SignalChain:
         for f in self.pre:
             x = f.process(x)
         if self.car:
-            x = common_average_reference(x)
+            x = common_average_reference(x, self.car_reference)
         out: list[FeatureFrame] = []
         if self.tc is not None:
             bins = self.tc.process(x)
