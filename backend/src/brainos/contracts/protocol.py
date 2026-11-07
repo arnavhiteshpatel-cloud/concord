@@ -27,6 +27,7 @@ class ErrorCode(StrEnum):
     DEVICE_NOT_FOUND = "device_not_found"
     INVALID_STATE = "invalid_state"
     UNSUPPORTED_OPERATION = "unsupported_operation"
+    INCOMPATIBLE_DECODER = "incompatible_decoder"
     DEVICE_ERROR = "device_error"
     SIMULATION_DISABLED = "simulation_disabled"
     RECORDING_ERROR = "recording_error"
@@ -38,7 +39,10 @@ class ErrorCode(StrEnum):
 class DeviceKind(StrEnum):
     SIMULATED = "simulated"
     REPLAY = "replay"
-    HARDWARE = "hardware"  # reserved; no hardware adapters exist in v1
+    HARDWARE = "hardware"  # reserved: a vendor adapter that talks to a known device directly
+    # 1.2: an external acquisition stream (LSL, Open Ephys ZMQ). BrainOS cannot verify whether
+    # it originates from hardware, a file player or a simulator; it is labelled accordingly.
+    STREAM = "stream"
 
 
 class DeviceDescriptor(_Wire):

@@ -129,10 +129,26 @@ async def get_device(device_id: str, svc: Svc) -> DeviceDescriptor:
 
 
 @router.get("/devices/{device_id}/source")
-async def device_source(device_id: str, svc: Svc) -> SourceMetadata:
-    """Dataset provenance, file verification, channels and notes for an offline source."""
+async def device_source(device_id: str, svc: Svc) -> SourceMetadata | dict[str, Any]:
+    """Provenance and metadata: offline datasets (verified files) or live streams.
+
+    For the connected live source this includes live counters (samples, gaps, clock).
+    """
+    rt = svc.runtime
+    adapter = rt.adapter
+    if (
+        adapter is not None
+        and adapter.device_id == device_id
+        and hasattr(adapter, "source_metadata")
+    ):
+        meta: dict[str, Any] = adapter.source_metadata()
+        return meta
+    if rt.registry.live.owns(device_id):
+        idle = await asyncio.to_thread(rt.registry.live.create, device_id)
+        meta = idle.source_metadata()  # type: ignore[attr-defined]
+        return meta
     try:
-        return await asyncio.to_thread(svc.runtime.registry.source_metadata, device_id)
+        return await asyncio.to_thread(rt.registry.source_metadata, device_id)
     except DeviceNotFoundError as exc:
         raise RuntimeCommandError(ErrorCode.DEVICE_NOT_FOUND, str(exc)) from None
 

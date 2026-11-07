@@ -72,6 +72,10 @@ def _train(rec: NWBUnitsRecording, counts: np.ndarray, stop: int, sha: str) -> R
         unit=b.unit,
         bin_ms=rec.bin_s * 1000,
         space=SPACE,
+        source={
+            "identity": "dandi:000954:HumanPitt",
+            "description": "FALCON H1 participant (DANDI 000954), held-in calibration blocks",
+        },
         training={
             "dataset": "DANDI:000954",
             "file": rec.path.name,
