@@ -191,12 +191,20 @@ def test_app_startup_secures_the_data_directory(tmp_path: Path) -> None:
     leaked = data / "recordings" / "old.recovery.json"
     leaked.write_text("{}")
     os.chmod(data, 0o755)
+    os.chmod(data / "recordings", 0o755)
     os.chmod(leaked, 0o644)
     with TestClient(create_app(make_settings(tmp_path))) as c:
         assert c.get("/api/v1/health").json()["pid"] == os.getpid()
-    assert mode(data) == 0o700 and mode(leaked) == 0o600
-    for sub in ("recordings", "sessions", "logs", "models"):
-        assert mode(data / sub) == 0o700, sub
+        assert mode(data) == 0o700 and mode(leaked) == 0o600
+        assert mode(data / "recordings") == 0o700
+        # directories created later by their owners are private from the start
+        c.post("/api/v1/sessions", json={"name": "perm"}).raise_for_status()
+        c.post("/api/v1/runtime/connect", json={"device_id": "sim-a"}).raise_for_status()
+        c.post("/api/v1/recordings/start", json={"name": "perm"}).raise_for_status()
+        c.post("/api/v1/safe-stop").raise_for_status()
+    assert mode(data / "sessions") == 0o700
+    for f in [*(data / "recordings").iterdir(), *(data / "sessions").rglob("*")]:
+        assert mode(f) == (0o700 if f.is_dir() else 0o600), f
 
 
 # --------------------------------------------------------------------------- redaction / logging
@@ -256,3 +264,59 @@ def test_logging_is_redacted_and_private(tmp_path: Path) -> None:
         for h in saved[0]:
             root.addHandler(h)
         root.setLevel(saved[1])
+
+
+# --------------------------------------------------------------------------- browser origins
+
+
+def test_web_pages_on_other_sites_cannot_use_the_local_api(tmp_path: Path) -> None:
+    """Cross-site requests and DNS rebinding through the operator's browser are refused;
+    the console (same origin), the Vite dev server (loopback) and non-browser clients work."""
+    from fastapi.testclient import TestClient
+    from starlette.websockets import WebSocketDisconnect
+
+    from brainos.server import create_app
+
+    from .conftest import make_settings
+
+    with TestClient(create_app(make_settings(tmp_path))) as c:
+        connect = {"device_id": "sim-a"}
+        evil = {"origin": "http://evil.example"}
+        r = c.post("/api/v1/runtime/connect", json=connect, headers=evil)
+        assert r.status_code == 403 and r.json()["error"]["code"] == "forbidden_origin"
+        assert c.get("/api/v1/runtime").json()["state"] == "idle"  # nothing happened
+        assert c.post("/api/v1/safe-stop", headers={"origin": "null"}).status_code == 403
+        cross = {"sec-fetch-site": "cross-site", "user-agent": "Mozilla/5.0"}
+        assert c.get("/api/v1/recordings", headers=cross).status_code == 403
+        # DNS rebinding: a site name that resolves to 127.0.0.1 is "same origin" for the page
+        rebound = {"host": "evil.example:8000", "sec-fetch-site": "same-origin"}
+        assert c.get("/api/v1/recordings", headers=rebound).status_code == 403
+        moz = {"host": "evil.example:8000", "user-agent": "Mozilla/5.0 (Macintosh)"}
+        assert c.get("/api/v1/sessions", headers=moz).status_code == 403
+        with (
+            pytest.raises(WebSocketDisconnect) as refused,
+            c.websocket_connect("/api/v1/stream", headers=evil) as ws,
+        ):
+            ws.receive_json()
+        assert refused.value.code == 1008
+        # allowed: the console itself, the Vite dev server, SDKs/scripts without browser headers
+        console = {
+            "origin": "http://127.0.0.1:8000",
+            "host": "127.0.0.1:8000",
+            "sec-fetch-site": "same-origin",
+            "user-agent": "Mozilla/5.0",
+        }
+        assert c.get("/api/v1/health", headers=console).status_code == 200
+        dev = {"origin": "http://localhost:5173", "host": "localhost:5173"}
+        assert c.post("/api/v1/runtime/connect", json=connect, headers=dev).status_code == 200
+        assert c.post("/api/v1/runtime/disconnect").status_code == 200
+
+    with TestClient(create_app(make_settings(tmp_path, allow_remote=True))) as c:
+        lan = {
+            "origin": "http://192.168.1.5:8000",
+            "host": "192.168.1.5:8000",
+            "user-agent": "Mozilla/5.0",
+        }
+        assert c.get("/api/v1/health", headers=lan).status_code == 200
+        foreign = {**lan, "origin": "http://evil.example"}
+        assert c.get("/api/v1/health", headers=foreign).status_code == 403

@@ -251,14 +251,20 @@ def check_decoded_output(root: Path, recording: Path) -> list[dict[str, Any]]:
             st["compared"] += 1
     out = []
     for mid, st in stats.items():
-        if models.get(mid) is None:
+        model = models.get(mid)
+        if model is None or not isinstance(model, RidgeDecoder):
+            why = (
+                "model not in the bundle"
+                if model is None
+                else "classifier output is not recomputed (only linear decoders)"
+            )
             out.append(
                 {
                     "check": "decoded_output",
                     "recording": recording.name,
                     "model_id": mid,
                     "ok": None,
-                    "detail": "model not in the bundle (or not a linear decoder)",
+                    "detail": why,
                 }
             )
             continue
