@@ -38,7 +38,10 @@ the PR description and delete it here.
   runtime (including configuring sources, pipelines and the command router), and inject
   simulated intents. The server binds `127.0.0.1` by default and warns
   if bound elsewhere. Do not expose it to a network.
-- No TLS, no audit log, no per-app grant approval, no signed adapters.
+- No TLS, no audit log, no signed adapters. Operator authorization of applications for
+  decoded commands (M4) is keyed by the application id each client declares itself: it
+  prevents mistakes (an app receiving commands nobody meant for it), not a malicious local
+  process that claims another app's id. Authorizations are in memory and not persisted.
 - Recordings are written unencrypted to `data/recordings/`. With live sources they can
   contain real neural data: handle the directory under your research data policy.
 - LSL discovery uses liblsl's multicast/broadcast on the local network, and any host on that
@@ -82,11 +85,45 @@ the PR description and delete it here.
   - LSL timestamps are the source's; behavior/markers are mapped with liblsl
     `time_correction` (accuracy as liblsl's, typically sub-millisecond on a LAN, not
     verified by us across machines).
+- **Source plugins (M4)**: see docs/ADAPTER_SDK.md §5 for exactly what is isolated.
+  - **Fault isolation, not a security sandbox.** A plugin runs in its own process but as the
+    same user with the same file, network and process permissions as BrainOS; there are no
+    CPU/memory limits. `manifest.network` is a declaration, not enforced. Installing a plugin
+    means trusting its code like any Python package in BrainOS's environment.
+  - What a plugin declares (synthetic / prerecorded, units, modality, origin, clock) is shown
+    as declared, never verified. Undeclared modality is shown as "modality not declared".
+  - One stream per role is delivered; additional streams of a role are listed as not
+    delivered. All streams of a session must share one clock domain (mixed clocks are
+    rejected; API 1.0 has no offset estimation). Non-finite values are rejected (a plugin
+    cannot mark individual behavior samples invalid).
+  - Every connection and reconnect starts a fresh host process (≈ 0.2 s with numpy). The
+    reconnect policy is the runtime's (3 attempts); a plugin that fails 3 sessions in a row
+    without delivering data, or violates the contract, is stopped until reconfigured.
+  - Request/response IPC (one outstanding `read`, 0.1 s plugin wait): adds ≈ 0.3–2.5 ms per
+    read round trip on the dev container; measured ceiling 28–72× real time for 64 ch × 30 kHz
+    float32 (docs/ADAPTER_SDK.md §6). Converting frames to JSON events is the slower step.
+  - Discovery runs at startup in the background and on demand ("Search again"); a package
+    installed while BrainOS runs is not seen until then. Configured plugin devices and options
+    are in memory only (lost on restart).
+  - If the runtime process is killed hard, a plugin blocked inside `read()` exits only when that
+    call returns; processes a plugin itself starts are not tracked.
+  - The example adapter generates synthetic EEG at 250 Hz; the pipeline's default 50 ms bin is
+    not a whole number of samples at 250 Hz, so the operator must set e.g. 40 or 100 ms.
 - **Pipeline (M3)**: one pipeline at a time, in the runtime process (Python, single asyncio
   task). Measured headroom on a 4-vCPU container: 96 ch × 30 kHz at ≈ 50 % of one core
   (docs/BENCHMARKS_LIVE.md); larger arrays need measuring. Threshold RMS is estimated once
-  (first second) and not adapted. Only ridge models; the router maps two decoded dimensions
-  to `intent.pointer` only (no decoded selection/text).
+  (first second) and not adapted. Decoders: ridge (continuous) and shrinkage LDA (classes).
+- **Control bridge (M4)**: discrete decoding has been exercised only on synthetic
+  motor-imagery-like data generated in the tests (a mu-band decrease put there on purpose;
+  held-out balanced accuracy 0.66 vs chance 0.33 is a software check, not a result). The
+  discrete rules are fixed thresholds on posteriors; no adaptive thresholds, no error
+  correction, no "no-control" state detection beyond a class the operator leaves unmapped.
+  The pointer and discrete paths cannot be combined from one decoder (a decoder is either
+  continuous or a classifier). Simulated Profile A/B intents are not subject to authorization
+  (they are `simulated_intent`, driven by the operator's simulator controls). The SDK guard's
+  wall-clock staleness check assumes the runtime and the app share a clock (disable it
+  across machines; the relative-delay check still applies). The communication board does not
+  use the SDK guard yet.
 - **Calibration (M3)**: offline fit from closed recordings (no adaptive/online
   recalibration). Labels are the nearest behavior sample within half a bin. The center-out
   task's display latency is not measured, so cue timing on screen vs. on the LSL clock may
@@ -132,5 +169,51 @@ the PR description and delete it here.
   `make bench` locally for yours.
 - npm uses `legacy-peer-deps` (frontend/.npmrc) to work around an npm 10 resolver bug with
   Vitest 4's optional peer dependencies; peers we need are pinned explicitly.
-- No packaging/publishing of the SDKs yet (installed from the repo).
+- No packaging/publishing of the SDKs yet (installed from the repo). `brainos` now depends on
+  `brainos-adapter-sdk`, which must be installed from `packages/` first (`make setup` does).
 - Diagnostics are in-memory only and reset on restart.
+
+## Ecosystem plugins (Milestone 4, `brainos-brainflow`, `brainos-bci2000`)
+
+See docs/ECOSYSTEMS.md for details and evidence.
+
+- Neither plugin has been run with acquisition hardware. BrainFlow was exercised only with
+  its synthetic, playback-file and streaming boards (and a real driver's failure path);
+  BCI2000 only with a locally built SignalGenerator + DummySignalProcessing +
+  DummyApplication from a public source fork (bci2000.org was not reachable).
+- Run through the plugin host and the runtime by `test_plugin_ecosystems.py` and by
+  `brainos-certify` (docs/COMPATIBILITY.md): BrainFlow with its synthetic board, BCI2000 with
+  a replayed capture of genuine BCI2000 output (not live BCI2000).
+- BrainFlow: only the DEFAULT preset is read; board configuration (`config_board`) is not
+  offered (it writes to the device); BrainFlow markers cannot reach a read-only consumer
+  (BrainFlow overwrites the marker row), so there is no markers stream; units are taken from
+  BrainFlow's docs ("uV wherever possible" for EXG) and unknown otherwise; channels BrainFlow
+  lists under several types are typed as ambiguous with modality unknown; package-counter
+  loss inference assumes a 0-255 counter unless the operator sets `package_num_modulus`.
+- BCI2000: only the App Connector output is used — processed control information (control
+  signal + states), never raw signal (raw signal would need the FieldTripBuffer route, not
+  implemented). Blocks whose datagrams are all lost are undetectable (no block counter on the
+  wire). `synthetic`/`prerecorded` are operator declarations (App Connector does not reveal
+  BCI2000's source module). The live test against BCI2000 is opt-in (`BCI2000_PROG_DIR`); CI
+  replays a capture recorded from that build.
+
+## Certification toolkit (Milestone 4, `brainos-certify`)
+
+See docs/CERTIFICATION.md §6.
+
+- Software checks only. It grants `adapter_implementation` by itself; `protocol_tested` rests
+  on the operator's statement of which reference software produced the data (checked only for
+  consistency with the declared ecosystem, origin and installed version); `hardware_tested` on
+  an operator-signed attestation whose signature and plugin identity are verified but whose
+  hardware claims are not; `human_participant_validated` is never set.
+- Certifies plugins only; built-in adapters are covered by their own test suites.
+- A plugin's declarations (synthetic / prerecorded, origin, units, modality) are checked for
+  consistency, not truth. Timing numbers are machine-dependent; latency only for `unix` / `lsl`
+  clocks; CPU / RSS need Linux `/proc`. Thresholds (±2 % rate, one sample period of jitter,
+  1000 ppm drift) are engineering choices, not standards.
+- The fault-injection test kills the plugin host; it does not simulate a device disappearing.
+- Attestation signatures need the `openssl` command (OpenSSL 3, Ed25519).
+- No plugin for real acquisition hardware has been certified; the committed reports
+  (docs/compatibility/) are for a synthetic generator, BrainFlow's synthetic board and a
+  replayed BCI2000 capture.
+

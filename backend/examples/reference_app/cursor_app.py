@@ -4,9 +4,15 @@ Uses ONLY the public Python SDK (``brainos.sdk``) and the standard library. It k
 about devices, adapters, decoders or datasets: it declares that it *requires*
 ``pointer_intent`` and reacts to whatever the runtime grants.
 
-* When no connected source can provide pointer commands (e.g. a raw LSL / Open Ephys stream
-  without a decoder and router), the runtime suspends the app. It does not move, and it
-  never derives commands from raw signals or features itself.
+* When no connected source can provide pointer commands (e.g. a raw stream without a decoder
+  and router), the runtime suspends the app. It does not move, and it never derives commands
+  from raw signals or features itself.
+* Decoded commands additionally need the operator's authorization of this app
+  (``reference-cursor``) in the console: until then the runtime withholds them
+  (negotiation reason ``not_authorized``) and the app says it is waiting for that.
+* A :class:`~brainos.sdk.CommandGuard` decides which commands to act on: none while the app
+  is not authorized / the source is not streaming / the stream is closed; none older than
+  500 ms; and the cursor stops (zero velocity) after 500 ms without a pointer command.
 * When commands arrive, it shows where they come from (provenance): simulated intent from a
   simulator, or decoded intent from a named model, and whether the underlying data is
   prerecorded or synthetic.
@@ -31,6 +37,7 @@ from typing import Any
 
 from brainos.sdk import (
     BrainOSError,
+    CommandGuard,
     EventStream,
     NegotiationUpdate,
     RuntimeUpdate,
@@ -42,6 +49,7 @@ APP_ID = "reference-cursor"
 TARGET_RADIUS = 0.15
 DWELL_S = 0.3
 MAX_DT_S = 0.1  # a longer pause between commands does not teleport the cursor
+TICK_S = 0.02
 TARGETS = [
     (0.7 * math.cos(2 * math.pi * k / 8), 0.7 * math.sin(2 * math.pi * k / 8)) for k in range(8)
 ]
@@ -81,12 +89,25 @@ class CursorApp:
     target: int = 0
     acquired: int = 0
     commands: int = 0
-    ignored: int = 0  # events that are not commands (the app does not act on them)
+    ignored: int = 0  # events not acted on (not commands, or refused by the guard)
     sources: dict[tuple[str, str, str | None], SourceSeen] = field(default_factory=dict)
     device_id: str | None = None
+    stops: list[str] = field(default_factory=list)  # why command input stopped, in order
+    guard: CommandGuard = field(init=False)
     _last_ts: int | None = None
     _dwell_s: float = 0.0
     _reaching_center: bool = True
+
+    def __post_init__(self) -> None:
+        self.guard = CommandGuard(["pointer_intent"], on_stop=self._stopped)
+
+    def _stopped(self, reason: str) -> None:
+        self.stops.append(reason)
+        self._last_ts = None  # never integrate across a stop
+
+    @property
+    def waiting_for_authorization(self) -> bool:
+        return "pointer_intent" in self.guard.waiting_for_authorization
 
     def handle(self, item: StreamItem) -> None:
         if isinstance(item, NegotiationUpdate):
@@ -98,11 +119,12 @@ class CursorApp:
             if (dev.device_id if dev else None) != self.device_id:
                 self.device_id = dev.device_id if dev else None
                 self._last_ts = None
-        elif is_event(item):
-            if item.event_type.value != "intent.pointer" or self.status != "active":
+        env = self.guard.handle(item)
+        if is_event(item):
+            if env is None or env.event_type.value != "intent.pointer" or self.status != "active":
                 self.ignored += 1
                 return
-            self._command(item)
+            self._command(env)
 
     def _command(self, env: Any) -> None:
         p = env.provenance
@@ -117,8 +139,9 @@ class CursorApp:
         ts = env.device_timestamp_ns or env.timestamp_ns
         dt = 0.0 if self._last_ts is None else min(MAX_DT_S, max(0.0, (ts - self._last_ts) / 1e9))
         self._last_ts = ts
-        self.x = max(-1.0, min(1.0, self.x + env.payload.vx * dt))
-        self.y = max(-1.0, min(1.0, self.y + env.payload.vy * dt))
+        vx, vy = self.guard.velocity
+        self.x = max(-1.0, min(1.0, self.x + vx * dt))
+        self.y = max(-1.0, min(1.0, self.y + vy * dt))
         tx, ty = (0.0, 0.0) if self._reaching_center else TARGETS[self.target]
         if math.hypot(self.x - tx, self.y - ty) <= TARGET_RADIUS:
             self._dwell_s += dt
@@ -132,22 +155,36 @@ class CursorApp:
             self._dwell_s = 0.0
 
     def summary(self) -> dict[str, Any]:
+        g = self.guard.stats
         return {
             "status": self.status,
             "device_id": self.device_id,
             "cursor": [round(self.x, 3), round(self.y, 3)],
             "commands": self.commands,
-            "ignored_non_commands": self.ignored,
+            "ignored_events": self.ignored,
+            "dropped_stale": g.dropped_stale + g.dropped_late,
+            "deadman_stops": g.deadman,
+            "stops": self.stops,
             "targets_acquired": self.acquired,
             "sources": [s.label + f" — {s.commands} commands" for s in self.sources.values()],
         }
 
     def line(self) -> str:
+        if self.waiting_for_authorization:
+            return (
+                f"[{self.status}] waiting for operator authorization: commands are available "
+                f"but the operator has not authorized '{APP_ID}' to receive them"
+            )
         if self.status != "active":
             return f"[{self.status}] waiting: no source currently provides pointer commands"
         src = next(reversed(self.sources.values()), None)
         where = src.label if src else "no commands yet"
-        return f"[active] cursor ({self.x:+.2f}, {self.y:+.2f}) acquired {self.acquired} | {where}"
+        vx, vy = self.guard.velocity
+        moving = "moving" if (vx, vy) != (0.0, 0.0) else "still"
+        return (
+            f"[active] cursor ({self.x:+.2f}, {self.y:+.2f}) {moving}, "
+            f"acquired {self.acquired} | {where}"
+        )
 
 
 async def run(app: CursorApp, base_url: str, stop: asyncio.Event) -> CursorApp:
@@ -160,16 +197,26 @@ async def run(app: CursorApp, base_url: str, stop: asyncio.Event) -> CursorApp:
     ) as stream:
         app.status = stream.negotiation.status.value
         app.device_id = stream.runtime.device.device_id if stream.runtime.device else None
+        app.handle(NegotiationUpdate(stream.negotiation))
+        app.handle(RuntimeUpdate(stream.runtime))
 
         async def consume() -> None:
             async for item in stream:
                 app.handle(item)
 
-        task = asyncio.create_task(consume())
+        async def tick() -> None:  # dead-man timer
+            while True:
+                await asyncio.sleep(TICK_S)
+                app.guard.tick()
+
+        tasks = [asyncio.create_task(consume()), asyncio.create_task(tick())]
         await stop.wait()
-        task.cancel()
-        with contextlib.suppress(asyncio.CancelledError, BrainOSError):
-            await task
+        for t in tasks:
+            t.cancel()
+        for t in tasks:
+            with contextlib.suppress(asyncio.CancelledError, BrainOSError):
+                await t
+    app.guard.on_closed()
     return app
 
 

@@ -15,7 +15,7 @@ from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_validator
 
 from brainos.contracts.capabilities import Capability, EventType, capability_for
 
-SCHEMA_VERSION = "1.2"
+SCHEMA_VERSION = "1.3"
 # 1.1: features.binned, behavior.sample, intent.kinematics
 # 1.2: features.vector; recording.frame unit "arbitrary" (source did not state a known unit)
 SCHEMA_MAJOR = 1
@@ -144,7 +144,10 @@ class PointerIntentPayload(_Strict):
 
 
 class SelectionIntentPayload(_Strict):
-    action: Literal["primary"] = "primary"
+    """Discrete action. ``primary`` = select the highlighted item; 1.3 adds ``activate``
+    (trigger / confirm) and ``cancel`` (back / undo)."""
+
+    action: Literal["primary", "activate", "cancel"] = "primary"
     confidence: UnitFloat
 
 

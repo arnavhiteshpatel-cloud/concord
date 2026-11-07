@@ -7,7 +7,7 @@ to acquisition devices (read-only): LSL inlets and Open Ephys SUB sockets only r
 from __future__ import annotations
 
 import asyncio
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, ConfigDict, Field
@@ -158,7 +158,8 @@ async def remove_source(device_id: str, svc: Svc) -> dict[str, bool]:
         raise RuntimeCommandError(
             ErrorCode.INVALID_STATE, "disconnect the source before removing it"
         )
-    return {"removed": rt.registry.live.remove(device_id)}
+    removed = rt.registry.live.remove(device_id) or rt.registry.plugins.remove(device_id)
+    return {"removed": removed}
 
 
 # -------------------------------------------------------------------- pipeline
@@ -247,6 +248,11 @@ class CalibrationRequest(_Body):
     train_fraction: float = Field(default=0.8, ge=0.5, le=0.95)
     gap_bins: int = Field(default=12, ge=0, le=1000)
     feature_source: str | None = Field(default=None, max_length=64)
+    # Milestone 4: "classifier" fits an LDA on a class-label behavior stream (discrete decoding)
+    kind: Literal["regression", "classifier"] = "regression"
+    label_dim: str | None = Field(default=None, max_length=32)
+    class_names: list[str] | None = Field(default=None, max_length=16)
+    tau_ms: float | None = Field(default=None, ge=0, le=5000)
 
 
 class CalibrationResult(BaseModel):
@@ -265,7 +271,14 @@ async def calibration_train(body: CalibrationRequest, svc: Svc) -> CalibrationRe
     try:
         from brainos.adapters.replay.format import RecordingFormatError, recording_path
         from brainos.decoding import model as models
-        from brainos.decoding.calibrate import CalibrationError, calibrate, report_markdown
+        from brainos.decoding.calibrate import (
+            CalibrationError,
+            calibrate,
+            calibrate_classifier,
+            classifier_report_markdown,
+            report_markdown,
+        )
+        from brainos.decoding.lda import DEFAULT_TAU_MS
     except ImportError as exc:
         raise RuntimeCommandError(
             ErrorCode.UNSUPPORTED_OPERATION, f"calibration unavailable: {exc}"
@@ -285,18 +298,33 @@ async def calibration_train(body: CalibrationRequest, svc: Svc) -> CalibrationRe
             raise RuntimeCommandError(ErrorCode.DEVICE_NOT_FOUND, f"no recording {name!r}")
         paths.append(p)
     models_dir = rt.registry.catalog.models_dir
+    model: models.Decoder
     try:
-        model, report = await asyncio.to_thread(
-            calibrate,
-            paths,
-            train_fraction=body.train_fraction,
-            gap_bins=body.gap_bins,
-            models_dir=models_dir,
-            feature_source=body.feature_source,
-        )
+        if body.kind == "classifier":
+            model, report = await asyncio.to_thread(
+                calibrate_classifier,
+                paths,
+                label_dim=body.label_dim,
+                class_names=body.class_names,
+                train_fraction=body.train_fraction,
+                gap_bins=body.gap_bins,
+                tau_ms=body.tau_ms if body.tau_ms is not None else DEFAULT_TAU_MS,
+                models_dir=models_dir,
+                feature_source=body.feature_source,
+            )
+            md = classifier_report_markdown(report)
+        else:
+            model, report = await asyncio.to_thread(
+                calibrate,
+                paths,
+                train_fraction=body.train_fraction,
+                gap_bins=body.gap_bins,
+                models_dir=models_dir,
+                feature_source=body.feature_source,
+            )
+            md = report_markdown(report)
     except (CalibrationError, ValueError) as exc:
         raise RuntimeCommandError(ErrorCode.PROTOCOL_ERROR, f"calibration failed: {exc}") from None
-    md = report_markdown(report)
     out = svc.settings.reports_dir / "calibration" / f"{model.model_id}.md"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(md)

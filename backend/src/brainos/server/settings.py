@@ -28,6 +28,11 @@ class Settings:
     queue_size: int = 2048
     reconnect_backoff_s: tuple[float, ...] = field(default=(0.2, 0.5, 1.0))
     seed: int | None = None
+    # Source plugins (adapter SDK): discovered at startup unless disabled; hosts run with
+    # plugin_python (default: this interpreter) and plugin_path prepended to PYTHONPATH.
+    discover_plugins: bool = True
+    plugin_python: str | None = None
+    plugin_path: tuple[str, ...] = field(default=())
 
     @property
     def recordings_dir(self) -> Path:
@@ -52,4 +57,9 @@ class Settings:
             static_dir=Path(static) if static else REPO_ROOT / "frontend" / "dist",
             enable_sim=_flag("BRAINOS_ENABLE_SIM", True),
             log_level=os.environ.get("BRAINOS_LOG_LEVEL", "INFO").upper(),
+            discover_plugins=_flag("BRAINOS_PLUGINS", True),
+            plugin_python=os.environ.get("BRAINOS_PLUGIN_PYTHON") or None,
+            plugin_path=tuple(
+                p for p in os.environ.get("BRAINOS_PLUGIN_PATH", "").split(os.pathsep) if p
+            ),
         )

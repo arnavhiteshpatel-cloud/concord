@@ -45,6 +45,39 @@ class DeviceKind(StrEnum):
     STREAM = "stream"
 
 
+class Modality(StrEnum):
+    """Recording modality of a source's neural signal (schema 1.3). None = unknown."""
+
+    EEG = "eeg"  # scalp EEG (noninvasive)
+    MEG = "meg"  # noninvasive
+    EMG = "emg"  # surface EMG (noninvasive)
+    ECOG = "ecog"  # electrocorticography (implanted, cortical surface)
+    SEEG = "seeg"  # stereo-EEG depth electrodes (implanted)
+    INTRACORTICAL = "intracortical"  # penetrating microelectrodes (implanted)
+    OTHER = "other"
+
+
+NONINVASIVE_MODALITIES = frozenset({Modality.EEG, Modality.MEG, Modality.EMG})
+INVASIVE_MODALITIES = frozenset({Modality.ECOG, Modality.SEEG, Modality.INTRACORTICAL})
+
+
+class IntegrationInfo(_Wire):
+    """How BrainOS reaches the source (schema 1.3): a built-in adapter or an external plugin."""
+
+    kind: Literal["builtin", "plugin"]
+    package: str | None = Field(
+        default=None, max_length=128, description="plugin distribution name"
+    )
+    version: str | None = Field(default=None, max_length=64)
+    api_version: str | None = Field(
+        default=None, max_length=16, description="adapter SDK API version"
+    )
+    isolated: bool = Field(default=False, description="third-party code runs in a separate process")
+    ecosystem: str | None = Field(
+        default=None, max_length=64, description="external software ecosystem, e.g. 'brainflow'"
+    )
+
+
 class DeviceDescriptor(_Wire):
     device_id: str = Field(pattern=DEVICE_ID_PATTERN)
     display_name: str
@@ -54,6 +87,10 @@ class DeviceDescriptor(_Wire):
     native_format: str = Field(description="Human-readable description of the wire format")
     capabilities: list[CapabilityDescriptor]
     synthetic: bool
+    # schema 1.3 (all optional; None = not declared, never guessed)
+    modality: Modality | None = None
+    invasive: bool | None = None
+    integration: IntegrationInfo | None = None
 
     def supports(self, capability: Capability) -> bool:
         return any(c.capability is capability for c in self.capabilities)
@@ -69,6 +106,7 @@ class DeviceDescriptor(_Wire):
 class RejectionReason(StrEnum):
     UNSUPPORTED_BY_DEVICE = "unsupported_by_device"
     NO_DEVICE = "no_device"
+    NOT_AUTHORIZED = "not_authorized"  # 1.3: decoded commands need operator authorization
 
 
 class CapabilityRejection(_Wire):

@@ -16,10 +16,19 @@ def negotiate(
     required: list[Capability],
     optional: list[Capability],
     device: DeviceDescriptor | None,
+    *,
+    decoded_commands: frozenset[Capability] = frozenset(),
+    authorized: frozenset[Capability] = frozenset(),
 ) -> NegotiationResult:
     """Grant or explicitly reject each requested capability against ``device``.
 
     A capability listed as both required and optional is treated as required.
+
+    ``decoded_commands``: command capabilities the device (as negotiated) provides *only*
+    through the command router, i.e. from a decoder. Those are granted only if the operator
+    authorized the application for them (``authorized``); otherwise they are rejected with
+    ``not_authorized`` (default deny). Capabilities the source provides natively (e.g. a
+    simulator's ``simulated_intent``) are unaffected.
     """
     req = list(dict.fromkeys(required))
     opt = [c for c in dict.fromkeys(optional) if c not in req]
@@ -37,16 +46,14 @@ def negotiate(
 
     supported = device.capability_set
     for cap in (*req, *opt):
-        if cap in supported:
-            granted.append(cap)
+        if cap not in supported:
+            reason = RejectionReason.UNSUPPORTED_BY_DEVICE
+        elif cap in decoded_commands and cap not in authorized:
+            reason = RejectionReason.NOT_AUTHORIZED
         else:
-            rejected.append(
-                CapabilityRejection(
-                    capability=cap,
-                    reason=RejectionReason.UNSUPPORTED_BY_DEVICE,
-                    required=cap in req,
-                )
-            )
+            granted.append(cap)
+            continue
+        rejected.append(CapabilityRejection(capability=cap, reason=reason, required=cap in req))
     status = AppStatus.SUSPENDED if any(r.required for r in rejected) else AppStatus.ACTIVE
     if status is AppStatus.SUSPENDED:
         granted = []  # a suspended app receives no events

@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://brainos.invalid/schemas/certify/report-1.0.json",
+  "title": "BrainOS integration certification report 1.0",
+  "description": "Written by brainos-certify. Software checks only: a passing report is never hardware certification and never human-participant validation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "notice",
+    "report_version",
+    "tool",
+    "generated_at",
+    "started_at",
+    "elapsed_s",
+    "environment",
+    "plugin",
+    "options",
+    "summary",
+    "levels",
+    "protocol_reference",
+    "attestation",
+    "checks",
+    "host_log_tail"
+  ],
+  "$defs": {
+    "status": {"enum": ["pass", "fail", "warn", "not_run"]},
+    "level_name": {
+      "enum": ["adapter_implementation", "protocol_tested", "hardware_tested", "human_participant_validated"]
+    },
+    "level": {
+      "type": "object",
+      "required": ["achieved", "statement", "why", "missing"],
+      "properties": {
+        "achieved": {"type": "boolean"},
+        "statement": {"type": "string"},
+        "why": {"type": "string"},
+        "missing": {"type": "array", "items": {"type": "string"}},
+        "notes": {"type": "array", "items": {"type": "string"}},
+        "consistency": {"type": "array", "items": {"$ref": "#/$defs/rule"}}
+      }
+    },
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rule", "ok", "detail"],
+      "properties": {
+        "rule": {"type": "string"},
+        "ok": {"type": ["boolean", "null"]},
+        "detail": {"type": "string"}
+      }
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "group", "title", "required", "status", "applicable", "reason", "evidence"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z]+\\.[a-z_]+$"},
+        "group": {"enum": ["manifest", "metadata", "timing", "integrity", "reconnect", "performance", "runtime"]},
+        "title": {"type": "string", "minLength": 1},
+        "required": {"type": "boolean"},
+        "status": {"$ref": "#/$defs/status"},
+        "applicable": {"type": "boolean"},
+        "reason": {"type": "string", "maxLength": 300},
+        "evidence": {"type": "object"}
+      }
+    }
+  },
+  "properties": {
+    "notice": {"type": "string", "pattern": "not hardware certification"},
+    "report_version": {"const": "1.0"},
+    "tool": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {"name": {"const": "brainos-certify"}, "version": {"type": "string"}}
+    },
+    "generated_at": {"type": "string"},
+    "started_at": {"type": "string"},
+    "elapsed_s": {"type": "number", "minimum": 0},
+    "environment": {
+      "type": "object",
+      "required": ["os", "platform", "machine", "python", "sdk_version", "sdk_api_version", "certify_version", "brainos_version"],
+      "properties": {
+        "os": {"type": "string"},
+        "platform": {"type": "string"},
+        "machine": {"type": "string"},
+        "python": {"type": "string"},
+        "sdk_version": {"type": "string"},
+        "sdk_api_version": {"type": "string"},
+        "certify_version": {"type": "string"},
+        "brainos_version": {"type": ["string", "null"]}
+      }
+    },
+    "plugin": {
+      "type": "object",
+      "required": ["ref", "entry_point", "device_key", "manifest", "identity", "session"],
+      "properties": {
+        "ref": {"type": "string"},
+        "entry_point": {"type": ["string", "null"]},
+        "device_key": {"type": ["string", "null"]},
+        "manifest": {"type": ["object", "null"]},
+        "identity": {"type": "object"},
+        "session": {"type": ["object", "null"]}
+      }
+    },
+    "options": {
+      "type": "object",
+      "required": ["plugin_options_requested", "plugin_options_resolved", "run"],
+      "properties": {
+        "plugin_options_requested": {"type": "object"},
+        "plugin_options_resolved": {"type": "object"},
+        "run": {"type": "object"}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["counts", "level", "level_statement", "exit_code", "blocking"],
+      "properties": {
+        "counts": {
+          "type": "object",
+          "required": ["pass", "fail", "warn", "not_run"],
+          "additionalProperties": false,
+          "properties": {
+            "pass": {"type": "integer", "minimum": 0},
+            "fail": {"type": "integer", "minimum": 0},
+            "warn": {"type": "integer", "minimum": 0},
+            "not_run": {"type": "integer", "minimum": 0}
+          }
+        },
+        "level": {"oneOf": [{"$ref": "#/$defs/level_name"}, {"type": "null"}]},
+        "level_statement": {"type": "string"},
+        "exit_code": {"enum": [0, 1]},
+        "blocking": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "levels": {
+      "type": "object",
+      "required": ["achieved", "highest", "levels"],
+      "properties": {
+        "achieved": {"type": "array", "items": {"$ref": "#/$defs/level_name"}},
+        "highest": {"oneOf": [{"$ref": "#/$defs/level_name"}, {"type": "null"}]},
+        "levels": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["adapter_implementation", "protocol_tested", "hardware_tested", "human_participant_validated"],
+          "properties": {
+            "adapter_implementation": {"$ref": "#/$defs/level"},
+            "protocol_tested": {"$ref": "#/$defs/level"},
+            "hardware_tested": {"$ref": "#/$defs/level"},
+            "human_participant_validated": {
+              "allOf": [
+                {"$ref": "#/$defs/level"},
+                {"properties": {"achieved": {"const": false}}}
+              ]
+            }
+          }
+        }
+      }
+    },
+    "protocol_reference": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "required": ["statement", "consistency"],
+          "properties": {
+            "statement": {"type": "string"},
+            "consistency": {"type": "array", "items": {"$ref": "#/$defs/rule"}}
+          }
+        }
+      ]
+    },
+    "attestation": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "required": ["file", "accepted", "reason", "file_sha256", "verified_by_toolkit"],
+          "properties": {
+            "accepted": {"type": "boolean"},
+            "reason": {"type": "string"},
+            "verified_by_toolkit": {"type": "string"}
+          }
+        }
+      ]
+    },
+    "checks": {"type": "array", "minItems": 29, "items": {"$ref": "#/$defs/check"}},
+    "host_log_tail": {"type": "array", "items": {"type": "string"}}
+  }
+}

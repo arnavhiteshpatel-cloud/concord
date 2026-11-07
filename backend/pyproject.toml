@@ -9,15 +9,22 @@ description = "BrainOS: hardware-agnostic, read-only runtime and SDK for implant
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "Proprietary" }
+# The base install is the application SDK + event contracts only (what an app developer
+# needs): `pip install brainos`. The runtime server and plugin hosting are the `server` extra.
 dependencies = [
-    "fastapi>=0.115",
-    "uvicorn[standard]>=0.30",
     "pydantic>=2.8",
     "httpx>=0.27",       # SDK REST client
     "websockets>=13",    # SDK stream client
 ]
 
 [project.optional-dependencies]
+# The runtime server (REST + WebSocket + console hosting) and source-plugin hosting through
+# the public adapter SDK (packages/brainos-adapter-sdk; brings numpy).
+server = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "brainos-adapter-sdk>=1.0,<2",
+]
 # Offline neural datasets (NWB) + baseline decoder. numpy is used by both.
 nwb = [
     "pynwb>=2.8",
@@ -48,7 +55,7 @@ brainos-server = "brainos.server.__main__:main"
 packages = ["src/brainos"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests", "../examples/adapters/brainos-example-adapter/tests"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 filterwarnings = [
@@ -64,7 +71,7 @@ packages = ["brainos"]
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["pynwb", "pynwb.*", "hdmf", "hdmf.*", "h5py", "pylsl", "pylsl.*", "scipy", "scipy.*"]
+module = ["pynwb", "pynwb.*", "hdmf", "hdmf.*", "h5py", "pylsl", "pylsl.*", "scipy", "scipy.*", "brainflow", "brainflow.*"]
 ignore_missing_imports = true
 
 [tool.ruff]
