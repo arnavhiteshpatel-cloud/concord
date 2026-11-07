@@ -38,7 +38,10 @@ the PR description and delete it here.
   runtime (including configuring sources, pipelines and the command router), and inject
   simulated intents. The server binds `127.0.0.1` by default and warns
   if bound elsewhere. Do not expose it to a network.
-- No TLS, no audit log, no per-app grant approval, no signed adapters.
+- No TLS, no audit log, no signed adapters. Operator authorization of applications for
+  decoded commands (M4) is keyed by the application id each client declares itself: it
+  prevents mistakes (an app receiving commands nobody meant for it), not a malicious local
+  process that claims another app's id. Authorizations are in memory and not persisted.
 - Recordings are written unencrypted to `data/recordings/`. With live sources they can
   contain real neural data: handle the directory under your research data policy.
 - LSL discovery uses liblsl's multicast/broadcast on the local network, and any host on that
@@ -109,8 +112,18 @@ the PR description and delete it here.
 - **Pipeline (M3)**: one pipeline at a time, in the runtime process (Python, single asyncio
   task). Measured headroom on a 4-vCPU container: 96 ch × 30 kHz at ≈ 50 % of one core
   (docs/BENCHMARKS_LIVE.md); larger arrays need measuring. Threshold RMS is estimated once
-  (first second) and not adapted. Only ridge models; the router maps two decoded dimensions
-  to `intent.pointer` only (no decoded selection/text).
+  (first second) and not adapted. Decoders: ridge (continuous) and shrinkage LDA (classes).
+- **Control bridge (M4)**: discrete decoding has been exercised only on synthetic
+  motor-imagery-like data generated in the tests (a mu-band decrease put there on purpose;
+  held-out balanced accuracy 0.66 vs chance 0.33 is a software check, not a result). The
+  discrete rules are fixed thresholds on posteriors; no adaptive thresholds, no error
+  correction, no "no-control" state detection beyond a class the operator leaves unmapped.
+  The pointer and discrete paths cannot be combined from one decoder (a decoder is either
+  continuous or a classifier). Simulated Profile A/B intents are not subject to authorization
+  (they are `simulated_intent`, driven by the operator's simulator controls). The SDK guard's
+  wall-clock staleness check assumes the runtime and the app share a clock (disable it
+  across machines; the relative-delay check still applies). The communication board does not
+  use the SDK guard yet.
 - **Calibration (M3)**: offline fit from closed recordings (no adaptive/online
   recalibration). Labels are the nearest behavior sample within half a bin. The center-out
   task's display latency is not measured, so cue timing on screen vs. on the LSL clock may
