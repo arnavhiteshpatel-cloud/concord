@@ -179,6 +179,7 @@ def _window(task: CueTask) -> None:  # pragma: no cover - needs a display
             root.after(16, draw)
 
     draw()
+
     def close() -> None:
         task.stop.set()
         root.destroy()
