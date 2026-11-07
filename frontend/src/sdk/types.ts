@@ -225,9 +225,13 @@ export type EnvelopeOf<T extends EventType> = Extract<EventEnvelope, { event_typ
 
 // ------------------------------------------------------------------ protocol
 
+/** A flat object inside a capability parameter (schema 1.4), e.g. one feature stream. */
+export type ParamObject = Record<string, number | string | boolean | null | string[] | number[]>;
+export type ParamValue = number | string | boolean | string[] | number[] | ParamObject[];
+
 export interface CapabilityDescriptor {
   capability: Capability;
-  params: Record<string, number | string | boolean | string[]>;
+  params: Record<string, ParamValue>;
   description: string;
 }
 

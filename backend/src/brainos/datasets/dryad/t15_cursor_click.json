@@ -1,0 +1,491 @@
+{
+ "id": "t15-cursor-click",
+ "title": "Data from: Speech motor cortex enables BCI cursor control and click",
+ "doi": "10.5061/dryad.prr4xgxzq",
+ "url": "https://datadryad.org/dataset/doi:10.5061/dryad.prr4xgxzq",
+ "api": "https://datadryad.org/api/v2",
+ "version_id": 449021,
+ "license": "CC0-1.0",
+ "access": "Public domain (CC0) on Dryad. Dryad serves files to programs only with an API token (free Dryad account); files can also be downloaded in a browser from the dataset page.",
+ "citation": "Singer-Clark, Tyler et al. (2025). Data from: Speech motor cortex enables BCI cursor control and click [Dataset]. Dryad. https://doi.org/10.5061/dryad.prr4xgxzq",
+ "publication": "Singer-Clark T, et al. Speech motor cortex enables BCI cursor control and click. J Neural Eng (2025). https://doi.org/10.1088/1741-2552/add0e5",
+ "code": "https://github.com/Neuroprosthetics-Lab/BCI-cursor-control-from-speech-motor-cortex",
+ "species": "Homo sapiens",
+ "participant": "T15 (BrainGate2 clinical-trial participant code, as published)",
+ "recording_type": "intracortical microelectrode arrays in speech motor cortex: 256 electrodes, each labelled with its array location (v6v, d6v, 4, 55b); processed features only (threshold crossings and spike band power per electrode, 10 ms bins), plus task state and the outputs of the original online cursor and click decoders",
+ "modality": "intracortical",
+ "verified_at": "2026-11-07",
+ "files": [
+  {
+   "path": "README.md",
+   "file_id": 4825890,
+   "size_bytes": 10862,
+   "sha256": "38e308ca6f3b598b4b647044ae0cc2227be10e0f850857071be281b6a7dd5918"
+  },
+  {
+   "path": "t15_day00039_block00_radial8_calibration_task.mat",
+   "file_id": 4825616,
+   "size_bytes": 28383904,
+   "sha256": "470d2a014dbf6e57f334618470abe590fd16184382c780a535141ae39b3197db",
+   "day": 39,
+   "block": 0,
+   "task": "radial8_calibration"
+  },
+  {
+   "path": "t15_day00039_block01_radial8_calibration_task.mat",
+   "file_id": 4825618,
+   "size_bytes": 28383904,
+   "sha256": "ad8154c5baf86f7e7415eb06d1516af3a62aab500fa6ebb631ca33b890e84558",
+   "day": 39,
+   "block": 1,
+   "task": "radial8_calibration"
+  },
+  {
+   "path": "t15_day00039_block02_radial8_calibration_task.mat",
+   "file_id": 4825617,
+   "size_bytes": 28360232,
+   "sha256": "60043a6b6cebba16a41b3eafaeb5c2be1c6bae15d3102318cc170f2ef75ec9d4",
+   "day": 39,
+   "block": 2,
+   "task": "radial8_calibration"
+  },
+  {
+   "path": "t15_day00039_block03_radial8_calibration_task.mat",
+   "file_id": 4825620,
+   "size_bytes": 28371280,
+   "sha256": "a7654fe5df1a9d384502a2ff0d06a055c8bdaeda35cd833755677cb38b77db88",
+   "day": 39,
+   "block": 3,
+   "task": "radial8_calibration"
+  },
+  {
+   "path": "t15_day00039_block04_radial8_calibration_task.mat",
+   "file_id": 4825621,
+   "size_bytes": 28412312,
+   "sha256": "c3a867c024b8677bd9a0604e8cc198b5068d0124e156d0415751cd782b2ca3ed",
+   "day": 39,
+   "block": 4,
+   "task": "radial8_calibration"
+  },
+  {
+   "path": "t15_day00039_block05_radial8_calibration_task.mat",
+   "file_id": 4825619,
+   "size_bytes": 28297120,
+   "sha256": "3ea6398f08e272c61a8636c5a68bdcde17199e7803655597c9e3ef083223d4d0",
+   "day": 39,
+   "block": 5,
+   "task": "radial8_calibration"
+  },
+  {
+   "path": "t15_day00202_block00_radial8_calibration_task.mat",
+   "file_id": 4825622,
+   "size_bytes": 28407576,
+   "sha256": "08d39deeafed2bd1e2a6c3b00f2d7b909f6c872d40dd2cf5d0e72cb0e1503c43",
+   "day": 202,
+   "block": 0,
+   "task": "radial8_calibration"
+  },
+  {
+   "path": "t15_day00202_block01_radial8_calibration_task.mat",
+   "file_id": 4825623,
+   "size_bytes": 28404416,
+   "sha256": "1325487ddcef75de5bce67573fc67f6ee805bcde29caaa7b2d4bcc6b0979ba45",
+   "day": 202,
+   "block": 1,
+   "task": "radial8_calibration"
+  },
+  {
+   "path": "t15_day00202_block02_simultaneous_speech_and_cursor_task.mat",
+   "file_id": 4825666,
+   "size_bytes": 28409776,
+   "sha256": "fbfa715f5ffe9b18440bfc81b745783cd3c2b01768108f4bbd31cdbb1e1d66e5",
+   "day": 202,
+   "block": 2,
+   "task": "simultaneous_speech_and_cursor"
+  },
+  {
+   "path": "t15_day00202_block03_simultaneous_speech_and_cursor_task.mat",
+   "file_id": 4825665,
+   "size_bytes": 28409768,
+   "sha256": "f0f8c44e537befe3fd2060fa3cff15c8abee4a1b00c4849f63e9b3c2ea491c28",
+   "day": 202,
+   "block": 3,
+   "task": "simultaneous_speech_and_cursor"
+  },
+  {
+   "path": "t15_day00202_block04_simultaneous_speech_and_cursor_task.mat",
+   "file_id": 4825663,
+   "size_bytes": 28409776,
+   "sha256": "ab622c1296ab1878f014520de83102b7779bf9f1a9f8db630a9b7e5ce5a31b13",
+   "day": 202,
+   "block": 4,
+   "task": "simultaneous_speech_and_cursor"
+  },
+  {
+   "path": "t15_day00202_block05_simultaneous_speech_and_cursor_task.mat",
+   "file_id": 4825664,
+   "size_bytes": 28408128,
+   "sha256": "d1bdeee9f677fe0b723706a3f3615705e407746c9be27d0880e8e8022160f9cc",
+   "day": 202,
+   "block": 5,
+   "task": "simultaneous_speech_and_cursor"
+  },
+  {
+   "path": "t15_day00202_block06_simultaneous_speech_and_cursor_task.mat",
+   "file_id": 4825662,
+   "size_bytes": 28408072,
+   "sha256": "12bc96f87837a346b4f052ff09fb3289101138323c119d4734481b8851d26cb9",
+   "day": 202,
+   "block": 6,
+   "task": "simultaneous_speech_and_cursor"
+  },
+  {
+   "path": "t15_day00202_block07_simultaneous_speech_and_cursor_task.mat",
+   "file_id": 4825661,
+   "size_bytes": 28409560,
+   "sha256": "6bdf1ae5229b35b78306d315e8ab4293ce2e4a5b24763c0ccee610b344723e8f",
+   "day": 202,
+   "block": 7,
+   "task": "simultaneous_speech_and_cursor"
+  },
+  {
+   "path": "t15_day00202_block08_radial8_calibration_task.mat",
+   "file_id": 4825624,
+   "size_bytes": 28410720,
+   "sha256": "74c01f9f0afcb85d682b31647290799bafe249d9626b594fb15f42bf6549f52e",
+   "day": 202,
+   "block": 8,
+   "task": "radial8_calibration"
+  },
+  {
+   "path": "t15_day00202_block09_radial8_calibration_task.mat",
+   "file_id": 4825625,
+   "size_bytes": 28473840,
+   "sha256": "b29a33fb013fa1256daa91e3818829a7b8e9ebe6effebd5ddad63d0fe6856bd0",
+   "day": 202,
+   "block": 9,
+   "task": "radial8_calibration"
+  },
+  {
+   "path": "t15_day00202_block10_simultaneous_speech_and_cursor_task.mat",
+   "file_id": 4825660,
+   "size_bytes": 28417592,
+   "sha256": "209e4f5ae24e6c8366482e220f097019e8d9a85a96df54b59903575dcc99a68e",
+   "day": 202,
+   "block": 10,
+   "task": "simultaneous_speech_and_cursor"
+  },
+  {
+   "path": "t15_day00202_block11_simultaneous_speech_and_cursor_task.mat",
+   "file_id": 4825659,
+   "size_bytes": 28469736,
+   "sha256": "c5e10608c6a7426f7e6a9ad7fa92fb2eb98b2319f07ae1cf1f6ab875f4f35027",
+   "day": 202,
+   "block": 11,
+   "task": "simultaneous_speech_and_cursor"
+  },
+  {
+   "path": "t15_day00202_block12_simultaneous_speech_and_cursor_task.mat",
+   "file_id": 4825658,
+   "size_bytes": 28398880,
+   "sha256": "d552ab7e6b60f1f01199ee98f500c2768513424de4e40eba635533da8411cf25",
+   "day": 202,
+   "block": 12,
+   "task": "simultaneous_speech_and_cursor"
+  },
+  {
+   "path": "t15_day00202_block13_simultaneous_speech_and_cursor_task.mat",
+   "file_id": 4825657,
+   "size_bytes": 28414560,
+   "sha256": "ffeec1182b9e13328222af4482ae9e3cfbaabeb38cd9537539a20e0d45893e03",
+   "day": 202,
+   "block": 13,
+   "task": "simultaneous_speech_and_cursor"
+  },
+  {
+   "path": "t15_day00202_block14_simultaneous_speech_and_cursor_task.mat",
+   "file_id": 4825656,
+   "size_bytes": 28409832,
+   "sha256": "28be725722f0c79ddac07b9b1b5375f92673f14da7972af4c2862abee0e79a48",
+   "day": 202,
+   "block": 14,
+   "task": "simultaneous_speech_and_cursor"
+  },
+  {
+   "path": "t15_day00202_block15_simultaneous_speech_and_cursor_task.mat",
+   "file_id": 4825655,
+   "size_bytes": 28408136,
+   "sha256": "73b2e3b4f530d08ef4310fd70964fe97d30351f0403156bab1efbbbb716eb06d",
+   "day": 202,
+   "block": 15,
+   "task": "simultaneous_speech_and_cursor"
+  },
+  {
+   "path": "t15_day00202_block16_simultaneous_speech_and_cursor_task.mat",
+   "file_id": 4825654,
+   "size_bytes": 28406616,
+   "sha256": "346f4b99b0ab2eb7b6b57ad02a4a2feeaf9dfe8daee530ed4ec028cee4fe9244",
+   "day": 202,
+   "block": 16,
+   "task": "simultaneous_speech_and_cursor"
+  },
+  {
+   "path": "t15_day00202_block17_simultaneous_speech_and_cursor_task.mat",
+   "file_id": 4825653,
+   "size_bytes": 28483880,
+   "sha256": "b08e1819056dd9aaa53719b96f5f59fe9ccd5cb567f4d175c4010da5b749b885",
+   "day": 202,
+   "block": 17,
+   "task": "simultaneous_speech_and_cursor"
+  },
+  {
+   "path": "t15_day00202_block18_simultaneous_speech_and_cursor_task.mat",
+   "file_id": 4825652,
+   "size_bytes": 28335608,
+   "sha256": "ebf900318f25ec232c8ef9501bd490dcb5a304aff4d14efa7e347305706caa30",
+   "day": 202,
+   "block": 18,
+   "task": "simultaneous_speech_and_cursor"
+  },
+  {
+   "path": "t15_day00202_block19_radial8_calibration_task.mat",
+   "file_id": 4825626,
+   "size_bytes": 28407568,
+   "sha256": "149841f1adb05e0871e31258605736aa5fe0f79600be1e8d29a6bbebd599bb91",
+   "day": 202,
+   "block": 19,
+   "task": "radial8_calibration"
+  },
+  {
+   "path": "t15_day00202_block20_radial8_calibration_task.mat",
+   "file_id": 4825627,
+   "size_bytes": 28405984,
+   "sha256": "e76957dc994b90b050e4591c9bdeb730aacea91b2d2e4cf39041938c539ea139",
+   "day": 202,
+   "block": 20,
+   "task": "radial8_calibration"
+  },
+  {
+   "path": "t15_day00202_block21_simultaneous_speech_and_cursor_task.mat",
+   "file_id": 4825651,
+   "size_bytes": 28408136,
+   "sha256": "afac1820b9c2ec5149494312a0cec1eb09e35723870a48df54d86a3a8d31ffc3",
+   "day": 202,
+   "block": 21,
+   "task": "simultaneous_speech_and_cursor"
+  },
+  {
+   "path": "t15_day00202_block22_simultaneous_speech_and_cursor_task.mat",
+   "file_id": 4825650,
+   "size_bytes": 28400032,
+   "sha256": "e0a5a9085c2088b99b5930cdc422fec92ac351655ac227e35f30d5079816eaf1",
+   "day": 202,
+   "block": 22,
+   "task": "simultaneous_speech_and_cursor"
+  },
+  {
+   "path": "t15_day00202_block23_simultaneous_speech_and_cursor_task.mat",
+   "file_id": 4825649,
+   "size_bytes": 28406768,
+   "sha256": "47ae02ff4a3bb523e43cb0b9a11aa54a4646a290418f8f00d6f412ee93495d60",
+   "day": 202,
+   "block": 23,
+   "task": "simultaneous_speech_and_cursor"
+  },
+  {
+   "path": "t15_day00202_block24_simultaneous_speech_and_cursor_task.mat",
+   "file_id": 4825648,
+   "size_bytes": 28406560,
+   "sha256": "dcb441d7b67f0c0ba9388067b37e84cea2f367c278c3e6d9f0b07d7a13853616",
+   "day": 202,
+   "block": 24,
+   "task": "simultaneous_speech_and_cursor"
+  },
+  {
+   "path": "t15_day00202_block25_simultaneous_speech_and_cursor_task.mat",
+   "file_id": 4825647,
+   "size_bytes": 28407976,
+   "sha256": "95a15d262baedb505029cae899c89cba3018b002cf20462efee5904b8edb0879",
+   "day": 202,
+   "block": 25,
+   "task": "simultaneous_speech_and_cursor"
+  },
+  {
+   "path": "t15_day00202_block26_simultaneous_speech_and_cursor_task.mat",
+   "file_id": 4825646,
+   "size_bytes": 28419176,
+   "sha256": "66cdfb16e7b3162abe7ad7a50a978078f59cb1028446446bd88f2fbcb1c50ec8",
+   "day": 202,
+   "block": 26,
+   "task": "simultaneous_speech_and_cursor"
+  },
+  {
+   "path": "t15_day00202_words.mat",
+   "file_id": 4825892,
+   "size_bytes": 42221848,
+   "sha256": "e1f8cb55180cdffddd60da2778dc6b90ce08485abfff01058d1aa98f65574a0a"
+  },
+  {
+   "path": "t15_day00468_block00_radial8_calibration_task.mat",
+   "file_id": 4825629,
+   "size_bytes": 28423128,
+   "sha256": "f665e14331fc8b3f1dba121e2ffb7f1ef3488c03019b290d23c126da5c5735ce",
+   "day": 468,
+   "block": 0,
+   "task": "radial8_calibration"
+  },
+  {
+   "path": "t15_day00468_block01_radial8_calibration_task.mat",
+   "file_id": 4825628,
+   "size_bytes": 11049384,
+   "sha256": "c26b057f4a1dccc94adac8ecc5a92c3490df9ca707ce057ed379b683d12ed324",
+   "day": 468,
+   "block": 1,
+   "task": "radial8_calibration"
+  },
+  {
+   "path": "t15_day00468_block02_radial8_calibration_task.mat",
+   "file_id": 4825630,
+   "size_bytes": 28456392,
+   "sha256": "b8e5fa5e30edefa75ace5d5c527f17a6d424f506e6e8629fb1a689ccb921845e",
+   "day": 468,
+   "block": 2,
+   "task": "radial8_calibration"
+  },
+  {
+   "path": "t15_day00468_block03_grid_evaluation_task.mat",
+   "file_id": 4825631,
+   "size_bytes": 28454824,
+   "sha256": "c57c496bc6ea311c898ca891ed4923f4c8e2219a955867ced8bc17664e421486",
+   "day": 468,
+   "block": 3,
+   "task": "grid_evaluation"
+  },
+  {
+   "path": "t15_day00468_block04_grid_evaluation_task.mat",
+   "file_id": 4825632,
+   "size_bytes": 28453264,
+   "sha256": "f9a85ae0aec0a813dbe71e595048ad6ab7e44d6637fb860aac98219e98568033",
+   "day": 468,
+   "block": 4,
+   "task": "grid_evaluation"
+  },
+  {
+   "path": "t15_day00468_block05_grid_evaluation_task.mat",
+   "file_id": 4825633,
+   "size_bytes": 28453264,
+   "sha256": "00498179c94f963aecc33839714e291119d8672b37aa7e57e072692f368ff214",
+   "day": 468,
+   "block": 5,
+   "task": "grid_evaluation"
+  },
+  {
+   "path": "t15_day00468_block06_radial8_calibration_task.mat",
+   "file_id": 4825634,
+   "size_bytes": 28457856,
+   "sha256": "7102c153f6f07ab5eff07ae5c944eb29eacc621b8b70d258ab5572c752fe6ae9",
+   "day": 468,
+   "block": 6,
+   "task": "radial8_calibration"
+  },
+  {
+   "path": "t15_day00468_block07_radial8_calibration_task.mat",
+   "file_id": 4825635,
+   "size_bytes": 28412120,
+   "sha256": "f9d2f68048843663d581a4d7292751391e1f0545ed0e1631a9c19df800870e5c",
+   "day": 468,
+   "block": 7,
+   "task": "radial8_calibration"
+  },
+  {
+   "path": "t15_day00468_block08_radial8_calibration_task.mat",
+   "file_id": 4825636,
+   "size_bytes": 28423208,
+   "sha256": "24ff5c3d44ea66af395eaab0f4a7fa610d0b00faf221d1039c86a56467189841",
+   "day": 468,
+   "block": 8,
+   "task": "radial8_calibration"
+  },
+  {
+   "path": "t15_day00468_block09_grid_evaluation_task.mat",
+   "file_id": 4825637,
+   "size_bytes": 28420088,
+   "sha256": "b2b99f8444f8f25eea3294fe7c33fefd5d3d4868dcf4a69bf48f8d2782141f4c",
+   "day": 468,
+   "block": 9,
+   "task": "grid_evaluation"
+  },
+  {
+   "path": "t15_day00468_block10_grid_evaluation_task.mat",
+   "file_id": 4825638,
+   "size_bytes": 28454840,
+   "sha256": "e0c270cc6a6ddfb3a530594d7e7f64820d615de816a23f75465c951ad8cdf206",
+   "day": 468,
+   "block": 10,
+   "task": "grid_evaluation"
+  },
+  {
+   "path": "t15_day00468_block11_grid_evaluation_task.mat",
+   "file_id": 4825639,
+   "size_bytes": 28442192,
+   "sha256": "160ca771e0bf1afc0ea183f28d87f26dcba44af7e69d27be01ce01ebb4f7240d",
+   "day": 468,
+   "block": 11,
+   "task": "grid_evaluation"
+  },
+  {
+   "path": "t15_day00468_block12_radial8_calibration_task.mat",
+   "file_id": 4825642,
+   "size_bytes": 28445256,
+   "sha256": "9945d0ea84180ffc37a345b57123895c2cb9bcf484afb03d6b1a079015f7de8f",
+   "day": 468,
+   "block": 12,
+   "task": "radial8_calibration"
+  },
+  {
+   "path": "t15_day00468_block13_radial8_calibration_task.mat",
+   "file_id": 4825640,
+   "size_bytes": 28461112,
+   "sha256": "5f39b01fc3e4e243404cfceca2589f2391398079fa286fc969939de3ae3a1cb9",
+   "day": 468,
+   "block": 13,
+   "task": "radial8_calibration"
+  },
+  {
+   "path": "t15_day00468_block14_radial8_calibration_task.mat",
+   "file_id": 4825641,
+   "size_bytes": 28451656,
+   "sha256": "8f9edf76163c1a2d24c6288b7bf31f2f41cb120a9c03ad83048c08810ed548f6",
+   "day": 468,
+   "block": 14,
+   "task": "radial8_calibration"
+  },
+  {
+   "path": "t15_day00468_block15_grid_evaluation_task.mat",
+   "file_id": 4825643,
+   "size_bytes": 28461168,
+   "sha256": "46a69a63f7fd6d3109b0bc23ca5deea9a992b26f0c4f3b4a617d1e4cc44e79cd",
+   "day": 468,
+   "block": 15,
+   "task": "grid_evaluation"
+  },
+  {
+   "path": "t15_day00468_block16_grid_evaluation_task.mat",
+   "file_id": 4825645,
+   "size_bytes": 28450104,
+   "sha256": "6975ee53800008c11b76e3b74ec16f648e9a23b0a30ae8ebe48ea311916c18ac",
+   "day": 468,
+   "block": 16,
+   "task": "grid_evaluation"
+  },
+  {
+   "path": "t15_day00468_block17_grid_evaluation_task.mat",
+   "file_id": 4825644,
+   "size_bytes": 28437456,
+   "sha256": "edf07ebe4fac0528a4a860663f5091c0259b7586335f759e3e307949460720a1",
+   "day": 468,
+   "block": 17,
+   "task": "grid_evaluation"
+  }
+ ]
+}
