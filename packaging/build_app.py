@@ -56,6 +56,31 @@ def tree_size(path: Path) -> int:
     return sum(p.stat().st_size for p in path.rglob("*") if p.is_file() and not p.is_symlink())
 
 
+def macos_minimum(bundle: Path) -> dict[str, object]:
+    """The highest `minos` of any Mach-O file in the bundle: the real minimum macOS."""
+    otool = shutil.which("otool")
+    if otool is None:
+        return {"macos_min_required": None, "macos_min_detail": "otool not available"}
+    best: tuple[int, ...] = (0,)
+    best_file = ""
+    for p in bundle.rglob("*"):
+        if p.is_symlink() or not p.is_file() or p.suffix not in ("", ".so", ".dylib"):
+            continue
+        with p.open("rb") as fh:
+            magic = fh.read(4)
+        if magic not in (b"\xcf\xfa\xed\xfe", b"\xca\xfe\xba\xbe"):  # Mach-O 64 / universal
+            continue
+        out = subprocess.run([otool, "-l", str(p)], capture_output=True, text=True, check=False)
+        for m in re.finditer(r"\bminos (\d+(?:\.\d+)*)", out.stdout):
+            ver = tuple(int(x) for x in m.group(1).split("."))
+            if ver > best:
+                best, best_file = ver, str(p.relative_to(bundle))
+    return {
+        "macos_min_required": ".".join(map(str, best)) if best != (0,) else None,
+        "macos_min_set_by": best_file or None,
+    }
+
+
 def make_dmg(app: Path, out: Path) -> Path:
     hdiutil = shutil.which("hdiutil")
     if hdiutil is None:
@@ -128,6 +153,11 @@ def main(argv: list[str] | None = None) -> int:
         "bundle_bytes": tree_size(bundle),
         "signed": "ad-hoc (PyInstaller default on Apple Silicon); not notarized" if mac else None,
     }
+    if mac:
+        info.update(macos_minimum(bundle))
+        required = str(info.get("macos_min_required") or "0")
+        if tuple(int(x) for x in required.split(".")) > (14,):
+            print(f"WARNING: bundled libraries need macOS {required}; Info.plist says 14.0")
     if args.dmg:
         if not mac:
             raise SystemExit("--dmg needs macOS (hdiutil)")

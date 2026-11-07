@@ -228,11 +228,16 @@ class Recorder:
         if self._fh is None or self._name is None or self._device is None:
             return None
         fh, self._fh = self._fh, None
+        # Each step separately: after a failed write (disk full) the flush fails too, and the
+        # file must still be closed. Stopping must never raise into the event pump.
         try:
             fh.flush()
             os.fsync(fh.fileno())
+        except Exception as exc:
+            log.error("recording %s flush failed: %s", self._name, exc)
+        try:
             fh.close()
-        except OSError as exc:
+        except Exception as exc:
             log.error("recording %s close failed: %s", self._name, exc)
         name, self._name = self._name, None
         self._release_marker(name)

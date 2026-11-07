@@ -10,7 +10,7 @@ Two ways to install; both give the same BrainOS:
 | | Desktop app (`.dmg`) | Python package (`pip`) |
 | --- | --- | --- |
 | For | Using BrainOS | Using BrainOS, and adding plugins or writing apps |
-| Needs | macOS 12 or later, **Apple Silicon** (M1 or later) | Python 3.12 |
+| Needs | macOS 14 (Sonoma) or later, **Apple Silicon** (M1 or later) | Python 3.12 (any macOS Python 3.12 supports) |
 | Includes | BrainOS, the console, simulated sources, recordings, NWB datasets, LSL, Open Ephys, the BCI2000 plugin | the same, plus any plugin you `pip install` (e.g. BrainFlow) |
 
 ## A. The desktop app
@@ -19,7 +19,9 @@ Two ways to install; both give the same BrainOS:
 
 The `.dmg` is built by this repository's CI (job **package-macos**, artifact
 `brainos-macos-dmg`), or on a Mac from a checkout with `make setup && make app`
-(output: `packaging/dist/BrainOS-<version>-macos-arm64.dmg`). There is no public download
+(output: `packaging/dist/BrainOS-<version>-macos-arm64.dmg`). The app requires macOS 14
+because the numerical libraries it bundles (numpy, scipy for Apple Silicon) do; on older
+macOS use the pip installation, which picks libraries for your system. There is no public download
 page. Use only a build from your own lab's CI or one you built yourself: the app is unsigned,
 so macOS cannot tell you who made it.
 
@@ -38,8 +40,8 @@ an ad-hoc signature). macOS therefore refuses to open it the first time:
   the app, click **Done**. Open **System Settings → Privacy & Security**, scroll to
   *Security*, click **Open Anyway** next to "BrainOS was blocked…", and confirm with your
   password. Then double-click BrainOS again and click **Open**.
-- **macOS 12–14**: in Applications, **Control-click** (or right-click) BrainOS → **Open** →
-  **Open**.
+- **macOS 14 (Sonoma)**: in Applications, **Control-click** (or right-click) BrainOS →
+  **Open** → **Open**.
 
 You do this once per installed copy. (Command-line alternative, only for a build you trust:
 `xattr -dr com.apple.quarantine /Applications/BrainOS.app`.)
@@ -180,6 +182,7 @@ The app bundle is built and smoke-tested automatically on GitHub Actions `macos-
 console page, every built-in source type, the plugin host inside the app, Simulated Profile A
 streaming over the API, a recording closed cleanly on quit, crash recovery after a kill,
 the status window, launching with `open` and quitting with an Apple Event, and the app run
-from the mounted `.dmg`. The identical bundle layout is built and tested on Linux by
+from the mounted `.dmg`; its `build-info.json` records the minimum macOS that the bundled
+native libraries actually require. The identical bundle layout is built and tested on Linux by
 **package-linux**. Nobody has yet installed it by hand on a physical Mac and used it with
 equipment; see LIMITATIONS.md.

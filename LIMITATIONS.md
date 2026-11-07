@@ -224,7 +224,8 @@ See docs/CERTIFICATION.md §6.
 - **The macOS app has been built and smoke-tested only on GitHub Actions `macos-latest`**
   (Apple Silicon runners; job `package-macos`), never installed by hand on a physical Mac or
   used with equipment. The identical bundle layout is built and smoke-tested on Linux
-  (`package-linux`, and locally). Apple Silicon only; Intel Macs use the pip installation.
+  (`package-linux`, and locally). Apple Silicon and macOS 14 or later only (the bundled
+  numpy/scipy wheels require it); Intel Macs and older macOS use the pip installation.
 - **Unsigned and not notarized** (ad-hoc signature only): Gatekeeper blocks the first launch
   until the user allows it (docs/INSTALL_MAC.md). No auto-update.
 - The app bundles BrainOS's built-in sources and the BCI2000 plugin. BrainFlow and other
