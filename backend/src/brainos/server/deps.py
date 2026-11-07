@@ -16,6 +16,7 @@ HTTP_STATUS: dict[ErrorCode, int] = {
     ErrorCode.DEVICE_NOT_FOUND: 404,
     ErrorCode.INVALID_STATE: 409,
     ErrorCode.UNSUPPORTED_OPERATION: 409,
+    ErrorCode.INCOMPATIBLE_DECODER: 409,
     ErrorCode.CAPABILITY_UNSUPPORTED: 409,
     ErrorCode.RECORDING_ERROR: 409,
     ErrorCode.DEVICE_ERROR: 502,

@@ -208,7 +208,7 @@ export interface CapabilityDescriptor {
 export interface DeviceDescriptor {
   device_id: string;
   display_name: string;
-  kind: "simulated" | "replay" | "hardware";
+  kind: "simulated" | "replay" | "hardware" | "stream";
   adapter: string;
   description: string;
   native_format: string;
