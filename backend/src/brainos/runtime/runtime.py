@@ -552,6 +552,20 @@ class Runtime:
         except PipelineError as exc:
             raise RuntimeCommandError(exc.code, exc.message) from None
 
+    async def start_pipeline_async(self, req: PipelineStartRequest) -> PipelineStatus:
+        """Like :meth:`start_pipeline`, and waits until isolated decoders (model files,
+        decoder plugins) are loaded in their host process; a load failure is the error."""
+        if self._state not in (RuntimeState.STREAMING, RuntimeState.PAUSED):
+            raise RuntimeCommandError(
+                ErrorCode.INVALID_STATE, f"cannot start a pipeline in state {self._state}"
+            )
+        try:
+            return await self.pipeline.start_async(
+                req, self._device, self._session_id, self._adapter_origin()
+            )
+        except PipelineError as exc:
+            raise RuntimeCommandError(exc.code, exc.message) from None
+
     def set_router(self, router: RouterSpec) -> PipelineStatus:
         try:
             return self.pipeline.set_router(router)

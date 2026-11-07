@@ -23,7 +23,7 @@ from typing import Any
 import numpy as np
 from numpy.typing import NDArray
 
-from brainos.decoding.ridge import causal_filter, exponential_kernel
+from brainos.decoding.ridge import causal_filter, exponential_kernel, filter_step
 
 FloatArray = NDArray[np.float64]
 DEFAULT_TAU_MS = 500.0
@@ -85,6 +85,9 @@ class LDAClassifier:
     input: dict[str, Any] = field(default_factory=dict)
     source: dict[str, Any] = field(default_factory=dict)
     outputs: dict[str, Any] = field(default_factory=dict)
+    # ---- Milestone 5 (optional; older files lack them)
+    inputs: list[dict[str, Any]] = field(default_factory=list)
+    manifest: dict[str, Any] = field(default_factory=dict)
 
     # ---- the decoder interface shared with RidgeDecoder (pipeline, model registry)
     @property
@@ -112,10 +115,17 @@ class LDAClassifier:
         )
 
     def predict_proba(self, features: FloatArray) -> FloatArray:
-        """Offline posteriors for a whole sequence (the smoothing filter starts at zero)."""
+        """Offline posteriors for a whole sequence (the smoothing filter starts at zero).
+
+        Computed row by row with the streaming arithmetic: bit-identical to stepping
+        :class:`StreamingLDA` through the same sequence."""
         mean, std, w, b = self._arrays()
         x = causal_filter(np.asarray(features, dtype=np.float64), np.asarray(self.kernel))
-        return _softmax(((x - mean) / std) @ w.T + b)
+        z = (x - mean) / std
+        wt = np.ascontiguousarray(w.T)
+        if z.shape[0] == 0:
+            return np.zeros((0, len(self.classes)))
+        return np.stack([_softmax(row @ wt + b) for row in z])
 
     def predict(self, features: FloatArray) -> NDArray[np.int64]:
         out: NDArray[np.int64] = np.argmax(self.predict_proba(features), axis=1)
@@ -132,6 +142,8 @@ class LDAClassifier:
     @classmethod
     def from_dict(cls, data: dict[str, Any], name: str = "model") -> LDAClassifier:
         model = cls(**data)
+        if model.kind != "lda":
+            raise ValueError(f"{name}: not an LDA model (kind {model.kind!r})")
         k, c = len(model.classes), model.channel_count
         if (
             k < 2
@@ -150,11 +162,12 @@ class LDAClassifier:
 
 
 class StreamingLDA:
-    """Causal, bin-by-bin posteriors: identical maths to ``predict_proba``."""
+    """Causal, bin-by-bin posteriors: bit-identical to ``predict_proba``."""
 
     def __init__(self, model: LDAClassifier) -> None:
         self.model = model
-        self._mean, self._std, self._w, self._b = model._arrays()
+        self._mean, self._std, w, self._b = model._arrays()
+        self._wt = np.ascontiguousarray(w.T)
         self._kernel = np.asarray(model.kernel)
         self._history = np.zeros((len(self._kernel), model.channel_count))
 
@@ -164,8 +177,8 @@ class StreamingLDA:
     def step(self, features: FloatArray | list[float]) -> FloatArray:
         self._history = np.roll(self._history, 1, axis=0)
         self._history[0] = np.asarray(features, dtype=np.float64)
-        x = self._kernel @ self._history
-        return _softmax(((x - self._mean) / self._std) @ self._w.T + self._b)
+        x = filter_step(self._history, self._kernel)
+        return _softmax(((x - self._mean) / self._std) @ self._wt + self._b)
 
 
 def fit_lda(
@@ -223,7 +236,17 @@ def fit_lda(
         intercept=intercept.tolist(),
         priors=priors.tolist(),
         shrinkage=shrink,
-        training={**training, "samples_used": int(rows.sum()), "class_counts": counts},
+        training={
+            **training,
+            "samples_used": int(rows.sum()),
+            "class_counts": counts,
+            # raw input-feature statistics over all training bins (drift monitoring)
+            "feature_stats": {
+                "mean": np.asarray(features, dtype=np.float64).mean(axis=0).tolist(),
+                "std": np.asarray(features, dtype=np.float64).std(axis=0).tolist(),
+                "bins": int(features.shape[0]),
+            },
+        },
         created_at=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         input=input_spec,
         source=source or {},

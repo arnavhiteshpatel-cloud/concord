@@ -90,6 +90,7 @@ const PRESETS: Record<string, string> = {
   ecog_high_gamma: "High-gamma band power",
   band_power: "Band power",
   features_passthrough: "Source features (passthrough)",
+  decoded_passthrough: "Source decoder outputs (passthrough)",
 };
 export const presetLabel = (p: string | null | undefined): string => (p ? (PRESETS[p] ?? p) : "—");
 

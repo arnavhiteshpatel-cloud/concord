@@ -99,6 +99,7 @@ class NWBUnitsSource:
                 synthetic=False,
                 model_id=decoder.model_id,
                 origin=self.origin,
+                model_origin="brainos",  # a model BrainOS trained, run by BrainOS
             )
             if decoder
             else None

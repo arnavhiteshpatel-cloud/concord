@@ -45,3 +45,27 @@ in a section named after the workstream; the lead resolves conflicts.
 - No silent channel reordering, unit rescaling, or cross-participant decoder use.
 - Untrusted serialized models are never deserialized with pickle without an explicit trust
   decision; prefer safe formats (skops, ONNX, safetensors, JSON).
+
+## Workstream A notes (decoder SDK and model ecosystem)
+
+- Delivered:
+  - `packages/brainos-decoder-sdk` (API 1.0);
+  - `decoding/{families,model,registry,engine,monitor,metrics,calibrate}.py`;
+  - pipeline integration (one decoder interface, several decoders, multi-input join,
+    `decoded_passthrough`, `model_origin`);
+  - `server/decoder_routes.py`;
+  - console Decoder row / start sheet / Calibration panel;
+  - `examples/decoders/brainos-example-decoder`;
+  - guide docs/DECODER_SDK.md, ARCHITECTURE §14.
+- P0 integration (agreed with the lead):
+  - `kalman.py` and `click.py` register through `families.register_family` (stable API);
+  - T15 decoder outputs go through `decoded_passthrough` with `model_origin: historical`;
+  - click events are `intent.kinematics` dims `["click"]`, quantity `click_decision` /
+    `click_probability`;
+  - a declared `y_axis: up` requires `invert_y`.
+- Not done:
+  - routing an external decoder's continuous output with automatic scaling (it needs a
+    declared `scale`);
+  - per-app decoder selection;
+  - GPU execution;
+  - decoder-host IPC benchmarks (E).
