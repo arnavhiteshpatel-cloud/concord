@@ -21,6 +21,12 @@ from brainos.contracts.events import EventEnvelope
 from brainos.contracts.protocol import AppInfo, ConnectedApp, NegotiationResult
 
 DEFAULT_QUEUE_SIZE = 2048
+MAX_CONTROL_QUEUE = 256  # a client this far behind on control messages is disconnected
+
+
+class SubscriberOverflowError(Exception):
+    """The subscriber stopped reading; its control queue overflowed."""
+
 
 Tap = Callable[[EventEnvelope, str], None]
 
@@ -41,6 +47,7 @@ class Subscriber:
     _control: deque[str] = field(default_factory=deque)
     _wake: asyncio.Event = field(default_factory=asyncio.Event)
     allowed: frozenset[Capability] = frozenset()
+    control_overflow: bool = False
 
     def __post_init__(self) -> None:
         self.allowed = frozenset(self.negotiation.granted)
@@ -58,7 +65,10 @@ class Subscriber:
         self._wake.set()
 
     def offer_control(self, message_json: str) -> None:
-        self._control.append(message_json)
+        if len(self._control) >= MAX_CONTROL_QUEUE:
+            self.control_overflow = True  # never grow without bound; transport disconnects
+        else:
+            self._control.append(message_json)
         self._wake.set()
 
     @property
@@ -68,6 +78,8 @@ class Subscriber:
     async def next_message(self) -> tuple[str, int | None]:
         """Return (frame_json, enqueue_monotonic_ns or None for control)."""
         while True:
+            if self.control_overflow:
+                raise SubscriberOverflowError(self.connection_id)
             if self._control:
                 return self._control.popleft(), None
             if self._events:

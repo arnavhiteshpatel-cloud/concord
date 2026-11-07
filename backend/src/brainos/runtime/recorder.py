@@ -90,8 +90,13 @@ class Recorder:
     def on_event(self, envelope: EventEnvelope, event_json: str) -> None:
         if self._fh is None:
             return
-        self._fh.write(event_json)
-        self._fh.write("\n")
+        try:
+            self._fh.write(event_json)
+            self._fh.write("\n")
+        except OSError as exc:
+            log.error("recording %s write failed: %s", self._name, exc)
+            self.stop(f"write failed: {exc}")
+            return
         self._bytes += len(event_json) + 1
         self._events += 1
         if time.monotonic() - self._started > MAX_DURATION_S:
@@ -102,8 +107,11 @@ class Recorder:
     def stop(self, reason: str = "stopped") -> RecordingInfo | None:
         if self._fh is None or self._name is None or self._device is None:
             return None
-        self._fh.close()
-        self._fh = None
+        fh, self._fh = self._fh, None
+        try:
+            fh.close()
+        except OSError as exc:
+            log.error("recording %s close failed: %s", self._name, exc)
         name, self._name = self._name, None
         self.stop_reason = reason
         log.info("recording %s stopped (%s, %d events)", name, reason, self._events)

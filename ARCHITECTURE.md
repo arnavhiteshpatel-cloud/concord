@@ -252,7 +252,10 @@ Pydantic validation → timestamp-regression check → diagnostics → bus fan-o
 
 Failures at any step are logged with context, counted
 (`decode_errors`, `validation_errors`, `undeclared_capability`), and the
-packet is dropped. The pump never dies on a bad packet.
+packet is dropped. The pump never dies on a bad packet. If the pump task
+nevertheless dies from an unexpected exception, a watchdog moves the runtime
+to `error` (it never keeps claiming `streaming`). Any active recording is
+stopped whenever its device stops delivering (disconnect, switch, error, end).
 
 ### 6.3 Reconnect policy
 
@@ -264,7 +267,9 @@ to 3 attempts with backoff 0.2 s / 0.5 s / 1.0 s. Success → `streaming`
 
 Each subscriber has a bounded event queue (default 2048). On overflow the
 oldest event is dropped and counted per subscriber. Control messages
-(negotiation, runtime state) use a separate queue and are never dropped.
+(negotiation, runtime state, pongs) use a separate queue and are never dropped; it is
+bounded at 256 messages, and a client that falls that far behind is disconnected (close
+code 1008, `control_queue_overflow`) rather than allowed to grow server memory.
 
 ## 7. Transport & API
 

@@ -361,3 +361,124 @@ async def test_link_error_during_pause_resumes_paused(
     await wait_for(lambda: rt.diagnostics.reconnect_successes == 1)
     assert rt.state is RuntimeState.PAUSED and adapter.paused
     await rt.shutdown()
+
+
+# --------------------------------------------------------------------------------------
+# Regression tests from the independent review (one per finding).
+
+
+async def test_recording_stops_when_reconnect_gives_up(runtime: Runtime) -> None:
+    """Review #1: a recording must not outlive the device that produced it."""
+    await runtime.connect("sim-a")
+    runtime.start_recording("leak")
+    runtime.adapter.inject_fault(Fault.LINK_FAIL)  # type: ignore[union-attr]
+    await wait_for(lambda: runtime.state is RuntimeState.ERROR)
+    assert runtime.recorder.active_name is None
+    await runtime.connect("sim-b")
+    lines = (runtime.recorder.directory / "leak.brainos.jsonl").read_text().splitlines()
+    assert {json.loads(line)["device_id"] for line in lines[1:]} == {"sim-a"}
+
+
+async def test_replay_of_empty_recording_ends_instead_of_spinning(
+    tmp_path: Path, intents: OperatorIntentSource
+) -> None:
+    """Review #2: a recording with no replayable events must end, not busy-loop the server."""
+    rec_dir = tmp_path / "rec"
+    registry = DeviceRegistry(intents, rec_dir, seed=1)  # looping replay (the default)
+    rt = Runtime(registry, Recorder(rec_dir))
+    await rt.connect("sim-a")
+    await rt.pause()
+    rt.start_recording("empty")
+    rt.stop_recording()
+    ticks = 0
+
+    async def ticker() -> None:
+        nonlocal ticks
+        while True:
+            ticks += 1
+            await asyncio.sleep(0.01)
+
+    t = asyncio.create_task(ticker())
+    await rt.switch("replay:empty")
+    await wait_for(lambda: rt.state is RuntimeState.ENDED, timeout=3)
+    t.cancel()
+    assert ticks > 0  # the event loop was never starved
+    await rt.shutdown()
+
+
+async def test_pump_crash_moves_runtime_to_error(registry: DeviceRegistry, tmp_path: Path) -> None:
+    """Review #6: an unexpected exception in the pump must not leave state 'streaming'."""
+    desc = scripted_descriptor("crashy", [Capability.SELECTION])
+    adapter = ScriptedAdapter(desc, [])
+    registry.register(desc, lambda: adapter)
+    rt = Runtime(registry, Recorder(tmp_path))
+
+    def bad_tap(*_: object) -> None:
+        raise ZeroDivisionError("tap bug")
+
+    await rt.connect("crashy")
+    rt.bus.add_tap(bad_tap)
+    adapter.script.append([sel_draft()])
+    await wait_for(lambda: rt.state is RuntimeState.ERROR)
+    assert rt.snapshot().last_error and "pump" in rt.snapshot().last_error
+    await rt.disconnect()
+    assert rt.state is RuntimeState.IDLE
+
+
+async def test_recorder_write_failure_stops_recording_not_stream(runtime: Runtime) -> None:
+    """Review #6: disk errors stop the recording; streaming continues."""
+    sub = subscribe(runtime)
+    await runtime.connect("sim-a")
+    runtime.start_recording("diskfull")
+
+    class Broken:
+        def write(self, _: str) -> int:
+            raise OSError(28, "No space left on device")
+
+        def close(self) -> None:
+            raise OSError(28, "No space left on device")
+
+    runtime.recorder._fh = Broken()  # type: ignore[assignment]
+    await wait_for(lambda: runtime.recorder.active_name is None)
+    drain(sub)
+    await wait_for(lambda: sub.queue_depth > 5)
+    assert runtime.state is RuntimeState.STREAMING
+    assert (await runtime.disconnect()).state is RuntimeState.IDLE
+
+
+def test_control_queue_is_bounded() -> None:
+    """Review #4: a client that never reads cannot grow server memory without bound."""
+    from brainos.contracts.protocol import AppInfo, AppStatus, NegotiationResult
+    from brainos.runtime.bus import MAX_CONTROL_QUEUE, Subscriber, SubscriberOverflowError
+
+    sub = Subscriber(
+        "c",
+        AppInfo(id="x", name="x"),
+        [],
+        [],
+        NegotiationResult(device_id=None, status=AppStatus.NO_DEVICE, granted=[], rejected=[]),
+    )
+    for _ in range(MAX_CONTROL_QUEUE * 4):
+        sub.offer_control("{}")
+    assert len(sub._control) == MAX_CONTROL_QUEUE and sub.control_overflow
+    with pytest.raises(SubscriberOverflowError):
+        asyncio.run(sub.next_message())
+
+
+async def test_replay_skips_truncated_last_line(
+    tmp_path: Path, intents: OperatorIntentSource
+) -> None:
+    """Review (minor): a line truncated by a crash is skipped; replay still ends cleanly."""
+    rec_dir = tmp_path / "rec"
+    registry = DeviceRegistry(intents, rec_dir, seed=1, replay_loop=False)
+    rt = Runtime(registry, Recorder(rec_dir))
+    await rt.connect("sim-b")
+    rt.start_recording("trunc")
+    await wait_for(lambda: rt.diagnostics.totals["recording.frame"] >= 3)
+    rt.stop_recording()
+    path = rec_dir / "trunc.brainos.jsonl"
+    path.write_text(path.read_text() + '{"schema_version": "1.0", "seq": 9')
+    await rt.switch("replay:trunc")
+    await wait_for(lambda: rt.state is RuntimeState.ENDED, timeout=5)
+    assert rt.diagnostics.link_errors == 0
+    await rt.shutdown()

@@ -68,10 +68,12 @@ class ReplayAdapter(DeviceAdapter):
         self._first_dev_ts: int | None = None
         self._last_dev_ts: int | None = None
         self.loops = 0
+        self._yielded_this_pass = False
 
     async def open(self) -> None:
         try:
             self._it = self._source.records()
+            self._yielded_this_pass = False
         except OSError as exc:
             raise DeviceLinkError(f"cannot open recording: {exc}") from exc
         self._t0_rec = None
@@ -95,8 +97,13 @@ class ReplayAdapter(DeviceAdapter):
             try:
                 rec = next(self._it)
             except StopIteration:
+                if not self._yielded_this_pass:
+                    # never loop over a pass that produced nothing: that would spin forever
+                    msg = f"{self.device_id}: recording has no replayable events"
+                    raise EndOfStream(msg) from None
                 if not self._loop:
                     raise EndOfStream(f"{self.device_id}: end of recording") from None
+                self._yielded_this_pass = False
                 if self._first_dev_ts is not None and self._last_dev_ts is not None:
                     self._dev_ts_offset += self._last_dev_ts - self._first_dev_ts + LOOP_GAP_NS
                 self._first_dev_ts = None
@@ -109,6 +116,7 @@ class ReplayAdapter(DeviceAdapter):
             prov = rec.envelope.get("provenance")
             if isinstance(prov, dict) and prov.get("kind") == ProvenanceKind.RUNTIME.value:
                 continue
+            self._yielded_this_pass = True
             return rec
 
     async def read(self) -> NativePacket:
