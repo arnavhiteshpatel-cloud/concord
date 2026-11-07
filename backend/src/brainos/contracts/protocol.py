@@ -39,6 +39,7 @@ class DeviceKind(StrEnum):
     SIMULATED = "simulated"
     REPLAY = "replay"
     HARDWARE = "hardware"  # reserved; no hardware adapters exist in v1
+    STREAM = "stream"
 
 
 class DeviceDescriptor(_Wire):
