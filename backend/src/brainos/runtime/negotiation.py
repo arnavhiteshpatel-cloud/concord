@@ -11,6 +11,10 @@ from brainos.contracts.protocol import (
     RejectionReason,
 )
 
+# Provided by the runtime itself (not by a device) whenever a device is connected:
+# ``control.state`` notices (schema 1.4) are produced per application by the runtime.
+RUNTIME_CAPABILITIES: frozenset[Capability] = frozenset({Capability.CONTROL_STATUS})
+
 
 def negotiate(
     required: list[Capability],
@@ -29,6 +33,9 @@ def negotiate(
     authorized the application for them (``authorized``); otherwise they are rejected with
     ``not_authorized`` (default deny). Capabilities the source provides natively (e.g. a
     simulator's ``simulated_intent``) are unaffected.
+
+    ``control_status`` (:data:`RUNTIME_CAPABILITIES`) is granted whenever a device is
+    connected: the runtime, not the device, produces ``control.state``.
     """
     req = list(dict.fromkeys(required))
     opt = [c for c in dict.fromkeys(optional) if c not in req]
@@ -44,7 +51,7 @@ def negotiate(
             device_id=None, status=AppStatus.NO_DEVICE, granted=[], rejected=rejected
         )
 
-    supported = device.capability_set
+    supported = device.capability_set | RUNTIME_CAPABILITIES
     for cap in (*req, *opt):
         if cap not in supported:
             reason = RejectionReason.UNSUPPORTED_BY_DEVICE

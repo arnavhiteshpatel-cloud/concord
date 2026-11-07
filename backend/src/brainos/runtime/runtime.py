@@ -7,6 +7,14 @@ numbers, and routes events to subscribers via the bus.
 Concurrency model: everything runs on one asyncio loop. Commands are
 serialized by ``_lock``. Envelope stamping (``_ingest``) contains no awaits, so
 seq assignment is atomic and strictly increasing per session.
+
+Control state (schema 1.4): every application that asks for ``control_status`` receives a
+``control.state`` event addressed to it alone whenever the set of command capabilities whose
+events can reach it changes (command router on/off, operator authorize/revoke/stop, input
+stall, pause/resume, link loss/reconnect, source switch/disconnect/error/end, suspension),
+with the reason, plus one at the start of every session and when it connects. It is computed
+and enqueued synchronously in the same step as the change, after queued decoded commands
+were withdrawn, so no command is ever delivered after an ``active: false`` notice.
 """
 
 from __future__ import annotations
@@ -41,10 +49,12 @@ from brainos.contracts.events import (
 )
 from brainos.contracts.protocol import (
     AppInfo,
+    AppStatus,
     DeviceDescriptor,
     ErrorCode,
     NegotiationResult,
     PlaybackStatus,
+    RejectionReason,
     RuntimeSnapshot,
     RuntimeState,
 )
@@ -116,6 +126,9 @@ class Runtime:
         self._paused = False
         self._pump_task: asyncio.Task[None] | None = None
         self._background: set[asyncio.Future[None]] = set()
+        # why command delivery is about to change (consumed by the next control-state sync)
+        self._pending_stop: str | None = None
+        self._pending_start: str | None = None
 
     # ------------------------------------------------------------------ queries
     @property
@@ -196,6 +209,7 @@ class Runtime:
         log.info(
             "app connected: %s (%s) status=%s", app.id, sub.connection_id, sub.negotiation.status
         )
+        self._sync_control_state(sub, None, None)  # its first control.state, if it asked
         self._broadcast_runtime()
         return sub
 
@@ -226,6 +240,138 @@ class Runtime:
                 sub.offer_control(
                     '{"type":"negotiation","negotiation":' + result.model_dump_json() + "}"
                 )
+        self._sync_control_states()
+
+    # ------------------------------------------------------- control.state (1.4)
+    def command_delivery(self, sub: Subscriber) -> frozenset[Capability]:
+        """Command capabilities whose events can reach ``sub`` right now: granted by
+        negotiation, the source streaming, and for decoded commands the router on and the
+        app id authorized (the same conditions the bus applies)."""
+        if (
+            self._adapter is None
+            or self._session_id is None
+            or self._state is not RuntimeState.STREAMING
+            or sub.negotiation.status is not AppStatus.ACTIVE
+        ):
+            return frozenset()
+        decoded = self._decoded_commands(self._active_device())
+        router_on = self.pipeline.router_on
+        return frozenset(
+            c
+            for c in COMMAND_CAPABILITIES & sub.allowed
+            if c not in decoded or (router_on and c in sub.authorized)
+        )
+
+    def _sync_control_states(self, stop: str | None = None, start: str | None = None) -> None:
+        stop = stop or self._pending_stop
+        start = start or self._pending_start
+        self._pending_stop = self._pending_start = None
+        for sub in self.bus.subscribers:
+            self._sync_control_state(sub, stop, start)
+
+    def _sync_control_state(self, sub: Subscriber, stop: str | None, start: str | None) -> None:
+        sid, device = self._session_id, self._device
+        if not sub.wants_control_state or sid is None or device is None:
+            return  # no session: nothing can be delivered (a new session starts with a notice)
+        caps = self.command_delivery(sub)
+        # while inactive, a change in WHY (e.g. connecting -> suspended -> not authorized) is
+        # news too; the derived reason is the key, the text prefers the triggering event's
+        why = "" if caps else self._why_inactive(sub, caps)
+        key = (sid, bool(caps), tuple(sorted(c.value for c in caps)), why)
+        if sub.control_state == key:
+            return
+        prev = sub.control_state if sub.control_state and sub.control_state[0] == sid else None
+        lost = prev is not None and bool(set(prev[2]) - set(key[2]))
+        if caps and not lost:
+            reason = start or self._why_active(caps)
+        else:
+            reason = stop or self._why_inactive(sub, caps)
+        self._emit_control_state(sub, key, reason)
+
+    def _why_active(self, caps: frozenset[Capability]) -> str:
+        decoded = caps & self._decoded_commands(self._active_device())
+        names = ", ".join(sorted(c.value for c in caps))
+        if decoded:
+            model = next(
+                (
+                    str(d.params.get("model_id"))
+                    for d in self.pipeline.capability_descriptors()
+                    if d.params.get("source") == "command_router"
+                ),
+                "?",
+            )
+            return f"decoded command output active ({names}; decoder {model}, authorized)"
+        name = self._device.display_name if self._device else "source"
+        return f"command input active ({names}; from {name})"
+
+    def _why_inactive(self, sub: Subscriber, caps: frozenset[Capability]) -> str:
+        if self._state is not RuntimeState.STREAMING:
+            return f"source {self._state.value}"
+        if self._adapter is None:
+            return "no source connected"
+        n = sub.negotiation
+        if n.status is AppStatus.SUSPENDED:
+            missing = [f"{r.capability.value} ({r.reason.value})" for r in n.rejected if r.required]
+            return "application suspended: " + ", ".join(missing)
+        waiting = sorted(
+            r.capability.value for r in n.rejected if r.reason is RejectionReason.NOT_AUTHORIZED
+        )
+        if waiting:
+            return "waiting for operator authorization: " + ", ".join(waiting)
+        if caps:
+            return "command output reduced to " + ", ".join(sorted(c.value for c in caps))
+        return "no command output for this application"
+
+    def _emit_control_state(
+        self, sub: Subscriber, key: tuple[str, bool, tuple[str, ...], str], reason: str
+    ) -> None:
+        device, sid = self._device, self._session_id
+        assert device is not None and sid is not None
+        try:
+            envelope = parse_envelope(
+                {
+                    "schema_version": SCHEMA_VERSION,
+                    "session_id": sid,
+                    "device_id": device.device_id,
+                    "seq": self._seq,
+                    "timestamp_ns": time.time_ns(),
+                    "device_timestamp_ns": None,
+                    "event_type": EventType.CONTROL_STATE,
+                    "capability": Capability.CONTROL_STATUS,
+                    "payload": {
+                        "active": key[1],
+                        "capabilities": list(key[2]),
+                        "reason": reason[:256],
+                    },
+                    "quality": Quality(
+                        score=1.0, flags=[QualityFlag.SYNTHETIC] if device.synthetic else []
+                    ),
+                    "provenance": Provenance(
+                        kind=ProvenanceKind.RUNTIME,
+                        adapter=RUNTIME_ADAPTER,
+                        synthetic=device.synthetic,
+                        origin="runtime",
+                    ),
+                }
+            )
+        except ValidationError as exc:  # a bug, never expected: log and count it
+            self.diagnostics.validation_errors += 1
+            self.diagnostics.record_error("validation_error", device.device_id, str(exc)[:300])
+            log.error("control.state for %s invalid: %s", sub.app.id, exc)
+            return
+        self._seq += 1
+        sub.control_state, sub.control_reason = key, reason[:256]
+        sub.offer_event(envelope.model_dump_json(), pinned=True)
+        self.diagnostics.record_event(EventType.CONTROL_STATE.value, 0)
+        log.info(
+            "control.state -> %s (%s) on %s: active=%s %s (%s)",
+            sub.app.id,
+            sub.connection_id,
+            device.device_id,
+            key[1],
+            list(key[2]),
+            reason,
+        )
 
     # ------------------------------------------------------- control bridge (M4)
     def authorize_app(self, app_id: str, capabilities: list[Capability]) -> Grant:
@@ -234,6 +380,8 @@ class Runtime:
             grant = self.authorizations.authorize(app_id, frozenset(capabilities))
         except ValueError as exc:
             raise RuntimeCommandError(ErrorCode.PROTOCOL_ERROR, str(exc)) from None
+        names = ", ".join(sorted(c.value for c in capabilities))
+        self._pending_start = f"operator authorized this application ({names})"
         self._renegotiate_all()
         self._broadcast_runtime()
         return grant
@@ -251,6 +399,9 @@ class Runtime:
                 sub.authorized = self.authorizations.authorized(app_id)
                 if removed:
                     sub.purge_commands(removed)
+        if removed:
+            names = ", ".join(sorted(c.value for c in removed))
+            self._pending_stop = f"authorization revoked by operator ({names})"
         self._renegotiate_all()
         self._broadcast_runtime()
         return removed
@@ -265,6 +416,8 @@ class Runtime:
         purged = self.bus.purge_commands()
         if purged:
             log.info("withdrew %d queued decoded command(s): %s", purged, reason)
+        # the pipeline renegotiates right after this; apps learn why in their control.state
+        self._pending_stop = f"command output stopped: {reason}"
 
     def command_requests(self) -> list[Subscriber]:
         """Connected applications that ask for at least one command capability."""
@@ -277,12 +430,16 @@ class Runtime:
             '{"type":"runtime","runtime":' + self.snapshot().model_dump_json() + "}"
         )
 
-    def _set_state(self, state: RuntimeState) -> None:
+    def _set_state(self, state: RuntimeState, reason: str | None = None) -> None:
         if state is not self._state:
             log.info("runtime state %s -> %s", self._state, state)
             self._state = state
             self._state_since_ns = time.time_ns()
         self._broadcast_runtime()
+        if state is RuntimeState.STREAMING:
+            self._sync_control_states(start=reason)
+        else:
+            self._sync_control_states(stop=reason)
 
     # ---------------------------------------------------------------- commands
     def _describe(self, device_id: str) -> DeviceDescriptor:
@@ -339,7 +496,7 @@ class Runtime:
             self._adapter.set_paused(True)
             self.pipeline.stop_router("source paused")
             self._emit_status(DeviceState.PAUSED, "paused by operator")
-            self._set_state(RuntimeState.PAUSED)
+            self._set_state(RuntimeState.PAUSED, "source paused by operator")
             return self.snapshot()
 
     async def resume(self) -> RuntimeSnapshot:
@@ -351,7 +508,7 @@ class Runtime:
             self._paused = False
             self._adapter.set_paused(False)
             self._emit_status(DeviceState.STREAMING, "resumed by operator")
-            self._set_state(RuntimeState.STREAMING)
+            self._set_state(RuntimeState.STREAMING, "source resumed by operator")
             return self.snapshot()
 
     # ------------------------------------------------------------- playback
@@ -456,7 +613,8 @@ class Runtime:
         self._last_error = None
         self._paused = False
         self.diagnostics.reset_rates()
-        self._set_state(RuntimeState.CONNECTING)
+        name = adapter.descriptor.display_name
+        self._set_state(RuntimeState.CONNECTING, f"connecting to {name}")
         try:
             await asyncio.wait_for(adapter.open(), OPEN_TIMEOUT_S)
         except (DeviceLinkError, TimeoutError) as exc:
@@ -470,13 +628,13 @@ class Runtime:
         self._renegotiate_all()  # before emitting, so apps receive the 'connected' status
         self._emit_status(DeviceState.CONNECTED, f"connected to {adapter.descriptor.display_name}")
         self._emit_status(DeviceState.STREAMING, "streaming")
-        self._set_state(RuntimeState.STREAMING)
+        self._set_state(RuntimeState.STREAMING, f"source streaming ({name})")
         self._pump_task = asyncio.create_task(self._pump(adapter), name=f"pump:{device_id}")
         self._pump_task.add_done_callback(self._pump_done)
 
     async def _disconnect(self, reason: str) -> None:
         self.pipeline.stop(f"device disconnected ({reason})")
-        self._set_state(RuntimeState.DISCONNECTING)
+        self._set_state(RuntimeState.DISCONNECTING, f"device disconnected ({reason})")
         await self._stop_pump()
         if self.recorder.active_name:
             self.recorder.stop(f"device disconnected ({reason})")
@@ -524,7 +682,7 @@ class Runtime:
             kind, self._device.device_id if self._device else None, message
         )
         self._adapter = None
-        self._set_state(RuntimeState.ERROR)
+        self._set_state(RuntimeState.ERROR, f"runtime error: {message}")
         self._renegotiate_all()
 
     async def _pump(self, adapter: DeviceAdapter) -> None:
@@ -542,7 +700,7 @@ class Runtime:
                 if self.recorder.active_name:
                     self.recorder.stop("source ended")
                 self.pipeline.stop("source ended")
-                self._set_state(RuntimeState.ENDED)
+                self._set_state(RuntimeState.ENDED, f"source ended: {exc}")
                 self._renegotiate_all()
                 return
             except asyncio.CancelledError:
@@ -580,7 +738,7 @@ class Runtime:
         log.warning("%s: link error: %s; attempting reconnect", device_id, error)
         self.pipeline.stop_router("source link lost")
         self._emit_status(DeviceState.RECONNECTING, str(error))
-        self._set_state(RuntimeState.RECONNECTING)
+        self._set_state(RuntimeState.RECONNECTING, f"source link lost: {error}")
         await adapter.close()
         last: Exception = error
         for attempt, delay in enumerate(self._backoff, start=1):
@@ -600,7 +758,10 @@ class Runtime:
                 self._renegotiate_all()
             adapter.set_paused(self._paused)
             self._emit_status(DeviceState.STREAMING, f"reconnected after {attempt} attempt(s)")
-            self._set_state(RuntimeState.PAUSED if self._paused else RuntimeState.STREAMING)
+            self._set_state(
+                RuntimeState.PAUSED if self._paused else RuntimeState.STREAMING,
+                f"source reconnected after {attempt} attempt(s)",
+            )
             return True
         message = f"link lost; {len(self._backoff)} reconnect attempts failed: {last}"
         self._emit_status(DeviceState.ERROR, message)

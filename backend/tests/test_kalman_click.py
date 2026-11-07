@@ -149,6 +149,35 @@ def test_click_probability_separates_states_and_streams_identically() -> None:
     assert np.allclose(online, p[:300], atol=1e-12)
 
 
+def test_offline_click_rule_equals_the_command_router() -> None:
+    """The evaluation's click rule is the router's: same clicks on the same probabilities."""
+    from brainos.runtime.router import ClickRule, _RuleState, _step
+
+    rng = np.random.default_rng(3)
+    t = np.arange(3000)
+    p = np.clip(0.5 + 0.45 * np.sin(t / 37.0) + rng.normal(0, 0.08, t.size), 0, 1)
+    for th, hold, refr in ((0.5, 1, 100), (0.6, 10, 100), (0.7, 20, 30)):
+        rule = ClickRule(
+            **clickdec.router_click_rule(
+                {"threshold": th, "hold_bins": hold, "refractory_ms": refr * 10}
+            )
+        )
+        st, live = _RuleState(), []
+        for t, v in enumerate(p):
+            if _step(
+                rule.threshold,
+                rule.release_level,
+                rule.debounce_ms,
+                rule.refractory_ms,
+                st,
+                float(v),
+                t * 10_000_000,
+            ):
+                live.append(t)
+        assert clickdec.decision_events(p, th, hold, refr).tolist() == live
+        assert live  # the case is not vacuous
+
+
 def test_click_decision_rule_hold_and_refractory() -> None:
     p = np.zeros(400)
     p[10:30] = 0.9  # 20 bins above threshold

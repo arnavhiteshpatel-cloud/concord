@@ -190,20 +190,58 @@ def logistic_regression(
     return w[:-1], float(w[-1])
 
 
+RELEASE_GAP = 0.15  # the command router's default hysteresis (release = threshold - 0.15)
+
+
 def decision_events(
-    p: FloatArray, threshold: float, hold_bins: int, refractory_bins: int
+    p: FloatArray,
+    threshold: float,
+    hold_bins: int,
+    refractory_bins: int,
+    release: float | None = None,
 ) -> NDArray[np.int64]:
-    """Reference implementation of a threshold + hold + refractory click rule (bins)."""
+    """The command router's click rule, bin by bin (``runtime/router.py: _step``).
+
+    Fires when P >= ``threshold`` for ``hold_bins`` consecutive bins (router ``debounce_ms`` =
+    (hold_bins - 1) x bin), at least ``refractory_bins`` after the previous click, and then
+    waits until P falls below ``release`` (default threshold - 0.15) before it can fire again.
+    The evaluation uses this so offline numbers mean what the live chain does.
+    """
+    rel = max(0.0, threshold - RELEASE_GAP) if release is None else release
     out: list[int] = []
-    run = 0
-    last = -(10**9)
+    armed = True
+    above: int | None = None
+    last: int | None = None
     for t, v in enumerate(np.ravel(p)):
-        run = run + 1 if v > threshold else 0
-        if run >= hold_bins and t - last >= refractory_bins:
+        if not armed:
+            if v < rel:
+                armed = True
+            above = None
+            continue
+        if v < threshold:
+            above = None
+            continue
+        if above is None:
+            above = t
+        held = t - above >= hold_bins - 1
+        rested = last is None or t - last >= refractory_bins
+        if held and rested:
             out.append(t)
             last = t
-            run = 0
+            armed = False
+            above = None
     return np.asarray(out, dtype=np.int64)
+
+
+def router_click_rule(decision: dict[str, Any], output: str = "click") -> dict[str, Any]:
+    """The router ``ClickRule`` equivalent to a model's recorded ``decision`` advice."""
+    bin_ms = float(decision.get("bin_ms", 10.0))
+    return {
+        "output": output,
+        "threshold": float(decision["threshold"]),
+        "debounce_ms": (int(decision["hold_bins"]) - 1) * bin_ms,
+        "refractory_ms": float(decision["refractory_ms"]),
+    }
 
 
 def fit(

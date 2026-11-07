@@ -7,7 +7,11 @@ from the cursor app: it *requires* ``selection`` (discrete actions) and optional
 * ``select`` (selection action ``primary``) moves the highlight to the next item;
 * ``activate`` opens the highlighted submenu or chooses the highlighted entry;
 * ``cancel`` goes back one level (a "Back" entry does the same where cancel is not offered);
-* ``text`` intents are appended to the message line (a speller).
+* ``text`` intents are appended to the message line (a speller);
+* ``navigation`` (schema 1.4, optional): up / previous and down / next move the highlight,
+  right opens / chooses (like activate), left goes back (like cancel);
+* ``control_status`` (schema 1.4, optional): the runtime's ``control.state`` notices are
+  shown, and the guard acts on commands only while they say command delivery is active.
 
 Which actions exist depends on the source and the operator's rules; the app adapts to what
 arrives and never derives actions from raw signals, features or behavior labels itself.
@@ -67,10 +71,13 @@ class MenuApp:
     ignored: int = 0
     stops: list[str] = field(default_factory=list)
     provenance: set[tuple[str, str | None]] = field(default_factory=set)  # (kind, model_id)
+    control: str | None = None  # the runtime's last control.state, as text
     guard: CommandGuard = field(init=False)
 
     def __post_init__(self) -> None:
-        self.guard = CommandGuard(["selection", "text_intent"], on_stop=self.stops.append)
+        self.guard = CommandGuard(
+            ["selection", "text_intent", "navigation"], on_stop=self.stops.append
+        )
 
     # ------------------------------------------------------------------ state
     @property
@@ -91,6 +98,11 @@ class MenuApp:
         env = self.guard.handle(item)
         if not is_event(item):
             return
+        if item.event_type.value == "control.state":  # shown even while suspended
+            p = item.payload
+            on = "active" if p.active else "inactive"  # type: ignore[union-attr]
+            self.control = f"{on}: {p.reason}"  # type: ignore[union-attr]
+            return
         if env is None or self.status != "active":
             self.ignored += 1
             return
@@ -99,6 +111,8 @@ class MenuApp:
             self._act(str(env.payload.action))  # type: ignore[union-attr]
         elif et == "intent.text":
             self._type(str(env.payload.text))  # type: ignore[union-attr]
+        elif et == "intent.navigate":
+            self._navigate(str(env.payload.direction))  # type: ignore[union-attr]
         else:
             self.ignored += 1
             return
@@ -110,15 +124,30 @@ class MenuApp:
         if action == "primary":  # select: move the highlight
             self.highlight = (self.highlight + 1) % len(items)
         elif action == "activate":
-            entry = items[self.highlight]
-            if not self.path:
-                self.path, self.highlight = [entry], 0
-            elif entry == BACK:
-                self._back()
-            else:
-                self.chosen.append(f"{self.path[0]} / {entry}")
-                self._back()
+            self._open_or_choose()
         elif action == "cancel":
+            self._back()
+
+    def _open_or_choose(self) -> None:
+        entry = self.items[self.highlight]
+        if not self.path:
+            self.path, self.highlight = [entry], 0
+        elif entry == BACK:
+            self._back()
+        else:
+            self.chosen.append(f"{self.path[0]} / {entry}")
+            self._back()
+
+    def _navigate(self, direction: str) -> None:
+        self.actions[f"navigate:{direction}"] = self.actions.get(f"navigate:{direction}", 0) + 1
+        n = len(self.items)
+        if direction in ("down", "next"):
+            self.highlight = (self.highlight + 1) % n
+        elif direction in ("up", "previous"):
+            self.highlight = (self.highlight - 1) % n
+        elif direction == "right":
+            self._open_or_choose()
+        elif direction == "left":
             self._back()
 
     def _back(self) -> None:
@@ -140,6 +169,8 @@ class MenuApp:
             )
         if self.status != "active" or not self.can_act:
             why = f" ({self.stops[-1]})" if self.stops else ""
+            if self.control:
+                why = f" (runtime: {self.control})"
             return f"[{self.status}] waiting: no source currently provides selection{why}"
         where = " > ".join(["Menu", *self.path])
         entries = " ".join(
@@ -158,6 +189,7 @@ class MenuApp:
             "actions": self.actions,
             "ignored_events": self.ignored,
             "stops": self.stops,
+            "control": self.control,
             "commands_from": sorted(f"{k} ({m})" if m else k for k, m in self.provenance),
         }
 
@@ -168,7 +200,7 @@ async def run(app: MenuApp, base_url: str, stop: asyncio.Event) -> MenuApp:
         app_id=APP_ID,
         app_name="Reference menu app",
         required=["selection"],
-        optional=["text_intent"],
+        optional=["text_intent", "navigation", "control_status"],
         base_url=base_url,
     ) as stream:
         app.handle(NegotiationUpdate(stream.negotiation))

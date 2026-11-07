@@ -194,7 +194,21 @@ export interface ProcessingSpecInput {
   band_high_hz?: number;
 }
 
-export type DiscreteAction = "primary" | "activate" | "cancel" | "text";
+export type NavigateDirection = "up" | "down" | "left" | "right" | "next" | "previous";
+/** schema 1.4: "navigate:<direction>" sends intent.navigate */
+export type DiscreteAction = "primary" | "activate" | "cancel" | "text" | `navigate:${NavigateDirection}`;
+
+/** schema 1.4 router feature: a click from one decoder output (probability or 0/1 decision). */
+export interface ClickRule {
+  output: string;
+  action?: "primary" | "activate";
+  threshold?: number;
+  release?: number | null;
+  min_confidence?: number;
+  confidence_dim?: string | null;
+  debounce_ms?: number;
+  refractory_ms?: number;
+}
 
 /** One discrete action from a classifier's class posterior (Milestone 4). */
 export interface DiscreteRule {
@@ -216,8 +230,12 @@ export interface RouterSpec {
   deadzone: number;
   invert_y: boolean;
   max_speed: number;
+  /** "training_std" (default): value / training std; "native": already workspace units/s */
+  pointer_scale?: "training_std" | "native";
   /** discrete actions (classifier decoders) */
   discrete?: DiscreteRule[];
+  /** a click from one decoder output */
+  click?: ClickRule | null;
   stall_ms?: number;
 }
 
@@ -301,7 +319,7 @@ export interface RouterEvent {
 // ------------------------------------------------------------------ control bridge (M4)
 // Shapes mirror backend/src/brainos/server/control_routes.py.
 
-export type CommandCapability = "pointer_intent" | "selection" | "text_intent";
+export type CommandCapability = "pointer_intent" | "selection" | "text_intent" | "navigation";
 
 export interface AppControl {
   app_id: string;
@@ -316,6 +334,9 @@ export interface AppControl {
   receiving: CommandCapability[];
   waiting: { capability: CommandCapability; reason: "unsupported_by_device" | "no_device" | "not_authorized"; required: boolean }[];
   refused_commands: number;
+  /** schema 1.4: what the app's last control.state said (null: it does not ask for it) */
+  control_active?: boolean | null;
+  control_reason?: string | null;
 }
 
 export interface ControlEvent {

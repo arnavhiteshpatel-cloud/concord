@@ -46,11 +46,14 @@ from brainos.contracts.events import (
 from brainos.contracts.protocol import DeviceDescriptor, ErrorCode
 from brainos.runtime.control import COMMAND_CAPABILITIES
 from brainos.runtime.router import (
+    ClickRule,
     CommandRouter,
     DiscreteRule,
+    RouterConfigError,
     RouterSpec,
     pointer_velocity,
     router_capabilities,
+    validate_router,
 )
 
 if TYPE_CHECKING:
@@ -60,6 +63,7 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 __all__ = [
+    "ClickRule",
     "DiscreteRule",
     "PipelineError",
     "PipelineManager",
@@ -204,6 +208,8 @@ class PipelineManager:
             "commands_out": 0,
             "selections_out": 0,
             "texts_out": 0,
+            "navigations_out": 0,
+            "clicks_gated": 0,
             "router_stalls": 0,
             "errors": 0,
         }
@@ -445,44 +451,17 @@ class PipelineManager:
             )
         from brainos.decoding.model import output_classes
 
-        classes = output_classes(decoder)
-        if not router.pointer and not router.discrete:
-            raise PipelineError(
-                ErrorCode.CAPABILITY_UNSUPPORTED,
-                "the command router has nothing to emit: map two decoder dimensions to the "
-                "pointer (x_dim, y_dim) or add discrete rules",
+        try:
+            validate_router(
+                router,
+                model_id=decoder.model_id,
+                dims=decoder.dims,
+                classes=output_classes(decoder),
+                has_std=std is not None,
+                quantity=decoder.quantity,
             )
-        if router.pointer:
-            if classes is not None:
-                raise PipelineError(
-                    ErrorCode.INCOMPATIBLE_DECODER,
-                    f"pointer movement needs a continuous decoder; {decoder.model_id} is a "
-                    f"classifier (classes {classes}). Use discrete rules instead.",
-                )
-            for d in (router.x_dim, router.y_dim):
-                if d not in decoder.dims:
-                    raise PipelineError(
-                        ErrorCode.PROTOCOL_ERROR,
-                        f"decoder has no dimension {d!r} ({decoder.dims})",
-                    )
-            if std is None:
-                raise PipelineError(
-                    ErrorCode.PROTOCOL_ERROR,
-                    "model lacks training behavior_std; retrain it to use the router",
-                )
-        if router.discrete:
-            if classes is None:
-                raise PipelineError(
-                    ErrorCode.INCOMPATIBLE_DECODER,
-                    f"discrete actions need a classifier (outputs: classes); {decoder.model_id} "
-                    f"outputs continuous {decoder.quantity} {decoder.dims}",
-                )
-            for r in router.discrete:
-                if r.output not in classes:
-                    raise PipelineError(
-                        ErrorCode.INCOMPATIBLE_DECODER,
-                        f"decoder {decoder.model_id} has no class {r.output!r} ({classes})",
-                    )
+        except RouterConfigError as exc:
+            raise PipelineError(exc.code, exc.message) from None
 
     @staticmethod
     def _make_router(run: _Running, router: RouterSpec) -> CommandRouter:
@@ -708,14 +687,18 @@ class PipelineManager:
                 out.append(decoded)
                 self.counters["decoded_out"] += 1
                 if run.command_router is not None:
+                    gated = run.command_router.clicks_gated
                     for cmd in run.command_router.route(decoded):
                         out.append(cmd)
                         if cmd.event_type is EventType.INTENT_POINTER:
                             self.counters["commands_out"] += 1
                         elif cmd.event_type is EventType.INTENT_SELECTION:
                             self.counters["selections_out"] += 1
+                        elif cmd.event_type is EventType.INTENT_NAVIGATE:
+                            self.counters["navigations_out"] += 1
                         else:
                             self.counters["texts_out"] += 1
+                    self.counters["clicks_gated"] += run.command_router.clicks_gated - gated
         return out
 
     # ------------------------------------------------------------------ status
