@@ -54,6 +54,8 @@ lint:  ## ruff + mypy (strict) + tsc
 	cd packages/brainos-bci2000 && ../../$(VENV)/bin/mypy --strict src/brainos_bci2000
 	cd packages/brainos-certify && ../../$(VENV)/bin/mypy
 	$(NPM) run typecheck
+	# M5-C: the opt-in desktop control bridge (SDK-only, separate process)
+	cd backend && ../$(VENV)/bin/mypy --strict examples/desktop_bridge
 
 e2e-setup:  ## one-time: install Playwright (repo-local, not saved) + Chromium
 	npm install --no-save --no-package-lock playwright@1.63.0
