@@ -29,7 +29,7 @@ not closed-loop control.
 | Calibration from recordings | 2 + real-data replay | Recording of FALCON-over-LSL → calibration gives the same held-out R² as fitting the file directly (within float32 tolerance); synthetic tuned units calibrate (R² > 0.3); unrelated signal gives R² < 0.2 | Never calibrated on live neural data or with a participant |
 | Center-out cue task | 2 | Cue + marker streams attach to a neural stream on one clock (`test_center_out_task.py`) | Never shown to a participant; display timing (monitor latency) unmeasured |
 | Command router + reference app | 1–2 | Same unchanged SDK-only app across simulator, FALCON-over-LSL (suspended until the router is enabled, then decoded commands), Open Ephys (suspended) | No person has controlled anything with it |
-| Operator console | 1–2 | Vitest + Playwright e2e against a real server with an LSL publisher (see PR) | — |
+| Operator console | 1–2 | Vitest (API helpers and every Acquisition/Pipeline/Router/Calibration control against a mocked server); Playwright `e2e/demo.cjs` steps M3-1…M3-5 against a real server with an LSL synthetic-ephys publisher and an Open Ephys ZMQ test publisher (discover, register, connect, integrity counters, spikeband pipeline counters, stop, remove) | Calibration, model loading and the router are not exercised in the browser demo (component + backend tests only) |
 | **Anything** | **3 / 4** | **Nothing in BrainOS has reached level 3 or 4.** | Requires lab hardware, and for level 4 an approved protocol |
 
 ## What would move a component up a level

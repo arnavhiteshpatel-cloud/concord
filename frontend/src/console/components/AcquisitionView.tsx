@@ -91,12 +91,10 @@ export function AcquisitionView({
         Read-only acquisition: BrainOS only receives from LSL inlets and Open Ephys subscriber sockets; nothing is ever
         sent to an acquisition system.
       </p>
+      <LslSources onSourcesChanged={onSourcesChanged} notify={notify} />
       <div className="lab-grid">
-        <LslSources onSourcesChanged={onSourcesChanged} notify={notify} />
-        <div className="lab-col">
-          <OpenEphysForm onSourcesChanged={onSourcesChanged} notify={notify} />
-          <RegisteredSources devices={devices} runtime={runtime} onSourcesChanged={onSourcesChanged} notify={notify} />
-        </div>
+        <OpenEphysForm onSourcesChanged={onSourcesChanged} notify={notify} />
+        <RegisteredSources devices={devices} runtime={runtime} onSourcesChanged={onSourcesChanged} notify={notify} />
       </div>
       {liveConnected ? (
         <SignalIntegrity meta={liveMeta} error={liveError} diag={diag} />
