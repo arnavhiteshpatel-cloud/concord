@@ -96,7 +96,9 @@ if MAC:
             "CFBundleDisplayName": "BrainOS",
             "CFBundleShortVersionString": VERSION,
             "CFBundleVersion": VERSION,
-            "LSMinimumSystemVersion": "12.0",
+            # numpy/scipy arm64 wheels pip selects on current macOS link Accelerate and are
+            # built for macOS 14; a clear "requires macOS 14" beats a crash on older systems
+            "LSMinimumSystemVersion": "14.0",
             "NSHighResolutionCapable": True,
             "NSHumanReadableCopyright": "Research use only. Not a medical device.",
         },
