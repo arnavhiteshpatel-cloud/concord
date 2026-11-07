@@ -32,6 +32,17 @@ def _pylsl() -> Any:
     return pylsl
 
 
+def lost_error() -> type[Exception]:
+    """pylsl's "stream lost" exception: top-level in older pylsl, only in pylsl.util since 1.17."""
+    pylsl = _pylsl()
+    err = getattr(pylsl, "LostError", None)
+    if err is None:
+        from pylsl import util
+
+        err = util.LostError
+    return err  # type: ignore[no-any-return]
+
+
 def library_info() -> str:
     pylsl = _pylsl()
     return f"pylsl {pylsl.__version__}, liblsl {pylsl.library_version()}"
