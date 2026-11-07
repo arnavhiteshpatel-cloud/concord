@@ -11,11 +11,11 @@ from __future__ import annotations
 from enum import StrEnum
 from typing import Annotated, Any, Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_validator
+from pydantic import BaseModel, ConfigDict, Field, StrictBool, TypeAdapter, model_validator
 
 from brainos.contracts.capabilities import Capability, EventType, capability_for
 
-SCHEMA_VERSION = "1.3"
+SCHEMA_VERSION = "1.4"
 # 1.1: features.binned, behavior.sample, intent.kinematics
 # 1.2: features.vector; recording.frame unit "arbitrary" (source did not state a known unit)
 SCHEMA_MAJOR = 1
@@ -74,6 +74,8 @@ ALLOWED_PROVENANCE: dict[EventType, frozenset[ProvenanceKind]] = {
     EventType.FEATURES_VECTOR: frozenset({ProvenanceKind.PROCESSED_FEATURE}),
     EventType.BEHAVIOR_SAMPLE: frozenset({ProvenanceKind.BEHAVIORAL_LABEL}),
     EventType.INTENT_KINEMATICS: _INTENT_KINDS,
+    EventType.INTENT_NAVIGATE: _INTENT_KINDS,
+    EventType.CONTROL_STATE: frozenset({ProvenanceKind.RUNTIME}),
 }
 
 
@@ -84,6 +86,10 @@ class Provenance(_Strict):
     model_id: str | None = Field(default=None, min_length=1, max_length=128)
     origin: str = Field(min_length=1, max_length=128)
     replayed: bool = False
+    # 1.4: who produced a decoded_intent: a model BrainOS trained/loaded ("brainos"), an
+    # external system's live decoder ("external", e.g. a device's own decoder), or the
+    # recorded outputs of a research system's original online decoder ("historical").
+    model_origin: Literal["brainos", "external", "historical"] | None = None
 
 
 def check_provenance(event_type: EventType, provenance: Provenance) -> None:
@@ -100,6 +106,10 @@ def check_provenance(event_type: EventType, provenance: Provenance) -> None:
         raise ValueError("decoded_intent requires provenance.model_id")
     if provenance.kind is not ProvenanceKind.DECODED_INTENT and provenance.model_id is not None:
         raise ValueError("model_id is only valid for decoded_intent")
+    if provenance.kind is not ProvenanceKind.DECODED_INTENT and provenance.model_origin is not None:
+        raise ValueError("model_origin is only valid for decoded_intent")
+    if provenance.model_origin == "historical" and not provenance.replayed:
+        raise ValueError("historical decoder outputs are recorded data: replayed must be true")
 
 
 # -------------------------------------------------------------------------- payloads
@@ -149,6 +159,22 @@ class SelectionIntentPayload(_Strict):
 
     action: Literal["primary", "activate", "cancel"] = "primary"
     confidence: UnitFloat
+
+
+class NavigateIntentPayload(_Strict):
+    """Discrete navigation (schema 1.4): move a highlight/focus, not a cursor."""
+
+    direction: Literal["up", "down", "left", "right", "next", "previous"]
+    confidence: UnitFloat
+
+
+class ControlStatePayload(_Strict):
+    """Runtime notice to ONE application (schema 1.4): whether decoded command output is
+    currently delivered to it. ``active: false`` = stop acting and enter a safe state."""
+
+    active: StrictBool  # a safety signal: no coercion of "no"/"0" to False
+    capabilities: list[str] = Field(default_factory=list, max_length=16)
+    reason: str = Field(max_length=256)
 
 
 class TextIntentPayload(_Strict):
@@ -353,6 +379,16 @@ class KinematicIntentEvent(_EnvelopeBase):
     payload: KinematicIntentPayload
 
 
+class NavigateIntentEvent(_EnvelopeBase):
+    event_type: Literal[EventType.INTENT_NAVIGATE]
+    payload: NavigateIntentPayload
+
+
+class ControlStateEvent(_EnvelopeBase):
+    event_type: Literal[EventType.CONTROL_STATE]
+    payload: ControlStatePayload
+
+
 EventEnvelope = Annotated[
     RecordingFrameEvent
     | RecordingAnnotationEvent
@@ -364,7 +400,9 @@ EventEnvelope = Annotated[
     | FeaturesBinnedEvent
     | FeaturesVectorEvent
     | BehaviorSampleEvent
-    | KinematicIntentEvent,
+    | KinematicIntentEvent
+    | NavigateIntentEvent
+    | ControlStateEvent,
     Field(discriminator="event_type"),
 ]
 
@@ -382,6 +420,8 @@ PAYLOAD_MODELS: dict[EventType, type[BaseModel]] = {
     EventType.FEATURES_VECTOR: FeaturesVectorPayload,
     EventType.BEHAVIOR_SAMPLE: BehaviorSamplePayload,
     EventType.INTENT_KINEMATICS: KinematicIntentPayload,
+    EventType.INTENT_NAVIGATE: NavigateIntentPayload,
+    EventType.CONTROL_STATE: ControlStatePayload,
 }
 
 

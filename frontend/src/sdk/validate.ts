@@ -88,6 +88,18 @@ function checkPayload(type: EventType, p: Record<string, unknown>): string | nul
       if (type === "intent.kinematics" && !isStr(p.space)) return "kinematic intent requires space";
       return null;
     }
+    case "intent.navigate":
+      return ["up", "down", "left", "right", "next", "previous"].includes(String(p.direction)) &&
+        inRange(p.confidence, 0, 1)
+        ? null
+        : "navigate invalid";
+    case "control.state":
+      return typeof p.active === "boolean" &&
+        Array.isArray(p.capabilities) &&
+        p.capabilities.every(isStr) &&
+        isStr(p.reason)
+        ? null
+        : "control state invalid";
   }
 }
 
@@ -118,6 +130,13 @@ export function validateEnvelope(x: unknown): ValidationResult {
     return { ok: false, error: "simulated_intent must be synthetic" };
   if (prov.kind === "decoded_intent" && !isStr(prov.model_id))
     return { ok: false, error: "decoded_intent requires model_id" };
+  if (prov.model_origin != null) {
+    if (prov.kind !== "decoded_intent") return { ok: false, error: "model_origin only for decoded_intent" };
+    if (!["brainos", "external", "historical"].includes(String(prov.model_origin)))
+      return { ok: false, error: "bad model_origin" };
+    if (prov.model_origin === "historical" && prov.replayed !== true)
+      return { ok: false, error: "historical decoder outputs must be replayed" };
+  }
   if (!isObj(x.payload)) return { ok: false, error: "bad payload" };
   const perr = checkPayload(et, x.payload);
   if (perr) return { ok: false, error: perr };
