@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -10,6 +10,8 @@ from fastapi.responses import JSONResponse
 from brainos.adapters.simulated import OperatorIntentSource
 from brainos.contracts.protocol import ErrorCode
 from brainos.runtime import Runtime, RuntimeCommandError
+from brainos.runtime.retention import RetentionResult
+from brainos.runtime.sessions import SessionManager
 from brainos.server.settings import Settings
 
 HTTP_STATUS: dict[ErrorCode, int] = {
@@ -32,6 +34,10 @@ class AppServices:
     settings: Settings
     runtime: Runtime
     intents: OperatorIntentSource
+    # Milestone 5 (D): research sessions, retention and recovery results from startup
+    sessions: SessionManager
+    last_retention: RetentionResult | None = None
+    interrupted_sessions: list[str] = field(default_factory=list)
 
 
 def services(request: Request) -> AppServices:
