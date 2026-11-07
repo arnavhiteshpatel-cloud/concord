@@ -174,12 +174,27 @@ def _alive(pid: int) -> bool:
     return True
 
 
-def stop(instance: Instance, timeout_s: float = STOP_TIMEOUT_S) -> dict[str, Any]:
+def stop(
+    instance: Instance, timeout_s: float = STOP_TIMEOUT_S, pid_file: Path | None = None
+) -> dict[str, Any]:
     """Safe stop (command output off, recording closed, source disconnected), then SIGTERM.
 
     SIGKILL only if the server does not exit within ``timeout_s``; an active recording is
-    then recovered (marked incomplete) at the next start.
+    then recovered (marked incomplete) at the next start. With ``pid_file``, a server whose
+    instance lock is released and whose API is gone counts as stopped even if its process
+    has not been reaped yet (containers without an init process).
     """
+    from brainos.server.serve import read_instance
+
+    def gone(pid: int) -> bool:
+        if not _alive(pid):
+            return True
+        return (
+            pid_file is not None
+            and read_instance(pid_file) is None
+            and (health(instance.url, timeout=0.3) is None)
+        )
+
     result: dict[str, Any] = {"pid": instance.pid, "safe_stop": None, "forced": False}
     if instance.health is not None:
         with contextlib.suppress(OSError, ValueError, urllib.error.URLError):
@@ -193,7 +208,7 @@ def stop(instance: Instance, timeout_s: float = STOP_TIMEOUT_S) -> dict[str, Any
         os.kill(pid, signal.SIGTERM)
     deadline = time.monotonic() + timeout_s
     while time.monotonic() < deadline:
-        if not _alive(pid):
+        if gone(pid):
             return result
         time.sleep(0.1)
     with contextlib.suppress(ProcessLookupError):

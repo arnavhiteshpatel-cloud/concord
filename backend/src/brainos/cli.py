@@ -150,7 +150,7 @@ def cmd_stop(args: argparse.Namespace) -> int:
         print("BrainOS is not running.")
         return 0
     try:
-        result = launcher.stop(inst, timeout_s=args.timeout)
+        result = launcher.stop(inst, timeout_s=args.timeout, pid_file=s.pid_file)
     except launcher.LaunchError as exc:
         print(f"brainos: {exc}", file=sys.stderr)
         return 1

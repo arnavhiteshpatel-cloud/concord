@@ -302,3 +302,37 @@ def test_desktop_app_headless_starts_and_stops_cleanly(
     rec = tmp_path / "data" / "recordings"
     assert (rec / "app-rec.brainos.jsonl").exists() and not (rec / "app-rec.active.json").exists()
     assert not (tmp_path / "data" / "brainos.pid").exists()
+
+
+@posix
+def test_stop_counts_a_server_without_lock_and_api_as_stopped(tmp_path: Path) -> None:
+    """A server that released its instance lock and no longer answers is stopped, even if its
+    process has not been reaped yet (containers without an init); never SIGKILLed then."""
+    from brainos import launcher
+
+    proc = subprocess.Popen(
+        [
+            sys.executable,
+            "-c",
+            "import signal, time; signal.signal(signal.SIGTERM, "
+            "signal.SIG_IGN); print('ready', flush=True); time.sleep(60)",
+        ],
+        stdout=subprocess.PIPE,
+        text=True,
+    )
+    try:
+        assert proc.stdout is not None and proc.stdout.readline().strip() == "ready"
+        inst = launcher.Instance(
+            pid=proc.pid, url=f"http://127.0.0.1:{free_port()}", health=None, from_pid_file=True
+        )
+        t0 = time.monotonic()
+        result = launcher.stop(inst, timeout_s=10, pid_file=tmp_path / "brainos.pid")
+        assert not result["forced"] and time.monotonic() - t0 < 5
+        assert proc.poll() is None  # it ignored SIGTERM and was not killed
+        # without the lock information, the same process is force-stopped after the timeout
+        result = launcher.stop(inst, timeout_s=1)
+        assert result["forced"]
+        assert proc.wait(10) == -signal.SIGKILL
+    finally:
+        if proc.poll() is None:
+            proc.kill()

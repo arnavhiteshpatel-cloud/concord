@@ -111,7 +111,9 @@ class Lab:
         return r
 
     def api(self, method: str, path: str, body: Any = None) -> Any:
-        return dc.http(method, self.base + "/api/v1" + path, body)
+        # calibration and export take seconds on an idle machine, much longer on a busy one
+        slow = path.startswith("/calibration/") or path.endswith("/export")
+        return dc.http(method, self.base + "/api/v1" + path, body, timeout=900 if slow else 60)
 
     def publisher(self, *args: str) -> subprocess.Popen[str]:
         log = (self.tmp / f"publisher-{len(self.children)}.log").open("w")
@@ -338,7 +340,7 @@ def main() -> int:
                     "falcon",
                     str(block),
                     "--speed",
-                    "10",
+                    "2",
                     "--source-prefix",
                     prefix,
                     "--seconds",
@@ -360,8 +362,10 @@ def main() -> int:
                 lab.api(
                     "POST", "/pipeline/start", {"processing": {"preset": "features_passthrough"}}
                 )
-                # most of the ~4-minute block (20 ms bins): a short recording decodes poorly
-                info = lab.record("lab-falcon-cal", "inputs", 9000)
+                # 100 s of the ~136 s block (6786 bins of 20 ms; not looped: a repeated block
+                # would put training data into the held-out tail). At 2x, discovery and
+                # connecting cannot use up the rest of the block first.
+                info = lab.record("lab-falcon-cal", "inputs", 5000)
                 res = lab.api("POST", "/calibration/train", {"recordings": ["lab-falcon-cal"]})
                 frep = res["report"]
                 nwb = [d for d in lab.api("GET", "/devices") if d["device_id"].startswith("nwb:")]

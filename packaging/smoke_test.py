@@ -22,6 +22,7 @@ Steps (each recorded in the report; any failure exits 1):
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import os
 import shutil
@@ -155,7 +156,10 @@ def mode(p: Path) -> int:
 def check_version(exe: Path) -> str:
     out = subprocess.run([str(exe), "--version"], capture_output=True, text=True, timeout=120)
     text = (out.stdout + out.stderr).strip()
-    assert out.returncode == 0 and text.startswith("BrainOS "), text
+    assert out.returncode == 0, text
+    if not text:  # a windowed bootloader may have no console streams; doctor checks the rest
+        return "exit 0 (no console output from the windowed executable)"
+    assert text.startswith("BrainOS "), text
     return text
 
 
@@ -385,24 +389,30 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--report", type=Path)
     ap.add_argument("--keep", action="store_true")
     args = ap.parse_args(argv)
+    if args.gui and (sys.platform != "darwin" or args.app is None):
+        raise SystemExit("--gui needs macOS and --app")
     work = Path(tempfile.mkdtemp(prefix="brainos-smoke-"))
+    exe = args.executable
+    checks: list[Callable[[], str]] = [
+        lambda: check_version(exe),
+        lambda: check_doctor(exe, work),
+        lambda: check_headless(exe, work),
+        lambda: check_crash(exe, work),
+    ]
+    if args.window:
+        checks.append(lambda: check_window(exe, work))
+    if args.gui:
+        checks.append(lambda: check_gui(args.app, work))
+    if args.dmg:
+        checks.append(lambda: check_dmg(args.dmg, work))
     ok = False
     try:
-        check_version(args.executable)
-        check_doctor(args.executable, work)
-        check_headless(args.executable, work)
-        check_crash(args.executable, work)
-        if args.window:
-            check_window(args.executable, work)
-        if args.gui:
-            if sys.platform != "darwin" or args.app is None:
-                raise SystemExit("--gui needs macOS and --app")
-            check_gui(args.app, work)
-        if args.dmg:
-            check_dmg(args.dmg, work)
-        ok = True
-    except (AssertionError, OSError, subprocess.SubprocessError, ValueError, KeyError):
-        ok = False
+        # every check runs even if an earlier one failed: one CI run reports all of them
+        failures = (AssertionError, OSError, subprocess.SubprocessError, ValueError, KeyError)
+        for check in checks:
+            with contextlib.suppress(*failures):  # recorded in STEPS by @step
+                check()
+        ok = len(STEPS) >= len(checks) and all(s["ok"] for s in STEPS)
     finally:
         report = {
             "ok": ok,
