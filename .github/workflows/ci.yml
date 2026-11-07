@@ -138,3 +138,105 @@ jobs:
           path: |
             reports/e2e.json
             e2e/screenshots/
+
+  # ------------------------------------------------------------------------ M5-D
+  # Release workstream D: clean-room lab acceptance and the desktop bundle.
+
+  lab-acceptance:
+    # From built wheels in fresh virtualenvs, documented commands only: brainos doctor/start/
+    # status/stop, an external LSL source in a separate process, FALCON H1 via `brainos dataset`
+    # (pinned SHA-256), calibration, an SDK-only app authorized by the operator, session export,
+    # and `brainos reproduce` in another fresh venv.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Lab acceptance (clean room)
+        run: python scripts/lab_acceptance.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lab-acceptance-report
+          path: reports/lab-acceptance.json
+
+  package-linux:
+    # The desktop bundle's packaging logic (same PyInstaller spec as macOS), built and run like
+    # a user would: headless, crash recovery, and the Tk window under Xvfb.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Tk runtime and a virtual display (for the window check)
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends libtk8.6 xvfb
+      - name: Install the build environment
+        run: |
+          python -m pip install -e packages/brainos-adapter-sdk -e "backend[lab,dev]" -e packages/brainos-bci2000
+          python -m pip install -r packaging/requirements.txt
+      - name: Lint packaging (ruff, mypy --strict)
+        working-directory: backend
+        run: |
+          ruff check ../packaging && ruff format --check ../packaging
+          mypy --strict ../packaging/app_entry.py ../packaging/stage_console.py ../packaging/build_app.py ../packaging/smoke_test.py
+      - name: Build the bundle (PyInstaller onedir)
+        run: python packaging/build_app.py --build-console
+      - name: Smoke test (headless, crash recovery, Tk window under Xvfb)
+        run: |
+          mkdir -p reports
+          xvfb-run -a python packaging/smoke_test.py packaging/dist/BrainOS/BrainOS --window --report reports/smoke-linux.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: package-linux-report
+          path: |
+            reports/smoke-linux.json
+            packaging/dist/build-info.json
+
+  package-macos:
+    # BrainOS.app + .dmg built on macOS and smoke-tested here: the bundled executable headless,
+    # crash recovery, the Tk window, `open` (double-click equivalent) + Apple Event quit, and
+    # the app from the mounted .dmg. Unsigned (ad-hoc) and not notarized.
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install the build environment
+        run: |
+          python -m pip install -e packages/brainos-adapter-sdk -e "backend[lab]" -e packages/brainos-bci2000
+          python -m pip install -r packaging/requirements.txt
+      - name: Build BrainOS.app and the .dmg
+        run: python packaging/build_app.py --build-console --dmg
+      - name: Smoke test the app and the .dmg
+        run: |
+          mkdir -p reports
+          python packaging/smoke_test.py packaging/dist/BrainOS.app/Contents/MacOS/BrainOS \
+            --app packaging/dist/BrainOS.app --window --gui \
+            --dmg "$(ls packaging/dist/BrainOS-*.dmg)" --report reports/smoke-macos.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: brainos-macos-dmg
+          path: |
+            packaging/dist/BrainOS-*.dmg
+            packaging/dist/build-info.json
+            reports/smoke-macos.json

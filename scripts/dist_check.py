@@ -98,6 +98,12 @@ def http(method: str, url: str, body: dict[str, object] | None = None) -> object
         return json.loads(r.read())
 
 
+def http_text(url: str) -> str:
+    """GET a page as text (M5-D lab acceptance: the console served from the wheel)."""
+    with urllib.request.urlopen(url, timeout=30) as r:
+        return str(r.read().decode("utf-8", "replace"))
+
+
 APP = r"""
 import asyncio, sys
 from brainos.sdk import EventStream, RuntimeClient, is_event
