@@ -1,5 +1,6 @@
+import { useState } from "react";
 import type { RuntimeSnapshot } from "../../sdk";
-import type { Fault, RecordingInfo } from "../api";
+import { isLiveSource, isRecordable, type Fault, type RecordingInfo } from "../api";
 import { Panel, fmt } from "./ui";
 
 const FAULTS: { fault: Fault; label: string; hint: string }[] = [
@@ -26,15 +27,18 @@ export function ControlsPanel({
   onPause: () => void;
   onResume: () => void;
   onDisconnect: () => void;
-  onStartRecording: () => void;
+  onStartRecording: (excludeRaw: boolean) => void;
   onStopRecording: () => void;
   onFault: (f: Fault) => void;
 }) {
   const state = runtime?.state ?? "idle";
   const hasDevice = !!runtime?.device;
-  const simulated = runtime?.device?.kind === "simulated" && state !== "error" && state !== "idle";
-  const canRecord =
-    (state === "streaming" || state === "paused") && runtime?.device?.kind === "simulated";
+  // Fault injection exists only for the built-in simulator (an LSL stream declared synthetic is
+  // kind "simulated" too, but it is an external publisher: nothing can be injected into it).
+  const simulated =
+    runtime?.device?.kind === "simulated" && !isLiveSource(runtime.device) && state !== "error" && state !== "idle";
+  const canRecord = (state === "streaming" || state === "paused") && isRecordable(runtime?.device);
+  const [excludeRaw, setExcludeRaw] = useState(false);
   return (
     <>
       <Panel title="Runtime">
@@ -79,14 +83,32 @@ export function ControlsPanel({
               Stop recording
             </button>
           ) : (
-            <button className="btn" disabled={busy || !canRecord} onClick={onStartRecording} data-testid="rec-start">
+            <button
+              className="btn"
+              disabled={busy || !canRecord}
+              onClick={() => onStartRecording(excludeRaw)}
+              data-testid="rec-start"
+            >
               Start recording
             </button>
           )}
         </div>
+        {!runtime?.recording && (
+          <label className="check small" title="Everything except recording.frame; limit 3600 s instead of 300 s">
+            <input
+              type="checkbox"
+              checked={excludeRaw}
+              onChange={(e) => setExcludeRaw(e.target.checked)}
+              data-testid="rec-exclude-raw"
+            />
+            features + labels only (for calibration)
+          </label>
+        )}
         <p className="muted small">
-          Writes the standardized events of the live simulated session to <code>data/recordings/</code>.
-          Recordings appear as replay devices.
+          Writes the standardized events of the connected session (simulator or live LSL / Open Ephys source,
+          plus pipeline features and decoder output while the pipeline runs) to <code>data/recordings/</code>.
+          Recordings appear as replay devices and can be used for calibration (Pipeline tab). With a raw
+          high-rate source, record <b>features + labels only</b>: raw frames would reach the size cap in seconds.
         </p>
         {recordings.length > 0 && (
           <ul className="rec-list">
