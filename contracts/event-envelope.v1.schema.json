@@ -612,7 +612,8 @@
         "feature": {
           "enum": [
             "band_power",
-            "log_band_power"
+            "log_band_power",
+            "spike_band_power"
           ],
           "title": "Feature",
           "type": "string"

@@ -237,7 +237,9 @@ class FeaturesVectorPayload(_Strict):
     E.g. log band power. The bin ends at the envelope's ``device_timestamp_ns``.
     """
 
-    feature: Literal["band_power", "log_band_power"]
+    # "spike_band_power" (1.4): mean power of the spike band (e.g. 250-5000 Hz) per bin, the
+    # intracortical feature recorded by many research systems.
+    feature: Literal["band_power", "log_band_power", "spike_band_power"]
     unit: str = Field(max_length=32, description="e.g. 'uV^2', 'log10(uV^2)', 'log10(arbitrary^2)'")
     band_hz: tuple[FiniteFloat, FiniteFloat] | None = None
     bin_ms: float = Field(gt=0, le=10_000, allow_inf_nan=False)
