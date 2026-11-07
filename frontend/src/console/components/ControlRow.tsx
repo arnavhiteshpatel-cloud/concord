@@ -1,5 +1,5 @@
 // Row 4 — Command output: the command router, the only path from decoded output to an
-// application command. Off unless the operator starts it; stopped from here or the title bar.
+// application command. Off unless the operator starts it; stopped from the title bar's Stop control.
 
 import { useEffect, useState } from "react";
 import type { ConnectedApp } from "../../sdk";
@@ -86,18 +86,9 @@ export function ControlRow({ pipeline, apps }: { pipeline: PipelineState; apps: 
 
   const reason = !st?.running ? "Start decoding with a model first." : !decoder ? "The decoder has no model. Start decoding with a model." : null;
 
-  const actions = decoder ? (
-    on ? (
-      <button
-        type="button"
-        className="btn btn-danger"
-        disabled={action.busy}
-        onClick={() => current && apply({ ...current, enabled: false })}
-        data-testid="router-off"
-      >
-        Stop control
-      </button>
-    ) : (
+  // When on, stopping is the title bar's Stop control (one red button on screen, not two).
+  const actions =
+    decoder && !on ? (
       <button
         type="button"
         className="btn btn-primary"
@@ -107,8 +98,7 @@ export function ControlRow({ pipeline, apps }: { pipeline: PipelineState; apps: 
       >
         Start control
       </button>
-    )
-  ) : undefined;
+    ) : undefined;
 
   return (
     <Row

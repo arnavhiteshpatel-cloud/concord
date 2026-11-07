@@ -290,14 +290,12 @@ describe("Command output row", () => {
     });
   });
 
-  it("when on, states the mapping and stops with the rest of the spec unchanged", async () => {
+  it("when on, states the mapping and leaves stopping to the title bar (no second red button)", () => {
     const router = { enabled: true, x_dim: "vx", y_dim: "vy", gain: 1, deadzone: 0.3, invert_y: false, max_speed: 2 };
-    const calls = stubFetch({ "POST /pipeline/router": (b) => ({ ...running, router: b }) });
     render(<ControlRow pipeline={pipelineState({ ...running, router })} apps={[]} />);
     expect(screen.getByTestId("router-state").textContent).toBe("On · x ← vx, y ← vy, gain 1");
-    fireEvent.click(screen.getByTestId("router-off"));
-    await waitFor(() => expect(calls.length).toBe(1));
-    expect(calls[0]!.body).toEqual({ ...router, enabled: false });
+    expect(screen.queryByTestId("router-off")).toBeNull();
+    expect(screen.queryByTestId("router-on")).toBeNull();
   });
 
   it("summarises connected applications and what they wait for", () => {
