@@ -5,37 +5,37 @@
 **Level achieved: `protocol_tested`** - protocol-tested against BrainFlow 5.23 BoardShim SYNTHETIC_BOARD (operator statement)  
 Checks: 26 pass, 2 warn, 0 fail, 1 not run. Exit code 0.  
 Plugin `brainflow`, device `synthetic`; origin `brainflow:SYNTHETIC_BOARD` (synthetic=True, prerecorded=False).  
-Run 2026-11-07T20:48:21Z on Linux x86_64 (Intel(R) Xeon(R) Processor @ 2.10GHz, 4 CPUs), Python 3.12.3, adapter SDK 1.0.0 (API 1.0), BrainOS 0.3.0, brainos-certify 0.1.0.
+Run 2026-11-07T20:56:03Z on Linux x86_64 (Intel(R) Xeon(R) Processor @ 2.10GHz, 4 CPUs), Python 3.12.3, adapter SDK 1.0.0 (API 1.0), BrainOS 0.3.0, brainos-certify 0.1.0.
 
 ## Summary
 
 | Check | Status | Reason |
 | --- | --- | --- |
-| `manifest.load` | PASS | plugin loaded in its own host process (pid 32595) in 0.14 s |
+| `manifest.load` | PASS | plugin loaded in its own host process (pid 1390) in 0.15 s |
 | `manifest.valid` | PASS | manifest valid (host and local validation) |
 | `manifest.api_compat` | PASS | plugin API 1.0 runs on SDK API 1.0 (SDK 1.0.0) |
 | `manifest.entry_point` | PASS | entry point brainflow = brainos_brainflow.plugin:BrainFlowPlugin (brainos-brainflow) |
 | `manifest.distribution` | PASS | brainos-brainflow 0.1.0: 9 of 9 hashed RECORD entries verified; module tree sha256 765bb9291093… (editable install: RECORD covers the .pth only; source files hashed) |
 | `manifest.discover` | PASS | 4 device(s) ['synthetic', 'playback', 'streaming', 'board'] in 0.00 s; testing 'synthetic' |
-| `metadata.session_valid` | PASS | 2 stream(s), primary 'exg', synthetic=True prerecorded=False, opened in 0.01 s |
+| `metadata.session_valid` | PASS | 2 stream(s), primary 'exg', synthetic=True prerecorded=False, opened in 0.00 s |
 | `metadata.units` | WARN | 13 of 29 channel(s) declare no unit (shown as 'arbitrary'; correct when the source does not state units) |
 | `metadata.modality` | WARN | modality not declared for ['exg']; invasiveness unknown for ['exg'] (shown as 'not declared'; correct when the source cannot tell) |
 | `metadata.channel_identity` | PASS | 4 opens (open_1, reopen_same_host, fresh_host_after_kill, brainos_runtime): identical stream ids, labels, order, units, rates (29 channels) |
 | `timing.monotonic` | PASS | 12004 timestamps in 3 session(s) never decrease (within or across chunks) |
-| `timing.rate` | PASS | primary 249.932755 Hz from timestamps vs nominal 250 Hz (-0.027 %, tolerance ±2 %) |
-| `timing.jitter` | PASS | primary timestamp residual p50/p99/max 0.0257/0.161/2.5239 ms; arrival interval p50/p99 3.3154/5.9078 ms |
-| `timing.clock_domain` | PASS | unix timestamps within 1.70 ms (median) of the wall clock (time.time); drift +0.0 ppm vs host monotonic |
-| `integrity.read` | PASS | 4990 reads over 20.0 s, 10000 samples (all streams), no errors |
-| `integrity.chunk_validation` | PASS | 11982 chunks validated by the host and again by the certifier |
+| `timing.rate` | PASS | primary 249.931179 Hz from timestamps vs nominal 250 Hz (-0.028 %, tolerance ±2 %) |
+| `timing.jitter` | PASS | primary timestamp residual p50/p99/max 0.0252/0.1147/1.7202 ms; arrival interval p50/p99 3.2937/5.7646 ms |
+| `timing.clock_domain` | PASS | unix timestamps within 1.70 ms (median) of the wall clock (time.time); drift -0.9 ppm vs host monotonic |
+| `integrity.read` | PASS | 4998 reads over 20.0 s, 10000 samples (all streams), no errors |
+| `integrity.chunk_validation` | PASS | 12000 chunks validated by the host and again by the certifier |
 | `integrity.sample_index` | PASS | 12004 samples in 3 session(s): 0 gaps, 0 overlaps |
 | `integrity.markers` | NOT RUN | not applicable: the session declares no markers stream |
 | `integrity.plugin_stats` | PASS | 7 counter(s), none reporting loss |
-| `reconnect.clean_reopen` | PASS | closed in 1.6 ms, reopened in 0.001 s, first data 0.002 s after open; identity unchanged |
-| `reconnect.host_killed` | PASS | SIGKILL after 124 reads surfaced as a link loss in 4.0 ms; fresh host: first data 0.174 s after start (0.007 s after open); identity unchanged; exit code 0 |
-| `performance.throughput` | PASS | primary delivered 249.9342 samples/s over 20.0 s vs nominal 250 Hz (-0.026 %); 61996.3 B/s over IPC |
-| `performance.latency` | PASS | newest-sample latency p50/p95/p99/max 1.7388/2.7777/3.1262/10.4976 ms |
-| `performance.host_resources` | PASS | host process CPU 16.5 % of one core, RSS peak 34.9 MiB (median 34.5 MiB) |
-| `performance.ipc` | PASS | 61996.3 B/s, 249.49 reads/s; ping round trip p50/p99 0.1205/0.2553 ms |
+| `reconnect.clean_reopen` | PASS | closed in 2.2 ms, reopened in 0.002 s, first data 0.003 s after open; identity unchanged |
+| `reconnect.host_killed` | PASS | SIGKILL after 125 reads surfaced as a link loss in 2.8 ms; fresh host: first data 0.131 s after start (0.008 s after open); identity unchanged; exit code 0 |
+| `performance.throughput` | PASS | primary delivered 249.9328 samples/s over 20.0 s vs nominal 250 Hz (-0.027 %); 61991.5 B/s over IPC |
+| `performance.latency` | PASS | newest-sample latency p50/p95/p99/max 1.7048/2.7203/2.9796/13.5741 ms |
+| `performance.host_resources` | PASS | host process CPU 15.6 % of one core, RSS peak 34.8 MiB (median 34.2 MiB) |
+| `performance.ipc` | PASS | 61991.5 B/s, 249.87 reads/s; ping round trip p50/p99 0.2077/0.4255 ms |
 | `runtime.descriptor` (optional) | PASS | descriptor kind=simulated modality=None invasive=None integration=plugin matches the declarations |
 | `runtime.negotiation` (optional) | PASS | granted ['device_status', 'recording']; every other capability rejected (unsupported_by_device); command app suspended |
 | `runtime.envelopes` (optional) | PASS | 1251 of 1251 events validated against contract 1.3 (pydantic + JSON Schema); 0 invalid, 0 undeclared, 0 decode errors |
@@ -69,9 +69,9 @@ Level definitions: docs/CERTIFICATION.md. `adapter_implementation` is the only l
 | Entry point | brainflow |
 | Manifest | brainos-brainflow 0.1.0, API 1.0, ecosystem brainflow, roles ['signal'] |
 | Distribution | brainos-brainflow 0.1.0 (editable) |
-| RECORD | 9 of 9 hashed entries verified (10 files), sha256 c8fef54b5d8506c90a820c726f28feb4f1b91608eee65fc46e7f0763ce7a5a10 |
-| Module files | 6 files under /home/user/brainos/.claude/worktrees/agent-a3b411a3fd094ba1c/packages/brainos-brainflow/src/brainos_brainflow, tree sha256 765bb9291093823be2e753b13c324fb40f09d2d034557bf547c9a92dce49a496 |
-| Git | ef626ac26d6c59210dfb645964148d41f6ca31b1 (clean) |
+| RECORD | 9 of 9 hashed entries verified (10 files), sha256 ef6daca7f38268adc1a6540eeffa4fdc2da086f1471f881a083dcb1923aeb9dc |
+| Module files | 6 files under /home/user/brainos/packages/brainos-brainflow/src/brainos_brainflow, tree sha256 765bb9291093823be2e753b13c324fb40f09d2d034557bf547c9a92dce49a496 |
+| Git | 89e11674a08cab367a543f20a2bcfe6b463c0d42 (clean) |
 
 | Stream | Role | Channels | Rate (Hz) | Clock | Modality | Invasive | Units |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -89,7 +89,7 @@ Level definitions: docs/CERTIFICATION.md. `adapter_implementation` is the only l
 ### Manifest & compatibility
 
 **`manifest.load` - PASS** - Plugin host starts and the plugin loads  
-plugin loaded in its own host process (pid 32595) in 0.14 s
+plugin loaded in its own host process (pid 1390) in 0.15 s
 
 <details><summary>evidence</summary>
 
@@ -98,9 +98,9 @@ plugin loaded in its own host process (pid 32595) in 0.14 s
  "host_api_version": "1.0",
  "host_python": "3.12.3",
  "host_sdk_version": "1.0.0",
- "pid": 32595,
+ "pid": 1390,
  "protocol": "brainos.plugin-ipc/1",
- "startup_s": 0.136
+ "startup_s": 0.152
 }
 ```
 
@@ -234,27 +234,27 @@ brainos-brainflow 0.1.0: 9 of 9 hashed RECORD entries verified; module tree sha2
 ```json
 {
  "distribution": {
-  "direct_url": "file:///home/user/brainos/.claude/worktrees/agent-a3b411a3fd094ba1c/packages/brainos-brainflow",
+  "direct_url": "file:///home/user/brainos/packages/brainos-brainflow",
   "editable": true,
   "name": "brainos-brainflow",
   "version": "0.1.0"
  },
  "git": {
-  "commit": "ef626ac26d6c59210dfb645964148d41f6ca31b1",
+  "commit": "89e11674a08cab367a543f20a2bcfe6b463c0d42",
   "dirty": false,
   "dirty_files": 0
  },
  "module": {
   "file_count": 6,
   "name": "brainos_brainflow.plugin",
-  "path": "/home/user/brainos/.claude/worktrees/agent-a3b411a3fd094ba1c/packages/brainos-brainflow/src/brainos_brainflow",
+  "path": "/home/user/brainos/packages/brainos-brainflow/src/brainos_brainflow",
   "tree_sha256": "765bb9291093823be2e753b13c324fb40f09d2d034557bf547c9a92dce49a496"
  },
  "record": {
   "files": 10,
   "mismatched": [],
   "missing": [],
-  "sha256": "c8fef54b5d8506c90a820c726f28feb4f1b91608eee65fc46e7f0763ce7a5a10",
+  "sha256": "ef6daca7f38268adc1a6540eeffa4fdc2da086f1471f881a083dcb1923aeb9dc",
   "unhashed": 1,
   "verified": 9
  }
@@ -307,7 +307,7 @@ brainos-brainflow 0.1.0: 9 of 9 hashed RECORD entries verified; module tree sha2
    "display_name": "Configure a BrainFlow board"
   }
  ],
- "discover_s": 0.002,
+ "discover_s": 0.001,
  "problems": [],
  "tested_device": "synthetic"
 }
@@ -318,13 +318,13 @@ brainos-brainflow 0.1.0: 9 of 9 hashed RECORD entries verified; module tree sha2
 ### Metadata correctness
 
 **`metadata.session_valid` - PASS** - open() succeeds; SessionInfo passes validation  
-2 stream(s), primary 'exg', synthetic=True prerecorded=False, opened in 0.01 s
+2 stream(s), primary 'exg', synthetic=True prerecorded=False, opened in 0.00 s
 
 <details><summary>evidence</summary>
 
 ```json
 {
- "open_s": 0.011,
+ "open_s": 0.004,
  "options_resolved": {
   "board": "SYNTHETIC_BOARD",
   "file": "",
@@ -500,7 +500,7 @@ modality not declared for ['exg']; invasiveness unknown for ['exg'] (shown as 'n
 </details>
 
 **`timing.rate` - PASS** - Rate from source timestamps matches the nominal rate  
-primary 249.932755 Hz from timestamps vs nominal 250 Hz (-0.027 %, tolerance ±2 %)
+primary 249.931179 Hz from timestamps vs nominal 250 Hz (-0.028 %, tolerance ±2 %)
 
 <details><summary>evidence</summary>
 
@@ -509,21 +509,21 @@ primary 249.932755 Hz from timestamps vs nominal 250 Hz (-0.027 %, tolerance ±2
  "streams": {
   "aux": {
    "clock": "unix",
-   "error_percent": -0.027,
+   "error_percent": -0.028,
    "nominal_hz": 250.0,
-   "rate_hz": 249.932755,
-   "rate_hz_lsq": 249.934202,
+   "rate_hz": 249.931179,
+   "rate_hz_lsq": 249.932608,
    "samples": 5000,
-   "time_span_s": 20.00138
+   "time_span_s": 20.001506
   },
   "exg": {
    "clock": "unix",
-   "error_percent": -0.027,
+   "error_percent": -0.028,
    "nominal_hz": 250.0,
-   "rate_hz": 249.932755,
-   "rate_hz_lsq": 249.934202,
+   "rate_hz": 249.931179,
+   "rate_hz_lsq": 249.932608,
    "samples": 5000,
-   "time_span_s": 20.00138
+   "time_span_s": 20.001506
   }
  },
  "tolerance_percent": 2.0
@@ -533,7 +533,7 @@ primary 249.932755 Hz from timestamps vs nominal 250 Hz (-0.027 %, tolerance ±2
 </details>
 
 **`timing.jitter` - PASS** - Timestamp and arrival jitter distribution  
-primary timestamp residual p50/p99/max 0.0257/0.161/2.5239 ms; arrival interval p50/p99 3.3154/5.9078 ms
+primary timestamp residual p50/p99/max 0.0252/0.1147/1.7202 ms; arrival interval p50/p99 3.2937/5.7646 ms
 
 <details><summary>evidence</summary>
 
@@ -542,37 +542,37 @@ primary timestamp residual p50/p99/max 0.0257/0.161/2.5239 ms; arrival interval 
  "streams": {
   "aux": {
    "arrival_interval_ms": {
-    "max": 12.413,
-    "mean": 4.0087,
-    "min": 0.6573,
-    "n": 4989,
-    "p50": 3.3154,
-    "p95": 5.5697,
-    "p99": 5.9078
+    "max": 16.5789,
+    "mean": 4.0027,
+    "min": 0.7668,
+    "n": 4997,
+    "p50": 3.2937,
+    "p95": 5.5108,
+    "p99": 5.7646
    },
    "interval_error_ms": {
-    "max": 2.5478,
-    "mean": 0.0334,
+    "max": 1.7551,
+    "mean": 0.0297,
     "min": 0.0001,
     "n": 4999,
-    "p50": 0.0162,
-    "p95": 0.083,
-    "p99": 0.2821
+    "p50": 0.017,
+    "p95": 0.077,
+    "p99": 0.18
    },
    "residual_ms": {
-    "max": 2.5239,
-    "mean": 0.0346,
+    "max": 1.7202,
+    "mean": 0.032,
     "min": 0.0,
     "n": 5000,
-    "p50": 0.0257,
-    "p95": 0.0722,
-    "p99": 0.161
+    "p50": 0.0252,
+    "p95": 0.0734,
+    "p99": 0.1147
    },
    "samples_per_chunk": {
-    "max": 2.0,
-    "mean": 1.002,
+    "max": 3.0,
+    "mean": 1.0004,
     "min": 1.0,
-    "n": 4990,
+    "n": 4998,
     "p50": 1.0,
     "p95": 1.0,
     "p99": 1.0
@@ -581,37 +581,37 @@ primary timestamp residual p50/p99/max 0.0257/0.161/2.5239 ms; arrival interval 
   },
   "exg": {
    "arrival_interval_ms": {
-    "max": 12.413,
-    "mean": 4.0087,
-    "min": 0.6573,
-    "n": 4989,
-    "p50": 3.3154,
-    "p95": 5.5697,
-    "p99": 5.9078
+    "max": 16.5789,
+    "mean": 4.0027,
+    "min": 0.7668,
+    "n": 4997,
+    "p50": 3.2937,
+    "p95": 5.5108,
+    "p99": 5.7646
    },
    "interval_error_ms": {
-    "max": 2.5478,
-    "mean": 0.0334,
+    "max": 1.7551,
+    "mean": 0.0297,
     "min": 0.0001,
     "n": 4999,
-    "p50": 0.0162,
-    "p95": 0.083,
-    "p99": 0.2821
+    "p50": 0.017,
+    "p95": 0.077,
+    "p99": 0.18
    },
    "residual_ms": {
-    "max": 2.5239,
-    "mean": 0.0346,
+    "max": 1.7202,
+    "mean": 0.032,
     "min": 0.0,
     "n": 5000,
-    "p50": 0.0257,
-    "p95": 0.0722,
-    "p99": 0.161
+    "p50": 0.0252,
+    "p95": 0.0734,
+    "p99": 0.1147
    },
    "samples_per_chunk": {
-    "max": 2.0,
-    "mean": 1.002,
+    "max": 3.0,
+    "mean": 1.0004,
     "min": 1.0,
-    "n": 4990,
+    "n": 4998,
     "p50": 1.0,
     "p95": 1.0,
     "p99": 1.0
@@ -626,7 +626,7 @@ primary timestamp residual p50/p99/max 0.0257/0.161/2.5239 ms; arrival interval 
 </details>
 
 **`timing.clock_domain` - PASS** - Timestamps are plausible for the declared clock domain  
-unix timestamps within 1.70 ms (median) of the wall clock (time.time); drift +0.0 ppm vs host monotonic
+unix timestamps within 1.70 ms (median) of the wall clock (time.time); drift -0.9 ppm vs host monotonic
 
 <details><summary>evidence</summary>
 
@@ -634,25 +634,25 @@ unix timestamps within 1.70 ms (median) of the wall clock (time.time); drift +0.
 {
  "description": "BrainFlow timestamp channel: UNIX time in seconds. For some boards BrainFlow stamps packages on the PC when they are received (BrainFlow docs, Data Format Description).",
  "domain": "unix",
- "drift_ppm": 0.0,
+ "drift_ppm": -0.9,
  "drift_span_s": 20.0,
  "offset_newest_s": {
-  "max": 0.0105,
+  "max": 0.0136,
   "mean": 0.0017,
   "min": 0.0004,
-  "n": 4990,
+  "n": 4998,
   "p50": 0.0017,
-  "p95": 0.0028,
-  "p99": 0.0031
+  "p95": 0.0027,
+  "p99": 0.003
  },
  "offset_oldest_s": {
-  "max": 0.0105,
-  "mean": 0.0018,
+  "max": 0.0136,
+  "mean": 0.0017,
   "min": 0.0004,
-  "n": 4990,
+  "n": 4998,
   "p50": 0.0017,
-  "p95": 0.0028,
-  "p99": 0.0032
+  "p95": 0.0027,
+  "p99": 0.003
  },
  "reference_clock": "wall clock (time.time)"
 }
@@ -663,7 +663,7 @@ unix timestamps within 1.70 ms (median) of the wall clock (time.time); drift +0.
 ### Packet ordering, loss & data validity
 
 **`integrity.read` - PASS** - Session streams for the whole run without errors or hangs  
-4990 reads over 20.0 s, 10000 samples (all streams), no errors
+4998 reads over 20.0 s, 10000 samples (all streams), no errors
 
 <details><summary>evidence</summary>
 
@@ -671,9 +671,9 @@ unix timestamps within 1.70 ms (median) of the wall clock (time.time); drift +0.
 {
  "empty_reads": 0,
  "failure": null,
- "first_data_after_s": 0.002,
- "ran_s": 20.001,
- "reads": 4990,
+ "first_data_after_s": 0.001,
+ "ran_s": 20.003,
+ "reads": 4998,
  "requested_s": 20.0,
  "samples": 10000
 }
@@ -682,13 +682,13 @@ unix timestamps within 1.70 ms (median) of the wall clock (time.time); drift +0.
 </details>
 
 **`integrity.chunk_validation` - PASS** - Every chunk passes validation (host and local)  
-11982 chunks validated by the host and again by the certifier
+12000 chunks validated by the host and again by the certifier
 
 <details><summary>evidence</summary>
 
 ```json
 {
- "chunks_validated": 11982,
+ "chunks_validated": 12000,
  "errors": [],
  "host_notices": {},
  "warnings": []
@@ -774,13 +774,13 @@ not applicable: the session declares no markers stream
 {
  "host_counters": {
   "bytes": 1240000,
-  "chunks": 9980,
-  "reads": 4990,
+  "chunks": 9996,
+  "reads": 4998,
   "samples": 10000
  },
  "invalid_stats": 0,
  "plugin_stats": {
-  "chunks_emitted": 9980,
+  "chunks_emitted": 9996,
   "dropped_packets": 0,
   "marker_row_nonzero": 0,
   "package_num_repeats": 0,
@@ -796,7 +796,7 @@ not applicable: the session declares no markers stream
 ### Reconnection & fault injection
 
 **`reconnect.clean_reopen` - PASS** - Clean close, reopen, data again, identity unchanged  
-closed in 1.6 ms, reopened in 0.001 s, first data 0.002 s after open; identity unchanged
+closed in 2.2 ms, reopened in 0.002 s, first data 0.003 s after open; identity unchanged
 
 <details><summary>evidence</summary>
 
@@ -804,11 +804,11 @@ closed in 1.6 ms, reopened in 0.001 s, first data 0.002 s after open; identity u
 {
  "close_s": 0.002,
  "failure": null,
- "first_data_after_open_s": 0.002,
+ "first_data_after_open_s": 0.003,
  "identity_differences": [],
  "identity_unchanged": true,
  "read_s": 2.001,
- "reopen_s": 0.001,
+ "reopen_s": 0.002,
  "samples": 1002
 }
 ```
@@ -816,30 +816,30 @@ closed in 1.6 ms, reopened in 0.001 s, first data 0.002 s after open; identity u
 </details>
 
 **`reconnect.host_killed` - PASS** - Host killed mid-stream: link loss reported, fresh open  
-SIGKILL after 124 reads surfaced as a link loss in 4.0 ms; fresh host: first data 0.174 s after start (0.007 s after open); identity unchanged; exit code 0
+SIGKILL after 125 reads surfaced as a link loss in 2.8 ms; fresh host: first data 0.131 s after start (0.008 s after open); identity unchanged; exit code 0
 
 <details><summary>evidence</summary>
 
 ```json
 {
  "failure": null,
- "first_data_after_host_start_s": 0.174,
- "first_data_after_open_s": 0.007,
+ "first_data_after_host_start_s": 0.131,
+ "first_data_after_open_s": 0.008,
  "fresh_host_exit_code": 0,
- "fresh_host_start_s": 0.168,
+ "fresh_host_start_s": 0.124,
  "identity_differences": [],
  "identity_unchanged": true,
  "kill": {
-  "detect_s": 0.004,
+  "detect_s": 0.0028,
   "detected_as": "HostDied",
   "host_exit_code": -9,
   "killed": true,
-  "message": "plugin host exited (code -9):     \"serial_number\": \"\", |     \"serial_port\": \"\", |     \"timeout\": 0 | } | [plugin brainflow pid 32595] INFO brainos_brainflow.plugin: opened BrainFlow SYNTHETIC_BOARD (format SYNTHETIC_BOARD, brainflow 5.23.0)",
-  "pid": 32595,
-  "reads_before_kill": 124,
+  "message": "plugin host exited (code -9):     \"serial_number\": \"\", |     \"serial_port\": \"\", |     \"timeout\": 0 | } | [plugin brainflow pid 1390] INFO brainos_brainflow.plugin: opened BrainFlow SYNTHETIC_BOARD (format SYNTHETIC_BOARD, brainflow 5.23.0)",
+  "pid": 1390,
+  "reads_before_kill": 125,
   "signal": "SIGKILL"
  },
- "open_s": 0.006,
+ "open_s": 0.005,
  "samples": 1002
 }
 ```
@@ -849,35 +849,35 @@ SIGKILL after 124 reads surfaced as a link loss in 4.0 ms; fresh host: first dat
 ### Performance
 
 **`performance.throughput` - PASS** - Sustained delivery rate keeps up with the nominal rate  
-primary delivered 249.9342 samples/s over 20.0 s vs nominal 250 Hz (-0.026 %); 61996.3 B/s over IPC
+primary delivered 249.9328 samples/s over 20.0 s vs nominal 250 Hz (-0.027 %); 61991.5 B/s over IPC
 
 <details><summary>evidence</summary>
 
 ```json
 {
- "duration_s": 20.001,
- "ipc_bytes_per_s": 61996.3,
+ "duration_s": 20.003,
+ "ipc_bytes_per_s": 61991.5,
  "ipc_bytes_received": 1240000,
  "streams": {
   "aux": {
-   "arrival_span_s": 19.999,
-   "chunks": 4990,
-   "error_percent": -0.026,
+   "arrival_span_s": 20.002,
+   "chunks": 4998,
+   "error_percent": -0.027,
    "nominal_hz": 250.0,
-   "rate_hz": 249.9342,
-   "rate_hz_endpoints": 249.9569,
+   "rate_hz": 249.9328,
+   "rate_hz_endpoints": 249.9292,
    "samples": 5000,
-   "samples_per_s_overall": 249.985
+   "samples_per_s_overall": 249.966
   },
   "exg": {
-   "arrival_span_s": 19.999,
-   "chunks": 4990,
-   "error_percent": -0.026,
+   "arrival_span_s": 20.002,
+   "chunks": 4998,
+   "error_percent": -0.027,
    "nominal_hz": 250.0,
-   "rate_hz": 249.9342,
-   "rate_hz_endpoints": 249.9569,
+   "rate_hz": 249.9328,
+   "rate_hz_endpoints": 249.9292,
    "samples": 5000,
-   "samples_per_s_overall": 249.985
+   "samples_per_s_overall": 249.966
   }
  },
  "tolerance_percent": 2.0
@@ -887,30 +887,30 @@ primary delivered 249.9342 samples/s over 20.0 s vs nominal 250 Hz (-0.026 %); 6
 </details>
 
 **`performance.latency` - PASS** - Read latency (now - sample timestamp)  
-newest-sample latency p50/p95/p99/max 1.7388/2.7777/3.1262/10.4976 ms
+newest-sample latency p50/p95/p99/max 1.7048/2.7203/2.9796/13.5741 ms
 
 <details><summary>evidence</summary>
 
 ```json
 {
  "newest_sample_latency_ms": {
-  "max": 10.4976,
-  "mean": 1.7467,
-  "min": 0.3903,
-  "n": 4990,
-  "p50": 1.7388,
-  "p95": 2.7777,
-  "p99": 3.1262
+  "max": 13.5741,
+  "mean": 1.7138,
+  "min": 0.3598,
+  "n": 4998,
+  "p50": 1.7048,
+  "p95": 2.7203,
+  "p99": 2.9796
  },
  "note": "read latency = arrival time at the certifier minus the sample's own timestamp; machine-dependent, includes the source's buffering and the plugin's read timeout",
  "oldest_sample_latency_s": {
-  "max": 0.0105,
-  "mean": 0.0018,
+  "max": 0.0136,
+  "mean": 0.0017,
   "min": 0.0004,
-  "n": 4990,
+  "n": 4998,
   "p50": 0.0017,
-  "p95": 0.0028,
-  "p99": 0.0032
+  "p95": 0.0027,
+  "p99": 0.003
  },
  "reference_clock": "wall clock (time.time)"
 }
@@ -919,51 +919,51 @@ newest-sample latency p50/p95/p99/max 1.7388/2.7777/3.1262/10.4976 ms
 </details>
 
 **`performance.host_resources` - PASS** - Plugin host process CPU and memory  
-host process CPU 16.5 % of one core, RSS peak 34.9 MiB (median 34.5 MiB)
+host process CPU 15.6 % of one core, RSS peak 34.8 MiB (median 34.2 MiB)
 
 <details><summary>evidence</summary>
 
 ```json
 {
  "clock_ticks_per_s": 100,
- "cpu_percent_of_one_core": 16.5,
- "cpu_s": 3.31,
- "pid": 32595,
- "rss_mib_max_sampled": 34.9,
- "rss_mib_median": 34.5,
- "rss_mib_peak": 34.9,
+ "cpu_percent_of_one_core": 15.6,
+ "cpu_s": 3.13,
+ "pid": 1390,
+ "rss_mib_max_sampled": 34.8,
+ "rss_mib_median": 34.2,
+ "rss_mib_peak": 34.8,
  "rss_samples": 80,
- "wall_s": 20.002
+ "wall_s": 20.003
 }
 ```
 
 </details>
 
 **`performance.ipc` - PASS** - IPC volume and round-trip time  
-61996.3 B/s, 249.49 reads/s; ping round trip p50/p99 0.1205/0.2553 ms
+61991.5 B/s, 249.87 reads/s; ping round trip p50/p99 0.2077/0.4255 ms
 
 <details><summary>evidence</summary>
 
 ```json
 {
  "empty_read_fraction": 0.0,
- "host_bytes_per_s": 61996.3,
+ "host_bytes_per_s": 61991.5,
  "host_counters": {
   "bytes": 1240000,
-  "chunks": 9980,
-  "reads": 4990,
+  "chunks": 9996,
+  "reads": 4998,
   "samples": 10000
  },
  "ping_round_trip_ms": {
-  "max": 0.2616,
-  "mean": 0.1321,
-  "min": 0.1011,
+  "max": 0.443,
+  "mean": 0.2315,
+  "min": 0.1352,
   "n": 30,
-  "p50": 0.1205,
-  "p95": 0.2075,
-  "p99": 0.2553
+  "p50": 0.2077,
+  "p95": 0.3605,
+  "p99": 0.4255
  },
- "reads_per_s": 249.49
+ "reads_per_s": 249.87
 }
 ```
 
