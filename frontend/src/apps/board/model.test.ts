@@ -171,6 +171,12 @@ describe("cursor + dwell (a board interaction, never a neural click)", () => {
     s = run(s, pointer(0.5, 0, 40), tick(5100), tick(5700)); // moved: now resting selects
     expect(s.selectionCount).toBe(1);
   });
+  it("text chosen by dwell carries the provenance of the input that moved the cursor (regression)", () => {
+    let s = board(["pointer_intent"], { dwellMs: 500 });
+    s = run(s, pointer(0, 0, 0, HISTORICAL), pointer(-1, -1, 20, HISTORICAL), tick(0), tick(600));
+    expect(s.message).toBe("Help"); // (0.48, 0.48) on the 4 x 4 page
+    expect(compositionLabel(s.sources)).toBe(DEMONSTRATION_LABEL);
+  });
   it("ignores clicks: dwell needs no selection capability", () => {
     const s = board(["pointer_intent", "selection"], { method: "cursor_dwell" });
     expect(run(s, select("primary", 0)).message).toBe("");
