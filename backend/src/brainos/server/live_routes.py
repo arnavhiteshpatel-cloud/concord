@@ -237,3 +237,67 @@ async def list_models(svc: Svc) -> list[ModelInfo]:
             )
         )
     return result
+
+
+# ------------------------------------------------------------------ calibration
+
+
+class CalibrationRequest(_Body):
+    recordings: list[str] = Field(min_length=1, max_length=16)
+    train_fraction: float = Field(default=0.8, ge=0.5, le=0.95)
+    gap_bins: int = Field(default=12, ge=0, le=1000)
+    feature_source: str | None = Field(default=None, max_length=64)
+
+
+class CalibrationResult(BaseModel):
+    model: dict[str, Any]
+    report: dict[str, Any]
+    report_markdown: str
+
+
+@router.post("/calibration/train")
+async def calibration_train(body: CalibrationRequest, svc: Svc) -> CalibrationResult:
+    """Fit a decoder on recordings (chronological train/held-out split) and save it.
+
+    Recordings are referred to by name and must be closed BrainOS recordings in the
+    recordings directory; nothing outside it is read.
+    """
+    try:
+        from brainos.adapters.replay.format import RecordingFormatError, recording_path
+        from brainos.decoding import model as models
+        from brainos.decoding.calibrate import CalibrationError, calibrate, report_markdown
+    except ImportError as exc:
+        raise RuntimeCommandError(
+            ErrorCode.UNSUPPORTED_OPERATION, f"calibration unavailable: {exc}"
+        ) from None
+    rt = svc.runtime
+    paths = []
+    for name in body.recordings:
+        if name == rt.recorder.active_name:
+            raise RuntimeCommandError(
+                ErrorCode.INVALID_STATE, f"recording {name!r} is still being written"
+            )
+        try:
+            p = recording_path(svc.settings.recordings_dir, name)
+        except RecordingFormatError as exc:
+            raise RuntimeCommandError(ErrorCode.PROTOCOL_ERROR, str(exc)) from None
+        if not p.exists():
+            raise RuntimeCommandError(ErrorCode.DEVICE_NOT_FOUND, f"no recording {name!r}")
+        paths.append(p)
+    models_dir = rt.registry.catalog.models_dir
+    try:
+        model, report = await asyncio.to_thread(
+            calibrate,
+            paths,
+            train_fraction=body.train_fraction,
+            gap_bins=body.gap_bins,
+            models_dir=models_dir,
+            feature_source=body.feature_source,
+        )
+    except (CalibrationError, ValueError) as exc:
+        raise RuntimeCommandError(ErrorCode.PROTOCOL_ERROR, f"calibration failed: {exc}") from None
+    md = report_markdown(report)
+    out = svc.settings.reports_dir / "calibration" / f"{model.model_id}.md"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(md)
+    return CalibrationResult(model=models.summary(model), report=report, report_markdown=md)

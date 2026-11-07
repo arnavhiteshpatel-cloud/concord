@@ -10,7 +10,6 @@ from __future__ import annotations
 import json
 import os
 import threading
-from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
@@ -74,14 +73,6 @@ def trained(tmp_path_factory: pytest.TempPathFactory) -> tuple[Path, RidgeDecode
         pytest.skip("real FALCON H1 files not found")
     d = tmp_path_factory.mktemp("models")
     return d, _train(TRAIN_FILE, d), _train(EVAL_FILE, d)
-
-
-@pytest.fixture
-def publishers() -> Iterator[list[Any]]:
-    pubs: list[Any] = []
-    yield pubs
-    for p in pubs:
-        p.stop()
 
 
 async def _falcon_source(
@@ -400,4 +391,69 @@ async def test_synthetic_raw_stream_full_loop(tmp_path: Path, publishers: list[A
     assert ptr and all(e["provenance"]["synthetic"] for e in ptr)
     lat = rt.pipeline.status().pipeline_latency_ms
     assert lat.count > 0 and lat.p50 is not None
+    await rt.shutdown()
+
+
+# ------------------------------------------- Open Ephys + LSL through one runtime (M3-AT-13)
+
+
+async def test_same_app_and_pipeline_across_open_ephys_and_lsl(
+    tmp_path: Path, publishers: list[Any]
+) -> None:
+    """An unchanged app follows a switch between an Open Ephys ZMQ source and an LSL source;
+    the same spike-band pipeline runs on both, and neither yields commands by itself."""
+    pytest.importorskip("zmq")
+    from brainos.adapters.openephys import OpenEphysConfig
+    from brainos.adapters.openephys.publisher import OpenEphysTestPublisher
+    from brainos.testing.lsl_publishers import SyntheticEphys
+
+    from .test_openephys import free_port_pair
+
+    gen = SyntheticEphys(channels=8, fs=30_000.0, seed=4)
+
+    def signal(_s: int, n: int, chans: tuple[int, ...]) -> np.ndarray:
+        return gen.chunk(n, 0.5, 0.0).T[: len(chans)].astype(np.float32)
+
+    port = free_port_pair()
+    oe = OpenEphysTestPublisher(
+        data_port=port, channels=tuple(range(8)), block_size=1024, signal=signal
+    ).start()
+    publishers.append(oe)
+    lsl = SyntheticEphysPublisher(channels=8, source_id=f"syn-switch-{os.getpid()}")
+    lsl.start()
+    publishers.append(lsl)
+
+    reg = DeviceRegistry(OperatorIntentSource(), tmp_path / "rec", models_dir=tmp_path / "m")
+    oe_desc = reg.live.configure_openephys(
+        OpenEphysConfig(host="127.0.0.1", data_port=port, unit="uV")
+    )
+    reg.live.discover_lsl(1.5)
+    rt = Runtime(reg, Recorder(tmp_path / "rec"))
+    viewer = subscribe(rt, required=[Capability.NEURAL_FEATURES], app_id="viewer")
+    cursor = subscribe(rt, required=[Capability.POINTER_INTENT], app_id="cursor")
+
+    for did in (oe_desc.device_id, f"lsl:{lsl.source_id}", oe_desc.device_id):
+        if rt.device is None:
+            await rt.connect(did)
+        else:
+            await rt.switch(did)
+        assert rt.device is not None
+        assert rt.device.kind in (DeviceKind.STREAM, DeviceKind.SIMULATED)  # LSL: declared syn.
+        # raw recording only: the feature viewer waits, the cursor app is never activated
+        assert viewer.negotiation.status is AppStatus.SUSPENDED
+        st = rt.start_pipeline(PipelineStartRequest(processing={"preset": "spikeband_threshold"}))
+        assert st.running and st.output is not None and st.output["channel_count"] == 8
+        assert viewer.negotiation.status is AppStatus.ACTIVE
+        assert cursor.negotiation.status is AppStatus.SUSPENDED
+        await wait_for(lambda: rt.pipeline.counters["features_out"] >= 25, timeout=20)
+        msgs = drain(viewer)
+        feats = [
+            e
+            for e in events(msgs, "features.binned")
+            if e["provenance"]["adapter"].startswith("brainos.pipeline")
+        ]
+        assert feats and all(e["device_id"] == did for e in feats)
+        assert events(msgs, "intent.pointer") == []
+        assert rt.pipeline.counters["errors"] == 0
+    assert rt.diagnostics.validation_errors == 0
     await rt.shutdown()
