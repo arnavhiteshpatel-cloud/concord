@@ -21,6 +21,14 @@ function summary(e: EventEnvelope): string {
       return e.payload.metrics.map((m) => `${m.name}=${m.value}`).join("  ");
     case "device.status":
       return `${e.payload.state}${e.payload.detail ? ` — ${e.payload.detail}` : ""}`;
+    case "features.binned": {
+      const c = e.payload.counts;
+      const total = c.reduce((a, b) => a + b, 0);
+      return `bin ${e.payload.bin_index}  ${e.payload.channel_count} ch  Σ${total} ${e.payload.feature}`;
+    }
+    case "behavior.sample":
+    case "intent.kinematics":
+      return e.payload.dims.map((d, i) => `${d}=${(e.payload.values[i] ?? 0).toExponential(1)}`).join(" ");
   }
 }
 

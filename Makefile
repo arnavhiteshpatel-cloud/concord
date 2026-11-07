@@ -4,12 +4,13 @@ VENV  := .venv
 PY    := $(VENV)/bin/python
 NPM   := npm --prefix frontend
 
-.PHONY: setup dev run build test test-backend test-frontend lint e2e e2e-setup bench schema clean
+.PHONY: setup dev run build test test-backend test-frontend lint e2e e2e-setup bench schema clean \
+        dataset dataset-all model decoding-report
 
 setup:  ## create .venv (Python 3.12) and install backend + frontend deps
 	@command -v uv >/dev/null && uv venv --python 3.12 $(VENV) || python3.12 -m venv $(VENV)
-	@if command -v uv >/dev/null; then uv pip install --python $(PY) -e "backend[dev]"; \
-	  else $(PY) -m pip install -e "backend[dev]"; fi
+	@if command -v uv >/dev/null; then uv pip install --python $(PY) -e "backend[dev,nwb]"; \
+	  else $(PY) -m pip install -e "backend[dev,nwb]"; fi
 	$(NPM) ci
 
 build:  ## build the console + board app into frontend/dist
@@ -47,6 +48,18 @@ e2e: build  ## Playwright demo against a fresh server; writes reports/e2e.json
 
 bench:  ## measured throughput/latency on this machine -> docs/BENCHMARKS.md
 	$(PY) scripts/bench.py --write docs/BENCHMARKS.md
+
+dataset:  ## download the verified demo recordings (2 FALCON H1 blocks, ~8.7 MiB) to data/datasets/
+	$(PY) -m brainos.datasets.fetch
+
+dataset-all:  ## all 13 FALCON H1 held-in calibration blocks (~66 MiB) for the decoding report
+	$(PY) -m brainos.datasets.fetch --all-calib
+
+model:  ## train + evaluate the baseline decoder on downloaded blocks -> data/models/, reports/decoding.json
+	$(PY) -m brainos.decoding.evaluate_falcon
+
+decoding-report: dataset-all  ## regenerate docs/DECODING.md from all 13 blocks
+	$(PY) -m brainos.decoding.evaluate_falcon --write docs/DECODING.md
 
 schema:  ## regenerate contracts/event-envelope.v1.schema.json
 	$(PY) scripts/export_schema.py

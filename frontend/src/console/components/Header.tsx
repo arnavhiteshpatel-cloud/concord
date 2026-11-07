@@ -57,9 +57,20 @@ export function Header({
         <span className="chip plain badge-ro" title="v1 has no write or stimulation path">
           READ-ONLY
         </span>
-        <span className="chip plain badge-sim" title="All v1 devices are simulated or replayed">
-          SIMULATED DATA
-        </span>
+        {runtime?.device &&
+          (runtime.device.synthetic ? (
+            <span className="chip plain badge-sim" title="The connected source generates synthetic data" data-testid="data-badge">
+              SIMULATED DATA
+            </span>
+          ) : (
+            <span
+              className="chip plain badge-real"
+              title="Genuine recorded data replayed from a file — not a live implant"
+              data-testid="data-badge"
+            >
+              RECORDED HUMAN DATA · OFFLINE REPLAY
+            </span>
+          ))}
       </div>
     </header>
   );
