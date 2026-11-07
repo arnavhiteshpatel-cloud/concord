@@ -191,3 +191,29 @@ These configure acquisition and processing; applications should not need them.
 Errors raise `BrainOSError(code, message, status)`; e.g. `incompatible_decoder` (409) with the
 reasons (channel count, bin, feature, training session, source).
 
+
+## Milestone 5: application layer (schema 1.4)
+
+- New capabilities: `navigation` (`intent.navigate {direction, confidence}`, a command:
+  decoded navigation needs the operator's authorization) and `control_status`
+  (`control.state {active, capabilities, reason}`, a runtime notice to your app only). Ask
+  for `control_status` and show its reason; enter a safe state on `active: false`.
+- `CommandGuard` (Python and TS) treats `navigation` as a command capability; when
+  `control_status` is granted, a command capability is usable only while the latest
+  `control.state` of this session lists it as active (`state()` returns `control_inactive`
+  otherwise), and `on_stop` fires with the runtime's reason on `active: false`. TS:
+  `onControlState`, `guard.controlState`; Python: `guard.control_state`; control.state events
+  pass through `handle()` / `ControlChannel` / `attachGuard` (TS feeds them to the guard).
+- Decoded commands may carry `provenance.model_origin` (`brainos` / `external` /
+  `historical`); show it (historical = recorded outputs of a research system's original
+  decoder, always replayed).
+- Operator API additions: discrete rule actions `navigate:<direction>`, `click` and
+  `pointer_scale` in `set_router(...)` / `start_pipeline(router=...)`; `/control` apps carry
+  `control_active` / `control_reason`; authorize/revoke accept up to four command capabilities.
+- Applications, input methods, safe-state rules, the board's evaluation snapshot
+  (`window.__brainosBoard`): [APPLICATIONS.md](APPLICATIONS.md). The opt-in desktop control
+  bridge: `backend/examples/desktop_bridge/`
+  ([SAFETY.md](../backend/examples/desktop_bridge/SAFETY.md)).
+- Test helper: `brainos.testing.scripted` — a declared-synthetic scripted feature source and a
+  hand-written identity *test* decoder for deterministic decoded cursor + click tests
+  (`python -m brainos.testing.scripted serve --port P --data-dir D --click-at X,Y ...`).

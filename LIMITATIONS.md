@@ -217,3 +217,31 @@ See docs/CERTIFICATION.md §6.
   (docs/compatibility/) are for a synthetic generator, BrainFlow's synthetic board and a
   replayed BCI2000 capture.
 
+
+## Application layer (Milestone 5, workstream C)
+
+See docs/APPLICATIONS.md.
+
+- The communication board, the reference apps and the desktop bridge have been exercised with
+  simulated intents, a synthetic motor-imagery source + LDA, and a scripted test source with a
+  hand-written identity *test* decoder — never with a participant, and not as assistive
+  technology. No usability, accessibility or clinical evaluation was done.
+- `control.state` reasons are text for people; apps must not parse them. Notices are per
+  connection and are not stored in session recordings.
+- Feeding a source's own recorded decoder outputs (`model_origin: historical`) or an external
+  live decoder's outputs into the command router is not wired: the router takes only the
+  running pipeline decoder's output. Apps already label historical / external provenance.
+- The router's click rule needs a decoder output that is a click probability or a 0/1
+  decision; BrainOS does not check that a continuous output really is one.
+- Board: word prediction is a fixed 200-word list (no language model); speech is the
+  browser's Web Speech API (voices and availability vary; "computer speech, not neural speech
+  decoding"); the audio tick needs Web Audio; settings are stored per browser; the
+  `window.__brainosBoard` snapshot is for tests and evaluation and copies up to 5000
+  selections per read. Reproducing an original cursor trajectory on the task grid is exact
+  only up to the first pointer event after a (re)start (it sets the clock) and clamping.
+- Direct selection is chosen automatically only after a source sent `activate`/`cancel`
+  (capability parameters such as the router's `actions` are not visible to apps).
+- Desktop bridge: relative pointer moves and a primary click only (no keys, scrolling,
+  dragging); focus restriction only with the `xdotool` backend (X11 window titles); no
+  accessibility-API integration (UI Automation, AX, AT-SPI), so it cannot know what a click
+  will do; the `pynput` backend was not tested here; `xdotool` does not work on Wayland.
