@@ -107,8 +107,10 @@ class NWBUnitsSource:
         rec = self.rec
         trained_sha = d.training.get("sha256")
         trained_session = d.training.get("session")
+        asset = self.verification.asset
+        file_session = asset.session if asset is not None else session_of(self.path.name)
         if trained_sha == self.verification.sha256 or (
-            trained_session is not None and trained_session == session_of(self.path.name)
+            trained_session is not None and trained_session == file_session
         ):
             raise DecoderLeakageError(
                 f"model {d.model_id} was trained on session {trained_session}; replaying "

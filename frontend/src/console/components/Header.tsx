@@ -1,6 +1,22 @@
-import type { ConnectionStatus, RuntimeSnapshot } from "../../sdk";
+import type { ConnectionStatus, DeviceDescriptor, RuntimeSnapshot } from "../../sdk";
 import type { DiagnosticsSnapshot } from "../api";
 import { fmt } from "./ui";
+
+/** What kind of data the connected source produces — derived only from the descriptor. */
+export function dataBadge(device: DeviceDescriptor | null | undefined): { text: string; className: string; title: string } | null {
+  if (!device) return null;
+  if (device.synthetic)
+    return { text: "SIMULATED DATA", className: "badge-sim", title: "The connected source generates synthetic data" };
+  if (device.kind === "replay") {
+    const human = /human/i.test(device.display_name);
+    return {
+      text: human ? "RECORDED HUMAN DATA · OFFLINE REPLAY" : "RECORDED DATA · OFFLINE REPLAY",
+      className: "badge-real",
+      title: "Genuine recorded data replayed from a file — not a live implant",
+    };
+  }
+  return { text: "DEVICE DATA", className: "badge-real", title: "Non-synthetic data from a connected device" };
+}
 
 export function Header({
   runtime,
@@ -12,6 +28,7 @@ export function Header({
   diag: DiagnosticsSnapshot | null;
 }) {
   const state = runtime?.state ?? "unknown";
+  const badge = dataBadge(runtime?.device);
   const rate = diag?.event_types.reduce((a, t) => a + t.rate_hz, 0) ?? 0;
   return (
     <header className="topbar">
@@ -57,20 +74,11 @@ export function Header({
         <span className="chip plain badge-ro" title="v1 has no write or stimulation path">
           READ-ONLY
         </span>
-        {runtime?.device &&
-          (runtime.device.synthetic ? (
-            <span className="chip plain badge-sim" title="The connected source generates synthetic data" data-testid="data-badge">
-              SIMULATED DATA
-            </span>
-          ) : (
-            <span
-              className="chip plain badge-real"
-              title="Genuine recorded data replayed from a file — not a live implant"
-              data-testid="data-badge"
-            >
-              RECORDED HUMAN DATA · OFFLINE REPLAY
-            </span>
-          ))}
+        {badge && (
+          <span className={`chip plain ${badge.className}`} title={badge.title} data-testid="data-badge">
+            {badge.text}
+          </span>
+        )}
       </div>
     </header>
   );

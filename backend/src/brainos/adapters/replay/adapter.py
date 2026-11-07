@@ -135,6 +135,7 @@ class ReplayAdapter(DeviceAdapter):
                 self._it = self._source.records()
                 self._t0_rec = None
                 self._pass_first_t = None
+                self._last_t = None  # set_speed during the loop gap must not anchor to the old pass
                 continue
             except (OSError, RecordingFormatError) as exc:
                 raise DeviceLinkError(f"{self.device_id}: read failed: {exc}") from exc

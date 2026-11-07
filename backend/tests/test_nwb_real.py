@@ -357,3 +357,20 @@ def test_model_json_is_plain_data(demo_model: Path) -> None:
     raw = json.loads(next(demo_model.glob("*.json")).read_text())
     assert raw["training"]["session"] == "19250108T110520"
     assert raw["evaluations"][0]["file"] == EVAL_FILE.name
+
+
+async def test_broken_dataset_file_gives_device_error_not_500(
+    data_root: Path, tmp_path: Path
+) -> None:
+    """Review 2 #4: a listed file that becomes unreadable yields a clean device_error."""
+    reg = DeviceRegistry(OperatorIntentSource(), data_root / "recordings")
+    rt = Runtime(reg, Recorder(data_root / "recordings"))
+    assert TRAIN_ID in [d.device_id for d in reg.list()]
+    link = data_root / "datasets" / TRAIN_FILE.name
+    link.unlink()
+    link.write_bytes(b"not an nwb file any more")
+    with pytest.raises(RuntimeCommandError) as info:
+        await rt.connect(TRAIN_ID)
+    assert info.value.code is ErrorCode.DEVICE_ERROR
+    assert rt.state is RuntimeState.ERROR
+    await rt.shutdown()

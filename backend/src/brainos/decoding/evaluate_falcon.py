@@ -8,9 +8,10 @@ Evaluations (no sample is ever in both training and scoring):
      train on the first part, score the second part.
   B. cross-block, same day: train on one block, score the next block recorded that day.
 Each score is reported with two controls computed on the same scored samples:
-  - mean predictor: always predict the training-set mean velocity,
-  - time-shift: the same model fed neural data circularly shifted by half the test
-    length (destroys the neural/behavior alignment while keeping firing statistics).
+  - mean predictor: always predict the training-set mean velocity (the meaningful floor),
+  - time-shift null: the same model fed neural data circularly shifted against behavior
+    at 20 evenly spaced offsets (keeps firing statistics, destroys alignment). We report
+    the null's mean and max, and whether the real R² beats all 20 (p < 1/21).
 
 Note: FALCON's "held-in-minival" files are a subset (the first bins) of the matching
 "held-in-calib" files, so calib->minival is NOT a valid held-out evaluation and is not
@@ -177,33 +178,46 @@ def to_markdown(res: dict[str, Any], seconds: float) -> str:
         "exponential filter (τ 240 ms) → z-score (train stats) → ridge (alpha by blocked 5-fold CV "
         "inside training data). The first 12 bins of each scored segment are excluded (filter warm-up).",
         "",
+        "**How to read the controls.** The *mean predictor* (always predict the training-set mean) is the "
+        "meaningful floor: R² above it means the neural data carries usable information about held-out "
+        "kinematics. The *time-shift null* (same model, neural data circularly shifted against behavior, "
+        "20 offsets) is a weak check: shifted predictions are misaligned but still vary, so they score far "
+        "below zero, and beating them is easy (even a block that loses to the mean predictor beats them). "
+        "It is reported for completeness, not as evidence of decoding.",
+        "",
         "## A. Within-block (chronological ~80/20 split at a trial boundary)",
         "",
-        f"Blocks: {len(w)}. **R² {_summary(w, 'r2')}** · mean-predictor control "
-        f"{_summary(w, 'control_mean_predictor_r2')} · time-shift control {_summary(w, 'control_time_shift_r2')}",
+        f"Blocks: {len(w)}. **R² {_summary(w, 'r2')}** · **beats the mean predictor in "
+        f"{sum(r['r2'] > r['control_mean_predictor_r2'] for r in w)}/{len(w)} blocks** · mean-predictor control "
+        f"{_summary(w, 'control_mean_predictor_r2')} · time-shift null (mean of 20) {_summary(w, 'control_time_shift_r2')} · "
+        f"beats all 20 shifts in {sum(r['beats_all_shifts'] for r in w)}/{len(w)} blocks",
         "",
-        "| block | train bins | test bins | scored | alpha | R² | mean ctrl | shift ctrl |",
-        "|---|---:|---:|---:|---:|---:|---:|---:|",
+        "| block | train bins | test bins | scored | alpha | R² | mean ctrl | shift null mean / max | beats all |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|:---:|",
     ]
     for r in w:
         lines.append(
             f"| {r['block']} | {r['train_bins']} | {r['test_bins']} | {r['samples']} | {r['alpha']:g} "
-            f"| {r['r2']:.3f} | {r['control_mean_predictor_r2']:.3f} | {r['control_time_shift_r2']:.3f} |"
+            f"| {r['r2']:.3f} | {r['control_mean_predictor_r2']:.3f} | {r['control_time_shift_r2']:.3f} / "
+            f"{r['control_time_shift_max_r2']:.3f} | {'yes' if r['beats_all_shifts'] else 'no'} |"
         )
     lines += [
         "",
         "## B. Cross-block, same day (train on one block, score the next block that day)",
         "",
-        f"Pairs: {len(c)}. **R² {_summary(c, 'r2')}** · mean-predictor control "
-        f"{_summary(c, 'control_mean_predictor_r2')} · time-shift control {_summary(c, 'control_time_shift_r2')}",
+        f"Pairs: {len(c)}. **R² {_summary(c, 'r2')}** · **beats the mean predictor in "
+        f"{sum(r['r2'] > r['control_mean_predictor_r2'] for r in c)}/{len(c)} pairs** · mean-predictor control "
+        f"{_summary(c, 'control_mean_predictor_r2')} · time-shift null (mean of 20) {_summary(c, 'control_time_shift_r2')} · "
+        f"beats all 20 shifts in {sum(r['beats_all_shifts'] for r in c)}/{len(c)} pairs",
         "",
-        "| train block | test block | scored | alpha | R² | mean ctrl | shift ctrl |",
-        "|---|---|---:|---:|---:|---:|---:|",
+        "| train block | test block | scored | alpha | R² | mean ctrl | shift null mean / max | beats all |",
+        "|---|---|---:|---:|---:|---:|---:|:---:|",
     ]
     for r in c:
         lines.append(
             f"| {r['train']} | {r['test']} | {r['samples']} | {r['alpha']:g} | {r['r2']:.3f} "
-            f"| {r['control_mean_predictor_r2']:.3f} | {r['control_time_shift_r2']:.3f} |"
+            f"| {r['control_mean_predictor_r2']:.3f} | {r['control_time_shift_r2']:.3f} / "
+            f"{r['control_time_shift_max_r2']:.3f} | {'yes' if r['beats_all_shifts'] else 'no'} |"
         )
     if d:
         lines += [
@@ -212,7 +226,8 @@ def to_markdown(res: dict[str, Any], seconds: float) -> str:
             "",
             f"`{d['model_id']}` — trained on block 19250108T110520 (all bins), scored on block "
             f"19250108T111022: **R² {d['r2']:.3f}** (mean-predictor {d['control_mean_predictor_r2']:.3f}, "
-            f"time-shift {d['control_time_shift_r2']:.3f}, {d['samples']} samples).",
+            f"time-shift null mean {d['control_time_shift_r2']:.3f} / max {d['control_time_shift_max_r2']:.3f}, "
+            f"{d['samples']} samples).",
             "",
             "Per-dimension R²: " + ", ".join(f"{k} {v:.2f}" for k, v in d["r2_per_dim"].items()),
             "",
