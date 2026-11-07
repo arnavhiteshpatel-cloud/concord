@@ -1,7 +1,12 @@
 // Configure and start/stop the real-time processing pipeline (features -> optional decoder).
+// Milestone 5: decoders of every origin (BrainOS-trained, imported file, plugin), a
+// compatibility preview for the chosen processing, the explicit channel mapping by label
+// (offered only when it applies), trust for unsafe model files, and decoded passthrough.
 
-import { useState } from "react";
-import type { ModelInfo, PipelineStartRequest, PresetName, ProcessingSpecInput } from "../api";
+import { useEffect, useState } from "react";
+import { labApi, type ModelInfo, type PipelineStartRequest, type PresetName, type ProcessingSpecInput } from "../api";
+import { useLoggedAction } from "../context";
+import { decoderLine, inputWords } from "../decoders";
 import { presetLabel } from "../wording";
 import { fmt } from "./ui";
 
@@ -18,8 +23,13 @@ export function buildStartRequest(form: {
   bandHigh: string;
   modelId: string;
   allowCrossSource: boolean;
+  /** Milestone 5: explicit operator-enabled channel mapping by label */
+  allowChannelMapping?: boolean;
 }): { request: PipelineStartRequest | null; problem: string | null } {
   const processing: ProcessingSpecInput = { preset: form.preset };
+  if (form.preset === "decoded_passthrough")
+    // the source's own decoder outputs: no features computed, no model loaded
+    return { request: { processing, model_id: null, allow_cross_source: false }, problem: null };
   const check = (name: string, v: number | undefined): string | null =>
     v !== undefined && !Number.isFinite(v) ? `${name} must be a number` : null;
   const binMs = form.preset === "features_passthrough" ? undefined : optNum(form.binMs);
@@ -40,22 +50,77 @@ export function buildStartRequest(form: {
   }
   const problem = problems.find((p) => p !== null) ?? null;
   if (problem) return { request: null, problem };
-  return {
-    request: {
-      processing,
-      model_id: form.modelId || null,
-      allow_cross_source: form.modelId ? form.allowCrossSource : false,
-    },
-    problem: null,
+  const request: PipelineStartRequest = {
+    processing,
+    model_id: form.modelId || null,
+    allow_cross_source: form.modelId ? form.allowCrossSource : false,
   };
+  if (form.modelId && form.allowChannelMapping) request.allow_channel_mapping = true;
+  return { request, problem: null };
 }
 
-function ModelDetails({ m }: { m: ModelInfo }) {
+function TrustAction({ m, onChanged }: { m: ModelInfo; onChanged: () => void }) {
+  const action = useLoggedAction();
+  const s = m.summary;
+  if (!s.unsafe_format) return null;
+  const set = async (trusted: boolean) => {
+    if (await action.run(() => labApi.trustModel(s.model_id, trusted))) onChanged();
+  };
+  return (
+    <div className="caution-box" data-testid="model-trust">
+      {s.trust ? (
+        <>
+          <p>
+            This {s.format} file was marked trusted by {s.trust.by} ({fmt.time(s.trust.at_ns)}). Loading it runs code from
+            the file, in an isolated decoder process, which is not a security sandbox.
+          </p>
+          <button type="button" className="btn" disabled={action.busy} onClick={() => set(false)} data-testid="model-untrust">
+            Withdraw trust
+          </button>
+        </>
+      ) : (
+        <>
+          <p>
+            A {s.format} file runs code from the file when it is loaded, so BrainOS refuses it. Mark it trusted only if you
+            created this exact file or trust its author; the decision is recorded with the file&apos;s SHA-256.
+          </p>
+          <button type="button" className="btn" disabled={action.busy} onClick={() => set(true)} data-testid="model-trust-btn">
+            Mark this file trusted
+          </button>
+        </>
+      )}
+      {action.error && <p className="error-text">{action.error}</p>}
+    </div>
+  );
+}
+
+function compatTarget(m: ModelInfo): string {
+  return m.checked_against && m.checked_against !== "running pipeline"
+    ? `this processing (${m.checked_against})`
+    : "the running pipeline output";
+}
+
+function ModelDetails({ m, onChanged }: { m: ModelInfo; onChanged: () => void }) {
   const s = m.summary;
   const inp = s.input;
   return (
     <div className="model-details" data-testid="model-details">
       <dl className="kv">
+        {s.origin && (
+          <>
+            <dt>Decoder</dt>
+            <dd data-testid="model-origin">{decoderLine(s)}</dd>
+          </>
+        )}
+        {s.modalities && (
+          <>
+            <dt>Trained on data from</dt>
+            <dd>
+              {s.modalities.length ? s.modalities.join(", ") : "modality not declared"}
+              {s.participant_specific === false && " · not participant-specific (not calibrated on this participant)"}
+            </dd>
+          </>
+        )}
         <dt>Trained on</dt>
         <dd>{s.trained_on ?? "—"}</dd>
         {s.source_identity && (
@@ -75,6 +140,11 @@ function ModelDetails({ m }: { m: ModelInfo }) {
               </span>
             </dd>
           </>
+        ) : s.outputs?.type === "event" ? (
+          <>
+            <dt>Outputs</dt>
+            <dd>event probabilities: {s.outputs.events.join(", ")}</dd>
+          </>
         ) : (
           <>
             <dt>Offline held-out R²</dt>
@@ -91,12 +161,15 @@ function ModelDetails({ m }: { m: ModelInfo }) {
         <dd>
           {inp?.feature?.replace(/_/g, " ") ?? "?"} · {inp?.bin_ms ?? "?"} ms bins · {inp?.channel_count ?? "?"} channels
           {inp?.inferred ? " (inferred)" : ""} → {s.dims.join(", ")}
+          {(s.inputs?.length ?? 0) > 1 && (
+            <span className="hint"> · inputs joined per bin: {s.inputs!.map((i) => inputWords(i)).join(" + ")}</span>
+          )}
         </dd>
       </dl>
       <p className="hint" data-testid="model-compat">
         {m.compatible === null && "Compatibility is checked against the pipeline output when it starts."}
-        {m.compatible === true && <span className="text-ok">Compatible with the running pipeline output.</span>}
-        {m.compatible === false && <span className="error-text">Not compatible with the running pipeline output.</span>}
+        {m.compatible === true && <span className="text-ok">Compatible with {compatTarget(m)}.</span>}
+        {m.compatible === false && <span className="error-text">Not compatible with {compatTarget(m)}.</span>}
       </p>
       {m.errors.length > 0 && (
         <ul className="notes error-text">
@@ -112,6 +185,7 @@ function ModelDetails({ m }: { m: ModelInfo }) {
           ))}
         </ul>
       )}
+      <TrustAction m={m} onChanged={onChanged} />
     </div>
   );
 }
@@ -124,6 +198,9 @@ export function PipelineControl({
   busy,
   error,
   onStart,
+  hasSourceDecoder = false,
+  onProcessingChange,
+  onModelsChanged,
 }: {
   presets: Record<string, string>;
   models: ModelInfo[];
@@ -132,8 +209,13 @@ export function PipelineControl({
   busy: boolean;
   error: string | null;
   onStart: (req: PipelineStartRequest) => void;
+  /** the source provides its own decoder outputs (decoded passthrough is offered only then) */
+  hasSourceDecoder?: boolean;
+  /** the processing the form would start (for a compatibility preview of the models) */
+  onProcessingChange?: (p: ProcessingSpecInput | null) => void;
+  onModelsChanged?: () => void;
 }) {
-  const names = Object.keys(presets) as PresetName[];
+  const names = (Object.keys(presets) as PresetName[]).filter((n) => n !== "decoded_passthrough" || hasSourceDecoder);
   const [preset, setPreset] = useState<PresetName>(defaultPreset);
   const [binMs, setBinMs] = useState("");
   const [thresholdK, setThresholdK] = useState("-4.5");
@@ -141,18 +223,25 @@ export function PipelineControl({
   const [bandHigh, setBandHigh] = useState("");
   const [modelId, setModelId] = useState("");
   const [allowCross, setAllowCross] = useState(false);
+  const [allowMapping, setAllowMapping] = useState(false);
 
   const effectivePreset = names.includes(preset) ? preset : (names[0] ?? preset);
+  const passthrough = effectivePreset === "decoded_passthrough";
   const { request, problem } = buildStartRequest({
     preset: effectivePreset,
     binMs,
     thresholdK,
     bandLow,
     bandHigh,
-    modelId,
+    modelId: passthrough ? "" : modelId,
     allowCrossSource: allowCross,
+    allowChannelMapping: allowMapping,
   });
-  const selected = models.find((m) => m.summary.model_id === modelId) ?? null;
+  const selected = passthrough ? null : (models.find((m) => m.summary.model_id === modelId) ?? null);
+  const previewKey = request ? JSON.stringify(request.processing) : "";
+  useEffect(() => {
+    onProcessingChange?.(previewKey ? (JSON.parse(previewKey) as ProcessingSpecInput) : null);
+  }, [previewKey, onProcessingChange]);
 
   return (
     <div data-testid="pipeline-control">
@@ -173,7 +262,7 @@ export function PipelineControl({
         </label>
       </div>
       {presets[effectivePreset] && <p className="hint">{presets[effectivePreset]}</p>}
-      {effectivePreset !== "features_passthrough" && (
+      {effectivePreset !== "features_passthrough" && !passthrough && (
         <div className="form-grid">
           <label>
             Bin (ms)
@@ -205,28 +294,52 @@ export function PipelineControl({
         </div>
       )}
 
-      <div className="form-grid">
-        <label className="span-all">
-          Decoder model
-          <select value={modelId} onChange={(e) => setModelId(e.target.value)} data-testid="pl-model">
-            <option value="">None (features only)</option>
-            {models.map((m) => (
-              <option key={m.summary.model_id} value={m.summary.model_id}>
-                {m.summary.model_id}
-                {m.compatible === false ? " (incompatible)" : m.compatible === true ? " (compatible)" : ""}
-              </option>
-            ))}
-          </select>
+      {passthrough ? (
+        <p className="hint" data-testid="pl-passthrough">
+          The source&apos;s own decoder outputs go to Command output unchanged, keeping their model and origin (a research
+          system&apos;s recorded decoder, or an external system&apos;s live decoder). No model is loaded.
+        </p>
+      ) : (
+        <div className="form-grid">
+          <label className="span-all">
+            Decoder model
+            <select value={modelId} onChange={(e) => setModelId(e.target.value)} data-testid="pl-model">
+              <option value="">None (features only)</option>
+              {models.map((m) => (
+                <option key={m.summary.model_id} value={m.summary.model_id} disabled={m.summary.status === "rejected"}>
+                  {m.summary.model_id}
+                  {m.compatible === false ? " (incompatible)" : m.compatible === true ? " (compatible)" : ""}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      )}
+      {selected && <ModelDetails m={selected} onChanged={() => onModelsChanged?.()} />}
+      {selected?.mapping_available && (
+        <label className="check" data-testid="pl-mapping-label">
+          <input
+            type="checkbox"
+            checked={allowMapping}
+            onChange={(e) => setAllowMapping(e.target.checked)}
+            data-testid="pl-mapping"
+          />
+          Map channels by label (the model&apos;s channels are taken from the source by name)
         </label>
-      </div>
-      {selected && <ModelDetails m={selected} />}
-      {modelId && (
+      )}
+      {selected?.mapping_available && allowMapping && (
+        <p className="caution-box" data-testid="pl-mapping-warning">
+          BrainOS will feed the model the source channels that carry the model&apos;s labels, in the model&apos;s order. Use
+          this only if the labels name the same electrodes. The mapping is logged and shown while decoding.
+        </p>
+      )}
+      {modelId && !passthrough && (
         <label className="check" data-testid="pl-cross-label">
           <input type="checkbox" checked={allowCross} onChange={(e) => setAllowCross(e.target.checked)} data-testid="pl-cross" />
           Allow a model trained on a different source
         </label>
       )}
-      {modelId && allowCross && (
+      {modelId && !passthrough && allowCross && (
         <p className="caution-box" data-testid="pl-cross-warning">
           Runs a decoder calibrated on a different source or session. Its output is not expected to be meaningful on this
           stream; decoded events are marked with reduced quality. Use only for deliberate cross-source tests.
