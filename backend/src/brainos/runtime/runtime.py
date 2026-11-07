@@ -337,6 +337,8 @@ class Runtime:
             self._fail(f"connect failed: {msg}", kind="connect_error")
             raise RuntimeCommandError(ErrorCode.DEVICE_ERROR, msg) from exc
         self._adapter = adapter
+        # Live adapters learn channels/rates/units during open(); use the refined descriptor.
+        self._device = adapter.descriptor
         self._renegotiate_all()  # before emitting, so apps receive the 'connected' status
         self._emit_status(DeviceState.CONNECTED, f"connected to {adapter.descriptor.display_name}")
         self._emit_status(DeviceState.STREAMING, "streaming")
@@ -459,6 +461,11 @@ class Runtime:
                 log.warning("%s: reconnect attempt %d failed: %s", device_id, attempt, exc)
                 continue
             self.diagnostics.reconnect_successes += 1
+            if adapter.descriptor != self._device:
+                # e.g. the stream came back with a different channel layout
+                log.warning("%s: descriptor changed on reconnect", device_id)
+                self._device = adapter.descriptor
+                self._renegotiate_all()
             adapter.set_paused(self._paused)
             self._emit_status(DeviceState.STREAMING, f"reconnected after {attempt} attempt(s)")
             self._set_state(RuntimeState.PAUSED if self._paused else RuntimeState.STREAMING)
