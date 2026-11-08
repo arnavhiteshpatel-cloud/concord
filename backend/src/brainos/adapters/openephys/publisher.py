@@ -160,6 +160,15 @@ class OpenEphysTestPublisher:
 
         self._commands.put(cmd)
 
+    def reset_sample_clock(self, to: int = 0) -> None:
+        """Like the GUI's File Reader looping: sample numbers restart while acquisition (and
+        ``message_num``) continue. Not an acquisition restart."""
+
+        def cmd() -> None:
+            self.sample_num = to
+
+        self._commands.put(cmd)
+
     def stop_acquisition(self) -> None:
         def cmd() -> None:
             self.acquiring = False

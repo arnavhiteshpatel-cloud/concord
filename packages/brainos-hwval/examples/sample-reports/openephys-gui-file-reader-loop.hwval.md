@@ -1,15 +1,15 @@
 # BrainOS acquisition verification — openephys
 
-**Result: FAIL**
+**Result: PASS**
 
-> FAIL: SAMPLE-COUNT: reference 279568 vs BrainOS 250775 samples in the overlap; LOSS: BrainOS is missing 28793 reference sample(s) in 1 run(s) (0.103 of the overlap)
+> PASS: all 20 required checks passed.
 
 ## What this result means
 
-- Evidence level of this run: **none**
-- The comparison did not pass; this run supports no compatibility claim.
+- Evidence level of this run: **software_acquisition_comparison**
+- BrainOS received, over the Open Ephys ZMQ Interface, exactly the data the reference software recorded from the same source, within the stated tolerances. This is software-level evidence about the acquisition path; it says nothing about hardware unless the source was real hardware and the hardware criteria below are met.
 - Hardware verified: **no** (never set by this tool). Human validated: **no**.
-- Not a hardware-validation run because: the comparison result is fail, not pass; the operator did not declare acquisition hardware as the signal source; no equipment manifest; the reference stream's source processor is 'File Reader' (file playback, not hardware); overlap 7 s < 240 s required for a hardware-validation run.
+- Not a hardware-validation run because: the operator did not declare acquisition hardware as the signal source; no equipment manifest; the reference stream's source processor is 'File Reader' (file playback, not hardware); overlap 7 s < 240 s required for a hardware-validation run.
 
 ## Summary
 
@@ -22,19 +22,19 @@
 | channel names | ["CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8", "CH9", "CH10", "CH11", "CH12", "CH13", "CH14", "CH15", "CH16"] |
 | sample rate hz | 40000 |
 | reference samples | 297215 |
-| brainos samples | 250775 |
+| brainos samples | 279568 |
 | overlap s | 6.9892 |
-| samples compared | 250775 |
-| missing in brainos | 28793 |
-| estimated loss fraction | 0.102991 |
+| samples compared | 279568 |
+| missing in brainos | 0 |
+| estimated loss fraction | 0 |
 | duplicated in brainos | 0 |
 | brainos samples without counterpart | 0 |
 | values out of tolerance | 0 |
 | max abs value diff uV | 1.456e-05 |
-| brainos ingest drift ppm | -101.955 |
-| excess delay max s | 0.0245087 |
+| brainos ingest drift ppm | -44.0247 |
+| excess delay max s | 0.00228357 |
 | reference sample number breaks | 1 |
-| result | fail |
+| result | pass |
 
 ## Checks
 
@@ -42,26 +42,26 @@
 | --- | --- | --- | --- |
 | `REF-FILE` Reference Binary recording is readable and consistent | PASS | yes | 297215 rows x 16 channels |
 | `REF-READER` Parser agrees with the official Open Ephys reader | PASS | advisory | identical to open-ephys-python-tools 1.0.1 |
-| `BOS-FILE` BrainOS recording file is complete and well-formed | PASS | yes | 270 frames, every line readable, seq contiguous, contract-valid |
+| `BOS-FILE` BrainOS recording file is complete and well-formed | PASS | yes | 301 frames, every line readable, seq contiguous, contract-valid |
 | `IDENTITY` Both recordings are of the same Open Ephys stream | PASS | yes | same Open Ephys stream 'example_data' |
 | `META-CHAIN` ZMQ Interface and Record Node see the same data | PASS | yes | signal chain 'File Reader -> ZMQ Interface -> Record Node' |
 | `META-CHANNELS` Channel count and channel identities agree | PASS | yes | 16 channels, names identical in order |
 | `META-RATE` Declared sampling rate agrees | PASS | yes | 40000 Hz on both sides |
 | `META-UNITS` Units are interpreted correctly | PASS | yes | BrainOS 'uV' matches the file's units |
 | `OVERLAP` Recordings overlap enough to compare | PASS | yes | 6.99 s of the recordings overlap (279568 samples) |
-| `SAMPLE-COUNT` Sample counts agree within the overlap | **FAIL** | yes | reference 279568 vs BrainOS 250775 samples in the overlap |
-| `LOSS` No samples missing in BrainOS | **FAIL** | yes | BrainOS is missing 28793 reference sample(s) in 1 run(s) (0.103 of the overlap) |
+| `SAMPLE-COUNT` Sample counts agree within the overlap | PASS | yes | reference 279568 vs BrainOS 279568 samples in the overlap |
+| `LOSS` No samples missing in BrainOS | PASS | yes | no reference sample is missing from BrainOS |
 | `DUPLICATES` No duplicated samples in BrainOS | PASS | yes | none |
 | `EXTRA` No BrainOS samples without a reference counterpart | PASS | yes | every BrainOS sample in the reference's range has a counterpart |
 | `ORDER` BrainOS frames are in source order | PASS | yes | frames in source order |
-| `ALIGN-CONTENT` Alignment confirmed by signal content (independent of timestamps) | PASS | yes | 24 probed frame(s) found by content exactly where their timestamps/indices place them; 14 ambiguous |
-| `VALUES` Signal values agree within the expected numerical tolerance | PASS | yes | all 4012400 values agree (952 bit-exact, 4011448 within single precision) |
+| `ALIGN-CONTENT` Alignment confirmed by signal content (independent of timestamps) | PASS | yes | 24 probed frame(s) found by content exactly where their timestamps/indices place them; 15 ambiguous |
+| `VALUES` Signal values agree within the expected numerical tolerance | PASS | yes | all 4473088 values agree (1029 bit-exact, 4472059 within single precision) |
 | `CHANNEL-ORDER` Channels are in the reference order | PASS | yes | every channel matches its reference channel |
 | `SCALE` Scaling and units are correct | PASS | yes | values equal the reference in the stated unit (factor 1) |
-| `LOSS-FLAGGED` BrainOS reported every loss it suffered | PASS | yes | all 1 loss run(s) were reported (0 by the dropped_samples flag, 1 by a device.status event) |
-| `TS-AGREE` Timestamps agree with the sample clock | PASS | yes | all 270 frame timestamps equal sample_number / rate; reference timestamps.npy minus BrainOS: median 0 s |
+| `LOSS-FLAGGED` BrainOS reported every loss it suffered | PASS | yes | no loss to report |
+| `TS-AGREE` Timestamps agree with the sample clock | PASS | yes | all 301 frame timestamps equal sample_number / rate; reference timestamps.npy minus BrainOS: median 0 s |
 | `EVENTS` TTL events agree | not tested | advisory | no TTL events in either recording (use a pulse generator to test events) |
-| `DELAY` Data was not delayed beyond the threshold | PASS | yes | worst excess ingest delay 24.5 ms (median 0.5 ms) vs threshold 1000 ms |
+| `DELAY` Data was not delayed beyond the threshold | PASS | yes | worst excess ingest delay 2.3 ms (median 0.6 ms) vs threshold 1000 ms |
 | `REF-CONTINUITY` Reference recording is continuous | INCONCLUSIVE | advisory | the reference has 0 sample-number jump(s) (0 numbers absent) and 1 reset(s)/regression(s): a discontinuity in the acquisition or recording (e.g. the File Reader looping, a restart) |
 | `EQUIPMENT` Acquisition hardware and software are documented | not tested | advisory | no equipment manifest given (--equipment); the run is not traceable to hardware |
 
@@ -69,11 +69,11 @@
 
 - **protocol**: Open Ephys ZMQ Interface
 - **reference software**: Open Ephys GUI 1.1.0 Record Node (Binary format)
-- **reference recording**: /tmp/pytest-of-root/pytest-26/test_gui_file_reader_loop_rese0/ref/2026-11-08_00-57-36/Record Node 102/experiment1/recording1
+- **reference recording**: /tmp/pytest-of-root/pytest-321/test_gui_file_reader_loop_rese0/ref/2026-11-08_04-34-48/Record Node 102/experiment1/recording1
 - **reference stream**: {"folder_name": "File_Reader-100.example_data", "stream_name": "example_data", "sample_rate": 40000.0, "source_processor": "File Reader (100)", "num_channels...
-- **brainos device**: {"device_id": "openephys:127.0.0.1:39087", "display_name": "Open Ephys (ZMQ) \u00b7 127.0.0.1:39087", "kind": "stream", "adapter": "brainos.openephys.zmq@0.1...
+- **brainos device**: {"device_id": "openephys:127.0.0.1:57779", "display_name": "Open Ephys (ZMQ) \u00b7 127.0.0.1:57779", "kind": "stream", "adapter": "brainos.openephys.zmq@0.1...
 - **brainos recording params**: {"unit": "uV", "source_unit": "uV", "channel_count": 16, "sample_rate_hz": 40000.0, "channel_names": ["CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8",...
-- **sync messages**: Software Time (milliseconds since midnight Jan 1st 1970 UTC): 1794099457892
+- **sync messages**: Software Time (milliseconds since midnight Jan 1st 1970 UTC): 1794112489440
 Start Time for File Reader (100) - example_data @ 40000 Hz: 0
 
 
@@ -81,8 +81,8 @@ Start Time for File Reader (100) - example_data @ 40000 Hz: 0
 
 | Role | Path | Bytes | SHA-256 |
 | --- | --- | --- | --- |
-| reference_openephys_recording | `/tmp/pytest-of-root/pytest-26/test_gui_file_reader_loop_rese0/ref/2026-11-08_00-57-36/Record Node 102/experiment1/recording1` | 14273938 | `0d72e6b03f0da009bc44dacb27e0959748dba9e4497b7706771e4f7eff3d1d14` |
-| brainos_recording | `/tmp/pytest-of-root/pytest-26/test_gui_file_reader_loop_rese0/brainos.brainos.jsonl` | 65328857 | `786dab62576c7fc13faaf48d177fdc79c84342f351582be62a566fa6e560be3c` |
+| reference_openephys_recording | `/tmp/pytest-of-root/pytest-321/test_gui_file_reader_loop_rese0/ref/2026-11-08_04-34-48/Record Node 102/experiment1/recording1` | 14273938 | `26e3476d659d7d886e2e32951c5090ad98a6738278946c41a88a8489d0a6138a` |
+| brainos_recording | `/tmp/pytest-of-root/pytest-321/test_gui_file_reader_loop_rese0/brainos.brainos.jsonl` | 72824239 | `f4f04e3ff8df6a5d1158e76836f186d8ec5f13e963d24b1222a3eef5cdec0276` |
 
 ## Tests performed and evidence
 
@@ -142,11 +142,11 @@ Start Time for File Reader (100) - example_data @ 40000 Hz: 0
 
 *Method:* Parse every line; require the brainos.recording/1 header, contiguous envelope seq numbers (the recorder writes every published event), no recorder recovery/active marker next to the file, and — if BrainOS is installed — validation of every envelope against BrainOS's contract models.
 
-*Finding:* 270 frames, every line readable, seq contiguous, contract-valid
+*Finding:* 301 frames, every line readable, seq contiguous, contract-valid
 
 | Evidence | Value |
 | --- | --- |
-| frames | 270 |
+| frames | 301 |
 | malformed_lines | 0 |
 | seq_gaps | 0 |
 | seq_regressions | 0 |
@@ -157,8 +157,7 @@ Start Time for File Reader (100) - example_data @ 40000 Hz: 0
 
 ```json
 {
- "recording.frame": 270,
- "device.status": 2
+ "recording.frame": 301
 }
 ```
 </details>
@@ -168,7 +167,7 @@ Start Time for File Reader (100) - example_data @ 40000 Hz: 0
 ```json
 {
  "validated": true,
- "valid_events": 272,
+ "valid_events": 301,
  "invalid_events": 0
 }
 ```
@@ -243,7 +242,7 @@ Start Time for File Reader (100) - example_data @ 40000 Hz: 0
 
 ```json
 [
- "openephys:127.0.0.1:39087/example_data"
+ "openephys:127.0.0.1:57779/example_data"
 ]
 ```
 </details>
@@ -404,7 +403,7 @@ Start Time for File Reader (100) - example_data @ 40000 Hz: 0
 | overlap_rows | 279568 |
 | overlap_s | 6.9892 |
 | reference_rows | 297215 |
-| brainos_samples | 250775 |
+| brainos_samples | 279568 |
 | brainos_samples_outside_reference | 0 |
 | brainos_samples_past_reference_end | 0 |
 | min_overlap_s | 2 |
@@ -419,47 +418,33 @@ Start Time for File Reader (100) - example_data @ 40000 Hz: 0
 ```
 </details>
 
-### `SAMPLE-COUNT` — Sample counts agree within the overlap: **FAIL**
+### `SAMPLE-COUNT` — Sample counts agree within the overlap: PASS
 
 *Method:* Count reference samples between the first and last BrainOS sample and the BrainOS samples mapped onto them (each counted once per frame that claims it).
 
-*Finding:* reference 279568 vs BrainOS 250775 samples in the overlap
+*Finding:* reference 279568 vs BrainOS 279568 samples in the overlap
 
 | Evidence | Value |
 | --- | --- |
 | reference_samples_in_overlap | 279568 |
-| brainos_samples_mapped_into_overlap | 250775 |
-| difference | -28793 |
+| brainos_samples_mapped_into_overlap | 279568 |
+| difference | 0 |
 | reference_total | 297215 |
-| brainos_total | 250775 |
+| brainos_total | 279568 |
 
-### `LOSS` — No samples missing in BrainOS: **FAIL**
+### `LOSS` — No samples missing in BrainOS: PASS
 
 *Method:* Reference samples inside the overlap that no BrainOS frame maps to.
 
-*Finding:* BrainOS is missing 28793 reference sample(s) in 1 run(s) (0.103 of the overlap)
+*Finding:* no reference sample is missing from BrainOS
 
 | Evidence | Value |
 | --- | --- |
-| missing_samples | 28793 |
-| missing_fraction | 0.102991 |
-| missing_runs | 1 |
+| missing_samples | 0 |
+| missing_fraction | 0 |
+| missing_runs | 0 |
 | max_loss_fraction | 0 |
-| estimated_lost_duration_s | 0.719825 |
-
-<details><summary>runs</summary>
-
-```json
-[
- {
-  "reference_row": 200620,
-  "length": 28793,
-  "key": 646,
-  "duration_s": 0.719825
- }
-]
-```
-</details>
+| estimated_lost_duration_s | 0 |
 
 ### `DUPLICATES` — No duplicated samples in BrainOS: PASS
 
@@ -500,7 +485,7 @@ Start Time for File Reader (100) - example_data @ 40000 Hz: 0
 
 *Method:* For evenly spaced frames (and every frame the key could not place), search the reference values for the frame's first 16 samples on all channels; compare the row found with the row given by the frame's timestamp / sample number.
 
-*Finding:* 24 probed frame(s) found by content exactly where their timestamps/indices place them; 14 ambiguous
+*Finding:* 24 probed frame(s) found by content exactly where their timestamps/indices place them; 15 ambiguous
 
 | Evidence | Value |
 | --- | --- |
@@ -510,19 +495,19 @@ Start Time for File Reader (100) - example_data @ 40000 Hz: 0
 | agree | 24 |
 | disagree | 0 |
 | not_found | 0 |
-| ambiguous | 14 |
+| ambiguous | 15 |
 
 ### `VALUES` — Signal values agree within the expected numerical tolerance: PASS
 
 *Method:* Every BrainOS sample is compared with the reference sample it maps to, channel by channel: |brainos - reference| <= tolerance. |diff| <= 0.51 x bit_volts of the channel ([0.0500000007] µV) — the Record Node's int16 rounding; samples clipped at the int16 limits are excluded.
 
-*Finding:* all 4012400 values agree (952 bit-exact, 4011448 within single precision)
+*Finding:* all 4473088 values agree (1029 bit-exact, 4472059 within single precision)
 
 | Evidence | Value |
 | --- | --- |
 | tolerance | |diff| <= 0.51 x bit_volts of the channel ([0.0500000007] µV) — the Record Node's int16 rounding; samples clipped at the int16 limits are excluded. |
-| values_compared | 4012400 |
-| values_exactly_equal | 952 |
+| values_compared | 4473088 |
+| values_exactly_equal | 1029 |
 | values_out_of_tolerance | 0 |
 | max_abs_diff | 1.456e-05 |
 | values_excluded_clipped_in_reference | 0 |
@@ -532,111 +517,111 @@ Start Time for File Reader (100) - example_data @ 40000 Hz: 0
 ```json
 [
  {
-  "compared": 250775,
-  "exact": 73,
-  "within_tolerance": 250775,
-  "within_float32": 250775,
+  "compared": 279568,
+  "exact": 76,
+  "within_tolerance": 279568,
+  "within_float32": 279568,
   "out_of_tolerance": 0,
   "excluded_clipped_in_reference": 0,
   "max_abs_diff": 7.361173430808776e-06,
-  "rms_diff": 1.0564731677332353e-06,
+  "rms_diff": 1.0659732203351007e-06,
   "channel": "CH1"
  },
  {
-  "compared": 250775,
-  "exact": 57,
-  "within_tolerance": 250775,
-  "within_float32": 250775,
+  "compared": 279568,
+  "exact": 62,
+  "within_tolerance": 279568,
+  "within_float32": 279568,
   "out_of_tolerance": 0,
   "excluded_clipped_in_reference": 0,
   "max_abs_diff": 7.361173430808776e-06,
-  "rms_diff": 1.0585693940021327e-06,
+  "rms_diff": 1.0817128729128248e-06,
   "channel": "CH2"
  },
  {
-  "compared": 250775,
-  "exact": 70,
-  "within_tolerance": 250775,
-  "within_float32": 250775,
+  "compared": 279568,
+  "exact": 81,
+  "within_tolerance": 279568,
+  "within_float32": 279568,
   "out_of_tolerance": 0,
   "excluded_clipped_in_reference": 0,
   "max_abs_diff": 9.871615588963323e-06,
-  "rms_diff": 1.034542446991964e-06,
+  "rms_diff": 1.0518803148822917e-06,
   "channel": "CH3"
  },
  {
-  "compared": 250775,
-  "exact": 67,
-  "within_tolerance": 250775,
-  "within_float32": 250775,
+  "compared": 279568,
+  "exact": 69,
+  "within_tolerance": 279568,
+  "within_float32": 279568,
   "out_of_tolerance": 0,
   "excluded_clipped_in_reference": 0,
   "max_abs_diff": 1.4557846895968396e-05,
-  "rms_diff": 1.0249293800820908e-06,
+  "rms_diff": 1.04002111975479e-06,
   "channel": "CH4"
  },
  {
-  "compared": 250775,
-  "exact": 55,
-  "within_tolerance": 250775,
-  "within_float32": 250775,
+  "compared": 279568,
+  "exact": 62,
+  "within_tolerance": 279568,
+  "within_float32": 279568,
   "out_of_tolerance": 0,
   "excluded_clipped_in_reference": 0,
   "max_abs_diff": 7.361173430808776e-06,
-  "rms_diff": 1.073837774296017e-06,
+  "rms_diff": 1.0829444209218063e-06,
   "channel": "CH5"
  },
  {
-  "compared": 250775,
-  "exact": 52,
-  "within_tolerance": 250775,
-  "within_float32": 250775,
+  "compared": 279568,
+  "exact": 58,
+  "within_tolerance": 279568,
+  "within_float32": 279568,
   "out_of_tolerance": 0,
   "excluded_clipped_in_reference": 0,
   "max_abs_diff": 7.361173430808776e-06,
-  "rms_diff": 1.0905819147174183e-06,
+  "rms_diff": 1.150424922722431e-06,
   "channel": "CH6"
  },
  {
-  "compared": 250775,
-  "exact": 50,
-  "within_tolerance": 250775,
-  "within_float32": 250775,
+  "compared": 279568,
+  "exact": 53,
+  "within_tolerance": 279568,
+  "within_float32": 279568,
   "out_of_tolerance": 0,
   "excluded_clipped_in_reference": 0,
   "max_abs_diff": 7.361173430808776e-06,
-  "rms_diff": 1.0156600246493589e-06,
+  "rms_diff": 1.0304743690275394e-06,
   "channel": "CH7"
  },
  {
-  "compared": 250775,
-  "exact": 54,
-  "within_tolerance": 250775,
-  "within_float32": 250775,
+  "compared": 279568,
+  "exact": 61,
+  "within_tolerance": 279568,
+  "within_float32": 279568,
   "out_of_tolerance": 0,
   "excluded_clipped_in_reference": 0,
   "max_abs_diff": 7.361173430808776e-06,
-  "rms_diff": 1.0022359064646926e-06,
+  "rms_diff": 1.0177601351140968e-06,
   "channel": "CH8"
  },
  {
-  "compared": 250775,
-  "exact": 60,
-  "within_tolerance": 250775,
-  "within_float32": 250775,
+  "compared": 279568,
+  "exact": 64,
+  "within_tolerance": 279568,
+  "within_float32": 279568,
   "out_of_tolerance": 0,
   "excluded_clipped_in_reference": 0,
   "max_abs_diff": 7.361173430808776e-06,
-  "rms_diff": 9.92968571460135e-07,
+  "rms_diff": 1.0006209973585254e-06,
   "channel": "CH9"
  },
  {
-  "compared": 250775,
-  "exact": 75,
-  "within_tolerance": 250775,
-  "within_float32": 250775,
+  "compared": 279568,
+  "exact": 85,
+  "within_tolerance": 279568,
+  "within_float32": 279568,
   "out_of_tolerance": 0,
-  "excluded
+  "exclude
 ... (truncated; full evidence in the JSON report)
 ```
 </details>
@@ -781,43 +766,25 @@ Start Time for File Reader (100) - example_data @ 40000 Hz: 0
 
 *Method:* For each run of samples missing in BrainOS, the next BrainOS frame must carry the quality flag dropped_samples, or a device.status event (reconnecting, ...) must lie between the frames around the gap.
 
-*Finding:* all 1 loss run(s) were reported (0 by the dropped_samples flag, 1 by a device.status event)
+*Finding:* no loss to report
 
 | Evidence | Value |
 | --- | --- |
-| loss_runs | 1 |
+| loss_runs | 0 |
 | reported_by_frame_flag | 0 |
-| reported_by_device_status | 1 |
+| reported_by_device_status | 0 |
 | unreported_runs | 0 |
 | frames_flagged_dropped_samples | 0 |
-
-<details><summary>device_status_events</summary>
-
-```json
-[
- {
-  "seq": 215,
-  "state": "reconnecting",
-  "detail": "configuration changed: sample clock went backwards (200620 -> 646); acquisition restarted?"
- },
- {
-  "seq": 216,
-  "state": "streaming",
-  "detail": "reconnected after 1 attempt(s)"
- }
-]
-```
-</details>
 
 ### `TS-AGREE` — Timestamps agree with the sample clock: PASS
 
 *Method:* BrainOS device_timestamp_ns must equal round(sample_number / sample_rate x 1e9) (docs/OPEN_EPHYS.md); the Record Node's timestamps.npy (synchronised seconds) is compared as an offset/drift (it may be synchronised to another stream).
 
-*Finding:* all 270 frame timestamps equal sample_number / rate; reference timestamps.npy minus BrainOS: median 0 s
+*Finding:* all 301 frame timestamps equal sample_number / rate; reference timestamps.npy minus BrainOS: median 0 s
 
 | Evidence | Value |
 | --- | --- |
-| frames | 270 |
+| frames | 301 |
 | mismatches | 0 |
 
 <details><summary>reference_timestamps_npy_vs_brainos</summary>
@@ -841,25 +808,25 @@ Start Time for File Reader (100) - example_data @ 40000 Hz: 0
 
 *Method:* BrainOS ingest wall clock minus the source time of each frame's last sample; the excess over the smallest observed value is the variable delay (buffering, transport, stalls). Without a measured clock pair, absolute latency is unknown.
 
-*Finding:* worst excess ingest delay 24.5 ms (median 0.5 ms) vs threshold 1000 ms
+*Finding:* worst excess ingest delay 2.3 ms (median 0.6 ms) vs threshold 1000 ms
 
 | Evidence | Value |
 | --- | --- |
-| frames | 270 |
-| excess_delay_median_s | 0.0004705 |
-| excess_delay_p95_s | 0.00108874 |
-| excess_delay_max_s | 0.0245087 |
-| drift_ppm | -101.955 |
+| frames | 301 |
+| excess_delay_median_s | 0.0006256 |
+| excess_delay_p95_s | 0.00128269 |
+| excess_delay_max_s | 0.00228357 |
+| drift_ppm | -44.0247 |
 
 <details><summary>fit</summary>
 
 ```json
 {
- "slope": -0.00010195509841569589,
- "intercept": 1794099457.870864,
- "residual_std": 0.0014830060068511753,
- "residual_max_abs": 0.02359938621520996,
- "n": 270
+ "slope": -4.4024735650814256e-05,
+ "intercept": 1794112489.4186018,
+ "residual_std": 0.00030673199009772313,
+ "residual_max_abs": 0.0014982223510742188,
+ "n": 301
 }
 ```
 </details>
@@ -931,6 +898,6 @@ Start Time for File Reader (100) - example_data @ 40000 Hz: 0
  },
  "command": null,
  "tool": "brainos-hwval 0.1.0",
- "created_at": "2026-11-08T00:57:48Z"
+ "created_at": "2026-11-08T04:35:00Z"
 }
 ```

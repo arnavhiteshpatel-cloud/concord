@@ -382,7 +382,17 @@ class OpenEphysAdapter(DeviceAdapter):
                     self._assembler.resync()
                 if gap:
                     self._assembler.note_message_gap()
+                resets = self.counters.sample_clock_resets
                 items = self._dispatch(msg)
+                if self.counters.sample_clock_resets != resets:
+                    prev, new = self._assembler.last_clock_reset or (None, -1)
+                    log.warning(
+                        "openephys %s: source sample clock restarted (%s -> %d) while messages "
+                        "continued (e.g. File Reader looping); continuing without reconnecting",
+                        self.endpoint,
+                        prev,
+                        new,
+                    )
             except ConfigurationChangedError as exc:
                 self.counters.config_changes += 1
                 if exc.new_electrode and exc.new_electrode not in self.electrodes:

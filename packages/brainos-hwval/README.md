@@ -139,11 +139,16 @@ Their input files are not committed; their SHA-256 sums are in the reports.
 
 ## Findings from the real-software runs
 
-* **BrainOS loses ~0.7 s at an Open Ephys sample-number reset.** When the GUI's File Reader
-  loops, sample numbers restart; BrainOS's Open Ephys adapter treats this as an acquisition
-  restart, reconnects and re-learns the stream, and the samples in between are missing
-  (28 793 samples at 40 kHz in `examples/sample-reports/openephys-gui-file-reader-loop.hwval.md`).
-  BrainOS reports it (device.status `reconnecting`), so it is not silent, but it is loss.
+* **BrainOS lost ~0.7 s at an Open Ephys sample-number reset (fixed in the Milestone 5
+  release).** When the GUI's File Reader loops, sample numbers restart while messages continue;
+  BrainOS's Open Ephys adapter treated this as an acquisition restart, reconnected and re-learnt
+  the stream, and the samples in between were missing (28 793 samples at 40 kHz,
+  `examples/sample-reports/openephys-gui-file-reader-loop-before-fix.hwval.md`; BrainOS
+  reported it through device.status `reconnecting`). The adapter now continues from the new
+  sample base when only the sample clock restarted (layout and message_num unchanged); the
+  discontinuity stays visible (first_sample_index goes back; the runtime flags
+  `timestamp_regression`). The same run is now a PASS with no loss
+  (`openephys-gui-file-reader-loop.hwval.md`), and `test_gui_file_reader_loop_reset` guards it.
 * LabRecorder writes a ClockOffset entry with time ≈ 0 and value 0 when a time-correction
   query times out after the source has gone, and its stream-footer `sample_count` can be one
   lower than the samples stored; both are handled and reported, not treated as data errors.
