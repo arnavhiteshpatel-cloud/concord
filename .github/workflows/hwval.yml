@@ -1,0 +1,79 @@
+name: Hardware validation kit
+
+# brainos-hwval: acquisition-integrity comparison of BrainOS against independent reference
+# software. Runs the real LabRecorder (LabRecorderCLI 1.16.4) and the real Open Ephys GUI
+# 1.1.0 + ZMQ Interface 1.0.0 (headless), downloaded at test time and pinned by SHA-256
+# (packages/brainos-hwval/tests/refsoft.py). Reference-software tests must not be skipped here.
+# This is software-level evidence; no acquisition hardware is involved.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - "packages/brainos-hwval/**"
+      - "docs/HARDWARE_VALIDATION.md"
+      - "backend/src/brainos/adapters/**"
+      - "backend/src/brainos/runtime/**"
+      - "backend/src/brainos/contracts/**"
+      - ".github/workflows/hwval.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  hwval:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      HWVAL_CACHE: ${{ github.workspace }}/.hwval-cache
+      HWVAL_REQUIRE_REFERENCE_SOFTWARE: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: System packages (LabRecorderCLI needs pugixml; the GUI needs a display and audio)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libpugixml1v5 xvfb pulseaudio \
+            libasound2-plugins
+      - name: Install BrainOS and brainos-hwval
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e packages/brainos-adapter-sdk -e packages/brainos-decoder-sdk \
+            -e "backend[live]" -e "packages/brainos-hwval[dev,openephys,capture]"
+      - name: Cache reference software (verified by SHA-256 on every use)
+        uses: actions/cache@v4
+        with:
+          path: .hwval-cache
+          key: hwval-refsoft-${{ hashFiles('packages/brainos-hwval/tests/refsoft.py') }}
+      - name: Lint (ruff, mypy --strict)
+        working-directory: packages/brainos-hwval
+        run: |
+          ruff check .
+          ruff format --check .
+          mypy
+      - name: Tests (synthetic defects, real LabRecorder, real Open Ephys GUI)
+        working-directory: packages/brainos-hwval
+        env:
+          HWVAL_EXAMPLES_DIR: ${{ github.workspace }}/hwval-reports
+        run: |
+          set -o pipefail
+          mkdir -p "$HWVAL_EXAMPLES_DIR"
+          pytest -q -rs --junitxml="$HWVAL_EXAMPLES_DIR/pytest-junit.xml" | tee "$HWVAL_EXAMPLES_DIR/pytest.log"
+          if grep -q "SKIPPED" "$HWVAL_EXAMPLES_DIR/pytest.log"; then
+            echo "::error::hwval tests were skipped"; exit 1; fi
+      - name: Smoke-test the installed CLI
+        run: |
+          brainos-hwval --version
+          brainos-hwval equipment-template > /dev/null
+          for r in packages/brainos-hwval/examples/sample-reports/*.hwval.json; do
+            python -c "import json,sys; r=json.load(open(sys.argv[1])); assert r['evidence_scope']['hardware_verified'] is False" "$r"
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hwval-reports
+          path: hwval-reports/
