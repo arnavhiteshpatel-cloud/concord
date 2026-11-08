@@ -207,3 +207,53 @@ async def test_control_channel_filters_and_reports_close() -> None:
         "telemetry.sample",
     ]
     assert stops == ["stream closed"]
+
+
+# ------------------------------------------------------------------ schema 1.4 (M5-C)
+
+
+def _ctl(active: bool, caps: list[str], reason: str, session: str = "ses_aaaaaaaa") -> Any:
+    ev = valid_event("control.state", timestamp_ns=time.time_ns())
+    ev["session_id"] = session
+    ev["payload"] = {"active": active, "capabilities": caps, "reason": reason}
+    return parse_envelope(ev)
+
+
+def test_control_state_gates_commands_and_stops_with_the_runtimes_reason() -> None:
+    clock, stops = Clock(), []
+    g = _guard(clock, stops)
+    g.handle(NegotiationUpdate(_neg(["selection", "navigation", "control_status"])))
+    # control_status granted: nothing is usable until the runtime says so
+    assert not g.is_active("selection") and g.state("selection") == "control_inactive"
+    assert g.handle(_cmd(clock, "intent.selection")) is None
+    on = _ctl(True, ["navigation", "selection"], "operator authorized this application")
+    assert g.handle(on) is on  # passed through: the app may show it
+    assert g.is_active("selection") and g.is_active("navigation")
+    assert g.handle(_cmd(clock, "intent.navigate")) is not None
+    assert g.control_state == (
+        True,
+        frozenset({"navigation", "selection"}),
+        "operator authorized this application",
+    )
+    g.handle(_ctl(True, ["selection"], "authorization revoked by operator (navigation)"))
+    assert stops == ["authorization revoked by operator (navigation)"]
+    assert not g.is_active("navigation") and g.is_active("selection")
+    g.handle(_ctl(False, [], "command output stopped: input stalled"))
+    assert stops[-1] == "command output stopped: input stalled"
+    assert g.handle(_cmd(clock, "intent.selection")) is None
+    # a notice from another session never re-enables commands in this one
+    g.handle(_runtime(session="ses_bbbbbbbb"))
+    g.handle(_ctl(True, ["selection"], "stale", session="ses_aaaaaaaa"))
+    assert not g.is_active("selection") and g.control_state is None
+    g.handle(_ctl(True, ["selection"], "now", session="ses_bbbbbbbb"))
+    assert g.is_active("selection")
+
+
+def test_without_control_status_the_guard_behaves_as_before() -> None:
+    clock, stops = Clock(), []
+    g = _guard(clock, stops)
+    g.handle(NegotiationUpdate(_neg(["navigation"])))
+    assert g.is_active("navigation")  # navigation is a command capability (schema 1.4)
+    assert g.handle(_cmd(clock, "intent.navigate")) is not None
+    g.handle(_ctl(False, [], "not asked for"))  # control_status not granted: no gating
+    assert g.is_active("navigation") and stops == []

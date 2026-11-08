@@ -1,8 +1,19 @@
 import { useEffect, useState } from "react";
-import type { SourceMetadata } from "../../sdk";
+import type { SourceMetadata, SourceSignal } from "../../sdk";
 import { consoleApi } from "../api";
 import { errorText } from "../hooks";
 import { Panel, fmt } from "./ui";
+
+/** M5: the signal line of a raw-voltage source (e.g. ECoG) — samples, not bins. */
+export function signalLine(meta: SourceMetadata, s: SourceSignal): string {
+  const unit = s.unit === "uV" ? "µV" : "arbitrary units (no convertible unit declared)";
+  const mains = s.line_hz ? ` · mains ${s.line_hz} Hz` : "";
+  return (
+    `${meta.channel_count} channels · raw voltage in ${unit} · ${s.sample_rate_hz} Hz · ` +
+    `${s.n_samples.toLocaleString()} samples · ${meta.duration_s.toFixed(1)} s from t = ${s.start_s} s` +
+    `${mains} · bad: ${s.bad_channels.length ? s.bad_channels.join(", ") : "none marked"}`
+  );
+}
 
 // Metadata of a verified offline dataset file, as reported by /devices/{id}/source.
 export function DatasetDetails({ deviceId }: { deviceId: string }) {
@@ -54,13 +65,29 @@ export function DatasetDetails({ deviceId }: { deviceId: string }) {
                 <td>Recording</td>
                 <td>
                   {meta.species ?? "species not stated"} · {meta.recording_type}
+                  {meta.modality ? ` · modality ${meta.modality}` : ""}
                 </td>
               </tr>
+              {meta.slice && (
+                <tr>
+                  <td>Extract</td>
+                  <td className="mono" data-testid="source-slice">
+                    {meta.slice.asset_path} samples [{meta.slice.samples.join(", ")}) · {meta.slice.role} slice
+                  </td>
+                </tr>
+              )}
               <tr>
                 <td>Signal</td>
                 <td className="mono" data-testid="source-signal">
-                  {meta.channel_count} channels · {meta.feature} ({meta.feature_unit}) · {meta.bin_ms} ms bins (
-                  {(1000 / meta.bin_ms).toFixed(0)} Hz) · {meta.n_bins.toLocaleString()} bins · {meta.duration_s.toFixed(1)} s
+                  {meta.signal ? (
+                    signalLine(meta, meta.signal)
+                  ) : (
+                    <>
+                      {meta.channel_count} channels · {meta.feature} ({meta.feature_unit}) · {meta.bin_ms} ms bins (
+                      {(1000 / meta.bin_ms).toFixed(0)} Hz) · {meta.n_bins.toLocaleString()} bins ·{" "}
+                      {meta.duration_s.toFixed(1)} s
+                    </>
+                  )}
                 </td>
               </tr>
               {meta.behavior && (
@@ -103,16 +130,38 @@ export function DatasetDetails({ deviceId }: { deviceId: string }) {
               ))}
             </ul>
           </details>
-          <details>
-            <summary>Channels ({meta.channels.length})</summary>
-            <div className="channel-grid mono">
-              {meta.channels.map((c) => (
-                <span key={c.index} title={`unit ${c.unit_id}: ${c.spike_count} spikes; electrode ${c.electrode ?? "not provided"}`}>
-                  {c.unit_id}:{c.spike_count}
-                </span>
-              ))}
-            </div>
-          </details>
+          {meta.electrodes ? (
+            <details>
+              <summary>Electrodes ({meta.electrodes.length})</summary>
+              <div className="channel-grid mono" data-testid="source-electrodes">
+                {meta.electrodes.map((e) => (
+                  <span
+                    key={e.index}
+                    className={e.bad ? "caution-text" : undefined}
+                    title={
+                      `${e.label}: group ${e.group ?? "?"} (${e.group_description ?? "no description"}), ` +
+                      `location ${e.location ?? "not stated"}, xyz ${[e.x, e.y, e.z].map((v) => fmt.num(v, 1)).join(", ")}, ` +
+                      (e.bad === null ? "quality not stated" : e.bad ? "marked bad" : "marked good")
+                    }
+                  >
+                    {e.label}
+                    {e.bad ? " (bad)" : ""}
+                  </span>
+                ))}
+              </div>
+            </details>
+          ) : (
+            <details>
+              <summary>Channels ({meta.channels.length})</summary>
+              <div className="channel-grid mono">
+                {meta.channels.map((c) => (
+                  <span key={c.index} title={`unit ${c.unit_id}: ${c.spike_count} spikes; electrode ${c.electrode ?? "not provided"}`}>
+                    {c.unit_id}:{c.spike_count}
+                  </span>
+                ))}
+              </div>
+            </details>
+          )}
           {meta.dataset && <p className="hint">Citation: {meta.dataset.citation}</p>}
         </div>
       ) : (

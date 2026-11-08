@@ -10,6 +10,8 @@ from collections.abc import Callable
 from pathlib import Path
 
 from brainos.adapters.base import DeviceAdapter
+from brainos.adapters.cursorclick.catalog import PREFIX as T15_PREFIX
+from brainos.adapters.cursorclick.catalog import CursorClickCatalog
 from brainos.adapters.replay import (
     BrainOSRecordingSource,
     RecordingFormatError,
@@ -60,6 +62,8 @@ class DeviceRegistry:
         self._replay_loop = replay_loop
         root = recordings_dir.parent
         self.catalog = NWBCatalog(datasets_dir or root / "datasets", models_dir or root / "models")
+        # M5: cursor + click blocks (Dryad .mat files) in the same datasets directory
+        self.cursorclick = CursorClickCatalog(datasets_dir or root / "datasets")
         self.live = LiveSourceRegistry()
         self.plugins = plugins or PluginRegistry()
         self._factories: dict[str, tuple[DeviceDescriptor, Callable[[], DeviceAdapter]]] = {
@@ -76,7 +80,7 @@ class DeviceRegistry:
     def register(self, descriptor: DeviceDescriptor, factory: Callable[[], DeviceAdapter]) -> None:
         """Register an additional adapter factory (extension point for new devices)."""
         if descriptor.device_id in self._factories or descriptor.device_id.startswith(
-            (REPLAY_PREFIX, NWB_PREFIX, PLUGIN_PREFIX)
+            (REPLAY_PREFIX, NWB_PREFIX, PLUGIN_PREFIX, T15_PREFIX)
         ):
             raise ValueError(f"device id {descriptor.device_id!r} already registered or reserved")
         self._factories[descriptor.device_id] = (descriptor, factory)
@@ -100,6 +104,7 @@ class DeviceRegistry:
                 except (RecordingFormatError, OSError) as exc:
                     log.warning("ignoring recording %s: %s", path.name, exc)
         out.extend(self.catalog.list())
+        out.extend(self.cursorclick.list())
         out.extend(self.live.list())
         out.extend(self.plugins.list())
         return out
@@ -133,6 +138,13 @@ class DeviceRegistry:
                     return d
         if device_id.startswith(REPLAY_PREFIX):
             return replay_descriptor(self._replay_source(device_id))
+        if device_id.startswith(T15_PREFIX):
+            desc = self.cursorclick.describe(device_id)
+            if desc is None:
+                raise DeviceNotFoundError(
+                    f"{device_id} ({self.cursorclick.unavailable_reason or 'file not found'})"
+                )
+            return desc
         if device_id.startswith(NWB_PREFIX):
             desc = self.catalog.describe(device_id)
             if desc is None:
@@ -157,6 +169,14 @@ class DeviceRegistry:
                 raise DeviceOpenError(f"{device_id}: {exc}") from exc
         if device_id.startswith(REPLAY_PREFIX):
             return ReplayAdapter(self._replay_source(device_id), loop=self._replay_loop)
+        if device_id.startswith(T15_PREFIX):
+            t15 = self.cursorclick.path_for(device_id)
+            if t15 is None:
+                raise DeviceNotFoundError(device_id)
+            try:
+                return ReplayAdapter(self.cursorclick.source(t15), loop=self._replay_loop)
+            except (ValueError, OSError) as exc:  # T15FormatError is a ValueError
+                raise DeviceOpenError(f"{device_id}: cannot open {t15.name}: {exc}") from exc
         if device_id.startswith(NWB_PREFIX):
             path = self._nwb_path(device_id)
             try:

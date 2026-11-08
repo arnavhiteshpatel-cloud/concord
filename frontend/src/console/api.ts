@@ -45,6 +45,9 @@ export interface RecordingInfo {
   size_bytes: number;
   events: number | null;
   active: boolean;
+  /** M5-D: false for a recording interrupted by a crash or kill (its valid prefix is kept) */
+  complete?: boolean;
+  recovery?: { status: string; reason: string; valid_events: number; discarded_bytes: number } | null;
 }
 
 export interface TestCase {
@@ -184,7 +187,12 @@ export interface PluginsStatus {
 
 // ------------------------------------------------------------------ pipeline
 
-export type PresetName = "spikeband_threshold" | "ecog_high_gamma" | "band_power" | "features_passthrough";
+export type PresetName =
+  | "spikeband_threshold"
+  | "ecog_high_gamma"
+  | "band_power"
+  | "features_passthrough"
+  | "decoded_passthrough";
 
 export interface ProcessingSpecInput {
   preset: PresetName;
@@ -194,7 +202,21 @@ export interface ProcessingSpecInput {
   band_high_hz?: number;
 }
 
-export type DiscreteAction = "primary" | "activate" | "cancel" | "text";
+export type NavigateDirection = "up" | "down" | "left" | "right" | "next" | "previous";
+/** schema 1.4: "navigate:<direction>" sends intent.navigate */
+export type DiscreteAction = "primary" | "activate" | "cancel" | "text" | `navigate:${NavigateDirection}`;
+
+/** schema 1.4 router feature: a click from one decoder output (probability or 0/1 decision). */
+export interface ClickRule {
+  output: string;
+  action?: "primary" | "activate";
+  threshold?: number;
+  release?: number | null;
+  min_confidence?: number;
+  confidence_dim?: string | null;
+  debounce_ms?: number;
+  refractory_ms?: number;
+}
 
 /** One discrete action from a classifier's class posterior (Milestone 4). */
 export interface DiscreteRule {
@@ -216,8 +238,12 @@ export interface RouterSpec {
   deadzone: number;
   invert_y: boolean;
   max_speed: number;
+  /** "training_std" (default): value / training std; "native": already workspace units/s */
+  pointer_scale?: "training_std" | "native";
   /** discrete actions (classifier decoders) */
   discrete?: DiscreteRule[];
+  /** a click from one decoder output */
+  click?: ClickRule | null;
   stall_ms?: number;
 }
 
@@ -226,6 +252,9 @@ export interface PipelineStartRequest {
   model_id: string | null;
   allow_cross_source: boolean;
   router?: RouterSpec | null;
+  /** Milestone 5: further decoders run together; explicit channel mapping by label */
+  model_ids?: string[];
+  allow_channel_mapping?: boolean;
 }
 
 export interface LatencyStats {
@@ -245,10 +274,56 @@ export interface PipelineOutputSpec {
   unit: string;
 }
 
+/** Milestone 5: where a decoder comes from (decoding/registry.py). */
+export type DecoderOrigin = "brainos-trained" | "imported" | "plugin" | "historical" | "external";
+
+export interface ModelTrust {
+  sha256: string;
+  format: string | null;
+  file: string | null;
+  by: string;
+  at_ns: number;
+}
+
+export interface DecoderMonitor {
+  window_bins: number;
+  bins: number;
+  features: {
+    available: boolean;
+    reason?: string;
+    shift_z_rms?: number;
+    channels_shifted_fraction?: number;
+    scale_log_ratio_rms?: number;
+  };
+  labels: { metric?: string; value?: number | null; reference?: number | null; pairs: number; note?: string | null } | null;
+  recalibration_recommended: boolean;
+  reasons: string[];
+}
+
 export interface ModelSummary {
   model_id: string;
-  /** Milestone 4: classifiers output class posteriors (dims = class names) */
-  outputs?: { type: "classes"; classes: string[] } | { type: "continuous" };
+  /** Milestone 4: classifiers output class posteriors (dims = class names); M5: events (click) */
+  outputs?: { type: "classes"; classes: string[] } | { type: "continuous" } | { type: "event"; events: string[] };
+  // Milestone 5 (decoding/registry.py, runtime/pipeline.py)
+  family?: string;
+  origin?: DecoderOrigin;
+  execution?: "in_process" | "isolated";
+  status?: "ok" | "rejected" | "load_error";
+  reason?: string | null;
+  modalities?: string[];
+  participant_specific?: boolean;
+  description?: string | null;
+  format?: string | null;
+  unsafe_format?: boolean;
+  trust?: ModelTrust | null;
+  quantity?: string;
+  state?: "starting" | "ready" | "failed" | "closed";
+  error?: string | null;
+  model_origin?: string;
+  y_axis?: "up" | "down" | null;
+  compatibility?: { ok: boolean; errors: string[]; warnings: string[]; cross_source: boolean; mapping_applied: boolean; mapping_notes: string[] };
+  monitor?: DecoderMonitor | null;
+  received?: number;
   held_out_balanced_accuracy?: number | null;
   chance_balanced_accuracy?: number | null;
   method?: string;
@@ -256,6 +331,8 @@ export interface ModelSummary {
   dims: string[];
   unit?: string;
   input?: { event_type?: string; feature?: string; bin_ms?: number; channel_count?: number; inferred?: boolean };
+  /** Milestone 5: every input (several feature streams are joined per bin, in this order) */
+  inputs?: { event_type?: string; feature?: string; bin_ms?: number; channel_count?: number; channel_labels?: string[] | null }[];
   source_identity?: string | null;
   trained_on?: string | null;
   training_session?: string | null;
@@ -290,6 +367,12 @@ export interface PipelineStatus {
   stall_limit_ms?: number | null;
   last_router_stop?: RouterEvent | null;
   router_log?: RouterEvent[];
+  // Milestone 5
+  outputs?: PipelineOutputSpec[];
+  decoders?: ModelSummary[];
+  source_decoders?: ModelSummary[];
+  channel_mapping?: boolean;
+  recalibration_recommended?: boolean;
 }
 
 export interface RouterEvent {
@@ -301,7 +384,7 @@ export interface RouterEvent {
 // ------------------------------------------------------------------ control bridge (M4)
 // Shapes mirror backend/src/brainos/server/control_routes.py.
 
-export type CommandCapability = "pointer_intent" | "selection" | "text_intent";
+export type CommandCapability = "pointer_intent" | "selection" | "text_intent" | "navigation";
 
 export interface AppControl {
   app_id: string;
@@ -316,6 +399,9 @@ export interface AppControl {
   receiving: CommandCapability[];
   waiting: { capability: CommandCapability; reason: "unsupported_by_device" | "no_device" | "not_authorized"; required: boolean }[];
   refused_commands: number;
+  /** schema 1.4: what the app's last control.state said (null: it does not ask for it) */
+  control_active?: boolean | null;
+  control_reason?: string | null;
 }
 
 export interface ControlEvent {
@@ -343,6 +429,34 @@ export interface ModelInfo {
   compatible: boolean | null;
   errors: string[];
   warnings: string[];
+  /** Milestone 5: labels differ but an explicit mapping by label would resolve it */
+  mapping_available?: boolean;
+  checked_against?: string | null;
+}
+
+export type CalibrationCapability = "continuous" | "classes" | "click";
+
+export interface CalibrationOptions {
+  capabilities: {
+    name: CalibrationCapability;
+    label: string;
+    needs: string;
+    metrics: string;
+    default_family: string;
+    families: { name: string; description: string }[];
+  }[];
+}
+
+export interface LabelCheck {
+  capability: CalibrationCapability;
+  ok: boolean;
+  problems: string[];
+  notes: string[];
+  label_dims: string[];
+  bins: number;
+  labelled_bins: number;
+  classes: string[] | null;
+  events: number | null;
 }
 
 export interface CalibrationRequest {
@@ -354,6 +468,10 @@ export interface CalibrationRequest {
   kind?: "regression" | "classifier";
   label_dim?: string | null;
   class_names?: string[] | null;
+  /** Milestone 5: the output to calibrate (overrides kind) and the family */
+  capability?: CalibrationCapability;
+  family?: string | null;
+  join_features?: boolean;
 }
 
 export interface CalibrationReport {
@@ -375,6 +493,25 @@ export interface CalibrationReport {
   control_time_shift_r2?: number;
   control_time_shift_max_r2?: number;
   beats_all_shifts?: boolean;
+  // Milestone 5
+  capability?: CalibrationCapability;
+  family?: string;
+  velocity_error?: {
+    rmse_per_dim: Record<string, number>;
+    mean_vector_error: number;
+    mean_target_speed: number;
+    relative_vector_error: number | null;
+  };
+  events?: {
+    event_precision: number;
+    event_recall: number;
+    event_f1: number;
+    true_events: number;
+    detected_events: number;
+    false_positives_per_min: number;
+    roc_auc: number | null;
+    tolerance_ms: number;
+  };
 }
 
 export interface CalibrationResult {
@@ -413,7 +550,19 @@ export const labApi = {
   revokeApp: (appId: string) => apiCall<ControlStatus>(`/control/apps/${enc(appId)}/revoke`, { method: "POST" }),
   stopControl: (reason?: string) =>
     apiCall<ControlStatus>("/control/stop", { method: "POST", body: reason ? { reason } : undefined }),
-  models: () => apiCall<ModelInfo[]>("/models"),
+  /** With a preset (+ parameters): compatibility against what it would produce (M5 preview). */
+  models: (preview?: ProcessingSpecInput | null) => {
+    if (!preview || preview.preset === "decoded_passthrough") return apiCall<ModelInfo[]>("/models");
+    const q = new URLSearchParams();
+    for (const [k, v] of Object.entries(preview)) if (v !== undefined && v !== null) q.set(k, String(v));
+    return apiCall<ModelInfo[]>(`/models?${q.toString()}`);
+  },
+  discoverModels: () => apiCall<{ discovering: boolean; error: string | null; plugins: number }>("/models/discover", { method: "POST", body: {} }),
+  trustModel: (modelId: string, trusted: boolean) =>
+    apiCall<{ model_id: string; trust: ModelTrust | null }>(`/models/${enc(modelId)}/trust`, { method: "POST", body: { trusted } }),
+  calibrationOptions: () => apiCall<CalibrationOptions>("/calibration/options"),
+  calibrationCheck: (req: CalibrationRequest) =>
+    apiCall<LabelCheck>("/calibration/check", { method: "POST", body: req }),
   calibrate: (req: CalibrationRequest) =>
     apiCall<CalibrationResult>("/calibration/train", { method: "POST", body: req }),
 };

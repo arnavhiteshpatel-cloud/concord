@@ -1,4 +1,5 @@
-// Row 3 — Decoder: whether a decoder runs, what it is, and how to start, stop or calibrate one.
+// Row 3 — Decoder: whether a decoder runs, what it is (origin, family, where it runs), whether
+// it fits the source, whether it drifted, and how to start, stop or calibrate one.
 
 import { useCallback, useEffect, useState } from "react";
 import type { RuntimeSnapshot } from "../../sdk";
@@ -8,13 +9,16 @@ import {
   labApi,
   type CalibrationResult,
   type ModelInfo,
+  type ModelSummary,
   type PipelineStartRequest,
   type PresetName,
+  type ProcessingSpecInput,
   type RecordingInfo,
 } from "../api";
 import { useLog, useLoggedAction } from "../context";
+import { decoderLine, driftLine, originLabel } from "../decoders";
 import type { PipelineState } from "../pipeline";
-import { defaultPreset, presetLabel, sentence } from "../wording";
+import { defaultPreset, hasCapability, presetLabel, sentence } from "../wording";
 import { CalibrationPanel } from "./CalibrationPanel";
 import { PipelineControl } from "./PipelineControl";
 import { Dot, Row, Sheet, fmt } from "./ui";
@@ -30,17 +34,30 @@ function StartDecodingSheet({
 }) {
   const [presets, setPresets] = useState<Record<string, string> | null>(null);
   const [models, setModels] = useState<ModelInfo[]>([]);
+  const [preview, setPreview] = useState<ProcessingSpecInput | null>(null);
+  const [reload, setReload] = useState(0);
   const action = useLoggedAction();
+  const discover = useLoggedAction();
   useEffect(() => {
     labApi
       .presets()
       .then(setPresets)
       .catch(() => setPresets({}));
-    labApi
-      .models()
-      .then(setModels)
-      .catch(() => setModels([]));
   }, []);
+  useEffect(() => {
+    // compatibility of every model with what the chosen processing would produce
+    let live = true;
+    const t = setTimeout(() => {
+      labApi
+        .models(preview)
+        .then((m) => live && setModels(m))
+        .catch(() => live && setModels([]));
+    }, 150);
+    return () => {
+      live = false;
+      clearTimeout(t);
+    };
+  }, [preview, reload]);
   const canStart = runtime?.state === "streaming" || runtime?.state === "paused";
   const start = async (req: PipelineStartRequest) => {
     const st = await action.run(() => labApi.startPipeline(req));
@@ -48,6 +65,11 @@ function StartDecodingSheet({
     pipeline.set(st); // the session log entry comes from the status change
     onClose();
   };
+  const search = async () => {
+    if (await discover.run(() => labApi.discoverModels())) setReload((n) => n + 1);
+  };
+  const onProcessing = useCallback((p: ProcessingSpecInput | null) => setPreview(p), []);
+  const onModelsChanged = useCallback(() => setReload((n) => n + 1), []);
   return (
     <Sheet title="Start decoding" onClose={onClose} testId="start-decoding">
       {presets === null ? (
@@ -61,8 +83,18 @@ function StartDecodingSheet({
           busy={action.busy}
           error={action.error}
           onStart={start}
+          hasSourceDecoder={hasCapability(runtime?.device, "kinematic_intent")}
+          onProcessingChange={onProcessing}
+          onModelsChanged={onModelsChanged}
         />
       )}
+      <div className="btn-row">
+        <button type="button" className="btn" disabled={discover.busy} onClick={search} data-testid="decoders-discover">
+          {discover.busy ? "Searching…" : "Search for decoder plugins"}
+        </button>
+        <span className="hint">Installed decoder plugins and model files are listed with the models.</span>
+      </div>
+      {discover.error && <p className="error-text">{discover.error}</p>}
     </Sheet>
   );
 }
@@ -89,7 +121,14 @@ function CalibrationSheet({
     if (await action.run(() => consoleApi.stopRecording())) onRecordingsChanged();
   };
   const trained = (r: CalibrationResult) => {
-    log("ok", `Model ${r.model.model_id} trained · offline held-out R² ${fmt.num(r.report.r2, 3)}`);
+    const rep = r.report;
+    const score =
+      rep.events !== undefined
+        ? `click events precision ${fmt.num(rep.events.event_precision, 3)}, recall ${fmt.num(rep.events.event_recall, 3)}`
+        : (rep as { balanced_accuracy?: number }).balanced_accuracy !== undefined
+          ? `offline held-out balanced accuracy ${fmt.num((rep as { balanced_accuracy?: number }).balanced_accuracy, 3)}`
+          : `offline held-out R² ${fmt.num(rep.r2, 3)}`;
+    log("ok", `Model ${r.model.model_id} trained · ${score}`);
   };
   return (
     <Sheet title="Calibrate a decoder" onClose={onClose} testId="calibration">
@@ -128,6 +167,42 @@ function CalibrationSheet({
   );
 }
 
+function DecoderLines({ d, first }: { d: ModelSummary; first: boolean }) {
+  const c = d.compatibility;
+  return (
+    <>
+      <p className="value-sub" data-testid={first ? "decoder-model" : `decoder-model-${d.model_id}`}>
+        Model {d.model_id} ·{" "}
+        {d.outputs?.type === "classes" ? (
+          <>
+            classes {d.outputs.classes.join(", ")} · offline held-out balanced accuracy{" "}
+            <span className="num">{fmt.num(d.held_out_balanced_accuracy ?? null, 3)}</span> (chance{" "}
+            <span className="num">{fmt.num(d.chance_balanced_accuracy ?? null, 3)}</span>)
+          </>
+        ) : d.outputs?.type === "event" ? (
+          <>events {d.outputs.events.join(", ")}</>
+        ) : (
+          <>
+            offline held-out R² <span className="num">{fmt.num(d.held_out_r2 ?? null, 3)}</span>
+          </>
+        )}
+      </p>
+      {d.origin && (
+        <p className="value-sub" data-testid={first ? "decoder-origin" : undefined}>
+          {decoderLine(d)}
+          {c && (c.ok ? <span className="text-ok"> · compatible with this source</span> : null)}
+          {c?.mapping_applied && <span className="caution-text"> · channels mapped by label (operator enabled)</span>}
+        </p>
+      )}
+      {d.state === "failed" && (
+        <p className="error-text" data-testid={first ? "decoder-failed" : undefined}>
+          Decoder stopped: {d.error}
+        </p>
+      )}
+    </>
+  );
+}
+
 export function DecoderRow({
   runtime,
   pipeline,
@@ -148,7 +223,9 @@ export function DecoderRow({
   const st = pipeline.status;
   const connected = !!runtime?.device && runtime.state !== "idle";
   const running = !!st?.running;
-  const dec = running ? st.decoder : null;
+  const sources = running ? (st.source_decoders ?? []) : [];
+  const decs = running ? (st.decoders?.length ? st.decoders : st.decoder && !sources.length ? [st.decoder] : []) : [];
+  const drift = driftLine(st);
 
   const stop = async () => {
     const r = await action.run(() => labApi.stopPipeline());
@@ -186,32 +263,37 @@ export function DecoderRow({
       </p>
       {!connected && <p className="value-sub">Connect a source first.</p>}
       {st && !st.available && <p className="value-sub">Unavailable: {st.unavailable_reason}</p>}
-      {running &&
-        (dec ? (
-          <>
-            <p className="value-sub" data-testid="decoder-model">
-              Model {dec.model_id} ·{" "}
-              {dec.outputs?.type === "classes" ? (
-                <>
-                  classes {dec.outputs.classes.join(", ")} · offline held-out balanced accuracy{" "}
-                  <span className="num">{fmt.num(dec.held_out_balanced_accuracy ?? null, 3)}</span> (chance{" "}
-                  <span className="num">{fmt.num(dec.chance_balanced_accuracy ?? null, 3)}</span>)
-                </>
-              ) : (
-                <>
-                  offline held-out R² <span className="num">{fmt.num(dec.held_out_r2 ?? null, 3)}</span>
-                </>
-              )}
-            </p>
-            <p className="value-sub small-break" data-testid="decoder-trained-on">
-              Trained on {dec.trained_on ?? "—"}
-            </p>
-          </>
-        ) : (
-          <p className="value-sub">No model: features only.</p>
-        ))}
+      {running && decs.length > 0 && (
+        <>
+          {decs.map((d, i) => (
+            <DecoderLines key={d.model_id} d={d} first={i === 0} />
+          ))}
+          <p className="value-sub small-break" data-testid="decoder-trained-on">
+            Trained on {decs[0]!.trained_on ?? "—"}
+          </p>
+        </>
+      )}
+      {running && sources.length > 0 && (
+        <ul className="value-sub plain" data-testid="decoder-source-outputs">
+          {sources.map((s) => (
+            <li key={s.model_id}>
+              {originLabel(s.origin)}: {s.model_id} → {s.dims.join(", ")} ({s.quantity}
+              {s.received !== undefined ? `, ${fmt.num(s.received)} received` : ""})
+            </li>
+          ))}
+        </ul>
+      )}
+      {running && decs.length === 0 && sources.length === 0 && <p className="value-sub">No model: features only.</p>}
       {running && st.warmup_remaining_s > 0 && (
         <p className="value-sub">Estimating thresholds ({st.warmup_remaining_s.toFixed(1)} s left).</p>
+      )}
+      {running && drift && (
+        <p
+          className={`value-sub ${drift.tone === "caution" ? "caution-text" : drift.tone === "ok" ? "text-ok" : ""}`}
+          data-testid="decoder-drift"
+        >
+          {drift.text}
+        </p>
       )}
       {running && (st.cross_source_override || st.compatibility_warnings.length > 0) && (
         <ul className="warnings caution-text" data-testid="decoder-warnings">

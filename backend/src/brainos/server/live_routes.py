@@ -7,7 +7,7 @@ to acquisition devices (read-only): LSL inlets and Open Ephys SUB sockets only r
 from __future__ import annotations
 
 import asyncio
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, ConfigDict, Field
@@ -172,7 +172,7 @@ async def pipeline_status(svc: Svc) -> PipelineStatus:
 
 @router.post("/pipeline/start")
 async def pipeline_start(body: PipelineStartRequest, svc: Svc) -> PipelineStatus:
-    return svc.runtime.start_pipeline(body)
+    return await svc.runtime.start_pipeline_async(body)
 
 
 @router.post("/pipeline/stop")
@@ -191,141 +191,15 @@ async def pipeline_presets() -> dict[str, str]:
         from brainos.processing import PRESET_INFO
     except ImportError:
         return {}
-    return dict(PRESET_INFO)
+    from brainos.runtime.pipeline import DECODED_PASSTHROUGH
+
+    return {
+        **PRESET_INFO,
+        DECODED_PASSTHROUGH: (
+            "Source already delivers decoder outputs (a replayed research decoder or an external "
+            "system's decoder): pass them to the command router unchanged. No model is loaded."
+        ),
+    }
 
 
-# ----------------------------------------------------------------------- models
-
-
-class ModelInfo(BaseModel):
-    summary: dict[str, Any]
-    compatible: bool | None
-    errors: list[str]
-    warnings: list[str]
-
-
-@router.get("/models")
-async def list_models(svc: Svc) -> list[ModelInfo]:
-    """All decoder models, with compatibility against the running pipeline's output (if any)."""
-    try:
-        from brainos.datasets import session_of
-        from brainos.decoding import model as models
-    except ImportError:
-        return []
-    rt = svc.runtime
-    out_spec = rt.pipeline.status().output
-    origin = rt._adapter_origin()
-    result = []
-    for m in await asyncio.to_thread(models.list_models, rt.registry.catalog.models_dir):
-        if out_spec is None:
-            result.append(
-                ModelInfo(summary=models.summary(m), compatible=None, errors=[], warnings=[])
-            )
-            continue
-        c = models.check(
-            m,
-            event_type=out_spec["event_type"],
-            feature=out_spec["feature"],
-            bin_ms=out_spec["bin_ms"],
-            channel_count=out_spec["channel_count"],
-            channel_labels=out_spec.get("channel_labels"),
-            stream_identity=models.source_identity(origin),
-            stream_session=session_of(origin or ""),
-        )
-        result.append(
-            ModelInfo(
-                summary=models.summary(m), compatible=c.ok, errors=c.errors, warnings=c.warnings
-            )
-        )
-    return result
-
-
-# ------------------------------------------------------------------ calibration
-
-
-class CalibrationRequest(_Body):
-    recordings: list[str] = Field(min_length=1, max_length=16)
-    train_fraction: float = Field(default=0.8, ge=0.5, le=0.95)
-    gap_bins: int = Field(default=12, ge=0, le=1000)
-    feature_source: str | None = Field(default=None, max_length=64)
-    # Milestone 4: "classifier" fits an LDA on a class-label behavior stream (discrete decoding)
-    kind: Literal["regression", "classifier"] = "regression"
-    label_dim: str | None = Field(default=None, max_length=32)
-    class_names: list[str] | None = Field(default=None, max_length=16)
-    tau_ms: float | None = Field(default=None, ge=0, le=5000)
-
-
-class CalibrationResult(BaseModel):
-    model: dict[str, Any]
-    report: dict[str, Any]
-    report_markdown: str
-
-
-@router.post("/calibration/train")
-async def calibration_train(body: CalibrationRequest, svc: Svc) -> CalibrationResult:
-    """Fit a decoder on recordings (chronological train/held-out split) and save it.
-
-    Recordings are referred to by name and must be closed BrainOS recordings in the
-    recordings directory; nothing outside it is read.
-    """
-    try:
-        from brainos.adapters.replay.format import RecordingFormatError, recording_path
-        from brainos.decoding import model as models
-        from brainos.decoding.calibrate import (
-            CalibrationError,
-            calibrate,
-            calibrate_classifier,
-            classifier_report_markdown,
-            report_markdown,
-        )
-        from brainos.decoding.lda import DEFAULT_TAU_MS
-    except ImportError as exc:
-        raise RuntimeCommandError(
-            ErrorCode.UNSUPPORTED_OPERATION, f"calibration unavailable: {exc}"
-        ) from None
-    rt = svc.runtime
-    paths = []
-    for name in body.recordings:
-        if name == rt.recorder.active_name:
-            raise RuntimeCommandError(
-                ErrorCode.INVALID_STATE, f"recording {name!r} is still being written"
-            )
-        try:
-            p = recording_path(svc.settings.recordings_dir, name)
-        except RecordingFormatError as exc:
-            raise RuntimeCommandError(ErrorCode.PROTOCOL_ERROR, str(exc)) from None
-        if not p.exists():
-            raise RuntimeCommandError(ErrorCode.DEVICE_NOT_FOUND, f"no recording {name!r}")
-        paths.append(p)
-    models_dir = rt.registry.catalog.models_dir
-    model: models.Decoder
-    try:
-        if body.kind == "classifier":
-            model, report = await asyncio.to_thread(
-                calibrate_classifier,
-                paths,
-                label_dim=body.label_dim,
-                class_names=body.class_names,
-                train_fraction=body.train_fraction,
-                gap_bins=body.gap_bins,
-                tau_ms=body.tau_ms if body.tau_ms is not None else DEFAULT_TAU_MS,
-                models_dir=models_dir,
-                feature_source=body.feature_source,
-            )
-            md = classifier_report_markdown(report)
-        else:
-            model, report = await asyncio.to_thread(
-                calibrate,
-                paths,
-                train_fraction=body.train_fraction,
-                gap_bins=body.gap_bins,
-                models_dir=models_dir,
-                feature_source=body.feature_source,
-            )
-            md = report_markdown(report)
-    except (CalibrationError, ValueError) as exc:
-        raise RuntimeCommandError(ErrorCode.PROTOCOL_ERROR, f"calibration failed: {exc}") from None
-    out = svc.settings.reports_dir / "calibration" / f"{model.model_id}.md"
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(md)
-    return CalibrationResult(model=models.summary(model), report=report, report_markdown=md)
+# Decoders (/models) and calibration (/calibration/*) moved to decoder_routes.py (M5).

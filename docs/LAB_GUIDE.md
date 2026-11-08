@@ -129,7 +129,8 @@ queue overflow) and the processing-time percentiles; on an M-series laptop 96 ch
 2. Register the neural stream with those two streams attached (section 2), connect, start
    decoding without a model (section 4).
 3. **Decoder** → **Calibrate…** → *Start recording*: it records **features and labels only**
-   (`exclude_raw`; raw 30 kHz frames would hit the 200 MB recording limit within seconds).
+   (`exclude_raw`; raw 30 kHz frames would hit the default 200 MiB recording limit within
+   seconds).
    Run all trials, then *Stop recording*.
 4. In the same panel, select that recording and **Train decoder** (`feature_source = brainos.pipeline` when features came
    from the pipeline). The report shows held-out R² per dimension and a mean-predictor
@@ -176,3 +177,10 @@ stays in "Waiting"; with a simulated profile it works end to end.
 | Gaps counted continuously | Outlet rate lower than declared, CPU starvation on the sender, or network loss. Compare timestamps in a LabRecorder XDF. |
 | `incompatible_decoder` | Channel count/labels, bin size or feature differ from the model; or the stream is from the model's training session; or a different source without override. |
 | Reconnect exhausted → `error` | The source took longer than ~2 s to return; reconnect manually. |
+
+## 8. (M5-D) Installation, research sessions, export and safe stop
+
+Installation without `make` (`brainos start`, the macOS app), network topology with a
+separate acquisition computer, research sessions, the reproducibility export and **Safe stop &
+disconnect**: [LAB_SETUP.md](LAB_SETUP.md). The first session with real equipment:
+[FIRST_LAB_SESSION.md](FIRST_LAB_SESSION.md). Problems: [TROUBLESHOOTING.md](TROUBLESHOOTING.md).

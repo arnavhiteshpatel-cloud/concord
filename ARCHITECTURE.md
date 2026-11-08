@@ -116,11 +116,11 @@ An application's `hello` lists `required` and `optional` capabilities.
 `POST /api/v1/negotiate` offers the same algorithm as a dry run against any
 registered device.
 
-## 4. Event envelope (schema `1.2`; 1.1 and 1.2 are additive over 1.0)
+## 4. Event envelope (schema `1.4`; 1.1–1.4 are additive over 1.0)
 
 ```jsonc
 {
-  "schema_version": "1.2",           // major.minor; consumers accept same major
+  "schema_version": "1.4",           // major.minor; consumers accept same major
   "session_id": "ses_8f3a…",        // one per device connection
   "device_id": "sim-a",
   "seq": 1042,                       // runtime-assigned, strictly increasing per session
@@ -156,10 +156,12 @@ The authoritative definition is the Pydantic model in
 | `intent.text` | `text` (1–64 chars), `mode` (`character`/`word`), `confidence` |
 | `telemetry.sample` | `metrics: [{name, value, unit}]` |
 | `device.status` | `state` (`connected`/`streaming`/`paused`/`reconnecting`/`disconnected`/`error`/`ended`), `detail` |
-| `features.vector` (1.2) | `feature` (`band_power`/`log_band_power`), `unit`, `band_hz` [lo, hi] or null, `bin_ms`, `bin_index`, `channel_count`, `values[channel]` (finite). The bin ends at `device_timestamp_ns`. |
+| `features.vector` (1.2) | `feature` (`band_power`/`log_band_power`; 1.4 adds `spike_band_power`), `unit`, `band_hz` [lo, hi] or null, `bin_ms`, `bin_index`, `channel_count`, `values[channel]` (finite). The bin ends at `device_timestamp_ns`. |
 | `features.binned` | `feature` (`spike_count`/`threshold_crossing_count`), `unit` (`count`), `bin_ms`, `bin_index`, `channel_count`, `counts[channel]` (non-negative ints). The bin ends at `device_timestamp_ns`. |
 | `behavior.sample` | `quantity`, `dims[]`, `unit`, `values[dim]`, `sample_index`, `valid` (false where the dataset excludes the sample) |
 | `intent.kinematics` | `quantity`, `dims[]`, `unit`, `values[dim]`, `space` (e.g. `falcon_h1_7dof`) |
+| `intent.navigate` (1.4) | `direction` (`up`/`down`/`left`/`right`/`next`/`previous`), `confidence` ∈ [0,1]; capability `navigation` |
+| `control.state` (1.4) | `active` (strict boolean), `capabilities[]`, `reason`; capability `control_status`; tells one application whether decoded commands currently reach it |
 
 All numbers reject NaN/Infinity.
 
@@ -174,7 +176,7 @@ All numbers reject NaN/Infinity.
 | `simulated_intent` | Intent produced by a simulator | `intent.*` | `synthetic` must be `true` |
 | `decoded_intent` | Intent produced by a decoding model | `intent.*` | `model_id` required |
 | `device_report` | Device self-report | `telemetry.sample`, `device.status` | — |
-| `runtime` | Runtime-originated status | `device.status` | — |
+| `runtime` | Runtime-originated status | `device.status`, `control.state` (1.4) | — |
 | `processed_feature` (1.1) | Features computed from neural data (e.g. binned spike counts, band power) | `features.binned`, `features.vector` | — |
 
 `behavior.sample` uses `behavioral_label`; `intent.kinematics` uses `simulated_intent` or
@@ -192,6 +194,11 @@ These rules are enforced by the envelope validator. Consequences:
   Without the router no application that requires a command capability is activated.
 - Replayed events keep their original `kind`, and set `replayed: true` plus a
   `replayed` quality flag.
+- (1.4) `provenance.model_origin` says whose decoder produced a `decoded_intent`:
+  `brainos` (a model BrainOS trained or loaded), `external` (a live external decoder, e.g.
+  BCI2000's or a device's own), `historical` (recorded outputs of a research system's original
+  online decoder). It is rejected on any other kind, and `historical` requires
+  `replayed: true`. Historical outputs are never attributed to BrainOS.
 
 ### 4.3 Ordering and timing
 
@@ -265,6 +272,14 @@ Sources:
 | Source | Device ids | Emits |
 | --- | --- | --- |
 | `BrainOSRecordingSource` | `replay:<name>` | the recorded envelopes (runtime status events excluded) |
+
+A BrainOS recording (`brainos.recording/1`) is a header line followed by one envelope per
+line. Header: `format`, `schema_version`, `created_at_ns`, `device` (descriptor),
+`synthetic`, `note`, and since Milestone 5 (optional, additive) `source_metadata` (the
+adapter's own description of the source when recording started, e.g. LSL uid / source_id /
+host / time correction), `timing` (what the timestamps can reconstruct: the first sample of a
+frame carries the source time, later samples are at the nominal rate; per-sample source
+stamps are not stored) and `limits` (the duration and size limits the recording ran under).
 | `NWBUnitsSource` (M2) | `nwb:<file-slug>` | per bin: `features.binned` (`processed_feature`), `behavior.sample` (`behavioral_label`) if the file has kinematics, `intent.kinematics` (`decoded_intent`) only if a held-out decoder is attached |
 
 `NWBUnitsSource` reads NWB `units.spike_times` with PyNWB, bins them on demand in
@@ -365,7 +380,7 @@ send data toward devices.
 | App → runtime | Apps are untrusted. Hello is validated; unknown capabilities rejected; apps receive only granted capabilities; no write path exists. |
 | Network exposure | Server binds `127.0.0.1` by default. **No authentication in v1** — local single-user demo only. Do not expose to a network. |
 | Simulation endpoints | `/api/v1/sim/*` exist only for simulated devices and are disabled by `BRAINOS_ENABLE_SIM=0`. They are an operator tool, not an app API. |
-| Data at rest | Recordings are written to `data/recordings/` (gitignored). With M3 live sources they may contain real neural data: treat the directory as research data under your protocol. No encryption. |
+| Data at rest | Recordings are written to `data/recordings/` (gitignored). With M3 live sources they may contain real neural data: treat the directory as research data under your protocol. No encryption. Size and duration are bounded (`[recording]`, default 300 s / 200 MiB with raw frames, at most 24 h / 100 GiB) and a recording stops cleanly below 256 MiB free disk. |
 | Acquisition networks (M3) | LSL inlets and the Open Ephys SUB socket only *receive*. The Open Ephys heartbeat REQ sends only `{application, uuid, type: "heartbeat"}` (the plugin's event-injection request is not implemented). BrainOS opens no listening socket other than its HTTP server (default `127.0.0.1`). LSL discovery uses liblsl's multicast/broadcast on the local network. |
 | Decoded commands → apps (M4) | Default deny: an app id receives decoded `intent.pointer` / `intent.selection` / `intent.text` only while the operator has authorized it for that capability (`/api/v1/control`); enforced in negotiation (`not_authorized`) and again on the bus. App ids are self-declared (no authentication). docs/CONTROL_BRIDGE.md. |
 | Source plugins (M4) | Third-party plugin code runs in a separate process (fault isolation) and everything it sends is validated twice; it is **not sandboxed** — same user, files and network as BrainOS (§12, docs/ADAPTER_SDK.md §5). |
@@ -557,3 +572,261 @@ carries no clock offsets, so different clocks are refused, never merged.
 
 The runtime never imports plugin code; its pump only awaits the host client. Isolation is
 fault isolation, not a security boundary (§8).
+
+## 13. Raw-voltage intracranial sources: human ECoG (Milestone 5, workstream B)
+
+Normative additions; details and evidence in docs/ECOG.md.
+
+### 13.1 Sliced datasets and verified extracts
+
+A dataset manifest (`brainos/datasets/*.json`) may declare `modality` (a contract `Modality`
+value), `line_hz` (mains of the recording site) and `slices`: exact `[start, stop)` sample
+ranges of one series of one pinned asset, with `data_sha256` = SHA-256 of the stored values
+(file dtype, little-endian, C order) and optionally `pose_sha256`. `datasets/extract.py` reads a
+slice with HTTP range requests (`remfile` + `h5py`) only after DANDI reports the pinned asset
+SHA-256 and size, checks the digests, and writes a local NWB extract on the original timeline.
+At load time `verify_electrical` accepts a file as verified if its whole-file SHA-256 is a pinned
+asset, or if the digest of its sliced series is a pinned slice **and** its shape and start time
+match the slice. Otherwise it is unverified (`origin = file:<name>`, no declared modality).
+
+### 13.2 `NWBElectricalSource` (`adapters/nwb/ecog.py`)
+
+The NWB catalog dispatches by content: spike-time units → `NWBUnitsSource` (§5.2), a regularly
+sampled `ElectricalSeries` without units → `NWBElectricalSource`; both under `nwb:<slug>`.
+
+| Emits | Rule | Provenance |
+| --- | --- | --- |
+| `recording.frame` | 100 ms frames; `unit = uV` only if the series' unit is a voltage unit and `conversion` (× `channel_conversion`) is a finite non-zero factor (value = data × conversion [× channel_conversion] + offset, NWB semantics); otherwise `arbitrary`, unscaled. `first_sample_index` = index in the source series. Device time = first sample; paced at the frame's last sample. Frames overlapping a dataset-declared data break: `dropped_samples`, quality 0.5. | `raw_signal` |
+| `behavior.sample` | Position `SpatialSeries` on one timebase; unit only if every series declares conversion 1, else `arbitrary`; `valid` false for NaN frames and camera-blocklisted epochs | `behavioral_label` |
+| `recording.annotation` | rows of interval tables that start inside the recording; `epochs` as label `epoch` with the coarse label as value (unlabelled rows skipped), other tables by name | `behavioral_label` |
+
+Descriptor: `kind = replay`, `synthetic = false`; `modality` / `invasive` and the recording
+parameter `line_hz` **only from a verified manifest**. Recording parameters also carry
+`channel_labels` (a label column if present, else `<group>/<electrode id>`) and `bad_channels`
+(from a `bad` or `good` column; no column = quality not stated). `SourceMetadata` gains optional
+`modality`, `invasive`, `signal`, `electrodes`, `intervals`, `slice`; `source_type` gains
+`nwb_electrical_series` (additive; the event schema is unchanged).
+
+### 13.3 Pipeline and model rules
+
+* `ecog_high_gamma`: the notch uses the source's declared `line_hz` unless the request sets
+  `line_hz` explicitly; an explicit value contradicting the declaration is refused
+  (`capability_unsupported`); `line_hz: null` disables the notch. The common average reference
+  excludes the source's `bad_channels` (the average of the other channels is still subtracted
+  from them).
+* `decoding/model.py`: `model_modality` = `input.modality`, else the modality declared by the
+  manifest of the model's training dataset (`dandi:<id>:…` identities), else unknown.
+  `check(..., stream_modality=…)`: a declared mismatch is an **error that the cross-source
+  override does not lift**; an undeclared side is a warning. A model that gives weight to a
+  channel the stream marks bad (`input.excluded_channels` lists the zero-weight ones) gets a
+  warning. Calibration from recordings stores the recorded device's modality in `input`.
+
+## Compatibility registry (Milestone 5, workstream F)
+
+`backend/src/brainos/compat/`: `model.py` (pydantic, `extra="forbid"`: the curated
+`compat/sources.json` and the generated `compat/registry.json`, whose JSON Schema
+`compat/registry.schema.json` is exported from these models), `rules.py` (pure: what each
+evidence item supports and the level derivation, levels exactly as docs/VALIDATION_LEVELS.md),
+`build.py` (`python -m brainos.compat.build [--check]`: reads the sources and every
+`docs/compatibility/*.certify.json`, verifies paths, anchors, certify-report schema and
+consistency, plugin versions and source hashes against the checkout, writes the registry, its
+schema and the generated section of docs/COMPATIBILITY.md; `--check` fails CI when any is
+stale), `live.py` (loads the registry; per entry: installed / different version / unavailable
+/ not installed / not checked, from module availability and the last plugin discovery).
+
+**Normative:** a level is never typed in; the sources schema has no level field. Live status
+never changes a level. `GET /api/v1/compatibility` (`server/compat_routes.py`, read-only)
+returns `{available, source, error, brainos_version, registry, live, plugin_discovery}`; a
+missing or invalid registry file is `available: false` with the reason (also recorded in
+diagnostics as `compatibility_registry`), never a partial registry. The file is
+`Settings.compat_registry` (`BRAINOS_COMPAT_REGISTRY`, default `compat/registry.json`). The
+console shows it under Advanced → Compatibility (`components/CompatibilityView.tsx`).
+
+## 14. Application layer (Milestone 5, workstream C)
+
+Normative details: docs/APPLICATIONS.md and docs/CONTROL_BRIDGE.md §7.
+
+- **`control.state` (schema 1.4)** is produced by the runtime (`runtime/runtime.py`), not by a
+  device: `control_status` is granted whenever a device is connected
+  (`negotiation.RUNTIME_CAPABILITIES`). Each subscriber that asks for it receives an envelope
+  addressed to it alone (provenance `runtime`, session seq, not recorded, not broadcast) when
+  the set of command capabilities that can reach it changes, when a session starts and when
+  it connects — computed as granted ∩ source `streaming` ∩ (native, or router on and app
+  authorized). It is enqueued synchronously after queued decoded commands were withdrawn and
+  is pinned in the subscriber queue (never the event dropped on overflow).
+- **`navigation`** is a command capability (decoded `intent.navigate` needs operator
+  authorization like `selection`). The command router emits it from discrete rules with
+  action `navigate:<direction>`.
+- **Router additions** (`runtime/router.py`): a click rule (one decoder output = click
+  probability or 0/1 decision → `intent.selection`, debounce, refractory, hysteresis,
+  minimum-confidence gate) and `pointer_scale: native` for decoders whose output already is a
+  workspace velocity. Commands carry the decoder output's `model_origin`.
+
+## 15. Decoders: SDK, families, compatibility, calibration, monitoring (Milestone 5, workstream A)
+
+Guide: docs/DECODER_SDK.md. This section is normative for the runtime side.
+
+```
+ features (pipeline or source) ─▶ check_manifest ─▶ PipelineDecoder ─▶ intent.kinematics ─▶ CommandRouter(s)
+                                   (model.py)         (engine.py)        decoded_intent,       one per decoder,
+                                                       ├ in-process:      model_id,             operator mapping
+                                                       │  built-in JSON   model_origin=brainos  + authorization
+                                                       │  families
+                                                       └ isolated: decoder host (brainos_decoder_sdk.host),
+                                                          plugins + model files, outputs validated twice
+ source decoder outputs (historical / external) ─ decoded_passthrough ─────────────────────────▶ CommandRouter(s)
+```
+
+* **One interface.** `decoding/engine.py: PipelineDecoder` (`start`, `step(x[n, width]) ->
+  values[n, dims] (+ confidence)`, `reset`, `close`). `InProcessDecoder` steps a built-in
+  family's `streaming()`. `IsolatedDecoder` speaks `brainos.decoder-ipc/1` (the adapter SDK's
+  framing) to `python -m brainos_decoder_sdk.host` through the generalized
+  `AsyncHostClient`. A decoder failure (exit, hang > 5 s per step, protocol error, invalid
+  output, exception) marks it `failed`, stops the command router and is reported; features
+  continue.
+* **Registry** (`decoding/registry.py`): BrainOS-trained JSON models (`*.json`), imported
+  model files (`*.manifest.json` + artifact, SHA-256 checked) and decoder plugins
+  (`brainos.decoders` entry points, probed by `host --list`, manifests re-validated). Trust
+  decisions for unsafe formats live in `<models_dir>/_trust.json` (model id, SHA-256, who,
+  when).
+* **Families** (`decoding/families.py`): built-in JSON families dispatched on the file's
+  `kind`. Ridge is the default for files without `kind`; LDA is `outputs.type == "classes"`.
+  Kalman and click are registered by `decoding/kalman.py` and `decoding/click.py`. Ridge and
+  LDA streaming outputs are bit-identical to their offline predictions.
+* **Compatibility** (`decoding/model.py: check_manifest`, §5 of the guide):
+  - checks modality, every input (feature, bin, unit, band, channel count, labels and
+    order), preprocessing preset and parameters, participant (explicit override),
+    training sessions (refused), and calibration profile;
+  - the only transformation is the explicit, operator-enabled channel mapping by label
+    (unique labels on both sides), which is logged and shown.
+* **Pipeline** (`runtime/pipeline.py`):
+  - up to 4 decoders run together, with distinct output names;
+  - multi-input models get their streams joined by bin end time (incomplete bins expire,
+    `join_dropped`);
+  - `decoded_passthrough` forwards a source's `historical` / `external` decoder outputs to
+    the router, keeping their model id and origin;
+  - a declared `y_axis: up` must be mapped with `invert_y`.
+  `provenance.model_origin` is `brainos` for every decoder BrainOS runs, and `external` for
+  source-plugin decoder outputs (`adapters/plugin/mapping.py`).
+* **Calibration** (`decoding/calibrate.py: calibrate_capability`, REST `calibration/options`,
+  `calibration/check`, `calibration/train`): capability → label check → family fit →
+  held-out metrics for that capability (velocity error, balanced accuracy / confusion, click
+  event precision / recall) → model + manifest + report.
+* **Monitoring** (`decoding/monitor.py`): rolling feature shift against `training.feature_stats`,
+  output statistics, label-based rolling metrics, and `recalibration_recommended` with
+  reasons.
+* REST (`server/decoder_routes.py`): `GET /models` (with a `preset` preview), `GET
+  /models/discovery`, `POST /models/discover`, `POST /models/{id}/trust`, and the calibration
+  routes above (moved from `live_routes.py`). `POST /pipeline/start` waits until isolated
+  decoders are loaded.
+
+## M5-D. Installation, researcher workflow and local safeguards
+
+Additive; no event-contract change (schema stays 1.4). `RecordingInfo` gains `complete` and
+`recovery`; `/health` gains `pid`.
+
+### M5-D.1 Processes and configuration
+
+`brainos serve` (= `brainos-server`, `python -m brainos.server`) is the only server entry: it
+checks the bind address (non-loopback refused without `allow_remote`), sets umask 077,
+installs redacting log handlers (stderr + `<data>/logs/brainos.log`) and takes an exclusive
+lock on `<data>/brainos.pid`. `brainos start` runs it detached and waits for `/health`;
+`brainos stop` calls `POST /safe-stop`, then SIGTERM (graceful shutdown closes recordings and
+the active session), SIGKILL only after a timeout. The desktop app (`brainos/desktop.py`) runs
+the same server in a thread and a Tk window in the main thread. Settings: environment >
+config file (`brainos/config.py`, TOML, validated, refused if writable by others) > defaults.
+A source checkout keeps `data/` and `frontend/dist`; an installed copy uses the per-user
+directory and the console staged into the package.
+
+### M5-D.2 Storage layout (all 0700 directories / 0600 files)
+
+```
+<data>/recordings/<name>.brainos.jsonl     recording (format unchanged)
+                  <name>.active.json       while written (OS-locked by the writer)
+                  <name>.recovery.json     after recovery: status, counts, hashes
+                  <name>.discarded.bin     bytes after the last complete event (if any)
+<data>/models/<model_id>.json
+<data>/sessions/<id>/session.json          brainos.session/1: name, operator, notes, times, recordings, models
+<data>/sessions/<id>/log.jsonl             session log (no personal data)
+<data>/sessions/<id>/exports/*.zip         brainos.session-bundle/1
+<data>/logs/  <data>/support/  <data>/brainos.pid
+```
+
+### M5-D.3 REST (operator endpoints, `/api/v1`)
+
+| Endpoint | Purpose |
+| --- | --- |
+| `GET/POST /sessions`, `GET /sessions/{id}`, `POST /sessions/{id}/close` | research sessions (`close` performs a safe stop by default) |
+| `POST /sessions/{id}/export`, `GET /sessions/{id}/exports/{file}` | reproducibility bundle `{include_recordings, include_personal}` |
+| `DELETE /sessions/{id}?confirm={id}[&delete_recordings=true]` | delete a closed session |
+| `POST /safe-stop` | command output off → recording closed → decoding stopped → source disconnected |
+| `GET /storage` | usage, retention policy, startup retention result, recovered recordings, interrupted sessions |
+| `DELETE /recordings/{name}?confirm={name}`, `DELETE /models/{id}?confirm={id}` | deletion; refused while in use |
+| `GET /system/doctor[?format=markdown]` | the support report |
+
+Errors use the usual envelope with codes `not_found`, `invalid_state`,
+`confirmation_required`, `forbidden_origin`.
+
+### M5-D.4 Middleware
+
+`LocalOriginMiddleware` (outermost) refuses browser requests from other sites and DNS
+rebinding (HTTP and WebSocket). `SessionAuditMiddleware` records state-changing API calls into
+the active session's log, with the configuration of the calls that determine what was
+computed (source, pipeline, router, recording, calibration, authorization).
+
+### M5-D.5 Recovery and reproduction
+
+At startup: tighten permissions, `Recorder.recover()` (markers not held by a live process, and
+legacy files not ending in a newline), mark sessions left active as `interrupted`, apply the
+retention policy. `brainos reproduce` verifies every file against the bundle manifest,
+re-fits calibrated decoders from bundled recordings with the logged request, and recomputes
+recorded linear-decoder output bin by bin (after `len(kernel)` warm-up bins per
+discontinuity), within a 1e-6 relative tolerance.
+
+## 16. Performance at scale (Milestone 5, workstream E)
+
+Measurements and the alternatives compared: docs/PERFORMANCE.md (numbers from
+`scripts/bench_scale.py`, docs/BENCHMARKS_SCALE.md). Behaviour and wire format are unchanged;
+these are in-process representation and resource-bound changes.
+
+**Array-backed raw frames.** `recording.frame` `samples` may be held in-process as a
+read-only, C-ordered float64 numpy array of shape (channels, samples): the LSL, Open Ephys and
+plugin adapters emit arrays instead of `tolist()` lists, `RecordingFramePayload` validates an
+array with numpy (an owned copy; any array that is not a finite real 2-D array is validated by
+the list path, so accept/reject decisions and error messages are identical), and the pipeline
+reads it without conversion. On the wire and in the JSON Schema `samples` is
+`list[list[number]]` as before (schema test unchanged); `model_dump()`/`model_dump_json()`
+produce identical output. Consumers in the runtime must treat `samples` as a sequence of
+sequences (`np.asarray(samples)` works for both forms).
+
+**Lazy, shared JSON (§6.2 amended).** The runtime no longer serializes every envelope at ingest.
+`bus.publish` wraps the envelope in an `EventJson` whose text is produced on first use and then
+shared by all subscribers and taps: a subscriber's sender serializes when it actually sends,
+taps can declare `json=False` (pipeline) or a `when` predicate (recorder: only while recording,
+and not raw frames when `exclude_raw`). Frames dropped from a slow subscriber's queue are never
+serialized. Raw frames are serialized as the envelope without `samples` plus the array encoded
+directly (`runtime/fastjson.py`; orjson when installed, else pydantic's encoder on `tolist()`),
+byte-identical to `model_dump_json()`. Consequence for §10: *pipeline latency* no longer
+includes serialization; *delivery latency* now does.
+
+**Resource bounds (§6.4 amended).** Subscriber event queues are bounded in estimated bytes as
+well as count (64 MiB per subscriber by default; sample arrays count their `nbytes`), and the
+pipeline input queue in queued sample values (16 M, about 0.5 s of 1024 ch at 30 kHz) as well
+as count; oldest-first drops are counted as before. Adapters split raw frames at
+`MAX_FRAME_VALUES` (262 144 channel-samples) so a frame's JSON stays under the Python SDK's
+8 MiB WebSocket message limit (unchanged at <= 131 channels).
+
+**Fairness.** The runtime pump yields to the event loop after every packet: an adapter with a
+backlog returns from `read()` without suspending, which previously starved the pipeline task,
+WebSocket senders and REST under overload.
+
+**Transport.** `python -m brainos.server` disables WebSocket permessage-deflate: the server is
+local, and compressing JSON sample frames was the single largest cost of serving a raw-signal
+viewer. Other uvicorn launches (`make dev`, tests) keep uvicorn's default.
+
+**Process separation and limits.** One runtime process holds one device and runs adapter,
+validation, pipeline, decoder, router and WebSocket on one asyncio loop (one core). Scaling out
+today means one runtime process per device (measured in docs/BENCHMARKS_SCALE.md §7);
+recommended next steps — shared-memory ring buffers between an acquisition process and the
+pipeline, a negotiated binary frame encoding for raw-signal viewers, and a contract change for
+more than 1024 raw channels — are in docs/PERFORMANCE.md §8.

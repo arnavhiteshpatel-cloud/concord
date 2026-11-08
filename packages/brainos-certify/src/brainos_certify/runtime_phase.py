@@ -60,8 +60,10 @@ ROLE_PROVENANCE = {
     StreamRole.MARKERS: "behavioral_label",
     StreamRole.DECODER_OUTPUT: "decoded_intent",
 }
-COMMAND_CAPABILITIES = frozenset({"pointer_intent", "selection", "text_intent"})
-COMMAND_EVENTS = frozenset({"intent.pointer", "intent.selection", "intent.text"})
+COMMAND_CAPABILITIES = frozenset({"pointer_intent", "selection", "text_intent", "navigation"})
+COMMAND_EVENTS = frozenset({"intent.pointer", "intent.selection", "intent.text", "intent.navigate"})
+# schema 1.4: provided by the BrainOS runtime itself (control.state), granted with any device
+RUNTIME_CAPABILITIES = frozenset({"control_status"})
 INVASIVE = frozenset({"ecog", "seeg", "intracortical"})
 NONINVASIVE = frozenset({"eeg", "meg", "emg"})
 MAX_VALIDATED_EVENTS = 5000
@@ -145,14 +147,14 @@ def check_negotiations(
 ) -> list[str]:
     """``results``: app name -> NegotiationResult as JSON. Returns the problems."""
     problems: list[str] = []
-    want_rejected = sorted(set(all_caps) - expected_caps)
+    runtime = RUNTIME_CAPABILITIES & set(all_caps)  # granted by the runtime, not the plugin
+    want_rejected = sorted(set(all_caps) - expected_caps - runtime)
+    want_granted = sorted(expected_caps | runtime)
     every = results.get("all_optional")
     if every is not None:
         granted = sorted(every.get("granted") or [])
-        if granted != sorted(expected_caps):
-            problems.append(
-                f"all-optional app: granted {granted}, expected {sorted(expected_caps)}"
-            )
+        if granted != want_granted:
+            problems.append(f"all-optional app: granted {granted}, expected {want_granted}")
         rej = {str(r["capability"]): r for r in every.get("rejected") or []}
         if sorted(rej) != want_rejected:
             problems.append(f"all-optional app: rejected {sorted(rej)}, expected {want_rejected}")

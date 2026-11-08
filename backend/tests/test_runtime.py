@@ -265,8 +265,17 @@ async def test_slow_subscriber_drops_oldest_others_unaffected(
     await rt.connect("sim-a")
     await wait_for(lambda: slow.dropped > 0)
     assert slow.queue_depth == 20 and fast.dropped == 0
-    first_kept = slow._events[0][0]
-    assert first_kept == slow.dropped  # delivery_seq of oldest kept == number dropped
+    # control.state notices (1.4, the app asked for control_status) are pinned: never dropped
+    pinned = [e for e in slow._events if e[4]]
+    assert pinned and {json.loads(e[1].text)["event_type"] for e in pinned} == {"control.state"}
+    kept = [e[0] for e in slow._events]
+    # the oldest event of all (the first notice) is still queued; how many unpinned events sit
+    # between the pinned ones depends on how many drops happened by now (>= 1)
+    assert kept[0] == pinned[0][0] == 0
+    # every other gap in delivery_seq is a dropped event, and the dropped ones are the oldest
+    missing = set(range(slow._next_delivery_seq)) - set(kept)
+    assert len(missing) == slow.dropped
+    assert max(missing) < min(e[0] for e in slow._events if not e[4])
     assert rt.diagnostics_snapshot().counters.subscriber_drops == slow.dropped
     await rt.shutdown()
 

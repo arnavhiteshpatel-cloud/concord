@@ -102,6 +102,7 @@ class Counters:
     discarded_samples: int = 0  # channel-samples received but discarded (incomplete block)
     nonfinite_blocks: int = 0  # blocks discarded because they contained NaN/Inf
     sample_regressions: int = 0
+    sample_clock_resets: int = 0  # source sample numbers restarted, stream continued (M5)
     duplicate_messages: int = 0
     resync_skipped_messages: int = 0  # data messages skipped while waiting for a block start
     frames_emitted: int = 0
@@ -178,6 +179,8 @@ class BlockAssembler:
         self.resync()
 
     # ------------------------------------------------------------------ state
+    last_clock_reset: tuple[int | None, int] | None = None  # (previous end, new start)
+
     def resync(self) -> None:
         """Forget continuity (start, after a pause). Waits for the next block start."""
         self._waiting_for_start = True
@@ -191,6 +194,13 @@ class BlockAssembler:
         self._bin_counts: dict[int, list[int]] = {}
         self._next_bin: int | None = None
         self._bins_incomplete = False
+
+    def _sample_clock_reset(self, sample_num: int) -> None:
+        self.counters.sample_clock_resets += 1
+        self.last_clock_reset = (self._last_frame_end, sample_num)
+        dropped = self._dropped_pending  # e.g. an incomplete block just before the reset
+        self.resync()
+        self._dropped_pending = dropped
 
     def note_message_gap(self) -> None:
         """Messages were lost: any of them may have been spikes."""
@@ -228,10 +238,18 @@ class BlockAssembler:
             self._start_after_resync(msg.sample_num)
         if self._block is None:
             if self._last_frame_end is not None and msg.sample_num < self._last_frame_end:
-                raise ConfigurationChangedError(
-                    f"sample clock went backwards ({self._last_frame_end} -> {msg.sample_num}); "
-                    "acquisition restarted?"
-                )
+                # The source's sample numbers restarted while its messages kept arriving in
+                # order (an acquisition restart also resets message_num, which the adapter
+                # refuses separately), e.g. the GUI's File Reader looping. Same stream, rate and
+                # channels: continue from the new base instead of reconnecting (which lost
+                # ~0.7 s while the layout was re-learned). Nothing is reordered or fabricated:
+                # the next frame's first_sample_index and device timestamp go backwards, which
+                # the runtime flags (timestamp_regression) and counts.
+                self._sample_clock_reset(msg.sample_num)
+                if msg.channel_num != self._order[0]:  # the new base starts mid-block
+                    self.counters.resync_skipped_messages += 1
+                    return items
+                self._start_after_resync(msg.sample_num)
             self._block = _Block(msg.sample_num)
 
         ch = msg.channel_num

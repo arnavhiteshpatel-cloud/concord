@@ -6,6 +6,11 @@ are not offered as devices.
 
 Decoders (JSON models in ``models_dir``) are attached to a file only if the model was
 evaluated on exactly that file (by SHA-256) and was not trained on its session.
+
+Milestone 5: files whose neural data is a raw-voltage ``ElectricalSeries`` (e.g. ECoG; no
+spike-time units) are offered through ``NWBElectricalSource`` under the same ``nwb:`` ids.
+No decoder is attached to them here: their models run in the pipeline (features computed by
+BrainOS from the raw signal), where the compatibility and leakage checks apply.
 """
 
 from __future__ import annotations
@@ -18,7 +23,9 @@ from typing import TYPE_CHECKING
 from brainos.contracts.protocol import DeviceDescriptor
 
 if TYPE_CHECKING:  # optional dependency: imported lazily
+    from brainos.adapters.nwb.ecog import NWBElectricalSource
     from brainos.adapters.nwb.source import NWBUnitsSource
+    from brainos.datasets import Verification
     from brainos.decoding.ridge import RidgeDecoder
 
 log = logging.getLogger(__name__)
@@ -37,6 +44,7 @@ class NWBCatalog:
         self._descriptors: dict[tuple[str, int, int, str], DeviceDescriptor] = {}
         self._paths: dict[str, Path] = {}
         self._by_id: dict[str, DeviceDescriptor] = {}
+        self._verified: dict[tuple[str, int, int], Verification] = {}
         self.problems: list[CatalogProblem] = []
         self.available, self.unavailable_reason = self._probe_support()
 
@@ -54,15 +62,21 @@ class NWBCatalog:
 
     # ------------------------------------------------------------------ models
     def _decoders(self) -> list[RidgeDecoder]:
+        from brainos.decoding.model import load_model
         from brainos.decoding.ridge import RidgeDecoder
 
         out = []
         if self.models_dir.exists():
             for p in sorted(self.models_dir.glob("*.json")):
+                if p.name.endswith(".manifest.json") or p.name.startswith("_"):
+                    continue  # decoder manifests / trust records (decoding/registry.py)
                 try:
-                    out.append(RidgeDecoder.load(p))
+                    model = load_model(p)
                 except (ValueError, TypeError, KeyError, OSError) as exc:
                     log.warning("ignoring model %s: %s", p.name, exc)
+                    continue
+                if isinstance(model, RidgeDecoder):  # classifiers run in the pipeline only
+                    out.append(model)
         return out
 
     def _decoder_for(self, sha256: str) -> RidgeDecoder | None:
@@ -72,10 +86,22 @@ class NWBCatalog:
         return max(matches, key=lambda d: d.created_at) if matches else None
 
     # ------------------------------------------------------------------ sources
-    def source(self, path: Path) -> NWBUnitsSource:
+    def source(self, path: Path) -> NWBUnitsSource | NWBElectricalSource:
+        from brainos.adapters.nwb.ecog import (
+            NWBElectricalSource,
+            has_electrical_series,
+            verify_electrical,
+        )
         from brainos.adapters.nwb.source import NWBUnitsSource
         from brainos.datasets import verify_file
 
+        if has_electrical_series(path):
+            st = path.stat()
+            key = (str(path), st.st_mtime_ns, st.st_size)
+            verification = self._verified.get(key)
+            if verification is None:  # hashing a ~80 MB extract takes ~1 s: once per file version
+                verification = self._verified[key] = verify_electrical(path)
+            return NWBElectricalSource(path, verification=verification)
         verification = verify_file(path)
         return NWBUnitsSource(
             path, decoder=self._decoder_for(verification.sha256), verification=verification

@@ -47,7 +47,7 @@ def drain(sub: Subscriber) -> list[dict[str, Any]]:
         out.append(json.loads(sub._control.popleft()))
     while sub._events:
         dseq, ev, *_ = sub._events.popleft()
-        out.append({"type": "event", "delivery_seq": dseq, "event": json.loads(ev)})
+        out.append({"type": "event", "delivery_seq": dseq, "event": json.loads(ev.text)})
     return out
 
 
@@ -140,6 +140,16 @@ def valid_event(event_type: str = "intent.pointer", **overrides: Any) -> dict[st
             "simulated_intent",
         ),
     }
+    payloads["intent.navigate"] = (
+        "navigation",
+        {"direction": "next", "confidence": 0.7},
+        "simulated_intent",
+    )
+    payloads["control.state"] = (
+        "control_status",
+        {"active": True, "capabilities": ["pointer_intent"], "reason": "operator started control"},
+        "runtime",
+    )
     cap, payload, kind = payloads[event_type]
     ev: dict[str, Any] = {
         "schema_version": "1.0",

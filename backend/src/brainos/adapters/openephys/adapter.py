@@ -39,6 +39,7 @@ from brainos.adapters.base import (
     EventDraft,
     NativePacket,
     PacketDecodeError,
+    frame_samples_limit,
 )
 from brainos.adapters.openephys.assembly import (
     BinSpec,
@@ -170,7 +171,7 @@ def normalize_packet(pkt: OpenEphysPacket) -> list[EventDraft]:
                     "channel_count": int(data.shape[0]),
                     "first_sample_index": item.first_sample_index,
                     "unit": unit,
-                    "samples": data.tolist(),
+                    "samples": data,  # (channels, n) float64 array (M5-E fast path)
                 },
                 dropped if item.dropped_before else ok,
                 raw,
@@ -261,7 +262,10 @@ class OpenEphysAdapter(DeviceAdapter):
                 sample_rate_hz=layout.sample_rate,
                 channel_names=[name for _, name in layout.channels],
                 stream=layout.stream,
-                frame_samples=min(layout.block_samples, cfg.max_frame_samples),
+                frame_samples=min(
+                    layout.block_samples,
+                    frame_samples_limit(layout.channel_count, cfg.max_frame_samples),
+                ),
             )
         caps = [
             CapabilityDescriptor(capability=Capability.RECORDING, params=rec, description=rec_desc)
@@ -378,7 +382,17 @@ class OpenEphysAdapter(DeviceAdapter):
                     self._assembler.resync()
                 if gap:
                     self._assembler.note_message_gap()
+                resets = self.counters.sample_clock_resets
                 items = self._dispatch(msg)
+                if self.counters.sample_clock_resets != resets:
+                    prev, new = self._assembler.last_clock_reset or (None, -1)
+                    log.warning(
+                        "openephys %s: source sample clock restarted (%s -> %d) while messages "
+                        "continued (e.g. File Reader looping); continuing without reconnecting",
+                        self.endpoint,
+                        prev,
+                        new,
+                    )
             except ConfigurationChangedError as exc:
                 self.counters.config_changes += 1
                 if exc.new_electrode and exc.new_electrode not in self.electrodes:
@@ -594,7 +608,7 @@ class OpenEphysAdapter(DeviceAdapter):
         self._assembler = BlockAssembler(
             layout,
             self.counters,
-            max_frame_samples=cfg.max_frame_samples,
+            max_frame_samples=frame_samples_limit(layout.channel_count, cfg.max_frame_samples),
             electrodes=self.electrodes,
             bin_spec=bins,
             fixed_electrodes=cfg.spike_electrodes is not None,

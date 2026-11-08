@@ -324,3 +324,10 @@ details summary { cursor: pointer; margin-top: 10px; font-size: var(--fs-sm); }
 
 /* embedded board */
 .board-frame { display: block; width: 100%; height: 560px; margin-top: 12px; border: 1px solid var(--line); border-radius: var(--radius); background: #0d1117; }
+
+/* compatibility registry (Advanced; M5 workstream F) */
+.compat-table td { min-width: 120px; }
+.compat-table td.compat-evidence { min-width: 360px; }
+.compat-table code { overflow-wrap: anywhere; }
+ul.compat-list { margin: 0; padding-left: 16px; }
+.compat-list li + li { margin-top: 6px; }

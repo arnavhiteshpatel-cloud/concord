@@ -17,6 +17,11 @@ interface Form {
   deadzone: string;
   invert_y: boolean;
   max_speed: string;
+  /** schema 1.4: a click from one decoder output ("" = none) */
+  click_dim?: string;
+  click_threshold?: string;
+  click_min_confidence?: string;
+  click_refractory_ms?: string;
 }
 
 /** One editable discrete rule per decoder class; action "" = no action for that class. */
@@ -45,10 +50,18 @@ export function routerSpec(form: Form, enabled: boolean): { spec: RouterSpec | n
     maxSpeed > 0 &&
     maxSpeed <= 10;
   if (!ok) return { spec: null, problem: "Check the settings: 0 < gain ≤ 10, 0 ≤ dead-zone < 3, 0 < max speed ≤ 10." };
-  return {
-    spec: { enabled, x_dim: form.x_dim, y_dim: form.y_dim, gain, deadzone, invert_y: form.invert_y, max_speed: maxSpeed },
-    problem: null,
-  };
+  const spec: RouterSpec = { enabled, x_dim: form.x_dim, y_dim: form.y_dim, gain, deadzone, invert_y: form.invert_y, max_speed: maxSpeed };
+  if (form.click_dim) {
+    const threshold = Number(form.click_threshold ?? "0.5");
+    const minConf = Number(form.click_min_confidence ?? "0");
+    const refractory = Number(form.click_refractory_ms ?? "300");
+    if (form.click_dim === form.x_dim || form.click_dim === form.y_dim)
+      return { spec: null, problem: "The click cannot come from a dimension that moves the pointer." };
+    if (!(threshold > 0 && threshold <= 1) || !(minConf >= 0 && minConf <= 1) || !(refractory >= 0 && refractory <= 10000))
+      return { spec: null, problem: "Check the click: 0 < threshold ≤ 1, 0 ≤ minimum confidence ≤ 1, pause 0–10000 ms." };
+    spec.click = { output: form.click_dim, threshold, min_confidence: minConf, refractory_ms: refractory };
+  }
+  return { spec, problem: null };
 }
 
 /** Default rules: "rest"-like classes do nothing; the others get select, activate, cancel in order. */
@@ -103,6 +116,7 @@ const CAP_TEXT: Record<CommandCapability, string> = {
   pointer_intent: "pointer movement",
   selection: "discrete actions",
   text_intent: "text",
+  navigation: "navigation",
 };
 
 const list = (caps: CommandCapability[]) => caps.map((c) => CAP_TEXT[c]).join(", ");
@@ -112,7 +126,7 @@ export function describeApp(a: AppControl, provides: CommandCapability[], router
   if (a.connections === 0) return `Not connected. Authorized for ${list(a.authorized)}.`;
   const detail = (c: CommandCapability) => {
     if (c !== "selection" || !router?.discrete?.length) return CAP_TEXT[c];
-    const acts = router.discrete.filter((d) => d.action !== "text").map(actionLabel);
+    const acts = router.discrete.filter((d) => d.action !== "text" && !d.action.startsWith("navigate:")).map(actionLabel);
     return acts.length ? `${CAP_TEXT[c]} (${acts.join(", ")})` : CAP_TEXT[c];
   };
   const would = a.requested.filter((c) => provides.includes(c));
@@ -204,7 +218,7 @@ export function ControlRow({ pipeline, apps }: { pipeline: PipelineState; apps: 
   const dims = decoder?.dims ?? [];
   const current = st?.router ?? null;
   const on = controlOn(st);
-  const [form, setForm] = useState<Form>({ x_dim: "", y_dim: "", gain: "1", deadzone: "0.3", invert_y: false, max_speed: "2" });
+  const [form, setForm] = useState<Form>({ x_dim: "", y_dim: "", gain: "1", deadzone: "0.3", invert_y: false, max_speed: "2", click_dim: "" });
   const [rules, setRules] = useState<RuleForm[]>([]);
   const poll = usePoll("control", labApi.control, 1000);
   const [override, setOverride] = useState<ControlStatus | null>(null);
@@ -222,6 +236,10 @@ export function ControlRow({ pipeline, apps }: { pipeline: PipelineState; apps: 
       deadzone: String(current?.deadzone ?? 0.3),
       invert_y: current?.invert_y ?? false,
       max_speed: String(current?.max_speed ?? 2),
+      click_dim: current?.click?.output ?? "",
+      click_threshold: String(current?.click?.threshold ?? 0.5),
+      click_min_confidence: String(current?.click?.min_confidence ?? 0),
+      click_refractory_ms: String(current?.click?.refractory_ms ?? 300),
     });
     if (classes) {
       const base = defaultRules(classes);
@@ -353,6 +371,35 @@ export function ControlRow({ pipeline, apps }: { pipeline: PipelineState; apps: 
               />
               Invert y
             </label>
+            <label title="A decoder output that is a click probability or a 0/1 click decision (optional)">
+              Click from
+              <select value={form.click_dim ?? ""} onChange={(e) => set({ click_dim: e.target.value })} data-testid="router-click">
+                <option value="">No click</option>
+                {dims
+                  .filter((d) => d !== form.x_dim && d !== form.y_dim)
+                  .map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
+                  ))}
+              </select>
+            </label>
+            {form.click_dim && (
+              <>
+                <label title="The click output must reach this value (0 < threshold ≤ 1)">
+                  Click threshold
+                  <input value={form.click_threshold ?? "0.5"} onChange={(e) => set({ click_threshold: e.target.value })} data-testid="router-click-threshold" />
+                </label>
+                <label title="Clicks whose confidence is below this are not sent (0–1)">
+                  Minimum confidence
+                  <input value={form.click_min_confidence ?? "0"} onChange={(e) => set({ click_min_confidence: e.target.value })} data-testid="router-click-confidence" />
+                </label>
+                <label title="Minimum time between two clicks">
+                  Click pause (ms)
+                  <input value={form.click_refractory_ms ?? "300"} onChange={(e) => set({ click_refractory_ms: e.target.value })} data-testid="router-click-pause" />
+                </label>
+              </>
+            )}
           </div>
           {on && (
             <div className="btn-row">
@@ -394,6 +441,12 @@ export function ControlRow({ pipeline, apps }: { pipeline: PipelineState; apps: 
                     <option value="primary">Select</option>
                     <option value="activate">Activate</option>
                     <option value="cancel">Cancel</option>
+                    <option value="navigate:next">Move to next</option>
+                    <option value="navigate:previous">Move to previous</option>
+                    <option value="navigate:up">Move up</option>
+                    <option value="navigate:down">Move down</option>
+                    <option value="navigate:left">Move left</option>
+                    <option value="navigate:right">Move right</option>
                     <option value="text">Type text</option>
                   </select>
                 </label>

@@ -43,6 +43,37 @@ changes.
 | [docs/MILESTONE4_PLAN.md](docs/MILESTONE4_PLAN.md) | Milestone 4 extension points, workstreams, validation levels |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Rules for engineers working in this repo |
 
+## M5-D: install, start, and run a research session
+
+**Desktop app (macOS, Apple Silicon):** open `BrainOS-<version>-macos-arm64.dmg` (CI job
+`package-macos`, or `make app` on a Mac), drag BrainOS to Applications, open it (it is
+unsigned: see [docs/INSTALL_MAC.md](docs/INSTALL_MAC.md) for the one-time Gatekeeper step).
+The console opens in your browser; quitting stops everything safely.
+
+**From a checkout (macOS or Linux):** after `make setup` and `make build` (below),
+
+```bash
+.venv/bin/brainos start
+```
+
+starts BrainOS in the background on http://127.0.0.1:8000 and opens the console;
+`brainos status`, `brainos stop` (safe stop, then exit), `brainos doctor` (support report
+without neural or personal data), `brainos config init` (an optional config file with safe
+defaults), `brainos dataset` (the demo recordings), `brainos reproduce <bundle>.zip`.
+
+In the console, the strip above the rows holds **New session** (name, operator, notes),
+**Session and export…** (a reproducibility bundle) and **Safe stop & disconnect**;
+**Advanced → Stored data** deletes recordings, models and sessions; **Advanced → Support
+report**.
+
+| Document | Purpose |
+| --- | --- |
+| [docs/INSTALL_MAC.md](docs/INSTALL_MAC.md) | Mac users: the app or pip, first launch, configuration |
+| [docs/LAB_SETUP.md](docs/LAB_SETUP.md) | Labs with their own acquisition system: adapters, network topology, step by step |
+| [docs/FIRST_LAB_SESSION.md](docs/FIRST_LAB_SESSION.md) | Validation protocol for the first session with real equipment (a protocol, not a result) |
+| [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Symptoms and fixes |
+| [docs/SECURITY.md](docs/SECURITY.md) | What is and is not protected (no authentication; not a medical device) |
+
 ## Quick start (macOS, Apple Silicon)
 
 Prerequisites: [Homebrew](https://brew.sh), then
@@ -217,3 +248,91 @@ async with await EventStream.connect(
 ```
 
 See [docs/SDK.md](docs/SDK.md) and `backend/examples/print_events.py`.
+
+## Milestone 5, workstream B: human ECoG (offline replay)
+
+A second neural modality: raw-voltage ECoG from AJILE12 (DANDI 000055, CC-BY-4.0), streamed as
+pinned, digest-verified slices (the source files are ~10 GB each) and replayed as
+"Recorded Human ECoG — Offline Replay" (`modality: ecog`). The `ecog_high_gamma` pipeline uses
+the source's 60 Hz mains and leaves bad electrodes out of the common average; a move-vs-rest
+LDA trained on one day is scored on two held-out days (docs/ECOG_DECODING.md), and the unchanged
+SDK-only menu app receives its decoded selections only after operator authorization. Models are
+refused on a different recording modality. Details, results and limitations: docs/ECOG.md.
+
+```bash
+make dataset-ecog       # 2 demo slices (~157 MiB) -> data/datasets/dandi-000055/
+make ecog-report        # all 6 slices; model -> data/models/; docs/ECOG_DECODING.md
+```
+
+## Compatibility registry (Milestone 5, workstream F)
+
+`compat/registry.json` lists every integration (built-in adapters, offline datasets, source
+plugins), the validation level its evidence supports and that evidence. Levels are derived by
+fixed rules, never typed in; nothing is at level 3 (hardware-verified) or 4 (human-participant
+validated). `make compat` regenerates it, `make compat-check` (run in CI) fails when it is
+stale; `GET /api/v1/compatibility` serves it with this installation's status, and the console
+shows it under Advanced → Compatibility. See
+[docs/COMPATIBILITY.md](docs/COMPATIBILITY.md#registry-m5-f).
+
+## Decoders: bring your own (Milestone 5, workstream A)
+
+Decoders are pluggable. Each one is checked against the source before it runs (modality,
+features, bin size, channel identities and order, units, participant). Third-party code runs
+in an isolated decoder process, and every output is validated:
+
+```bash
+brainos-decoder new my-decoder && pip install -e brainos-my-decoder   # a decoder plugin
+brainos-decoder check my-decoder                                       # run it as BrainOS does
+brainos-decoder check --model data/models/<id>.manifest.json           # an ONNX / skops / TorchScript file
+```
+
+In the console, **Start decoding** lists every decoder:
+
+- BrainOS-trained models, imported model files and decoder plugins;
+- each decoder's compatibility verdict for the chosen processing;
+- the explicit channel mapping by label, offered only when it applies.
+
+**Calibrate…** starts from the output you need (continuous movement, discrete classes, click).
+Pickle / joblib files are refused unless you mark the exact file trusted. Guide:
+[docs/DECODER_SDK.md](docs/DECODER_SDK.md). Example plugin:
+[examples/decoders/brainos-example-decoder](examples/decoders/brainos-example-decoder/README.md).
+
+## Milestone 5, P0: neural-to-communication on genuine human data
+
+Recorded intracortical data from a person with paralysis controlling a cursor and clicking
+(participant T15, Singer-Clark et al., Dryad doi:10.5061/dryad.prr4xgxzq, CC0) replays as
+"Recorded Human Intracortical Data (cursor + click) — Offline Replay" (`t15:*` devices): threshold
+crossings and spike band power, task state, and the original online decoders' outputs
+(labelled historical, never BrainOS). BrainOS's own Kalman cursor decoder and click decoder,
+trained only on earlier calibration blocks, recover the movement intention on held-out blocks
+(angle error 28.0° vs 27.3° for the original online decoder; docs/CURSOR_CLICK.md), and drive
+the participant board end to end in a browser (docs/NEURAL_COMMUNICATION.md). Open loop only:
+nobody has communicated through BrainOS.
+
+```bash
+make dataset-t15            # day 468 blocks 0-3 (~90 MiB; Dryad API token: see --help)
+make e2e-communication      # the board selects words from the replayed block (historical + BrainOS)
+make cursorclick-report     # all 18 blocks: decoders, clicks, word selection -> docs/CURSOR_CLICK.md
+```
+
+## Acquisition verification: `brainos-hwval` (Milestone 5)
+
+`packages/brainos-hwval` checks that BrainOS received exactly what an acquisition system
+produced: it compares a BrainOS recording with the recording the system's own reference
+software made at the same time (LabRecorder XDF for LSL sources, the Open Ephys GUI's Record
+Node in Binary format) and writes a JSON + Markdown report (PASS / FAIL / INCONCLUSIVE, per
+check: identity, channels, units, loss, duplicates, values, timestamps, delay). The comparison
+needs only `numpy` and `pyxdf`, not BrainOS. The laboratory procedure is
+[docs/HARDWARE_VALIDATION.md](docs/HARDWARE_VALIDATION.md). So far it has been run against the
+real LabRecorder and the real Open Ephys GUI with software sources only: **no acquisition
+hardware has been verified** (docs/VALIDATION_LEVELS.md).
+
+```bash
+brainos-hwval capture lsl --stream "MyAmp EEG" --duration 240 --out runs/ --name run1
+```
+```bash
+brainos-hwval lsl --reference runs/run1.xdf --brainos runs/run1.brainos.jsonl --out reports/
+```
+```bash
+make test-hwval   # also runs real LabRecorderCLI + Open Ephys GUI (Linux x86_64; see the Makefile)
+```

@@ -1,0 +1,623 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://brainos.local/schemas/compat-registry.v1.json",
+  "title": "BrainOS compatibility registry 1.0",
+  "$defs": {
+    "CertifyInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "level": {
+          "anyOf": [
+            {
+              "enum": [
+                "adapter_implementation",
+                "protocol_tested",
+                "hardware_tested"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "highest certification level in the report",
+          "title": "Level"
+        },
+        "tool": {
+          "title": "Tool",
+          "type": "string"
+        },
+        "plugin": {
+          "title": "Plugin",
+          "type": "string"
+        },
+        "plugin_version": {
+          "title": "Plugin Version",
+          "type": "string"
+        },
+        "entry_point": {
+          "title": "Entry Point",
+          "type": "string"
+        },
+        "device_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Device Key"
+        },
+        "data_source": {
+          "description": "session origin and declared flags",
+          "title": "Data Source",
+          "type": "string"
+        },
+        "counts": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Counts",
+          "type": "object"
+        },
+        "protocol_reference": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Protocol Reference"
+        },
+        "attestation_accepted": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Attestation Accepted"
+        },
+        "tree_sha256": {
+          "title": "Tree Sha256",
+          "type": "string"
+        },
+        "source_matches": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "report's plugin files equal this checkout's; None: source not in this repo",
+          "title": "Source Matches"
+        },
+        "changed_files": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Changed Files",
+          "type": "array"
+        }
+      },
+      "required": [
+        "level",
+        "tool",
+        "plugin",
+        "plugin_version",
+        "entry_point",
+        "device_key",
+        "data_source",
+        "counts",
+        "protocol_reference",
+        "attestation_accepted",
+        "tree_sha256",
+        "source_matches",
+        "changed_files"
+      ],
+      "title": "CertifyInfo",
+      "type": "object"
+    },
+    "Entry": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "display_name": {
+          "title": "Display Name",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "builtin_adapter",
+            "source_plugin",
+            "offline_dataset"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "ecosystem": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ecosystem"
+        },
+        "protocol": {
+          "title": "Protocol",
+          "type": "string"
+        },
+        "package": {
+          "title": "Package",
+          "type": "string"
+        },
+        "version": {
+          "description": "version the evidence is for",
+          "title": "Version",
+          "type": "string"
+        },
+        "adapter": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "built-in adapter name",
+          "title": "Adapter"
+        },
+        "entry_point": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "plugin entry point (brainos.sources)",
+          "title": "Entry Point"
+        },
+        "module": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Python module or package that implements it",
+          "title": "Module"
+        },
+        "in_checkout": {
+          "description": "the integration's code exists in this checkout",
+          "title": "In Checkout",
+          "type": "boolean"
+        },
+        "synthetic_only": {
+          "title": "Synthetic Only",
+          "type": "boolean"
+        },
+        "modalities_declared": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Modalities Declared",
+          "type": "array"
+        },
+        "modality_note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Modality Note"
+        },
+        "read_only": {
+          "$ref": "#/$defs/ReadOnly"
+        },
+        "level": {
+          "anyOf": [
+            {
+              "enum": [
+                "software_implemented",
+                "protocol_tested",
+                "hardware_verified",
+                "human_validated"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "derived; None: no counted evidence",
+          "title": "Level"
+        },
+        "level_number": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Level Number"
+        },
+        "real_data_replay": {
+          "title": "Real Data Replay",
+          "type": "boolean"
+        },
+        "level_basis": {
+          "description": "how the level was derived, rule by rule",
+          "items": {
+            "type": "string"
+          },
+          "title": "Level Basis",
+          "type": "array"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "not_tested": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Not Tested",
+          "type": "array"
+        },
+        "limitations": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Limitations",
+          "type": "array"
+        },
+        "requires_modules": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Requires Modules",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "display_name",
+        "kind",
+        "ecosystem",
+        "protocol",
+        "package",
+        "version",
+        "adapter",
+        "entry_point",
+        "module",
+        "in_checkout",
+        "synthetic_only",
+        "modalities_declared",
+        "modality_note",
+        "read_only",
+        "level",
+        "level_number",
+        "real_data_replay",
+        "level_basis",
+        "evidence",
+        "not_tested",
+        "limitations",
+        "requires_modules"
+      ],
+      "title": "Entry",
+      "type": "object"
+    },
+    "Evidence": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "enum": [
+            "test",
+            "certify_report",
+            "benchmark",
+            "doc"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "date": {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "title": "Date",
+          "type": "string"
+        },
+        "supports": {
+          "anyOf": [
+            {
+              "enum": [
+                "software_implemented",
+                "protocol_tested"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "the level this item supports by the rules; None: context only",
+          "title": "Supports"
+        },
+        "counted": {
+          "description": "False: listed but excluded from the level derivation (see note)",
+          "title": "Counted",
+          "type": "boolean"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        },
+        "protocol_reference": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Protocol Reference"
+        },
+        "runs_in_ci": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Runs In Ci"
+        },
+        "record": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Record"
+        },
+        "real_data": {
+          "default": false,
+          "title": "Real Data",
+          "type": "boolean"
+        },
+        "claim": {
+          "anyOf": [
+            {
+              "enum": [
+                "independent_reference_comparison",
+                "approved_human_protocol"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Claim"
+        },
+        "certify": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CertifyInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "type",
+        "path",
+        "description",
+        "date",
+        "supports",
+        "counted"
+      ],
+      "title": "Evidence",
+      "type": "object"
+    },
+    "LevelDefinition": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "enum": [
+            "software_implemented",
+            "protocol_tested",
+            "hardware_verified",
+            "human_validated"
+          ],
+          "title": "Id",
+          "type": "string"
+        },
+        "number": {
+          "maximum": 4,
+          "minimum": 1,
+          "title": "Number",
+          "type": "integer"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "meaning": {
+          "title": "Meaning",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "number",
+        "name",
+        "meaning"
+      ],
+      "title": "LevelDefinition",
+      "type": "object"
+    },
+    "ReadOnly": {
+      "additionalProperties": false,
+      "properties": {
+        "statement": {
+          "maxLength": 400,
+          "minLength": 10,
+          "title": "Statement",
+          "type": "string"
+        },
+        "verified_by": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 8,
+          "title": "Verified By",
+          "type": "array"
+        }
+      },
+      "required": [
+        "statement"
+      ],
+      "title": "ReadOnly",
+      "type": "object"
+    },
+    "RegistrySources": {
+      "additionalProperties": false,
+      "properties": {
+        "curated": {
+          "title": "Curated",
+          "type": "string"
+        },
+        "certify_reports": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Certify Reports",
+          "type": "array"
+        },
+        "validation_levels": {
+          "title": "Validation Levels",
+          "type": "string"
+        }
+      },
+      "required": [
+        "curated",
+        "certify_reports",
+        "validation_levels"
+      ],
+      "title": "RegistrySources",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "registry_version": {
+      "const": "1.0",
+      "title": "Registry Version",
+      "type": "string"
+    },
+    "notice": {
+      "title": "Notice",
+      "type": "string"
+    },
+    "brainos_version": {
+      "title": "Brainos Version",
+      "type": "string"
+    },
+    "levels": {
+      "items": {
+        "$ref": "#/$defs/LevelDefinition"
+      },
+      "title": "Levels",
+      "type": "array"
+    },
+    "rules": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Rules",
+      "type": "array"
+    },
+    "sources": {
+      "$ref": "#/$defs/RegistrySources"
+    },
+    "summary": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "Summary",
+      "type": "object"
+    },
+    "entries": {
+      "items": {
+        "$ref": "#/$defs/Entry"
+      },
+      "title": "Entries",
+      "type": "array"
+    }
+  },
+  "required": [
+    "registry_version",
+    "notice",
+    "brainos_version",
+    "levels",
+    "rules",
+    "sources",
+    "summary",
+    "entries"
+  ],
+  "type": "object"
+}

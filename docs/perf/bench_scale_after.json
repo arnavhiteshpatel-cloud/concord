@@ -1,0 +1,3567 @@
+{
+ "started": "2026-11-07 23:23 UTC",
+ "command": "python scripts/bench_scale.py --soak 600 --soak-channels 256,1024 --label m5-perf --json /tmp/after.json --write /tmp/after.md",
+ "label": "m5-perf",
+ "machine": {
+  "machine": "x86_64",
+  "platform": "Linux-6.18.44-fc-v310-x86_64-with-glibc2.39",
+  "cpu_count": 4,
+  "python": "3.12.3",
+  "numpy": "2.5.4",
+  "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+  "mem_gb": 15.7,
+  "scipy": "1.18.1",
+  "pydantic": "2.14.3",
+  "pylsl": "1.18.6",
+  "orjson": "3.13.0",
+  "numba": "0.68.1",
+  "liblsl": 118
+ },
+ "load_start": "4.98 5.23 8.30",
+ "load_end": "3.90 3.10 2.71",
+ "micro": [
+  {
+   "channels": 64,
+   "samples": 300,
+   "frames": 1,
+   "json_bytes": 364313,
+   "normalize_us": 36.06899917940609,
+   "ingest_us": 36.39999886217993,
+   "ingest_send_us": 532.8150000423193,
+   "process_us": 223.21299911709502,
+   "normalize_ns_per_value": 1.878593707260734,
+   "normalize_core_pct": 0.3606899917940609,
+   "ingest_ns_per_value": 1.8958332740718713,
+   "ingest_core_pct": 0.3639999886217993,
+   "ingest_send_ns_per_value": 27.75078125220413,
+   "ingest_send_core_pct": 5.328150000423193,
+   "process_ns_per_value": 11.6256770373487,
+   "process_core_pct": 2.2321299911709502
+  },
+  {
+   "channels": 256,
+   "samples": 300,
+   "frames": 1,
+   "json_bytes": 1455977,
+   "normalize_us": 121.91800124128349,
+   "ingest_us": 113.4610010922188,
+   "ingest_send_us": 2247.5410005426966,
+   "process_us": 1290.8869994134875,
+   "normalize_ns_per_value": 1.5874739744958788,
+   "normalize_core_pct": 1.219180012412835,
+   "ingest_ns_per_value": 1.4773567850549323,
+   "ingest_core_pct": 1.134610010922188,
+   "ingest_send_ns_per_value": 29.264856777899695,
+   "ingest_send_core_pct": 22.475410005426966,
+   "process_ns_per_value": 16.808424471529786,
+   "process_core_pct": 12.908869994134875
+  },
+  {
+   "channels": 1024,
+   "samples": 300,
+   "frames": 2,
+   "json_bytes": 5825775,
+   "normalize_us": 723.5489993036026,
+   "ingest_us": 759.3900008942,
+   "ingest_send_us": 8762.583000134327,
+   "process_us": 3651.999999419786,
+   "normalize_ns_per_value": 2.3553027321080813,
+   "normalize_core_pct": 7.235489993036026,
+   "ingest_ns_per_value": 2.4719726591608073,
+   "ingest_core_pct": 7.593900008942001,
+   "ingest_send_ns_per_value": 28.52403320356226,
+   "ingest_send_core_pct": 87.62583000134327,
+   "process_ns_per_value": 11.888020831444615,
+   "process_core_pct": 36.51999999419786
+  }
+ ],
+ "alternatives": {
+  "json": [
+   {
+    "channels": 64,
+    "method": "pydantic dump_json(list) [today, excl. tolist]",
+    "ns_per_value": 45.58541670955189,
+    "byte_identical": true
+   },
+   {
+    "channels": 64,
+    "method": "ndarray.tolist + pydantic",
+    "ns_per_value": 59.32067712895635,
+    "byte_identical": true
+   },
+   {
+    "channels": 64,
+    "method": "orjson(ndarray)",
+    "ns_per_value": 19.873020846716827,
+    "byte_identical": true
+   },
+   {
+    "channels": 64,
+    "method": "orjson(list)",
+    "ns_per_value": 22.436145836005988,
+    "byte_identical": true
+   },
+   {
+    "channels": 64,
+    "method": "msgspec(list)",
+    "ns_per_value": 36.87895836416526,
+    "byte_identical": true
+   },
+   {
+    "channels": 64,
+    "method": "brainos.runtime.fastjson (shipped)",
+    "ns_per_value": 27.41328122131866,
+    "byte_identical": true
+   },
+   {
+    "channels": 1024,
+    "method": "pydantic dump_json(list) [today, excl. tolist]",
+    "ns_per_value": 39.205410153897446,
+    "byte_identical": true
+   },
+   {
+    "channels": 1024,
+    "method": "ndarray.tolist + pydantic",
+    "ns_per_value": 62.2589290344422,
+    "byte_identical": true
+   },
+   {
+    "channels": 1024,
+    "method": "orjson(ndarray)",
+    "ns_per_value": 20.952672527367138,
+    "byte_identical": true
+   },
+   {
+    "channels": 1024,
+    "method": "orjson(list)",
+    "ns_per_value": 23.44105143473977,
+    "byte_identical": true
+   },
+   {
+    "channels": 1024,
+    "method": "msgspec(list)",
+    "ns_per_value": 38.07117187430246,
+    "byte_identical": true
+   },
+   {
+    "channels": 1024,
+    "method": "brainos.runtime.fastjson (shipped)",
+    "ns_per_value": 24.507363279487514,
+    "byte_identical": true
+   }
+  ],
+  "validate": [
+   {
+    "channels": 64,
+    "method": "pydantic list[list[FiniteFloat]] (today)",
+    "ns_per_value": 9.42895828378217
+   },
+   {
+    "channels": 64,
+    "method": "numpy isfinite + shape",
+    "ns_per_value": 0.2259896329330028
+   },
+   {
+    "channels": 64,
+    "method": "numpy owned float64 copy",
+    "ns_per_value": 0.20687499121171032
+   },
+   {
+    "channels": 64,
+    "method": "np.asarray(list) (pipeline input today)",
+    "ns_per_value": 18.038958368530682
+   },
+   {
+    "channels": 64,
+    "method": "RecordingFramePayload from ndarray (shipped)",
+    "ns_per_value": 0.5792187115124156
+   },
+   {
+    "channels": 1024,
+    "method": "pydantic list[list[FiniteFloat]] (today)",
+    "ns_per_value": 16.902483720807975
+   },
+   {
+    "channels": 1024,
+    "method": "numpy isfinite + shape",
+    "ns_per_value": 0.45668619700715374
+   },
+   {
+    "channels": 1024,
+    "method": "numpy owned float64 copy",
+    "ns_per_value": 0.6211100256336977
+   },
+   {
+    "channels": 1024,
+    "method": "np.asarray(list) (pipeline input today)",
+    "ns_per_value": 19.097968753101213
+   },
+   {
+    "channels": 1024,
+    "method": "RecordingFramePayload from ndarray (shipped)",
+    "ns_per_value": 1.13269205570532
+   }
+  ],
+  "sos": [
+   {
+    "channels": 256,
+    "method": "scipy.sosfilt, (n, ch) C order (today's list path)",
+    "us_per_chunk": 609.2240000725724,
+    "core_pct_30k": 6.092240000725724,
+    "max_abs_err_uV": 0.0
+   },
+   {
+    "channels": 256,
+    "method": "scipy.sosfilt, (n, ch) F order (= array-backed frame)",
+    "us_per_chunk": 641.8749999284046,
+    "core_pct_30k": 6.418749999284046,
+    "max_abs_err_uV": 0.0
+   },
+   {
+    "channels": 256,
+    "method": "scipy.sosfilt on (ch, n), axis=1",
+    "us_per_chunk": 535.3470005502459,
+    "core_pct_30k": 5.353470005502459,
+    "max_abs_err_uV": 0.0
+   },
+   {
+    "channels": 256,
+    "method": "numba, channels innermost (prototype)",
+    "us_per_chunk": 151.10499953152612,
+    "core_pct_30k": 1.5110499953152612,
+    "max_abs_err_uV": 0.0
+   },
+   {
+    "channels": 256,
+    "method": "C -O3 via ctypes, channels innermost (prototype)",
+    "us_per_chunk": 164.28800154244527,
+    "core_pct_30k": 1.6428800154244527,
+    "max_abs_err_uV": 2.859934511434403e-13
+   },
+   {
+    "channels": 1024,
+    "method": "scipy.sosfilt, (n, ch) C order (today's list path)",
+    "us_per_chunk": 2442.0620011369465,
+    "core_pct_30k": 24.420620011369465,
+    "max_abs_err_uV": 0.0
+   },
+   {
+    "channels": 1024,
+    "method": "scipy.sosfilt, (n, ch) F order (= array-backed frame)",
+    "us_per_chunk": 2114.9620006326586,
+    "core_pct_30k": 21.149620006326586,
+    "max_abs_err_uV": 0.0
+   },
+   {
+    "channels": 1024,
+    "method": "scipy.sosfilt on (ch, n), axis=1",
+    "us_per_chunk": 2132.7269987523323,
+    "core_pct_30k": 21.327269987523323,
+    "max_abs_err_uV": 0.0
+   },
+   {
+    "channels": 1024,
+    "method": "numba, channels innermost (prototype)",
+    "us_per_chunk": 830.183000289253,
+    "core_pct_30k": 8.30183000289253,
+    "max_abs_err_uV": 0.0
+   },
+   {
+    "channels": 1024,
+    "method": "C -O3 via ctypes, channels innermost (prototype)",
+    "us_per_chunk": 831.0889988933923,
+    "core_pct_30k": 8.310889988933923,
+    "max_abs_err_uV": 3.3661962106634746e-13
+   },
+   {
+    "channels": 4096,
+    "method": "scipy.sosfilt, (n, ch) C order (today's list path)",
+    "us_per_chunk": 9727.160000693402,
+    "core_pct_30k": 97.27160000693402,
+    "max_abs_err_uV": 0.0
+   },
+   {
+    "channels": 4096,
+    "method": "scipy.sosfilt, (n, ch) F order (= array-backed frame)",
+    "us_per_chunk": 8633.952000309364,
+    "core_pct_30k": 86.33952000309364,
+    "max_abs_err_uV": 0.0
+   },
+   {
+    "channels": 4096,
+    "method": "scipy.sosfilt on (ch, n), axis=1",
+    "us_per_chunk": 8332.39500025229,
+    "core_pct_30k": 83.3239500025229,
+    "max_abs_err_uV": 0.0
+   },
+   {
+    "channels": 4096,
+    "method": "numba, channels innermost (prototype)",
+    "us_per_chunk": 3797.1299989294494,
+    "core_pct_30k": 37.971299989294494,
+    "max_abs_err_uV": 0.0
+   },
+   {
+    "channels": 4096,
+    "method": "C -O3 via ctypes, channels innermost (prototype)",
+    "us_per_chunk": 3692.4930009263335,
+    "core_pct_30k": 36.924930009263335,
+    "max_abs_err_uV": 3.694822225952521e-13
+   }
+  ],
+  "chain_split": [
+   {
+    "stage": "bandpass (scipy sosfilt)",
+    "us_per_chunk": 2497.702000255231
+   },
+   {
+    "stage": "common average reference",
+    "us_per_chunk": 484.0810015593888
+   },
+   {
+    "stage": "threshold crossings + binning",
+    "us_per_chunk": 724.7120011015795
+   },
+   {
+    "stage": "whole SignalChain.push",
+    "us_per_chunk": 3946.2889999413164
+   }
+  ],
+  "deflate": [
+   {
+    "channels": 64,
+    "samples": 150,
+    "json_kb": 191.727,
+    "compressed_kb": 83.69,
+    "ms_per_frame": 11.507993000122951,
+    "mb_per_s": 16.66033338723369
+   },
+   {
+    "channels": 256,
+    "samples": 300,
+    "json_kb": 1532.63,
+    "compressed_kb": 669.554,
+    "ms_per_frame": 94.85420700002578,
+    "mb_per_s": 16.15774406294476
+   }
+  ]
+ },
+ "chain": [
+  {
+   "preset": "spikeband_threshold",
+   "fs": 30000.0,
+   "channels": 64,
+   "chunk_samples": 300,
+   "us_per_chunk_p50": 252.73149958593422,
+   "us_per_chunk_p99": 363.1506503097626,
+   "core_pct": 2.527314995859342,
+   "realtime_x": 39.56768355501243
+  },
+  {
+   "preset": "spikeband_threshold",
+   "fs": 30000.0,
+   "channels": 256,
+   "chunk_samples": 300,
+   "us_per_chunk_p50": 792.4115002424514,
+   "us_per_chunk_p99": 1629.2291498757556,
+   "core_pct": 7.924115002424514,
+   "realtime_x": 12.619705792937552
+  },
+  {
+   "preset": "spikeband_threshold",
+   "fs": 30000.0,
+   "channels": 1024,
+   "chunk_samples": 300,
+   "us_per_chunk_p50": 5094.535999887739,
+   "us_per_chunk_p99": 7557.198719769076,
+   "core_pct": 50.94535999887739,
+   "realtime_x": 1.962887297335882
+  },
+  {
+   "preset": "spikeband_threshold",
+   "fs": 30000.0,
+   "channels": 2048,
+   "chunk_samples": 300,
+   "us_per_chunk_p50": 12138.153000705643,
+   "us_per_chunk_p99": 13048.767399959614,
+   "core_pct": 121.38153000705643,
+   "realtime_x": 0.8238485706531017
+  },
+  {
+   "preset": "spikeband_threshold",
+   "fs": 30000.0,
+   "channels": 4096,
+   "chunk_samples": 300,
+   "us_per_chunk_p50": 26786.021000134497,
+   "us_per_chunk_p99": 34191.738939607596,
+   "core_pct": 267.86021000134497,
+   "realtime_x": 0.3733290584648533
+  },
+  {
+   "preset": "ecog_high_gamma",
+   "fs": 1000.0,
+   "channels": 64,
+   "chunk_samples": 10,
+   "us_per_chunk_p50": 247.1549996698741,
+   "us_per_chunk_p99": 428.1531400556556,
+   "core_pct": 2.471549996698741,
+   "realtime_x": 40.46043985902385
+  },
+  {
+   "preset": "ecog_high_gamma",
+   "fs": 1000.0,
+   "channels": 256,
+   "chunk_samples": 10,
+   "us_per_chunk_p50": 312.5040002487367,
+   "us_per_chunk_p99": 492.1315999126816,
+   "core_pct": 3.125040002487367,
+   "realtime_x": 31.999590379772826
+  },
+  {
+   "preset": "ecog_high_gamma",
+   "fs": 1000.0,
+   "channels": 1024,
+   "chunk_samples": 10,
+   "us_per_chunk_p50": 471.50499995041173,
+   "us_per_chunk_p99": 2463.8695995236867,
+   "core_pct": 4.715049999504117,
+   "realtime_x": 21.20868283698307
+  },
+  {
+   "preset": "ecog_high_gamma",
+   "fs": 1000.0,
+   "channels": 2048,
+   "chunk_samples": 10,
+   "us_per_chunk_p50": 972.2790000523673,
+   "us_per_chunk_p99": 3583.1563007195955,
+   "core_pct": 9.722790000523673,
+   "realtime_x": 10.285113634524038
+  },
+  {
+   "preset": "ecog_high_gamma",
+   "fs": 1000.0,
+   "channels": 4096,
+   "chunk_samples": 10,
+   "us_per_chunk_p50": 1857.7820001155487,
+   "us_per_chunk_p99": 3673.814349849638,
+   "core_pct": 18.577820001155487,
+   "realtime_x": 5.382762885730418
+  },
+  {
+   "preset": "band_power",
+   "fs": 1000.0,
+   "channels": 64,
+   "chunk_samples": 10,
+   "us_per_chunk_p50": 53.63099990063347,
+   "us_per_chunk_p99": 139.30896027886772,
+   "core_pct": 0.5363099990063347,
+   "realtime_x": 186.45932424395997
+  },
+  {
+   "preset": "band_power",
+   "fs": 1000.0,
+   "channels": 256,
+   "chunk_samples": 10,
+   "us_per_chunk_p50": 68.26800017734058,
+   "us_per_chunk_p99": 130.47512009507042,
+   "core_pct": 0.6826800017734058,
+   "realtime_x": 146.4815136524123
+  },
+  {
+   "preset": "band_power",
+   "fs": 1000.0,
+   "channels": 1024,
+   "chunk_samples": 10,
+   "us_per_chunk_p50": 150.4339998064097,
+   "us_per_chunk_p99": 328.647479836945,
+   "core_pct": 1.504339998064097,
+   "realtime_x": 66.47433434508679
+  },
+  {
+   "preset": "band_power",
+   "fs": 1000.0,
+   "channels": 2048,
+   "chunk_samples": 10,
+   "us_per_chunk_p50": 283.556000340468,
+   "us_per_chunk_p99": 565.3856999470011,
+   "core_pct": 2.83556000340468,
+   "realtime_x": 35.26640236141333
+  },
+  {
+   "preset": "band_power",
+   "fs": 1000.0,
+   "channels": 4096,
+   "chunk_samples": 10,
+   "us_per_chunk_p50": 612.8380005065992,
+   "us_per_chunk_p99": 4620.05305042112,
+   "core_pct": 6.128380005065992,
+   "realtime_x": 16.31752598848889
+  }
+ ],
+ "raw": [
+  {
+   "kind": "raw",
+   "channels": 64,
+   "rate": 30000.0,
+   "preset": "spikeband_threshold",
+   "bin_ms": 20.0,
+   "seconds": 10.000340849999702,
+   "rest_responsive": true,
+   "samples_per_s_per_ch": 30028.976462338174,
+   "gaps": 0,
+   "missing": 0,
+   "frames_per_s": 100.39657798264246,
+   "validation_errors": 0,
+   "inputs_per_s": 100.39657798264246,
+   "dropped_inputs": 0,
+   "pipeline_errors": 0,
+   "features_per_s": 49.99829580808887,
+   "expected_features_per_s": 50.0,
+   "proc_us": {
+    "count": 1267,
+    "p50": 456.85,
+    "p95": 729.959,
+    "p99": 1019.468,
+    "max": 4288.665
+   },
+   "ingest_us": {
+    "count": 3116,
+    "p50_us": 128.2,
+    "p95_us": 260.2,
+    "p99_us": 794.7,
+    "max_us": 19262.7
+   },
+   "delivery_us": {
+    "count": 1222,
+    "p50_us": 218.6,
+    "p95_us": 423.7,
+    "p99_us": 573.3,
+    "max_us": 1374.6
+   },
+   "subscriber_drops": 0,
+   "app": {
+    "features": 500,
+    "missing_bins": 0,
+    "feat": {
+     "n": 500,
+     "p50": 4.413745000492781,
+     "p95": 6.761148250987752,
+     "p99": 8.742880469448863,
+     "p999": 9.325150830365722,
+     "max": 9.403908000327647
+    },
+    "cmd": {
+     "n": 500,
+     "p50": 4.4540455006062984,
+     "p95": 6.798314850218593,
+     "p99": 8.779573669722302,
+     "p999": 9.363853340434847,
+     "max": 9.433883000165224
+    },
+    "commands": 500,
+    "jitter_sd_ms": 2.5973382961950686,
+    "jitter_p99_ms": 5.636709220016191,
+    "delivery_gaps": 0,
+    "invalid": 0,
+    "frames": 0,
+    "closed": null
+   },
+   "cpu_pct": {
+    "publisher": 1.8999077497891115,
+    "runtime": 12.099432697529359,
+    "app": 1.3999357211114047
+   },
+   "rss_mb": {
+    "publisher": 108.54296875,
+    "runtime": 256.87890625,
+    "runtime_peak": 266.55859375,
+    "app": 307.76953125
+   },
+   "state": "streaming",
+   "loadavg": "9.00 6.28 8.48",
+   "rss_max_mb": 256.87890625
+  },
+  {
+   "kind": "raw",
+   "channels": 256,
+   "rate": 30000.0,
+   "preset": "spikeband_threshold",
+   "bin_ms": 20.0,
+   "seconds": 10.004200796999612,
+   "rest_responsive": true,
+   "samples_per_s_per_ch": 30017.390303687607,
+   "gaps": 0,
+   "missing": 0,
+   "frames_per_s": 101.25746379499017,
+   "validation_errors": 0,
+   "inputs_per_s": 101.25746379499017,
+   "dropped_inputs": 0,
+   "pipeline_errors": 0,
+   "features_per_s": 50.07896284431399,
+   "expected_features_per_s": 50.0,
+   "proc_us": {
+    "count": 1275,
+    "p50": 1131.259,
+    "p95": 1793.312,
+    "p99": 2355.897,
+    "max": 7308.96
+   },
+   "ingest_us": {
+    "count": 3123,
+    "p50_us": 151.3,
+    "p95_us": 536.2,
+    "p99_us": 15809.6,
+    "max_us": 114579.1
+   },
+   "delivery_us": {
+    "count": 1214,
+    "p50_us": 439.0,
+    "p95_us": 760.0,
+    "p99_us": 3737.5,
+    "max_us": 6686.2
+   },
+   "subscriber_drops": 0,
+   "app": {
+    "features": 501,
+    "missing_bins": 0,
+    "feat": {
+     "n": 501,
+     "p50": 5.510524000972509,
+     "p95": 8.030768000520766,
+     "p99": 10.20642099995166,
+     "p999": 12.94523550011245,
+     "max": 15.356108999811113
+    },
+    "cmd": {
+     "n": 501,
+     "p50": 5.624893999658525,
+     "p95": 8.25346599984914,
+     "p99": 10.552482000552118,
+     "p999": 16.75546300038711,
+     "max": 18.122879000380635
+    },
+    "commands": 501,
+    "jitter_sd_ms": 2.1363703746272225,
+    "jitter_p99_ms": 5.275962639688805,
+    "delivery_gaps": 0,
+    "invalid": 0,
+    "frames": 0,
+    "closed": null
+   },
+   "cpu_pct": {
+    "publisher": 3.098640115305582,
+    "runtime": 22.09032433632558,
+    "app": 1.7992208377003913
+   },
+   "rss_mb": {
+    "publisher": 235.796875,
+    "runtime": 370.48046875,
+    "runtime_peak": 439.078125,
+    "app": 307.890625
+   },
+   "state": "streaming",
+   "loadavg": "9.73 6.58 8.54",
+   "rss_max_mb": 434.359375
+  },
+  {
+   "kind": "raw",
+   "channels": 1024,
+   "rate": 30000.0,
+   "preset": "spikeband_threshold",
+   "bin_ms": 20.0,
+   "seconds": 10.00200990600024,
+   "rest_responsive": true,
+   "samples_per_s_per_ch": 30383.893123090125,
+   "gaps": 0,
+   "missing": 0,
+   "frames_per_s": 201.4595085324995,
+   "validation_errors": 0,
+   "inputs_per_s": 201.1595688175628,
+   "dropped_inputs": 0,
+   "pipeline_errors": 0,
+   "features_per_s": 50.78979172928524,
+   "expected_features_per_s": 50.0,
+   "proc_us": {
+    "count": 2048,
+    "p50": 2606.814,
+    "p95": 6942.564,
+    "p99": 8225.375,
+    "max": 11823.371
+   },
+   "ingest_us": {
+    "count": 4096,
+    "p50_us": 1282.4,
+    "p95_us": 2179.3,
+    "p99_us": 5647.1,
+    "max_us": 9158.5
+   },
+   "delivery_us": {
+    "count": 1170,
+    "p50_us": 776.3,
+    "p95_us": 6307.6,
+    "p99_us": 7481.1,
+    "max_us": 10596.0
+   },
+   "subscriber_drops": 0,
+   "app": {
+    "features": 508,
+    "missing_bins": 0,
+    "feat": {
+     "n": 508,
+     "p50": 20.81473750062287,
+     "p95": 32.87080719997174,
+     "p99": 42.92902927096002,
+     "p999": 50.67396465983354,
+     "max": 52.49828400090337
+    },
+    "cmd": {
+     "n": 508,
+     "p50": 21.624773500021547,
+     "p95": 33.70802990035154,
+     "p99": 44.337138360822586,
+     "p999": 52.55084652036989,
+     "max": 52.6698090005666
+    },
+    "commands": 508,
+    "jitter_sd_ms": 5.089961365066358,
+    "jitter_p99_ms": 12.213989039682929,
+    "delivery_gaps": 0,
+    "invalid": 0,
+    "frames": 0,
+    "closed": null
+   },
+   "cpu_pct": {
+    "publisher": 10.2977746519276,
+    "runtime": 68.28515733334956,
+    "app": 2.199521937206279
+   },
+   "rss_mb": {
+    "publisher": 713.66015625,
+    "runtime": 860.796875,
+    "runtime_peak": 1123.421875,
+    "app": 308.38671875
+   },
+   "state": "streaming",
+   "loadavg": "10.52 6.96 8.63",
+   "rss_max_mb": 1059.734375
+  },
+  {
+   "kind": "raw",
+   "channels": 2048,
+   "rate": 30000.0,
+   "preset": "spikeband_threshold",
+   "bin_ms": 20.0,
+   "seconds": 10.00062122899999,
+   "rest_responsive": true,
+   "samples_per_s_per_ch": 36462.53484159433,
+   "gaps": 0,
+   "missing": 0,
+   "frames_per_s": 0.0,
+   "validation_errors": 5016,
+   "inputs_per_s": 0.0,
+   "dropped_inputs": 0,
+   "pipeline_errors": 0,
+   "features_per_s": 0.0,
+   "expected_features_per_s": 50.0,
+   "proc_us": {
+    "count": 0,
+    "p50": null,
+    "p95": null,
+    "p99": null,
+    "max": null
+   },
+   "ingest_us": {
+    "count": 2,
+    "p50_us": 183.2,
+    "p95_us": 183.2,
+    "p99_us": 183.2,
+    "max_us": 183.2
+   },
+   "delivery_us": {
+    "count": 0,
+    "p50_us": null,
+    "p95_us": null,
+    "p99_us": null,
+    "max_us": null
+   },
+   "subscriber_drops": 0,
+   "app": {
+    "features": 0,
+    "missing_bins": 0,
+    "feat": {
+     "n": 0,
+     "p50": NaN,
+     "p95": NaN,
+     "p99": NaN,
+     "p999": NaN,
+     "max": NaN
+    },
+    "cmd": {
+     "n": 0,
+     "p50": NaN,
+     "p95": NaN,
+     "p99": NaN,
+     "p999": NaN,
+     "max": NaN
+    },
+    "commands": 0,
+    "jitter_sd_ms": NaN,
+    "jitter_p99_ms": 0.0,
+    "delivery_gaps": 0,
+    "invalid": 0,
+    "frames": 0,
+    "closed": null
+   },
+   "cpu_pct": {
+    "publisher": 23.488066448613065,
+    "runtime": 85.35645595880837,
+    "app": 0.29997562524060856
+   },
+   "rss_mb": {
+    "publisher": 1332.21484375,
+    "runtime": 1495.1953125,
+    "runtime_peak": 1787.04296875,
+    "app": 308.6953125
+   },
+   "state": "streaming",
+   "loadavg": "10.69 7.30 8.70",
+   "rss_max_mb": 1784.37890625
+  }
+ ],
+ "ecog": [
+  {
+   "kind": "raw",
+   "channels": 64,
+   "rate": 1000.0,
+   "preset": "ecog_high_gamma",
+   "bin_ms": 50.0,
+   "seconds": 10.000346183999682,
+   "rest_responsive": true,
+   "samples_per_s_per_ch": 1001.9653135640208,
+   "gaps": 0,
+   "missing": 0,
+   "frames_per_s": 100.19653135640208,
+   "validation_errors": 0,
+   "inputs_per_s": 100.19653135640208,
+   "dropped_inputs": 0,
+   "pipeline_errors": 0,
+   "features_per_s": 20.099304194248322,
+   "expected_features_per_s": 20.0,
+   "proc_us": {
+    "count": 1253,
+    "p50": 391.169,
+    "p95": 661.178,
+    "p99": 820.759,
+    "max": 3358.543
+   },
+   "ingest_us": {
+    "count": 1521,
+    "p50_us": 141.1,
+    "p95_us": 214.4,
+    "p99_us": 509.9,
+    "max_us": 1397.8
+   },
+   "delivery_us": {
+    "count": 265,
+    "p50_us": 192.0,
+    "p95_us": 618.9,
+    "p99_us": 906.5,
+    "max_us": 1121.7
+   },
+   "subscriber_drops": 0,
+   "app": {
+    "features": 201,
+    "missing_bins": 0,
+    "feat": {
+     "n": 201,
+     "p50": 2.9913820000365376,
+     "p95": 5.61294399946928,
+     "p99": 6.5724560003727674,
+     "p999": 7.978902999870493,
+     "max": 8.219388999976218
+    },
+    "cmd": {
+     "n": 0,
+     "p50": NaN,
+     "p95": NaN,
+     "p99": NaN,
+     "p999": NaN,
+     "max": NaN
+    },
+    "commands": 0,
+    "jitter_sd_ms": 1.969063744537989,
+    "jitter_p99_ms": 4.749721710068115,
+    "delivery_gaps": 0,
+    "invalid": 0,
+    "frames": 0,
+    "closed": null
+   },
+   "cpu_pct": {
+    "publisher": 1.5999160768821348,
+    "runtime": 9.79947383195168,
+    "app": 0.8999512437914056
+   },
+   "rss_mb": {
+    "publisher": 47.69140625,
+    "runtime": 193.0,
+    "runtime_peak": 193.0,
+    "app": 308.71875
+   },
+   "state": "streaming",
+   "loadavg": "9.59 7.23 8.65",
+   "rss_max_mb": 193.0
+  },
+  {
+   "kind": "raw",
+   "channels": 256,
+   "rate": 1000.0,
+   "preset": "ecog_high_gamma",
+   "bin_ms": 50.0,
+   "seconds": 10.000699563000126,
+   "rest_responsive": true,
+   "samples_per_s_per_ch": 1000.9299786421226,
+   "gaps": 0,
+   "missing": 0,
+   "frames_per_s": 100.09299786421225,
+   "validation_errors": 0,
+   "inputs_per_s": 100.19299086907161,
+   "dropped_inputs": 0,
+   "pipeline_errors": 0,
+   "features_per_s": 20.098593976729934,
+   "expected_features_per_s": 20.0,
+   "proc_us": {
+    "count": 1252,
+    "p50": 410.759,
+    "p95": 635.427,
+    "p99": 828.88,
+    "max": 12205.742
+   },
+   "ingest_us": {
+    "count": 1519,
+    "p50_us": 123.2,
+    "p95_us": 195.2,
+    "p99_us": 271.2,
+    "max_us": 4141.2
+   },
+   "delivery_us": {
+    "count": 263,
+    "p50_us": 168.8,
+    "p95_us": 603.4,
+    "p99_us": 717.2,
+    "max_us": 735.5
+   },
+   "subscriber_drops": 0,
+   "app": {
+    "features": 201,
+    "missing_bins": 0,
+    "feat": {
+     "n": 201,
+     "p50": 2.769319999963045,
+     "p95": 5.2197470003739,
+     "p99": 7.17059800028801,
+     "p999": 8.239546199887995,
+     "max": 8.300743999890983
+    },
+    "cmd": {
+     "n": 0,
+     "p50": NaN,
+     "p95": NaN,
+     "p99": NaN,
+     "p999": NaN,
+     "max": NaN
+    },
+    "commands": 0,
+    "jitter_sd_ms": 2.0011690665587287,
+    "jitter_p99_ms": 6.0635665894824315,
+    "delivery_gaps": 0,
+    "invalid": 0,
+    "frames": 0,
+    "closed": null
+   },
+   "cpu_pct": {
+    "publisher": 0.7999343886615521,
+    "runtime": 8.399312712798082,
+    "app": 0.8999279955011067
+   },
+   "rss_mb": {
+    "publisher": 52.2421875,
+    "runtime": 204.64453125,
+    "runtime_peak": 204.64453125,
+    "app": 308.72265625
+   },
+   "state": "streaming",
+   "loadavg": "10.01 7.44 8.70",
+   "rss_max_mb": 204.64453125
+  },
+  {
+   "kind": "raw",
+   "channels": 1024,
+   "rate": 1000.0,
+   "preset": "ecog_high_gamma",
+   "bin_ms": 50.0,
+   "seconds": 10.00064729099995,
+   "rest_responsive": true,
+   "samples_per_s_per_ch": 1000.9352103646797,
+   "gaps": 0,
+   "missing": 0,
+   "frames_per_s": 99.99352750895902,
+   "validation_errors": 0,
+   "inputs_per_s": 100.09352103646798,
+   "dropped_inputs": 0,
+   "pipeline_errors": 0,
+   "features_per_s": 19.998705501791804,
+   "expected_features_per_s": 20.0,
+   "proc_us": {
+    "count": 1251,
+    "p50": 742.575,
+    "p95": 1197.023,
+    "p99": 1449.272,
+    "max": 15690.944
+   },
+   "ingest_us": {
+    "count": 1520,
+    "p50_us": 189.7,
+    "p95_us": 262.4,
+    "p99_us": 336.0,
+    "max_us": 20382.7
+   },
+   "delivery_us": {
+    "count": 263,
+    "p50_us": 240.9,
+    "p95_us": 1138.8,
+    "p99_us": 2630.5,
+    "max_us": 6005.8
+   },
+   "subscriber_drops": 0,
+   "app": {
+    "features": 200,
+    "missing_bins": 0,
+    "feat": {
+     "n": 200,
+     "p50": 4.653304499574006,
+     "p95": 8.89166999948211,
+     "p99": 9.903542750440533,
+     "p999": 13.036499116984247,
+     "max": 13.67379999998957
+    },
+    "cmd": {
+     "n": 0,
+     "p50": NaN,
+     "p95": NaN,
+     "p99": NaN,
+     "p999": NaN,
+     "max": NaN
+    },
+    "commands": 0,
+    "jitter_sd_ms": 3.2217173211194,
+    "jitter_p99_ms": 7.910320619394067,
+    "delivery_gaps": 0,
+    "invalid": 0,
+    "frames": 0,
+    "closed": null
+   },
+   "cpu_pct": {
+    "publisher": 1.0999122590091859,
+    "runtime": 13.598918695578483,
+    "app": 1.4998778649455111
+   },
+   "rss_mb": {
+    "publisher": 68.82421875,
+    "runtime": 231.9921875,
+    "runtime_peak": 231.9921875,
+    "app": 308.73828125
+   },
+   "state": "streaming",
+   "loadavg": "10.65 7.75 8.77",
+   "rss_max_mb": 232.05078125
+  }
+ ],
+ "counts": [
+  {
+   "kind": "counts",
+   "channels": 64,
+   "rate": 50.0,
+   "preset": "features_passthrough",
+   "bin_ms": 20.0,
+   "seconds": 10.000488386000143,
+   "rest_responsive": true,
+   "samples_per_s_per_ch": 50.09755330563241,
+   "gaps": 0,
+   "missing": 0,
+   "frames_per_s": 0.0,
+   "validation_errors": 0,
+   "inputs_per_s": 49.9975581892539,
+   "dropped_inputs": 0,
+   "pipeline_errors": 0,
+   "features_per_s": 50.09755330563241,
+   "expected_features_per_s": 50.0,
+   "proc_us": {
+    "count": 666,
+    "p50": 120.044,
+    "p95": 193.281,
+    "p99": 325.173,
+    "max": 4899.911
+   },
+   "ingest_us": {
+    "count": 2032,
+    "p50_us": 77.7,
+    "p95_us": 206.1,
+    "p99_us": 898.2,
+    "max_us": 1162.9
+   },
+   "delivery_us": {
+    "count": 1364,
+    "p50_us": 247.2,
+    "p95_us": 498.1,
+    "p99_us": 702.6,
+    "max_us": 968.0
+   },
+   "subscriber_drops": 0,
+   "app": {
+    "features": 501,
+    "missing_bins": 0,
+    "feat": {
+     "n": 501,
+     "p50": 3.3488370003178716,
+     "p95": 5.540998000651598,
+     "p99": 6.036868000403047,
+     "p999": 6.5488339997828255,
+     "max": 6.771064999513328
+    },
+    "cmd": {
+     "n": 501,
+     "p50": 3.6027490003034472,
+     "p95": 6.0621260004118085,
+     "p99": 6.475924000144005,
+     "p999": 7.111316000111427,
+     "max": 7.33555299974978
+    },
+    "commands": 501,
+    "jitter_sd_ms": 2.1660677901591607,
+    "jitter_p99_ms": 4.547249400020519,
+    "delivery_gaps": 0,
+    "invalid": 0,
+    "frames": 0,
+    "closed": null
+   },
+   "cpu_pct": {
+    "publisher": 0.29998276943970625,
+    "runtime": 4.799726554778212,
+    "app": 1.6999048236887542
+   },
+   "rss_mb": {
+    "publisher": 44.53515625,
+    "runtime": 188.203125,
+    "runtime_peak": 188.203125,
+    "app": 308.7421875
+   },
+   "state": "streaming",
+   "loadavg": "10.95 7.96 8.83",
+   "rss_max_mb": 188.203125
+  },
+  {
+   "kind": "counts",
+   "channels": 256,
+   "rate": 50.0,
+   "preset": "features_passthrough",
+   "bin_ms": 20.0,
+   "seconds": 10.000304074000269,
+   "rest_responsive": true,
+   "samples_per_s_per_ch": 49.998479676227745,
+   "gaps": 0,
+   "missing": 0,
+   "frames_per_s": 0.0,
+   "validation_errors": 0,
+   "inputs_per_s": 50.098476635580205,
+   "dropped_inputs": 0,
+   "pipeline_errors": 0,
+   "features_per_s": 50.098476635580205,
+   "expected_features_per_s": 50.0,
+   "proc_us": {
+    "count": 673,
+    "p50": 127.998,
+    "p95": 179.99,
+    "p99": 256.836,
+    "max": 523.49
+   },
+   "ingest_us": {
+    "count": 2053,
+    "p50_us": 75.7,
+    "p95_us": 205.8,
+    "p99_us": 1491.9,
+    "max_us": 2000.4
+   },
+   "delivery_us": {
+    "count": 1378,
+    "p50_us": 261.8,
+    "p95_us": 608.9,
+    "p99_us": 4371.6,
+    "max_us": 4523.7
+   },
+   "subscriber_drops": 0,
+   "app": {
+    "features": 501,
+    "missing_bins": 0,
+    "feat": {
+     "n": 501,
+     "p50": 3.1497649997472763,
+     "p95": 5.542045999318361,
+     "p99": 6.0125850001350045,
+     "p999": 9.435465999878993,
+     "max": 9.877468000166118
+    },
+    "cmd": {
+     "n": 501,
+     "p50": 3.4802289996296167,
+     "p95": 6.0433809999376535,
+     "p99": 6.414632000029087,
+     "p999": 10.210959000047332,
+     "max": 10.520151999779046
+    },
+    "commands": 501,
+    "jitter_sd_ms": 2.335931814232511,
+    "jitter_p99_ms": 4.802933520304577,
+    "delivery_gaps": 0,
+    "invalid": 0,
+    "frames": 0,
+    "closed": null
+   },
+   "cpu_pct": {
+    "publisher": 0.2999868752442165,
+    "runtime": 4.799787403976592,
+    "app": 1.7999200768888948
+   },
+   "rss_mb": {
+    "publisher": 45.12109375,
+    "runtime": 188.6953125,
+    "runtime_peak": 188.6953125,
+    "app": 308.7421875
+   },
+   "state": "streaming",
+   "loadavg": "11.31 8.24 8.90",
+   "rss_max_mb": 188.6953125
+  },
+  {
+   "kind": "counts",
+   "channels": 1024,
+   "rate": 50.0,
+   "preset": "features_passthrough",
+   "bin_ms": 20.0,
+   "seconds": 10.001371537000523,
+   "rest_responsive": true,
+   "samples_per_s_per_ch": 49.993143255425274,
+   "gaps": 0,
+   "missing": 0,
+   "frames_per_s": 0.0,
+   "validation_errors": 0,
+   "inputs_per_s": 49.993143255425274,
+   "dropped_inputs": 0,
+   "pipeline_errors": 0,
+   "features_per_s": 50.09312954193612,
+   "expected_features_per_s": 50.0,
+   "proc_us": {
+    "count": 666,
+    "p50": 157.767,
+    "p95": 235.137,
+    "p99": 320.852,
+    "max": 532.501
+   },
+   "ingest_us": {
+    "count": 2032,
+    "p50_us": 77.0,
+    "p95_us": 238.5,
+    "p99_us": 2307.7,
+    "max_us": 3090.3
+   },
+   "delivery_us": {
+    "count": 1364,
+    "p50_us": 284.0,
+    "p95_us": 1217.4,
+    "p99_us": 2310.3,
+    "max_us": 5157.2
+   },
+   "subscriber_drops": 0,
+   "app": {
+    "features": 501,
+    "missing_bins": 0,
+    "feat": {
+     "n": 501,
+     "p50": 3.409556000493467,
+     "p95": 5.73628200031817,
+     "p99": 6.440460000187159,
+     "p999": 7.220823000185205,
+     "max": 7.334398999810219
+    },
+    "cmd": {
+     "n": 501,
+     "p50": 3.8220699997618794,
+     "p95": 6.113828000612557,
+     "p99": 6.637219000607729,
+     "p999": 7.519178000744475,
+     "max": 7.8978510005399585
+    },
+    "commands": 501,
+    "jitter_sd_ms": 2.3294426765143457,
+    "jitter_p99_ms": 4.472638419301801,
+    "delivery_gaps": 0,
+    "invalid": 0,
+    "frames": 0,
+    "closed": null
+   },
+   "cpu_pct": {
+    "publisher": 0.599910416937231,
+    "runtime": 5.399190973886076,
+    "app": 2.199670742504969
+   },
+   "rss_mb": {
+    "publisher": 47.2421875,
+    "runtime": 194.359375,
+    "runtime_peak": 194.359375,
+    "app": 308.765625
+   },
+   "state": "streaming",
+   "loadavg": "11.53 8.44 8.96",
+   "rss_max_mb": 194.359375
+  },
+  {
+   "kind": "counts",
+   "channels": 2048,
+   "rate": 50.0,
+   "preset": "features_passthrough",
+   "bin_ms": 20.0,
+   "seconds": 10.00056834499992,
+   "rest_responsive": true,
+   "samples_per_s_per_ch": 50.09715275337224,
+   "gaps": 0,
+   "missing": 0,
+   "frames_per_s": 0.0,
+   "validation_errors": 0,
+   "inputs_per_s": 49.99715843649924,
+   "dropped_inputs": 0,
+   "pipeline_errors": 0,
+   "features_per_s": 50.19714707024524,
+   "expected_features_per_s": 50.0,
+   "proc_us": {
+    "count": 661,
+    "p50": 188.308,
+    "p95": 293.587,
+    "p99": 404.733,
+    "max": 1151.609
+   },
+   "ingest_us": {
+    "count": 2021,
+    "p50_us": 78.3,
+    "p95_us": 299.0,
+    "p99_us": 4501.2,
+    "max_us": 6054.4
+   },
+   "delivery_us": {
+    "count": 1357,
+    "p50_us": 146.5,
+    "p95_us": 2126.2,
+    "p99_us": 5378.6,
+    "max_us": 717166.9
+   },
+   "subscriber_drops": 0,
+   "app": {
+    "features": 502,
+    "missing_bins": 0,
+    "feat": {
+     "n": 502,
+     "p50": 3.688904499169439,
+     "p95": 6.004499199846759,
+     "p99": 6.761534109013156,
+     "p999": 9.34774771325673,
+     "max": 9.992176999337971
+    },
+    "cmd": {
+     "n": 502,
+     "p50": 3.9385250001214445,
+     "p95": 6.325625849654898,
+     "p99": 7.186986429579558,
+     "p999": 9.457092829750966,
+     "max": 10.179619999602437
+    },
+    "commands": 502,
+    "jitter_sd_ms": 2.3092007332109765,
+    "jitter_p99_ms": 4.378099999958067,
+    "delivery_gaps": 0,
+    "invalid": 0,
+    "frames": 0,
+    "closed": null
+   },
+   "cpu_pct": {
+    "publisher": 0.6999496387634913,
+    "runtime": 6.099557661298557,
+    "app": 2.799796549144026
+   },
+   "rss_mb": {
+    "publisher": 50.171875,
+    "runtime": 198.69921875,
+    "runtime_peak": 198.69921875,
+    "app": 309.28515625
+   },
+   "state": "streaming",
+   "loadavg": "11.31 8.55 8.98",
+   "rss_max_mb": 198.69921875
+  },
+  {
+   "kind": "counts",
+   "channels": 4096,
+   "rate": 50.0,
+   "preset": "features_passthrough",
+   "bin_ms": 20.0,
+   "seconds": 10.000173448000169,
+   "rest_responsive": true,
+   "samples_per_s_per_ch": 50.09913104059108,
+   "gaps": 0,
+   "missing": 0,
+   "frames_per_s": 0.0,
+   "validation_errors": 0,
+   "inputs_per_s": 50.09913104059108,
+   "dropped_inputs": 0,
+   "pipeline_errors": 0,
+   "features_per_s": 50.19912930614117,
+   "expected_features_per_s": 50.0,
+   "proc_us": {
+    "count": 663,
+    "p50": 295.8,
+    "p95": 472.387,
+    "p99": 956.804,
+    "max": 1438.182
+   },
+   "ingest_us": {
+    "count": 2024,
+    "p50_us": 99.8,
+    "p95_us": 431.7,
+    "p99_us": 8570.2,
+    "max_us": 11230.3
+   },
+   "delivery_us": {
+    "count": 1359,
+    "p50_us": 176.9,
+    "p95_us": 1816.8,
+    "p99_us": 6555.1,
+    "max_us": 7374.7
+   },
+   "subscriber_drops": 0,
+   "app": {
+    "features": 502,
+    "missing_bins": 0,
+    "feat": {
+     "n": 502,
+     "p50": 4.098700000438839,
+     "p95": 6.422823650669306,
+     "p99": 6.790579340038821,
+     "p999": 9.127303927602382,
+     "max": 9.969019999727607
+    },
+    "cmd": {
+     "n": 502,
+     "p50": 4.352980000432581,
+     "p95": 6.625366750173271,
+     "p99": 7.144548839740456,
+     "p999": 10.680016431194797,
+     "max": 11.09487900044769
+    },
+    "commands": 502,
+    "jitter_sd_ms": 2.535363934449834,
+    "jitter_p99_ms": 4.367658000337542,
+    "delivery_gaps": 0,
+    "invalid": 0,
+    "frames": 0,
+    "closed": null
+   },
+   "cpu_pct": {
+    "publisher": 0.8999735425778234,
+    "runtime": 8.499744840209917,
+    "app": 3.899883238666096
+   },
+   "rss_mb": {
+    "publisher": 55.85546875,
+    "runtime": 207.83203125,
+    "runtime_peak": 207.83203125,
+    "app": 309.93359375
+   },
+   "state": "streaming",
+   "loadavg": "8.24 8.02 8.80",
+   "rss_max_mb": 207.83203125
+  },
+  {
+   "kind": "counts",
+   "channels": 64,
+   "rate": 100.0,
+   "preset": "features_passthrough",
+   "bin_ms": 10.0,
+   "seconds": 10.001176097999632,
+   "rest_responsive": true,
+   "samples_per_s_per_ch": 100.18821688385361,
+   "gaps": 0,
+   "missing": 0,
+   "frames_per_s": 0.0,
+   "validation_errors": 0,
+   "inputs_per_s": 100.08822864345056,
+   "dropped_inputs": 0,
+   "pipeline_errors": 0,
+   "features_per_s": 100.18821688385361,
+   "expected_features_per_s": 100.0,
+   "proc_us": {
+    "count": 1308,
+    "p50": 113.452,
+    "p95": 164.598,
+    "p99": 198.752,
+    "max": 440.277
+   },
+   "ingest_us": {
+    "count": 3991,
+    "p50_us": 72.6,
+    "p95_us": 189.7,
+    "p99_us": 1111.0,
+    "max_us": 1615.3
+   },
+   "delivery_us": {
+    "count": 2681,
+    "p50_us": 123.1,
+    "p95_us": 372.8,
+    "p99_us": 1316.1,
+    "max_us": 1376.4
+   },
+   "subscriber_drops": 0,
+   "app": {
+    "features": 1002,
+    "missing_bins": 0,
+    "feat": {
+     "n": 1002,
+     "p50": 3.412399500608444,
+     "p95": 5.798171449964865,
+     "p99": 6.188694579955191,
+     "p999": 8.230544234589734,
+     "max": 8.456350000575185
+    },
+    "cmd": {
+     "n": 1002,
+     "p50": 3.696549499873072,
+     "p95": 6.094167250068858,
+     "p99": 6.387006500326097,
+     "p999": 8.269049245611827,
+     "max": 8.48382500000298
+    },
+    "commands": 1002,
+    "jitter_sd_ms": 2.10029808820505,
+    "jitter_p99_ms": 4.512862999727076,
+    "delivery_gaps": 0,
+    "invalid": 0,
+    "frames": 0,
+    "closed": null
+   },
+   "cpu_pct": {
+    "publisher": 1.3998126598520644,
+    "runtime": 8.998793029685732,
+    "app": 3.5995175491037927
+   },
+   "rss_mb": {
+    "publisher": 44.77734375,
+    "runtime": 205.03125,
+    "runtime_peak": 205.03125,
+    "app": 309.9765625
+   },
+   "state": "streaming",
+   "loadavg": "6.62 7.68 8.68",
+   "rss_max_mb": 205.03515625
+  },
+  {
+   "kind": "counts",
+   "channels": 256,
+   "rate": 100.0,
+   "preset": "features_passthrough",
+   "bin_ms": 10.0,
+   "seconds": 10.000801061999482,
+   "rest_responsive": true,
+   "samples_per_s_per_ch": 100.09198201167577,
+   "gaps": 0,
+   "missing": 0,
+   "frames_per_s": 0.0,
+   "validation_errors": 0,
+   "inputs_per_s": 100.09198201167577,
+   "dropped_inputs": 0,
+   "pipeline_errors": 0,
+   "features_per_s": 100.19197400169742,
+   "expected_features_per_s": 100.0,
+   "proc_us": {
+    "count": 1313,
+    "p50": 128.192,
+    "p95": 195.771,
+    "p99": 299.933,
+    "max": 2342.273
+   },
+   "ingest_us": {
+    "count": 4005,
+    "p50_us": 77.1,
+    "p95_us": 201.3,
+    "p99_us": 1967.9,
+    "max_us": 2369.9
+   },
+   "delivery_us": {
+    "count": 2690,
+    "p50_us": 136.1,
+    "p95_us": 610.5,
+    "p99_us": 1729.7,
+    "max_us": 5207.9
+   },
+   "subscriber_drops": 0,
+   "app": {
+    "features": 1002,
+    "missing_bins": 0,
+    "feat": {
+     "n": 1002,
+     "p50": 3.5831929994747043,
+     "p95": 6.0546178491786105,
+     "p99": 9.829408619543543,
+     "p999": 16.922606072600004,
+     "max": 20.79357299953699
+    },
+    "cmd": {
+     "n": 1002,
+     "p50": 3.835436999797821,
+     "p95": 6.496146049769594,
+     "p99": 10.341976399458945,
+     "p999": 20.313506445685682,
+     "max": 21.076150000095367
+    },
+    "commands": 1002,
+    "jitter_sd_ms": 2.65136533023517,
+    "jitter_p99_ms": 9.04160900041461,
+    "delivery_gaps": 0,
+    "invalid": 0,
+    "frames": 0,
+    "closed": null
+   },
+   "cpu_pct": {
+    "publisher": 1.6998439488859407,
+    "runtime": 9.299141325659626,
+    "app": 3.8996399754881392
+   },
+   "rss_mb": {
+    "publisher": 45.5546875,
+    "runtime": 205.90625,
+    "runtime_peak": 205.90625,
+    "app": 309.9765625
+   },
+   "state": "streaming",
+   "loadavg": "5.30 7.33 8.55",
+   "rss_max_mb": 205.90625
+  },
+  {
+   "kind": "counts",
+   "channels": 1024,
+   "rate": 100.0,
+   "preset": "features_passthrough",
+   "bin_ms": 10.0,
+   "seconds": 10.000390481999602,
+   "rest_responsive": true,
+   "samples_per_s_per_ch": 100.09609142780668,
+   "gaps": 0,
+   "missing": 0,
+   "frames_per_s": 0.0,
+   "validation_errors": 0,
+   "inputs_per_s": 100.09609142780668,
+   "dropped_inputs": 0,
+   "pipeline_errors": 0,
+   "features_per_s": 100.29608361847164,
+   "expected_features_per_s": 100.0,
+   "proc_us": {
+    "count": 1323,
+    "p50": 172.043,
+    "p95": 267.182,
+    "p99": 452.841,
+    "max": 4341.754
+   },
+   "ingest_us": {
+    "count": 4040,
+    "p50_us": 86.1,
+    "p95_us": 254.7,
+    "p99_us": 4758.6,
+    "max_us": 8080.7
+   },
+   "delivery_us": {
+    "count": 2714,
+    "p50_us": 182.0,
+    "p95_us": 2260.3,
+    "p99_us": 7087.3,
+    "max_us": 8418.6
+   },
+   "subscriber_drops": 0,
+   "app": {
+    "features": 1003,
+    "missing_bins": 0,
+    "feat": {
+     "n": 1003,
+     "p50": 3.7794989990070462,
+     "p95": 6.142109399102628,
+     "p99": 8.983680719621482,
+     "p999": 12.007229500176708,
+     "max": 12.132472000084817
+    },
+    "cmd": {
+     "n": 1003,
+     "p50": 4.202885999344289,
+     "p95": 6.565291199833155,
+     "p99": 9.704675499890001,
+     "p999": 12.19493954334239,
+     "max": 12.937531999312341
+    },
+    "commands": 1003,
+    "jitter_sd_ms": 2.374658509929268,
+    "jitter_p99_ms": 5.0179962000584055,
+    "delivery_gaps": 0,
+    "invalid": 0,
+    "frames": 0,
+    "closed": null
+   },
+   "cpu_pct": {
+    "publisher": 1.399918767613592,
+    "runtime": 10.299460026089559,
+    "app": 4.6997571076231095
+   },
+   "rss_mb": {
+    "publisher": 48.734375,
+    "runtime": 195.671875,
+    "runtime_peak": 195.671875,
+    "app": 309.98828125
+   },
+   "state": "streaming",
+   "loadavg": "4.49 7.01 8.41",
+   "rss_max_mb": 195.671875
+  },
+  {
+   "kind": "counts",
+   "channels": 2048,
+   "rate": 100.0,
+   "preset": "features_passthrough",
+   "bin_ms": 10.0,
+   "seconds": 10.000647922000098,
+   "rest_responsive": true,
+   "samples_per_s_per_ch": 100.19350824217429,
+   "gaps": 0,
+   "missing": 0,
+   "frames_per_s": 0.0,
+   "validation_errors": 0,
+   "inputs_per_s": 100.19350824217429,
+   "dropped_inputs": 0,
+   "pipeline_errors": 0,
+   "features_per_s": 100.29350176337407,
+   "expected_features_per_s": 100.0,
+   "proc_us": {
+    "count": 1327,
+    "p50": 219.629,
+    "p95": 311.751,
+    "p99": 393.949,
+    "max": 4652.482
+   },
+   "ingest_us": {
+    "count": 4053,
+    "p50_us": 88.5,
+    "p95_us": 299.1,
+    "p99_us": 9358.7,
+    "max_us": 12318.5
+   },
+   "delivery_us": {
+    "count": 2723,
+    "p50_us": 197.3,
+    "p95_us": 3978.2,
+    "p99_us": 14296.6,
+    "max_us": 752085.1
+   },
+   "subscriber_drops": 0,
+   "app": {
+    "features": 1003,
+    "missing_bins": 0,
+    "feat": {
+     "n": 1003,
+     "p50": 3.80536700040102,
+     "p95": 6.491796400491148,
+     "p99": 9.465341939590877,
+     "p999": 11.940884667264315,
+     "max": 12.49559099972248
+    },
+    "cmd": {
+     "n": 1003,
+     "p50": 4.1975039998069406,
+     "p95": 7.039858900289982,
+     "p99": 10.202731779534373,
+     "p999": 12.094183910330793,
+     "max": 12.72456300072372
+    },
+    "commands": 1003,
+    "jitter_sd_ms": 2.5858069911648816,
+    "jitter_p99_ms": 6.839226709684955,
+    "delivery_gaps": 0,
+    "invalid": 0,
+    "frames": 0,
+    "closed": null
+   },
+   "cpu_pct": {
+    "publisher": 1.3997410620408706,
+    "runtime": 11.197927059899074,
+    "app": 5.199596979238425
+   },
+   "rss_mb": {
+    "publisher": 53.01953125,
+    "runtime": 201.24609375,
+    "runtime_peak": 201.24609375,
+    "app": 310.0
+   },
+   "state": "streaming",
+   "loadavg": "6.00 7.23 8.46",
+   "rss_max_mb": 201.24609375
+  },
+  {
+   "kind": "counts",
+   "channels": 4096,
+   "rate": 100.0,
+   "preset": "features_passthrough",
+   "bin_ms": 10.0,
+   "seconds": 10.000330818999828,
+   "rest_responsive": true,
+   "samples_per_s_per_ch": 100.19668530327819,
+   "gaps": 0,
+   "missing": 0,
+   "frames_per_s": 0.0,
+   "validation_errors": 0,
+   "inputs_per_s": 100.19668530327819,
+   "dropped_inputs": 0,
+   "pipeline_errors": 0,
+   "features_per_s": 100.39667868711707,
+   "expected_features_per_s": 100.0,
+   "proc_us": {
+    "count": 1313,
+    "p50": 339.104,
+    "p95": 561.139,
+    "p99": 1180.513,
+    "max": 8690.282
+   },
+   "ingest_us": {
+    "count": 4009,
+    "p50_us": 97.1,
+    "p95_us": 422.9,
+    "p99_us": 8871.8,
+    "max_us": 12305.9
+   },
+   "delivery_us": {
+    "count": 2693,
+    "p50_us": 176.4,
+    "p95_us": 2217.6,
+    "p99_us": 7745.9,
+    "max_us": 9355.0
+   },
+   "subscriber_drops": 0,
+   "app": {
+    "features": 1004,
+    "missing_bins": 0,
+    "feat": {
+     "n": 1004,
+     "p50": 3.878069500438869,
+     "p95": 6.68807265041396,
+     "p99": 8.876076790494846,
+     "p999": 12.233366059884544,
+     "max": 14.612662000581622
+    },
+    "cmd": {
+     "n": 1004,
+     "p50": 4.465379500761628,
+     "p95": 8.011591900745406,
+     "p99": 10.526016720272612,
+     "p999": 15.272064083517714,
+     "max": 16.026611000299454
+    },
+    "commands": 1004,
+    "jitter_sd_ms": 2.6694712627506125,
+    "jitter_p99_ms": 6.89005901976998,
+    "delivery_gaps": 0,
+    "invalid": 0,
+    "frames": 0,
+    "closed": null
+   },
+   "cpu_pct": {
+    "publisher": 0.9999534755646244,
+    "runtime": 12.799400664223192,
+    "app": 6.199710635325618
+   },
+   "rss_mb": {
+    "publisher": 61.6796875,
+    "runtime": 211.99609375,
+    "runtime_peak": 211.99609375,
+    "app": 310.7734375
+   },
+   "state": "streaming",
+   "loadavg": "8.04 7.64 8.58",
+   "rss_max_mb": 211.99609375
+  }
+ ],
+ "multi": {
+  "one_source_three_streams": {
+   "kind": "counts",
+   "channels": 1024,
+   "rate": 50.0,
+   "preset": "features_passthrough",
+   "bin_ms": 20.0,
+   "seconds": 10.000344066000252,
+   "rest_responsive": true,
+   "samples_per_s_per_ch": 50.098276288645785,
+   "gaps": 0,
+   "missing": 0,
+   "frames_per_s": 0.0,
+   "validation_errors": 0,
+   "inputs_per_s": 49.99827972918741,
+   "dropped_inputs": 0,
+   "pipeline_errors": 0,
+   "features_per_s": 50.19827284810416,
+   "expected_features_per_s": 50.0,
+   "proc_us": {
+    "count": 656,
+    "p50": 159.686,
+    "p95": 233.638,
+    "p99": 436.214,
+    "max": 2393.848
+   },
+   "ingest_us": {
+    "count": 2809,
+    "p50_us": 186.5,
+    "p95_us": 3388.4,
+    "p99_us": 7870.5,
+    "max_us": 8166.6
+   },
+   "delivery_us": {
+    "count": 1413,
+    "p50_us": 299.2,
+    "p95_us": 7388.9,
+    "p99_us": 8428.7,
+    "max_us": 9242.1
+   },
+   "subscriber_drops": 0,
+   "app": {
+    "features": 502,
+    "missing_bins": 0,
+    "feat": {
+     "n": 502,
+     "p50": 3.628403500188142,
+     "p95": 6.201732249651104,
+     "p99": 8.397190779745578,
+     "p999": 12.165497789424196,
+     "max": 13.925366000272334
+    },
+    "cmd": {
+     "n": 502,
+     "p50": 4.170082000084221,
+     "p95": 6.534939700039104,
+     "p99": 9.268370200702929,
+     "p999": 14.032906854287369,
+     "max": 17.633667000569403
+    },
+    "commands": 502,
+    "jitter_sd_ms": 2.756228956841404,
+    "jitter_p99_ms": 7.493853000123636,
+    "delivery_gaps": 0,
+    "invalid": 0,
+    "frames": 0,
+    "closed": null
+   },
+   "cpu_pct": {
+    "publisher": 0.8999495394694029,
+    "runtime": 7.199580739614761,
+    "app": 2.299865524103195
+   },
+   "rss_mb": {
+    "publisher": 48.40625,
+    "runtime": 194.59375,
+    "runtime_peak": 194.59375,
+    "app": 310.7734375
+   },
+   "state": "streaming",
+   "loadavg": "7.53 7.56 8.53",
+   "rss_max_mb": 194.59375
+  },
+  "runtimes": [
+   {
+    "n": 1,
+    "runs": [
+     {
+      "kind": "raw",
+      "channels": 256,
+      "rate": 30000.0,
+      "preset": "spikeband_threshold",
+      "bin_ms": 20.0,
+      "seconds": 10.0008728720004,
+      "rest_responsive": true,
+      "samples_per_s_per_ch": 30027.37899416306,
+      "gaps": 0,
+      "missing": 0,
+      "frames_per_s": 102.4910538428809,
+      "validation_errors": 0,
+      "inputs_per_s": 102.4910538428809,
+      "dropped_inputs": 0,
+      "pipeline_errors": 0,
+      "features_per_s": 50.19561856500118,
+      "expected_features_per_s": 50.0,
+      "proc_us": {
+       "count": 1292,
+       "p50": 1195.779,
+       "p95": 1848.447,
+       "p99": 2751.189,
+       "max": 4601.379
+      },
+      "ingest_us": {
+       "count": 3118,
+       "p50_us": 165.4,
+       "p95_us": 581.1,
+       "p99_us": 12986.4,
+       "max_us": 86898.3
+      },
+      "delivery_us": {
+       "count": 1200,
+       "p50_us": 257.5,
+       "p95_us": 368.9,
+       "p99_us": 633.8,
+       "max_us": 1829.8
+      },
+      "subscriber_drops": 0,
+      "app": {
+       "features": 502,
+       "missing_bins": 0,
+       "feat": {
+        "n": 502,
+        "p50": 5.653312500566244,
+        "p95": 8.32806195053272,
+        "p99": 10.307956940457235,
+        "p999": 18.989937870261933,
+        "max": 23.190387000329792
+       },
+       "cmd": {
+        "n": 502,
+        "p50": 5.691359499935061,
+        "p95": 8.363662950275465,
+        "p99": 10.37083181085066,
+        "p999": 19.02735490140759,
+        "max": 23.234552000649273
+       },
+       "commands": 502,
+       "jitter_sd_ms": 2.349573154814868,
+       "jitter_p99_ms": 7.209384000343562,
+       "delivery_gaps": 0,
+       "invalid": 0,
+       "frames": 0,
+       "closed": null
+      },
+      "cpu_pct": {
+       "publisher": 5.599440965252632,
+       "runtime": 25.197477170632613,
+       "app": 1.799820239713953
+      },
+      "rss_mb": {
+       "publisher": 235.8984375,
+       "runtime": 371.4296875,
+       "runtime_peak": 436.51953125,
+       "app": 310.7734375
+      },
+      "state": "streaming",
+      "loadavg": "6.37 7.31 8.43",
+      "rss_max_mb": 431.9296875
+     }
+    ]
+   },
+   {
+    "n": 2,
+    "runs": [
+     {
+      "kind": "raw",
+      "channels": 256,
+      "rate": 30000.0,
+      "preset": "spikeband_threshold",
+      "bin_ms": 20.0,
+      "seconds": 10.000313337999614,
+      "rest_responsive": true,
+      "samples_per_s_per_ch": 30059.058135485353,
+      "gaps": 0,
+      "missing": 0,
+      "frames_per_s": 102.5967852528542,
+      "validation_errors": 0,
+      "inputs_per_s": 102.5967852528542,
+      "dropped_inputs": 0,
+      "pipeline_errors": 0,
+      "features_per_s": 50.098430225808926,
+      "expected_features_per_s": 50.0,
+      "proc_us": {
+       "count": 1290,
+       "p50": 1209.241,
+       "p95": 1946.008,
+       "p99": 2950.689,
+       "max": 5008.67
+      },
+      "ingest_us": {
+       "count": 3126,
+       "p50_us": 159.7,
+       "p95_us": 582.2,
+       "p99_us": 10272.2,
+       "max_us": 59897.6
+      },
+      "delivery_us": {
+       "count": 1208,
+       "p50_us": 254.4,
+       "p95_us": 420.7,
+       "p99_us": 864.8,
+       "max_us": 2601.1
+      },
+      "subscriber_drops": 0,
+      "app": {
+       "features": 501,
+       "missing_bins": 0,
+       "feat": {
+        "n": 501,
+        "p50": 5.945225999690592,
+        "p95": 8.287827999331057,
+        "p99": 9.299708000384271,
+        "p999": 12.670882499311418,
+        "max": 15.289751999080181
+       },
+       "cmd": {
+        "n": 501,
+        "p50": 5.998422998934984,
+        "p95": 8.351957999169827,
+        "p99": 9.390417999587953,
+        "p999": 12.716025499627293,
+        "max": 15.343460000120103
+       },
+       "commands": 501,
+       "jitter_sd_ms": 1.9313497865999756,
+       "jitter_p99_ms": 5.284958660322807,
+       "delivery_gaps": 0,
+       "invalid": 0,
+       "frames": 0,
+       "closed": null
+      },
+      "cpu_pct": {
+       "publisher": 5.19977735281337,
+       "runtime": 24.598948468748745,
+       "app": 3.59984793018393
+      },
+      "rss_mb": {
+       "publisher": 235.79296875,
+       "runtime": 368.53125,
+       "runtime_peak": 439.1171875,
+       "app": 310.78125
+      },
+      "state": "streaming",
+      "loadavg": "5.40 7.05 8.33",
+      "rss_max_mb": 419.33203125
+     },
+     {
+      "kind": "raw",
+      "channels": 256,
+      "rate": 30000.0,
+      "preset": "spikeband_threshold",
+      "bin_ms": 20.0,
+      "seconds": 10.000185332000001,
+      "rest_responsive": true,
+      "samples_per_s_per_ch": 30389.436786490147,
+      "gaps": 0,
+      "missing": 0,
+      "frames_per_s": 103.9980725829212,
+      "validation_errors": 0,
+      "inputs_per_s": 103.9980725829212,
+      "dropped_inputs": 0,
+      "pipeline_errors": 0,
+      "features_per_s": 50.69906038417408,
+      "expected_features_per_s": 50.0,
+      "proc_us": {
+       "count": 1306,
+       "p50": 1206.845,
+       "p95": 1993.671,
+       "p99": 2973.043,
+       "max": 5456.284
+      },
+      "ingest_us": {
+       "count": 3145,
+       "p50_us": 164.4,
+       "p95_us": 583.9,
+       "p99_us": 11894.4,
+       "max_us": 53305.3
+      },
+      "delivery_us": {
+       "count": 1210,
+       "p50_us": 254.2,
+       "p95_us": 411.4,
+       "p99_us": 870.1,
+       "max_us": 6361.2
+      },
+      "subscriber_drops": 0,
+      "app": {
+       "features": 507,
+       "missing_bins": 0,
+       "feat": {
+        "n": 507,
+        "p50": 5.615536999888718,
+        "p95": 8.438705299515277,
+        "p99": 11.946957020275288,
+        "p999": 92.58522378219348,
+        "max": 102.63739600032568
+       },
+       "cmd": {
+        "n": 507,
+        "p50": 5.707877999171615,
+        "p95": 8.476059799455106,
+        "p99": 14.183031659834075,
+        "p999": 92.6451147978982,
+        "max": 102.72317599970847
+       },
+       "commands": 507,
+       "jitter_sd_ms": 5.038567113374575,
+       "jitter_p99_ms": 18.1637909994332,
+       "delivery_gaps": 0,
+       "invalid": 0,
+       "frames": 0,
+       "closed": null
+      },
+      "cpu_pct": {
+       "publisher": 5.799847696579442,
+       "runtime": 24.899345779649725,
+       "app": 3.5999062202830467
+      },
+      "rss_mb": {
+       "publisher": 235.8203125,
+       "runtime": 368.34375,
+       "runtime_peak": 438.94140625,
+       "app": 310.78125
+      },
+      "state": "streaming",
+      "loadavg": "5.40 7.05 8.33",
+      "rss_max_mb": 418.2890625
+     }
+    ]
+   },
+   {
+    "n": 3,
+    "runs": [
+     {
+      "kind": "raw",
+      "channels": 256,
+      "rate": 30000.0,
+      "preset": "spikeband_threshold",
+      "bin_ms": 20.0,
+      "seconds": 10.047945231000085,
+      "rest_responsive": true,
+      "samples_per_s_per_ch": 30042.261682387292,
+      "gaps": 0,
+      "missing": 0,
+      "frames_per_s": 103.40422604956684,
+      "validation_errors": 0,
+      "inputs_per_s": 103.6032717204996,
+      "dropped_inputs": 0,
+      "pipeline_errors": 0,
+      "features_per_s": 50.159509075054565,
+      "expected_features_per_s": 50.0,
+      "proc_us": {
+       "count": 1315,
+       "p50": 1211.738,
+       "p95": 2898.464,
+       "p99": 5518.328,
+       "max": 9960.377
+      },
+      "ingest_us": {
+       "count": 3226,
+       "p50_us": 158.0,
+       "p95_us": 620.4,
+       "p99_us": 20387.2,
+       "max_us": 63722.7
+      },
+      "delivery_us": {
+       "count": 1256,
+       "p50_us": 267.9,
+       "p95_us": 2275.0,
+       "p99_us": 5612.8,
+       "max_us": 14444.6
+      },
+      "subscriber_drops": 0,
+      "app": {
+       "features": 504,
+       "missing_bins": 0,
+       "feat": {
+        "n": 504,
+        "p50": 6.419912000186741,
+        "p95": 16.44074995014816,
+        "p99": 72.3406626095902,
+        "p999": 161.46750954640706,
+        "max": 171.47661500051618
+       },
+       "cmd": {
+        "n": 504,
+        "p50": 6.516395500395447,
+        "p95": 16.567588900215924,
+        "p99": 76.35325382003546,
+        "p999": 161.50390079422903,
+        "max": 171.52889300044626
+       },
+       "commands": 504,
+       "jitter_sd_ms": 9.52036108738317,
+       "jitter_p99_ms": 19.944974559693947,
+       "delivery_gaps": 0,
+       "invalid": 0,
+       "frames": 0,
+       "closed": null
+      },
+      "cpu_pct": {
+       "publisher": 5.0756194856353805,
+       "runtime": 24.183893555096823,
+       "app": 5.075461354847167
+      },
+      "rss_mb": {
+       "publisher": 235.8671875,
+       "runtime": 427.14453125,
+       "runtime_peak": 463.86328125,
+       "app": 310.78515625
+      },
+      "state": "streaming",
+      "loadavg": "5.47 6.95 8.27",
+      "rss_max_mb": 463.67578125
+     },
+     {
+      "kind": "raw",
+      "channels": 256,
+      "rate": 30000.0,
+      "preset": "spikeband_threshold",
+      "bin_ms": 20.0,
+      "seconds": 10.001102232000449,
+      "rest_responsive": true,
+      "samples_per_s_per_ch": 30116.680443106834,
+      "gaps": 0,
+      "missing": 0,
+      "frames_per_s": 103.38860417719941,
+      "validation_errors": 0,
+      "inputs_per_s": 103.18862621940987,
+      "dropped_inputs": 0,
+      "pipeline_errors": 0,
+      "features_per_s": 50.49443434186239,
+      "expected_features_per_s": 50.0,
+      "proc_us": {
+       "count": 1305,
+       "p50": 1188.811,
+       "p95": 3024.78,
+       "p99": 5153.434,
+       "max": 12701.887
+      },
+      "ingest_us": {
+       "count": 3210,
+       "p50_us": 158.5,
+       "p95_us": 700.4,
+       "p99_us": 25006.6,
+       "max_us": 56598.5
+      },
+      "delivery_us": {
+       "count": 1252,
+       "p50_us": 279.7,
+       "p95_us": 2218.2,
+       "p99_us": 4857.0,
+       "max_us": 7193.3
+      },
+      "subscriber_drops": 0,
+      "app": {
+       "features": 505,
+       "missing_bins": 0,
+       "feat": {
+        "n": 505,
+        "p50": 6.6282510003075,
+        "p95": 12.926993400417256,
+        "p99": 40.03233332045376,
+        "p999": 68.04048434442336,
+        "max": 75.31757100019604
+       },
+       "cmd": {
+        "n": 505,
+        "p50": 6.769444000907242,
+        "p95": 14.23411800023166,
+        "p99": 41.19000223994253,
+        "p999": 68.6555084244912,
+        "max": 75.46852700039744
+       },
+       "commands": 505,
+       "jitter_sd_ms": 5.474445533299607,
+       "jitter_p99_ms": 19.787522909990663,
+       "delivery_gaps": 0,
+       "invalid": 0,
+       "frames": 0,
+       "closed": null
+      },
+      "cpu_pct": {
+       "publisher": 4.999385137620323,
+       "runtime": 23.897052494530428,
+       "app": 5.099372662426747
+      },
+      "rss_mb": {
+       "publisher": 235.796875,
+       "runtime": 380.48828125,
+       "runtime_peak": 465.7734375,
+       "app": 310.78515625
+      },
+      "state": "streaming",
+      "loadavg": "5.47 6.95 8.27",
+      "rss_max_mb": 465.8515625
+     },
+     {
+      "kind": "raw",
+      "channels": 256,
+      "rate": 30000.0,
+      "preset": "spikeband_threshold",
+      "bin_ms": 20.0,
+      "seconds": 10.000138405999678,
+      "rest_responsive": true,
+      "samples_per_s_per_ch": 30209.581881261987,
+      "gaps": 0,
+      "missing": 0,
+      "frames_per_s": 102.19858551026067,
+      "validation_errors": 0,
+      "inputs_per_s": 102.09858689430152,
+      "dropped_inputs": 0,
+      "pipeline_errors": 0,
+      "features_per_s": 50.499301059375384,
+      "expected_features_per_s": 50.0,
+      "proc_us": {
+       "count": 1289,
+       "p50": 1203.335,
+       "p95": 2951.161,
+       "p99": 5483.158,
+       "max": 110658.625
+      },
+      "ingest_us": {
+       "count": 3196,
+       "p50_us": 159.9,
+       "p95_us": 610.8,
+       "p99_us": 26776.8,
+       "max_us": 80003.2
+      },
+      "delivery_us": {
+       "count": 1254,
+       "p50_us": 266.3,
+       "p95_us": 2013.0,
+       "p99_us": 5843.3,
+       "max_us": 12891.4
+      },
+      "subscriber_drops": 0,
+      "app": {
+       "features": 505,
+       "missing_bins": 0,
+       "feat": {
+        "n": 505,
+        "p50": 6.865386999212205,
+        "p95": 13.508582799136626,
+        "p99": 54.89488135918958,
+        "p999": 124.75405080750616,
+        "max": 128.91075199935585
+       },
+       "cmd": {
+        "n": 504,
+        "p50": 6.913866999559104,
+        "p95": 14.221774150198325,
+        "p99": 55.45015280992708,
+        "p999": 124.84909088767938,
+        "max": 129.06307599972934
+       },
+       "commands": 504,
+       "jitter_sd_ms": 7.1678894783371385,
+       "jitter_p99_ms": 19.71872766934102,
+       "delivery_gaps": 0,
+       "invalid": 0,
+       "frames": 0,
+       "closed": null
+      },
+      "cpu_pct": {
+       "publisher": 4.599864942445476,
+       "runtime": 24.099275255266253,
+       "app": 5.0998464023158485
+      },
+      "rss_mb": {
+       "publisher": 235.6953125,
+       "runtime": 430.36328125,
+       "runtime_peak": 464.05078125,
+       "app": 310.78515625
+      },
+      "state": "streaming",
+      "loadavg": "5.47 6.95 8.27",
+      "rss_max_mb": 463.76171875
+     }
+    ]
+   }
+  ]
+ },
+ "consumers": [
+  {
+   "kind": "raw",
+   "channels": 64,
+   "rate": 30000.0,
+   "preset": "spikeband_threshold",
+   "bin_ms": 20.0,
+   "seconds": 10.001116014000218,
+   "rest_responsive": true,
+   "samples_per_s_per_ch": 30056.645636267036,
+   "gaps": 0,
+   "missing": 0,
+   "frames_per_s": 101.58866256303163,
+   "validation_errors": 0,
+   "inputs_per_s": 101.58866256303163,
+   "dropped_inputs": 0,
+   "pipeline_errors": 0,
+   "features_per_s": 50.194398234883735,
+   "expected_features_per_s": 50.0,
+   "proc_us": {
+    "count": 1275,
+    "p50": 510.474,
+    "p95": 853.968,
+    "p99": 3928.165,
+    "max": 12036.353
+   },
+   "ingest_us": {
+    "count": 3106,
+    "p50_us": 137.3,
+    "p95_us": 279.0,
+    "p99_us": 2303.2,
+    "max_us": 14423.5
+   },
+   "delivery_us": {
+    "count": 2499,
+    "p50_us": 583.0,
+    "p95_us": 38864.6,
+    "p99_us": 469306.0,
+    "max_us": 850588.1
+   },
+   "subscriber_drops": 0,
+   "app": {
+    "features": 502,
+    "missing_bins": 0,
+    "feat": {
+     "n": 502,
+     "p50": 6.007967500016093,
+     "p95": 11.511336700059472,
+     "p99": 18.887689880011603,
+     "p999": 30.007211382810986,
+     "max": 30.18863199930638
+    },
+    "cmd": {
+     "n": 502,
+     "p50": 6.067541500087827,
+     "p95": 11.790914850542322,
+     "p99": 18.936528500551358,
+     "p999": 30.080863392614795,
+     "max": 30.296598000451922
+    },
+    "commands": 502,
+    "jitter_sd_ms": 4.052125993559927,
+    "jitter_p99_ms": 16.27706999941438,
+    "delivery_gaps": 0,
+    "invalid": 0,
+    "frames": 0,
+    "closed": null
+   },
+   "cpu_pct": {
+    "publisher": 3.199538145388823,
+    "runtime": 20.697002134447594,
+    "app": 1.5998001700805338,
+    "viewer": 51.4924259584704
+   },
+   "rss_mb": {
+    "publisher": 108.51953125,
+    "runtime": 261.55078125,
+    "runtime_peak": 275.84375,
+    "app": 310.78515625
+   },
+   "state": "streaming",
+   "loadavg": "4.40 6.53 8.08",
+   "rss_max_mb": 276.2890625,
+   "viewer": {
+    "frames": 1017,
+    "bytes": 153907200,
+    "delivery_gaps": 0,
+    "closed": null,
+    "frames_per_s": 101.68865140413698,
+    "mb_per_s": 15.389002565768722
+   },
+   "scenario": "raw viewer"
+  },
+  {
+   "kind": "raw",
+   "channels": 256,
+   "rate": 30000.0,
+   "preset": "spikeband_threshold",
+   "bin_ms": 20.0,
+   "seconds": 10.001273632999983,
+   "rest_responsive": true,
+   "samples_per_s_per_ch": 30116.164305930706,
+   "gaps": 0,
+   "missing": 0,
+   "frames_per_s": 94.48796570087822,
+   "validation_errors": 0,
+   "inputs_per_s": 94.48796570087822,
+   "dropped_inputs": 0,
+   "pipeline_errors": 0,
+   "features_per_s": 50.29359444184311,
+   "expected_features_per_s": 50.0,
+   "proc_us": {
+    "count": 1180,
+    "p50": 1237.621,
+    "p95": 4561.26,
+    "p99": 7722.807,
+    "max": 54465.213
+   },
+   "ingest_us": {
+    "count": 3037,
+    "p50_us": 161.2,
+    "p95_us": 1221.3,
+    "p99_us": 18870.5,
+    "max_us": 56480.2
+   },
+   "delivery_us": {
+    "count": 1701,
+    "p50_us": 527.2,
+    "p95_us": 1121728.2,
+    "p99_us": 1151682.6,
+    "max_us": 1246910.3
+   },
+   "subscriber_drops": 522,
+   "app": {
+    "features": 503,
+    "missing_bins": 0,
+    "feat": {
+     "n": 503,
+     "p50": 7.857233999297023,
+     "p95": 28.461664699669914,
+     "p99": 52.31168282018976,
+     "p999": 81.83395080969714,
+     "max": 86.72034099977463
+    },
+    "cmd": {
+     "n": 503,
+     "p50": 7.988375999964774,
+     "p95": 28.54785939939319,
+     "p99": 55.57717049937701,
+     "p999": 82.34036682142172,
+     "max": 86.76616899948567
+    },
+    "commands": 503,
+    "jitter_sd_ms": 8.917925666080155,
+    "jitter_p99_ms": 28.88650816008523,
+    "delivery_gaps": 0,
+    "invalid": 0,
+    "frames": 0,
+    "closed": null
+   },
+   "cpu_pct": {
+    "publisher": 5.0992399480869945,
+    "runtime": 38.294267750207815,
+    "app": 1.6997595868538964,
+    "viewer": 88.28657246870902
+   },
+   "rss_mb": {
+    "publisher": 235.7578125,
+    "runtime": 468.6484375,
+    "runtime_peak": 490.24609375,
+    "app": 310.78515625
+   },
+   "state": "streaming",
+   "loadavg": "4.85 6.53 8.06",
+   "rss_max_mb": 482.81640625,
+   "viewer": {
+    "frames": 416,
+    "bytes": 276676608,
+    "delivery_gaps": 208,
+    "closed": null,
+    "frames_per_s": 41.5947023614448,
+    "mb_per_s": 27.6641374041686
+   },
+   "scenario": "raw viewer"
+  },
+  {
+   "kind": "raw",
+   "channels": 1024,
+   "rate": 30000.0,
+   "preset": "spikeband_threshold",
+   "bin_ms": 20.0,
+   "seconds": 10.00261168399993,
+   "rest_responsive": true,
+   "samples_per_s_per_ch": 30442.04949863993,
+   "gaps": 0,
+   "missing": 0,
+   "frames_per_s": 183.45208811167248,
+   "validation_errors": 0,
+   "inputs_per_s": 178.35341972273773,
+   "dropped_inputs": 0,
+   "pipeline_errors": 0,
+   "features_per_s": 49.88697109957742,
+   "expected_features_per_s": 50.0,
+   "proc_us": {
+    "count": 2048,
+    "p50": 3040.708,
+    "p95": 4851.118,
+    "p99": 7886.195,
+    "max": 36974.378
+   },
+   "ingest_us": {
+    "count": 4096,
+    "p50_us": 1681.7,
+    "p95_us": 64900.5,
+    "p99_us": 153448.7,
+    "max_us": 185726.9
+   },
+   "delivery_us": {
+    "count": 1382,
+    "p50_us": 2417.4,
+    "p95_us": 343203.8,
+    "p99_us": 386872.4,
+    "max_us": 887299.9
+   },
+   "subscriber_drops": 1610,
+   "app": {
+    "features": 499,
+    "missing_bins": 0,
+    "feat": {
+     "n": 499,
+     "p50": 67.11801499966532,
+     "p95": 277.1156247999519,
+     "p99": 330.1711067803204,
+     "p999": 348.5989864501937,
+     "max": 350.4789239997044
+    },
+    "cmd": {
+     "n": 499,
+     "p50": 67.24782899953425,
+     "p95": 277.1657295997254,
+     "p99": 330.2126045201346,
+     "p999": 348.65520655566667,
+     "max": 350.5228449990973
+    },
+    "commands": 499,
+    "jitter_sd_ms": 16.354013131363743,
+    "jitter_p99_ms": 60.42048409973174,
+    "delivery_gaps": 0,
+    "invalid": 0,
+    "frames": 0,
+    "closed": null
+   },
+   "cpu_pct": {
+    "publisher": 13.096313984805057,
+    "runtime": 89.07495028013149,
+    "app": 2.1994017728351,
+    "viewer": 89.07482413220875
+   },
+   "rss_mb": {
+    "publisher": 713.58984375,
+    "runtime": 1003.44140625,
+    "runtime_peak": 1141.84375,
+    "app": 310.78515625
+   },
+   "state": "streaming",
+   "loadavg": "5.14 6.47 8.01",
+   "rss_max_mb": 1105.796875,
+   "viewer": {
+    "frames": 238,
+    "bytes": 258433024,
+    "delivery_gaps": 132,
+    "closed": null,
+    "frames_per_s": 23.79378581502891,
+    "mb_per_s": 25.83655470834549
+   },
+   "scenario": "raw viewer"
+  },
+  {
+   "kind": "raw",
+   "channels": 256,
+   "rate": 30000.0,
+   "preset": "spikeband_threshold",
+   "bin_ms": 20.0,
+   "seconds": 10.001085126000362,
+   "rest_responsive": true,
+   "samples_per_s_per_ch": 30056.73846516054,
+   "gaps": 0,
+   "missing": 0,
+   "frames_per_s": 103.88872676414438,
+   "validation_errors": 0,
+   "inputs_per_s": 103.88872676414438,
+   "dropped_inputs": 0,
+   "pipeline_errors": 0,
+   "features_per_s": 50.19455325851826,
+   "expected_features_per_s": 50.0,
+   "proc_us": {
+    "count": 1299,
+    "p50": 1296.538,
+    "p95": 1947.085,
+    "p99": 2821.901,
+    "max": 7254.699
+   },
+   "ingest_us": {
+    "count": 3127,
+    "p50_us": 167.7,
+    "p95_us": 685.8,
+    "p99_us": 12592.5,
+    "max_us": 72858.5
+   },
+   "delivery_us": {
+    "count": 1203,
+    "p50_us": 268.1,
+    "p95_us": 902.7,
+    "p99_us": 3361.1,
+    "max_us": 30988.7
+   },
+   "subscriber_drops": 1535,
+   "app": {
+    "features": 502,
+    "missing_bins": 0,
+    "feat": {
+     "n": 502,
+     "p50": 5.857118500396609,
+     "p95": 10.351730999862774,
+     "p99": 13.175602400526406,
+     "p999": 20.362157291201516,
+     "max": 23.921866999939084
+    },
+    "cmd": {
+     "n": 502,
+     "p50": 5.947223000228405,
+     "p95": 10.687108650756997,
+     "p99": 13.934387779813264,
+     "p999": 21.342315597065216,
+     "max": 23.97251700051129
+    },
+    "commands": 502,
+    "jitter_sd_ms": 2.925026300120139,
+    "jitter_p99_ms": 11.43479699974705,
+    "delivery_gaps": 0,
+    "invalid": 0,
+    "frames": 0,
+    "closed": null
+   },
+   "cpu_pct": {
+    "publisher": 5.699314527483207,
+    "runtime": 27.396704031300835,
+    "app": 1.8997719538444695
+   },
+   "rss_mb": {
+    "publisher": 235.859375,
+    "runtime": 458.359375,
+    "runtime_peak": 488.96484375,
+    "app": 310.78515625
+   },
+   "state": "streaming",
+   "loadavg": "4.59 6.28 7.92",
+   "rss_max_mb": 489.5078125,
+   "scenario": "frozen client"
+  }
+ ],
+ "recovery": [
+  {
+   "channels": 256,
+   "detect_s": 0.004216411000015796,
+   "recover_s": 1.2667519840006207,
+   "state": "streaming",
+   "pipeline_running": true,
+   "reconnects": 1
+  },
+  {
+   "channels": 1024,
+   "detect_s": 0.003344969999488967,
+   "recover_s": 2.5590944149998904,
+   "state": "streaming",
+   "pipeline_running": true,
+   "reconnects": 1
+  }
+ ],
+ "soak": [
+  {
+   "kind": "raw",
+   "channels": 256,
+   "rate": 30000.0,
+   "preset": "spikeband_threshold",
+   "bin_ms": 20.0,
+   "seconds": 600.0002541760005,
+   "rest_responsive": true,
+   "samples_per_s_per_ch": 30000.987290781733,
+   "gaps": 0,
+   "missing": 0,
+   "frames_per_s": 103.39495619913927,
+   "validation_errors": 0,
+   "inputs_per_s": 103.39328953317866,
+   "dropped_inputs": 0,
+   "pipeline_errors": 0,
+   "features_per_s": 50.00164548463623,
+   "expected_features_per_s": 50.0,
+   "proc_us": {
+    "count": 2048,
+    "p50": 1192.644,
+    "p95": 1808.181,
+    "p99": 2313.594,
+    "max": 3495.64
+   },
+   "ingest_us": {
+    "count": 4096,
+    "p50_us": 156.0,
+    "p95_us": 563.1,
+    "p99_us": 731.2,
+    "max_us": 1690.2
+   },
+   "delivery_us": {
+    "count": 4096,
+    "p50_us": 262.0,
+    "p95_us": 387.3,
+    "p99_us": 665.7,
+    "max_us": 5018.7
+   },
+   "subscriber_drops": 0,
+   "app": {
+    "features": 30001,
+    "missing_bins": 0,
+    "feat": {
+     "n": 30001,
+     "p50": 5.854264999739826,
+     "p95": 8.272573999129236,
+     "p99": 9.431561999954283,
+     "p999": 17.139981999993445,
+     "max": 33.371848999522626
+    },
+    "cmd": {
+     "n": 30001,
+     "p50": 5.906116000376642,
+     "p95": 8.33017999958247,
+     "p99": 9.523027000017464,
+     "p999": 17.842628999614004,
+     "max": 33.583235000260174
+    },
+    "commands": 30001,
+    "jitter_sd_ms": 1.9759087618383482,
+    "jitter_p99_ms": 5.694395110358527,
+    "delivery_gaps": 0,
+    "invalid": 0,
+    "frames": 0,
+    "closed": null
+   },
+   "cpu_pct": {
+    "publisher": 5.624996988892239,
+    "runtime": 25.436653053309097,
+    "app": 1.8999989492847464
+   },
+   "rss_mb": {
+    "publisher": 235.8203125,
+    "runtime": 372.15625,
+    "runtime_peak": 438.80859375,
+    "app": 312.43359375
+   },
+   "state": "streaming",
+   "loadavg": "0.60 1.53 4.44",
+   "rss_max_mb": 416.4296875,
+   "rss_trace": [
+    [
+     2.0190000213915482e-06,
+     368.08984375
+    ],
+    [
+     10.001398783000695,
+     368.2734375
+    ],
+    [
+     20.001787270000023,
+     370.7265625
+    ],
+    [
+     30.002395039000476,
+     370.7734375
+    ],
+    [
+     40.00332524500027,
+     370.8203125
+    ],
+    [
+     50.00397388700003,
+     370.82421875
+    ],
+    [
+     60.0042799390003,
+     370.828125
+    ],
+    [
+     70.00543910300075,
+     372.08203125
+    ],
+    [
+     80.00640238100004,
+     372.08203125
+    ],
+    [
+     90.00673669600019,
+     372.08984375
+    ],
+    [
+     100.00787899000079,
+     372.08984375
+    ],
+    [
+     110.00823619400035,
+     372.08984375
+    ],
+    [
+     120.00889565100078,
+     372.09375
+    ],
+    [
+     130.00951741500012,
+     372.09375
+    ],
+    [
+     140.00999233900075,
+     372.09375
+    ],
+    [
+     150.0109003360003,
+     372.09765625
+    ],
+    [
+     160.0112824480002,
+     372.09765625
+    ],
+    [
+     170.01264769299996,
+     372.09765625
+    ],
+    [
+     180.01413228599995,
+     372.09765625
+    ],
+    [
+     190.01525167100044,
+     372.1015625
+    ],
+    [
+     200.0158067960001,
+     372.1015625
+    ],
+    [
+     210.01704932400025,
+     372.1015625
+    ],
+    [
+     220.0179118420001,
+     372.10546875
+    ],
+    [
+     230.0188714570004,
+     372.10546875
+    ],
+    [
+     240.01987883400034,
+     372.109375
+    ],
+    [
+     250.0215659330006,
+     372.11328125
+    ],
+    [
+     260.0220409480007,
+     372.11328125
+    ],
+    [
+     270.0232915350007,
+     372.11328125
+    ],
+    [
+     280.02489426600005,
+     372.1171875
+    ],
+    [
+     290.025073412,
+     372.1171875
+    ],
+    [
+     300.0254481030006,
+     372.1171875
+    ],
+    [
+     310.0265680500006,
+     372.1171875
+    ],
+    [
+     320.02682177600036,
+     372.12109375
+    ],
+    [
+     330.02762445200005,
+     372.12109375
+    ],
+    [
+     340.02879628400024,
+     372.125
+    ],
+    [
+     350.029492052,
+     372.12890625
+    ],
+    [
+     360.03045233100056,
+     372.12890625
+    ],
+    [
+     370.0316065950001,
+     372.12890625
+    ],
+    [
+     380.0337465010007,
+     372.1328125
+    ],
+    [
+     390.03468617700037,
+     372.1328125
+    ],
+    [
+     400.03540094600066,
+     372.1328125
+    ],
+    [
+     410.0373494530004,
+     372.1328125
+    ],
+    [
+     420.03857166500075,
+     372.13671875
+    ],
+    [
+     430.0403088540006,
+     372.13671875
+    ],
+    [
+     440.04217499100014,
+     372.13671875
+    ],
+    [
+     450.0440245790005,
+     372.140625
+    ],
+    [
+     460.0447383160008,
+     372.140625
+    ],
+    [
+     470.0449454870004,
+     372.140625
+    ],
+    [
+     480.0458280030007,
+     372.140625
+    ],
+    [
+     490.04644062100033,
+     372.14453125
+    ],
+    [
+     500.047225499,
+     372.14453125
+    ],
+    [
+     510.0479353950004,
+     372.14453125
+    ],
+    [
+     520.0483241649999,
+     372.1484375
+    ],
+    [
+     530.0493968260007,
+     372.1484375
+    ],
+    [
+     540.050339253,
+     372.1484375
+    ],
+    [
+     550.0511177400003,
+     372.15234375
+    ],
+    [
+     560.0523504950006,
+     372.15234375
+    ],
+    [
+     570.0542530360008,
+     372.15234375
+    ],
+    [
+     580.0548123800008,
+     372.15625
+    ],
+    [
+     590.0558615650007,
+     372.15625
+    ],
+    [
+     600.0001488410007,
+     372.15625
+    ]
+   ]
+  },
+  {
+   "kind": "raw",
+   "channels": 1024,
+   "rate": 30000.0,
+   "preset": "spikeband_threshold",
+   "bin_ms": 20.0,
+   "seconds": 600.0005585749996,
+   "rest_responsive": true,
+   "samples_per_s_per_ch": 30001.472069879586,
+   "gaps": 0,
+   "missing": 0,
+   "frames_per_s": 204.38980972160354,
+   "validation_errors": 0,
+   "inputs_per_s": 204.38147639602818,
+   "dropped_inputs": 0,
+   "pipeline_errors": 0,
+   "features_per_s": 50.00662011258699,
+   "expected_features_per_s": 50.0,
+   "proc_us": {
+    "count": 2048,
+    "p50": 1908.317,
+    "p95": 4676.158,
+    "p99": 5107.754,
+    "max": 8947.024
+   },
+   "ingest_us": {
+    "count": 4096,
+    "p50_us": 1397.6,
+    "p95_us": 2193.5,
+    "p99_us": 2558.2,
+    "max_us": 5308.4
+   },
+   "delivery_us": {
+    "count": 4096,
+    "p50_us": 233.5,
+    "p95_us": 2486.7,
+    "p99_us": 3240.6,
+    "max_us": 7260.9
+   },
+   "subscriber_drops": 0,
+   "app": {
+    "features": 30004,
+    "missing_bins": 0,
+    "feat": {
+     "n": 30004,
+     "p50": 11.449465999845415,
+     "p95": 18.46680539944209,
+     "p99": 33.40971218971537,
+     "p999": 61.04545618163536,
+     "max": 85.14878699928522
+    },
+    "cmd": {
+     "n": 30004,
+     "p50": 11.531399499624968,
+     "p95": 18.779099499853324,
+     "p99": 34.029715899173205,
+     "p999": 61.18083870392806,
+     "max": 85.19383799936622
+    },
+    "commands": 30004,
+    "jitter_sd_ms": 3.945859518192249,
+    "jitter_p99_ms": 10.99674645998748,
+    "delivery_gaps": 0,
+    "invalid": 0,
+    "frames": 0,
+    "closed": null
+   },
+   "cpu_pct": {
+    "publisher": 13.1249859192526,
+    "runtime": 75.27825221775447,
+    "app": 2.3483308007603267
+   },
+   "rss_mb": {
+    "publisher": 713.64453125,
+    "runtime": 920.9453125,
+    "runtime_peak": 1123.44921875,
+    "app": 312.43359375
+   },
+   "state": "streaming",
+   "loadavg": "1.12 1.16 2.84",
+   "rss_max_mb": 1032.265625,
+   "rss_trace": [
+    [
+     1.555000380903948e-06,
+     920.6640625
+    ],
+    [
+     10.00143627899979,
+     920.875
+    ],
+    [
+     20.00371506099964,
+     920.87890625
+    ],
+    [
+     30.003879904000314,
+     920.87890625
+    ],
+    [
+     40.004619024999556,
+     920.87890625
+    ],
+    [
+     50.00513818299987,
+     920.8828125
+    ],
+    [
+     60.00633611400008,
+     920.8828125
+    ],
+    [
+     70.00725227099974,
+     920.8828125
+    ],
+    [
+     80.00909973499984,
+     920.88671875
+    ],
+    [
+     90.01090934900003,
+     920.88671875
+    ],
+    [
+     100.01202589900004,
+     920.88671875
+    ],
+    [
+     110.01241445100004,
+     920.88671875
+    ],
+    [
+     120.01281345999996,
+     920.890625
+    ],
+    [
+     130.0134829389999,
+     920.890625
+    ],
+    [
+     140.0152420659997,
+     920.890625
+    ],
+    [
+     150.01611947899983,
+     920.89453125
+    ],
+    [
+     160.01723648999996,
+     920.89453125
+    ],
+    [
+     170.01815236099992,
+     920.89453125
+    ],
+    [
+     180.018709383,
+     920.8984375
+    ],
+    [
+     190.0198741840004,
+     920.8984375
+    ],
+    [
+     200.02061973699983,
+     920.8984375
+    ],
+    [
+     210.02137401900018,
+     920.90234375
+    ],
+    [
+     220.02182557099968,
+     920.90234375
+    ],
+    [
+     230.02525416000026,
+     920.90234375
+    ],
+    [
+     240.02638765400025,
+     920.90234375
+    ],
+    [
+     250.02672908899967,
+     920.90625
+    ],
+    [
+     260.02759362100005,
+     920.90625
+    ],
+    [
+     270.0277860160004,
+     920.90625
+    ],
+    [
+     280.02974727499986,
+     920.91015625
+    ],
+    [
+     290.0300135489997,
+     920.91015625
+    ],
+    [
+     300.03129618599996,
+     920.91015625
+    ],
+    [
+     310.0317092100004,
+     920.9140625
+    ],
+    [
+     320.0328182200001,
+     920.9140625
+    ],
+    [
+     330.03347360600037,
+     920.9140625
+    ],
+    [
+     340.0342461959999,
+     920.9140625
+    ],
+    [
+     350.0352401729997,
+     920.91796875
+    ],
+    [
+     360.0370853730001,
+     920.91796875
+    ],
+    [
+     370.03837814300005,
+     920.91796875
+    ],
+    [
+     380.03927275000024,
+     920.921875
+    ],
+    [
+     390.0407328629999,
+     920.921875
+    ],
+    [
+     400.0415088239997,
+     920.921875
+    ],
+    [
+     410.0418112320003,
+     920.92578125
+    ],
+    [
+     420.0427843790003,
+     920.92578125
+    ],
+    [
+     430.04353542599983,
+     920.92578125
+    ],
+    [
+     440.044214732,
+     920.92578125
+    ],
+    [
+     450.0457930720004,
+     920.9296875
+    ],
+    [
+     460.04618061699966,
+     920.9296875
+    ],
+    [
+     470.04723152600036,
+     920.9296875
+    ],
+    [
+     480.0476536220003,
+     920.9296875
+    ],
+    [
+     490.0497384709997,
+     920.93359375
+    ],
+    [
+     500.05091317499955,
+     920.93359375
+    ],
+    [
+     510.0523614519998,
+     920.9375
+    ],
+    [
+     520.0528689450002,
+     920.9375
+    ],
+    [
+     530.0539147569998,
+     920.9375
+    ],
+    [
+     540.0545768319998,
+     920.9375
+    ],
+    [
+     550.0551194649997,
+     920.94140625
+    ],
+    [
+     560.0559784159996,
+     920.94140625
+    ],
+    [
+     570.0576336639997,
+     920.94140625
+    ],
+    [
+     580.0583016190003,
+     920.9453125
+    ],
+    [
+     590.0592876820001,
+     920.9453125
+    ],
+    [
+     600.0004242559999,
+     920.9453125
+    ]
+   ]
+  }
+ ],
+ "runs": [
+  {
+   "started": "2026-11-07 23:23 UTC",
+   "command": "python scripts/bench_scale.py --soak 600 --soak-channels 256,1024 --label m5-perf --json /tmp/after.json --write /tmp/after.md",
+   "load_start": "4.98 5.23 8.30",
+   "load_end": "1.12 1.16 2.84",
+   "sections": [
+    "chain",
+    "raw",
+    "ecog",
+    "counts",
+    "multi",
+    "consumers",
+    "recovery",
+    "soak"
+   ]
+  },
+  {
+   "started": "2026-11-08 00:08 UTC",
+   "command": "python scripts/bench_scale.py --sections micro --label m5-perf --json /tmp/micro_after.json",
+   "load_start": "3.94 3.06 2.68",
+   "load_end": "4.02 3.09 2.70",
+   "sections": [
+    "micro"
+   ]
+  },
+  {
+   "started": "2026-11-08 00:08 UTC",
+   "command": "python scripts/bench_scale.py --sections alternatives --label m5-perf --json /tmp/alt_after.json",
+   "load_start": "3.80 3.07 2.69",
+   "load_end": "3.90 3.10 2.71",
+   "sections": [
+    "alternatives"
+   ]
+  }
+ ]
+}

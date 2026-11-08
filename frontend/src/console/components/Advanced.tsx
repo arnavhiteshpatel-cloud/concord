@@ -7,6 +7,7 @@ import type { ConsoleStreamData } from "../useConsoleStream";
 import { isDatasetFile, isLiveSource, type DiagnosticsSnapshot, type LiveSourceMetadata, type RecordingInfo } from "../api";
 import type { PipelineState } from "../pipeline";
 import { AppsPanel } from "./AppsPanel";
+import { CompatibilityView } from "./CompatibilityView";
 import { ContractView } from "./ContractView";
 import { FaultInjection, RecordingPanel, isBuiltInSimulator } from "./ControlsPanel";
 import { DatasetDetails } from "./DatasetDetails";
@@ -16,6 +17,8 @@ import { IntentPad } from "./IntentPad";
 import { NeuralView } from "./NeuralView";
 import { PipelineStatusPanel } from "./PipelineStatusPanel";
 import { SignalIntegrity } from "./SignalIntegrity";
+import { StoredData } from "./StoredData";
+import { SupportReport } from "./SupportReport";
 import { TelemetryPanel } from "./Telemetry";
 import { TestsView } from "./TestsView";
 import { Disclosure } from "./ui";
@@ -104,6 +107,16 @@ export function Advanced({
         </Disclosure>
         <Disclosure title="Tests" testId="adv-tests">
           <TestsView />
+        </Disclosure>
+        <Disclosure title="Compatibility" testId="adv-compat">
+          <CompatibilityView />
+        </Disclosure>
+        {/* M5-D: stored data (deletion, retention) and the support report */}
+        <Disclosure title="Stored data" testId="adv-storage">
+          <StoredData onChanged={onRecordingsChanged} />
+        </Disclosure>
+        <Disclosure title="Support report" testId="adv-support">
+          <SupportReport />
         </Disclosure>
       </div>
     </Disclosure>

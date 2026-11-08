@@ -96,6 +96,29 @@ describe("validateEnvelope", () => {
     expect(validateEnvelope(env({ ...sel, payload: { action: "cancel", confidence: 0.6 } })).ok).toBe(true);
     expect(validateEnvelope(env({ ...sel, payload: { action: "stimulate", confidence: 0.6 } })).ok).toBe(false);
   });
+  it("schema 1.4: navigation, control state, model_origin", () => {
+    const nav = {
+      event_type: "intent.navigate",
+      capability: "navigation",
+      provenance: { ...prov, kind: "decoded_intent", synthetic: false, model_id: "m1", model_origin: "brainos" },
+      payload: { direction: "next", confidence: 0.8 },
+    };
+    expect(validateEnvelope(env({ ...nav, schema_version: "1.4" })).ok).toBe(true);
+    expect(validateEnvelope(env({ ...nav, payload: { direction: "jump", confidence: 0.8 } })).ok).toBe(false);
+    const hist = { ...nav, provenance: { ...nav.provenance, model_origin: "historical", replayed: false } };
+    expect(validateEnvelope(env(hist)).ok).toBe(false); // historical outputs are recorded data
+    expect(validateEnvelope(env({ ...hist, provenance: { ...hist.provenance, replayed: true } })).ok).toBe(true);
+    expect(validateEnvelope(env({ ...nav, provenance: { ...nav.provenance, model_origin: "mine" } })).ok).toBe(false);
+    const cs = {
+      event_type: "control.state",
+      capability: "control_status",
+      provenance: { ...prov, kind: "runtime", synthetic: false },
+      payload: { active: false, capabilities: ["pointer_intent"], reason: "operator stop" },
+    };
+    expect(validateEnvelope(env(cs)).ok).toBe(true);
+    expect(validateEnvelope(env({ ...cs, provenance: { ...cs.provenance, kind: "decoded_intent", model_id: "m" } })).ok).toBe(false);
+    expect(validateEnvelope(env({ ...cs, payload: { active: "no", capabilities: [], reason: "" } })).ok).toBe(false);
+  });
   it("accepts schema 1.1 feature, behavior and decoded kinematic events", () => {
     for (const e of [feat, beh, kin]) expect(validateEnvelope(env({ ...e, schema_version: "1.1" })).ok).toBe(true);
   });

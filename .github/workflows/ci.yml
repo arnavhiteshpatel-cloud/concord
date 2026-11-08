@@ -17,7 +17,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install
-        run: python -m pip install -e packages/brainos-adapter-sdk -e "backend[server,dev,nwb,dsp,live]" -e examples/adapters/brainos-example-adapter -e packages/brainos-brainflow -e packages/brainos-bci2000 -e "packages/brainos-certify[dev]"
+        run: python -m pip install -e packages/brainos-adapter-sdk -e "backend[server,dev,nwb,dsp,live]" -e examples/adapters/brainos-example-adapter -e packages/brainos-brainflow -e packages/brainos-bci2000 -e "packages/brainos-certify[dev]" -e "packages/brainos-decoder-sdk[onnx,sklearn,dev]" -e examples/decoders/brainos-example-decoder
       - name: Cache verified datasets
         uses: actions/cache@v4
         with:
@@ -27,13 +27,32 @@ jobs:
         run: |
           python -m brainos.datasets.fetch
           python -m brainos.decoding.evaluate_falcon
+      - name: Cache T15 cursor+click files
+        uses: actions/cache@v4
+        with:
+          path: data/datasets/dryad-prr4xgxzq
+          key: dryad-t15-${{ hashFiles('backend/src/brainos/datasets/dryad/*.json') }}
+      - name: T15 cursor+click demo subset (Dryad; needs DRYAD_CLIENT_ID / DRYAD_CLIENT_SECRET secrets)
+        env:
+          DRYAD_CLIENT_ID: ${{ secrets.DRYAD_CLIENT_ID }}
+          DRYAD_CLIENT_SECRET: ${{ secrets.DRYAD_CLIENT_SECRET }}
+        run: |
+          if python -m brainos.datasets.dryad --verify > /dev/null; then
+            echo "BRAINOS_REQUIRE_T15=1" >> "$GITHUB_ENV"
+          elif [ -n "$DRYAD_CLIENT_ID" ]; then
+            python -m brainos.datasets.dryad && echo "BRAINOS_REQUIRE_T15=1" >> "$GITHUB_ENV"
+          else
+            echo "::warning::T15 real-data tests will be skipped: add the DRYAD_CLIENT_ID and DRYAD_CLIENT_SECRET repository secrets (a Dryad API account) to run them"
+          fi
+      - name: "M5 workstream B: stream pinned ECoG demo slices (DANDI 000055, digest-verified)"
+        run: python -m brainos.datasets.fetch ajile12
       - name: Lint
         working-directory: backend
         run: |
           ruff check src tests examples ../scripts
           ruff format --check src tests examples ../scripts
-          ruff check ../packages ../examples/adapters/brainos-example-adapter
-          ruff format --check ../packages ../examples/adapters/brainos-example-adapter
+          ruff check ../packages ../examples/adapters/brainos-example-adapter ../examples/decoders
+          ruff format --check ../packages ../examples/adapters/brainos-example-adapter ../examples/decoders
       - name: Type check (mypy --strict)
         working-directory: backend
         run: |
@@ -43,6 +62,8 @@ jobs:
           (cd ../packages/brainos-brainflow && mypy --strict src/brainos_brainflow)
           (cd ../packages/brainos-bci2000 && mypy --strict src/brainos_bci2000)
           (cd ../packages/brainos-certify && mypy)
+          (cd ../packages/brainos-decoder-sdk && mypy src/brainos_decoder_sdk)
+          (cd ../examples/decoders/brainos-example-decoder && mypy --strict src/brainos_example_decoder)
       - name: Tests (real-data tests must not be skipped)
         working-directory: backend
         run: |
@@ -53,9 +74,13 @@ jobs:
             echo "::error::real-data tests were skipped"; exit 1; fi
           if grep -Eq "could not import '(pylsl|zmq|scipy)'" ../reports/pytest.log; then
             echo "::error::live-protocol tests were skipped"; exit 1; fi
+      - name: "M5 workstream B: real ECoG tests must not be skipped"
+        run: |
+          if grep -q "real AJILE12 ECoG extracts not found" reports/pytest.log; then
+            echo "::error::real ECoG tests were skipped"; exit 1; fi
       - name: Package tests (plugins against official BrainFlow / BCI2000 capture; certify toolkit)
         run: |
-          for p in packages/brainos-brainflow packages/brainos-bci2000 examples/adapters/brainos-example-adapter packages/brainos-certify; do
+          for p in packages/brainos-brainflow packages/brainos-bci2000 examples/adapters/brainos-example-adapter packages/brainos-certify packages/brainos-decoder-sdk examples/decoders/brainos-example-decoder; do
             (cd $p && pytest -q -rs) || exit 1
           done
       - uses: actions/upload-artifact@v4
@@ -63,6 +88,10 @@ jobs:
         with:
           name: pytest-report
           path: reports/pytest-junit.xml
+      # Workstream F (M5): the committed compatibility registry, its schema and the generated
+      # section of docs/COMPATIBILITY.md must equal what this checkout's evidence produces.
+      - name: "Workstream F: compatibility registry is current"
+        run: python -m brainos.compat.build --check
 
   distribution:
     # The developer distribution from built wheels in fresh virtualenvs: an adapter developer
@@ -112,7 +141,7 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - name: Install backend
-        run: python -m pip install -e packages/brainos-adapter-sdk -e "backend[server,dev,nwb,dsp,live]" -e examples/adapters/brainos-example-adapter -e packages/brainos-brainflow -e packages/brainos-bci2000
+        run: python -m pip install -e packages/brainos-adapter-sdk -e "backend[server,dev,nwb,dsp,live]" -e examples/adapters/brainos-example-adapter -e packages/brainos-brainflow -e packages/brainos-bci2000 -e "packages/brainos-decoder-sdk[onnx,sklearn]" -e examples/decoders/brainos-example-decoder
       - name: Cache verified datasets
         uses: actions/cache@v4
         with:
@@ -131,10 +160,128 @@ jobs:
           npx playwright install --with-deps chromium
       - name: End-to-end demo (AT-25)
         run: node e2e/demo.cjs
+      - name: Cache T15 cursor+click files (M5 P0)
+        uses: actions/cache@v4
+        with:
+          path: data/datasets/dryad-prr4xgxzq
+          key: dryad-t15-${{ hashFiles('backend/src/brainos/datasets/dryad/*.json') }}
+      - name: "M5 P0: neural-to-communication e2e (real T15 data; needs DRYAD_CLIENT_ID / DRYAD_CLIENT_SECRET)"
+        env:
+          DRYAD_CLIENT_ID: ${{ secrets.DRYAD_CLIENT_ID }}
+          DRYAD_CLIENT_SECRET: ${{ secrets.DRYAD_CLIENT_SECRET }}
+        run: |
+          if python -m brainos.datasets.dryad --verify > /dev/null || { [ -n "$DRYAD_CLIENT_ID" ] && python -m brainos.datasets.dryad; }; then
+            node e2e/communication.cjs
+          else
+            echo "::warning::neural-to-communication e2e skipped: no T15 data (add the DRYAD_CLIENT_ID and DRYAD_CLIENT_SECRET repository secrets)"
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: e2e-report
           path: |
             reports/e2e.json
+            reports/communication_e2e.json
             e2e/screenshots/
+
+  # ------------------------------------------------------------------------ M5-D
+  # Release workstream D: clean-room lab acceptance and the desktop bundle.
+
+  lab-acceptance:
+    # From built wheels in fresh virtualenvs, documented commands only: brainos doctor/start/
+    # status/stop, an external LSL source in a separate process, FALCON H1 via `brainos dataset`
+    # (pinned SHA-256), calibration, an SDK-only app authorized by the operator, session export,
+    # and `brainos reproduce` in another fresh venv.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Lab acceptance (clean room)
+        run: python scripts/lab_acceptance.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lab-acceptance-report
+          path: reports/lab-acceptance.json
+
+  package-linux:
+    # The desktop bundle's packaging logic (same PyInstaller spec as macOS), built and run like
+    # a user would: headless, crash recovery, and the Tk window under Xvfb.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Tk runtime and a virtual display (for the window check)
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends libtk8.6 xvfb
+      - name: Install the build environment
+        run: |
+          python -m pip install -e packages/brainos-adapter-sdk -e packages/brainos-decoder-sdk -e "backend[lab,dev]" -e packages/brainos-bci2000
+          python -m pip install -r packaging/requirements.txt
+      - name: Lint packaging (ruff, mypy --strict)
+        working-directory: backend
+        run: |
+          ruff check ../packaging && ruff format --check ../packaging
+          mypy --strict ../packaging/app_entry.py ../packaging/stage_console.py ../packaging/build_app.py ../packaging/smoke_test.py
+      - name: Build the bundle (PyInstaller onedir)
+        run: python packaging/build_app.py --build-console
+      - name: Smoke test (headless, crash recovery, Tk window under Xvfb)
+        run: |
+          mkdir -p reports
+          xvfb-run -a python packaging/smoke_test.py packaging/dist/BrainOS/BrainOS --window --report reports/smoke-linux.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: package-linux-report
+          path: |
+            reports/smoke-linux.json
+            packaging/dist/build-info.json
+
+  package-macos:
+    # BrainOS.app + .dmg built on macOS and smoke-tested here: the bundled executable headless,
+    # crash recovery, the Tk window, `open` (double-click equivalent) + Apple Event quit, and
+    # the app from the mounted .dmg. Unsigned (ad-hoc) and not notarized.
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install the build environment
+        run: |
+          python -m pip install -e packages/brainos-adapter-sdk -e packages/brainos-decoder-sdk -e "backend[lab]" -e packages/brainos-bci2000
+          python -m pip install -r packaging/requirements.txt
+      - name: Build BrainOS.app and the .dmg
+        run: python packaging/build_app.py --build-console --dmg
+      - name: Smoke test the app and the .dmg
+        run: |
+          mkdir -p reports
+          python packaging/smoke_test.py packaging/dist/BrainOS.app/Contents/MacOS/BrainOS \
+            --app packaging/dist/BrainOS.app --window --gui \
+            --dmg "$(ls packaging/dist/BrainOS-*.dmg)" --report reports/smoke-macos.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: brainos-macos-dmg
+          path: |
+            packaging/dist/BrainOS-*.dmg
+            packaging/dist/build-info.json
+            reports/smoke-macos.json

@@ -12,6 +12,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import importlib.util
+import itertools
 import json
 import re
 import socket
@@ -750,6 +751,19 @@ async def test_pause_drains_and_resumes_without_false_drops(adapter: OpenEphysAd
     assert adapter.counters.incomplete_blocks == 0
 
 
+def _plain(drafts: Any) -> list[Any]:
+    return [
+        (
+            d.event_type,
+            {k: v.tolist() if isinstance(v, np.ndarray) else v for k, v in d.payload.items()},
+            d.quality,
+            d.provenance,
+            d.device_timestamp_ns,
+        )
+        for d in drafts
+    ]
+
+
 async def test_long_blocks_are_split_and_normalize_is_pure(
     port: int, publisher: OpenEphysTestPublisher
 ) -> None:
@@ -758,7 +772,8 @@ async def test_long_blocks_are_split_and_normalize_is_pure(
     try:
         packet: NativePacket = await a.read()
         drafts = a.normalize(packet)
-        assert a.normalize(packet) == drafts  # pure: same packet, same drafts
+        # pure: same packet, same drafts (frame samples are numpy arrays since M5-E)
+        assert _plain(a.normalize(packet)) == _plain(drafts)
         frames = [d for d in drafts if d.event_type == "recording.frame"]
         assert [len(f.payload["samples"][0]) for f in frames] == [128, 128, 44]
         firsts = [f.payload["first_sample_index"] for f in frames]
@@ -897,3 +912,107 @@ def test_official_client_parses_publisher(
     assert np.array_equal(np.frombuffer(sp.data, np.float32).reshape(2, 40), wf)
     assert any(c.application == "Plot Process" for c in pub.clients.values())
     assert HEARTBEAT_REPLY in pub.replies
+
+
+# ------------------------------------------- M5: source sample-clock reset (File Reader loop)
+
+
+async def test_sample_clock_reset_continues_without_reconnect_or_loss(
+    adapter: OpenEphysAdapter, publisher: OpenEphysTestPublisher
+) -> None:
+    """Regression (hardware-validation finding, real Open Ephys GUI 1.1.0): when the GUI's File
+    Reader loops, sample numbers restart while messages continue. The adapter used to treat
+    this as an acquisition restart, reconnect and re-learn the layout, losing ~0.72 s. It now
+    continues from the new base: no DeviceLinkError, no sample missing, and the discontinuity
+    stays visible (first_sample_index goes back; counted)."""
+    before = await collect(adapter, frames=20)
+    publisher.reset_sample_clock(0)
+    after = await collect(adapter, frames=60)  # raised DeviceLinkError before the fix
+    frames = [e for e in before + after if e["event_type"] == "recording.frame"]
+    idx = [e["payload"]["first_sample_index"] for e in frames]
+    back = [i for i in range(1, len(idx)) if idx[i] < idx[i - 1]]
+    assert len(back) == 1  # exactly one visible discontinuity, at the reset
+    k = back[0]
+    assert idx[k] == 0  # the new base, as the source numbered it
+    # contiguous on both sides of the reset: nothing missing, nothing fabricated
+    for seg in (frames[:k], frames[k:]):
+        for a, b in itertools.pairwise(seg):
+            n = len(a["payload"]["samples"][0])
+            assert b["payload"]["first_sample_index"] == a["payload"]["first_sample_index"] + n
+    assert not any("dropped_samples" in e["quality"]["flags"] for e in frames)
+    c = adapter.counters
+    assert c.sample_clock_resets == 1 and c.config_changes == 0
+    assert c.missing_samples == 0 and c.discarded_samples == 0 and c.missed_messages == 0
+    # device timestamps follow the source's numbering (the runtime flags the regression)
+    assert frames[k]["device_timestamp_ns"] < frames[k - 1]["device_timestamp_ns"]
+
+
+async def test_acquisition_restart_still_reconnects(
+    adapter: OpenEphysAdapter, publisher: OpenEphysTestPublisher
+) -> None:
+    """A real restart (message_num and sample clock reset together) is still a link change:
+    the plugin may come back with another layout, so the adapter re-learns it."""
+    await collect(adapter, frames=5)
+    publisher.start_acquisition(reset=True)
+    with pytest.raises(DeviceLinkError, match="acquisition restarted"):
+        await collect(adapter, frames=50)
+    assert adapter.counters.sample_clock_resets == 0
+
+
+def test_sample_clock_reset_mid_block_waits_for_block_start() -> None:
+    """If the first message on the new base is not the block's first channel, the partial
+    block is skipped (counted) rather than assembled from mismatched channels."""
+    layout = StreamLayout(
+        stream="s", sample_rate=1000.0, channels=((0, "A"), (1, "B")), block_samples=4
+    )
+    c = Counters()
+    asm = BlockAssembler(layout, c, max_frame_samples=100)
+
+    def msg(ch: int, sample: int) -> DataMessage:
+        return DataMessage(
+            message_num=0, stream="s", channel_num=ch, channel_name="AB"[ch], sample_num=sample,
+            sample_rate=1000.0, num_samples=4, timestamp_ms=0,
+            payload=np.arange(4, dtype="<f4").tobytes(),
+        )  # fmt: skip
+
+    out = [*asm.on_data(msg(0, 100)), *asm.on_data(msg(1, 100))]
+    assert len(out) == 1 and out[0].first_sample_index == 100
+    assert asm.on_data(msg(1, 0)) == []  # reset seen on channel B: skipped, counted
+    assert c.sample_clock_resets == 1 and c.resync_skipped_messages == 1
+    out = [*asm.on_data(msg(0, 4)), *asm.on_data(msg(1, 4))]
+    assert [f.first_sample_index for f in out] == [4]
+
+
+async def test_runtime_flags_the_reset_and_keeps_streaming(
+    tmp_path: Path, port: int, publisher: OpenEphysTestPublisher
+) -> None:
+    """Through the unchanged runtime: no reconnect (no 'reconnecting' status, state stays
+    streaming), and the first frame after the reset carries timestamp_regression."""
+    from brainos.adapters.simulated import OperatorIntentSource
+    from brainos.contracts.protocol import RuntimeState
+    from brainos.runtime import DeviceRegistry, Recorder, Runtime
+
+    from .conftest import subscribe
+    from .helpers import drain, events, wait_for
+
+    reg = DeviceRegistry(OperatorIntentSource(), tmp_path / "rec")
+    desc = reg.live.configure_openephys(config(port))
+    rt = Runtime(reg, Recorder(tmp_path / "rec"))
+    sub = subscribe(rt, optional=[Capability.RECORDING, Capability.DEVICE_STATUS])
+    try:
+        await rt.connect(desc.device_id)
+        total = lambda: rt.diagnostics.totals["recording.frame"]  # noqa: E731
+        await wait_for(lambda: total() >= 10, timeout=10)
+        publisher.reset_sample_clock(0)
+        n0 = total()
+        await wait_for(lambda: total() >= n0 + 30, timeout=10)
+        msgs = drain(sub)
+        frames = events(msgs, "recording.frame")
+        flagged = [e for e in frames if "timestamp_regression" in e["quality"]["flags"]]
+        assert len(flagged) == 1 and flagged[0]["payload"]["first_sample_index"] == 0
+        assert rt.diagnostics.timestamp_regressions == 1
+        states = [e["payload"]["state"] for e in events(msgs, "device.status")]
+        assert "reconnecting" not in states
+        assert rt.state is RuntimeState.STREAMING
+    finally:
+        await rt.shutdown()

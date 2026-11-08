@@ -133,6 +133,7 @@ async def test_authorization_gates_decoded_actions_and_every_stop_reaches_the_ap
         assert [(w["capability"], w["reason"]) for w in entry["waiting"]] == [
             ("selection", "not_authorized"),
             ("text_intent", "unsupported_by_device"),  # no text rule configured
+            ("navigation", "unsupported_by_device"),  # M5: optional, no navigate rule
         ]
         assert ctl["router_on"] and ctl["provides"] == ["selection"]
         await wait_for(lambda: True, timeout=0.1)
