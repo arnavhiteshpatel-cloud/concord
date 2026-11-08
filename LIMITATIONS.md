@@ -238,7 +238,7 @@ protocol.
   accumulates error trial after trial. Even the original decoder's own recorded outputs,
   integrated by the board, select the cued word in only 65 % of trials on the 14 x 14 grid
   (the session itself: 94 %); BrainOS's decoders through the board are near chance on fine
-  boards (14 x 14: 1 %, chance 0.5 %; 2 x 2: 43 %, chance 25 %). Per-trial anchoring to the
+  boards (14 x 14: 1 %, chance 0.5 %; 2 x 2: 44 %, chance 25 %). Per-trial anchoring to the
   recorded cursor position (which reproduces the session) is an offline analysis and is never
   fed to an application: recorded positions are behavioral labels, never commands.
 - **Historical outputs are not BrainOS.** The original decoders' outputs are replayed as
