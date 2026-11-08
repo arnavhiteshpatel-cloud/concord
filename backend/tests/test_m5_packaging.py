@@ -31,6 +31,11 @@ def _load(name: str) -> ModuleType:
             "module",
             ["brainos_adapter_sdk.host", "--list"],
         ),
+        (  # the isolated decoder host (M5-A) runs from the bundle too
+            ["-m", "brainos_decoder_sdk.host", "--model", "m.json"],
+            "module",
+            ["brainos_decoder_sdk.host", "--model", "m.json"],
+        ),
         (["-m", "os"], "refuse", ["os"]),  # the bundle is not a general Python interpreter
         (["-c", "print(1)"], "app", ["-c", "print(1)"]),
         (["doctor", "--json", "x.json"], "cli", ["doctor", "--json", "x.json"]),

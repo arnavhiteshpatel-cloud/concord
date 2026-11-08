@@ -229,7 +229,7 @@ jobs:
         run: sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends libtk8.6 xvfb
       - name: Install the build environment
         run: |
-          python -m pip install -e packages/brainos-adapter-sdk -e "backend[lab,dev]" -e packages/brainos-bci2000
+          python -m pip install -e packages/brainos-adapter-sdk -e packages/brainos-decoder-sdk -e "backend[lab,dev]" -e packages/brainos-bci2000
           python -m pip install -r packaging/requirements.txt
       - name: Lint packaging (ruff, mypy --strict)
         working-directory: backend
@@ -267,7 +267,7 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - name: Install the build environment
         run: |
-          python -m pip install -e packages/brainos-adapter-sdk -e "backend[lab]" -e packages/brainos-bci2000
+          python -m pip install -e packages/brainos-adapter-sdk -e packages/brainos-decoder-sdk -e "backend[lab]" -e packages/brainos-bci2000
           python -m pip install -r packaging/requirements.txt
       - name: Build BrainOS.app and the .dmg
         run: python packaging/build_app.py --build-console --dmg

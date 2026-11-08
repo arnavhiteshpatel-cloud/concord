@@ -5,9 +5,10 @@ One executable, three roles:
 - ``BrainOS`` (double-click, or with ``--headless``): the desktop app (brainos.desktop);
 - ``BrainOS doctor|status|stop|version|config|reproduce|dataset|serve ...``: the ``brainos``
   command, so a support report can be made from the bundle itself;
-- ``BrainOS -m brainos_adapter_sdk.host ...``: the source-plugin host. BrainOS starts plugin
-  hosts as ``<sys.executable> -m brainos_adapter_sdk.host``; in a bundle ``sys.executable``
-  is this program, so it must answer like ``python -m`` for that one module (and nothing else).
+- ``BrainOS -m brainos_adapter_sdk.host ...`` / ``-m brainos_decoder_sdk.host ...``: the
+  source-plugin host and the isolated decoder host. BrainOS starts both as
+  ``<sys.executable> -m <module>``; in a bundle ``sys.executable`` is this program, so it must
+  answer like ``python -m`` for those two modules (and nothing else).
 """
 
 from __future__ import annotations
@@ -15,7 +16,7 @@ from __future__ import annotations
 import runpy
 import sys
 
-ALLOWED_MODULES = frozenset({"brainos_adapter_sdk.host"})
+ALLOWED_MODULES = frozenset({"brainos_adapter_sdk.host", "brainos_decoder_sdk.host"})
 CLI_COMMANDS = frozenset(
     {"doctor", "status", "stop", "start", "version", "config", "reproduce", "dataset", "serve"}
 )
