@@ -135,10 +135,29 @@ jobs:
       - name: Build the wheels
         run: |
           python -m pip install --upgrade pip
-          for p in backend packages/brainos-adapter-sdk packages/brainos-decoder-sdk packages/brainos-hwval; do
+          # "./" makes each argument a local path: a bare name such as "backend" is a PyPI
+          # requirement to pip and would fetch an unrelated package of that name
+          for p in ./backend ./packages/brainos-adapter-sdk ./packages/brainos-decoder-sdk ./packages/brainos-hwval; do
             python -m pip wheel --no-deps -w out "$p"
           done
           ls -l out
+      - name: Exactly the BrainOS wheels, the brainos wheel with its console
+        env:
+          VERSION: ${{ needs.check-version.outputs.version }}
+        run: |
+          python - <<'PY'
+          import os, pathlib, sys, zipfile
+          v = os.environ["VERSION"]
+          names = sorted(p.name for p in pathlib.Path("out").glob("*.whl"))
+          expected = [f"brainos-{v}-py3-none-any.whl", "brainos_adapter_sdk-", "brainos_decoder_sdk-", "brainos_hwval-"]
+          ok = len(names) == 4 and all(any(n.startswith(e) for n in names) for e in expected)
+          if not ok:
+              sys.exit(f"unexpected wheels: {names}")
+          with zipfile.ZipFile(f"out/brainos-{v}-py3-none-any.whl") as z:
+              if "brainos/server/console/index.html" not in z.namelist():
+                  sys.exit("the brainos wheel does not contain the console")
+          print("wheels:", names)
+          PY
       - name: Clean-room check of the wheels (the CI distribution check)
         run: python scripts/dist_check.py
       - uses: actions/upload-artifact@v4
@@ -163,14 +182,27 @@ jobs:
         run: |
           sha256sum * > SHA256SUMS.txt
           cat SHA256SUMS.txt
-      - name: Create the GitHub Release
+      - name: Create the GitHub Release (or replace the files of an existing one)
         env:
           GH_TOKEN: ${{ github.token }}
+          TITLE: "BrainOS ${{ needs.check-version.outputs.version }} — research preview"
         run: |
           notes="docs/releases/$TAG.md"
           if [ ! -f "$notes" ]; then echo "::error::missing release notes $notes"; exit 1; fi
-          gh release create "$TAG" assets/* \
-            --repo "$GITHUB_REPOSITORY" \
-            --target "$GITHUB_SHA" \
-            --title "BrainOS ${{ needs.check-version.outputs.version }} — research preview" \
-            --notes-file "$notes"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh release upload "$TAG" assets/* --clobber --repo "$GITHUB_REPOSITORY"
+            # remove any file this build did not produce
+            for old in $(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name'); do
+              if [ ! -f "assets/$old" ]; then
+                gh release delete-asset "$TAG" "$old" --yes --repo "$GITHUB_REPOSITORY"
+              fi
+            done
+            gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --title "$TITLE" --notes-file "$notes"
+          else
+            gh release create "$TAG" assets/* \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" \
+              --title "$TITLE" \
+              --notes-file "$notes"
+          fi
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' 
