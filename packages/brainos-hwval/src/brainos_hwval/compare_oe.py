@@ -561,7 +561,7 @@ def compare_openephys(oe_path: Path, brainos_path: Path, opts: OEOptions) -> dic
         C.values(comp, tol_text, labels_b),
         C.channel_order(comp, diag, labels_b, labels_r),
         C.scale(comp, diag, unit_text),
-        C.loss_reporting(frames, comp),
+        C.loss_reporting(frames, comp, rec.status_events),
         _ts_check(frames, [m.row for m in maps], stream),
         _events_check(rec, oe, stream, frames),
     ]
@@ -575,7 +575,14 @@ def compare_openephys(oe_path: Path, brainos_path: Path, opts: OEOptions) -> dic
             ):
                 c.status = Status.INCONCLUSIVE
                 c.summary += " — not comparable: " + chain.summary
-    dev_s: list[float | None] = [None if f.t_dev_ns is None else f.t_dev_ns / 1e9 for f in frames]
+    # source time for the delay analysis: the reference row on the sample clock. Rows keep
+    # counting through a sample-number reset (File Reader loop, restart), the GUI's sample
+    # numbers do not.
+    row_of = {m.frame: m.row for m in maps}
+    dev_s: list[float | None] = [
+        None if row_of.get(i) is None else float(row_of[i]) / rate  # type: ignore[arg-type]
+        for i in range(len(frames))
+    ]
     relation = T.ingest_relation(frames, dev_s, None)
     checks.append(C.delay(relation, th, False))
     checks.append(_ref_continuity(stream))

@@ -18,6 +18,10 @@ Record through BrainOS's own runtime (needs BrainOS installed)::
     brainos-hwval capture openephys --host 127.0.0.1 --port 5556 --unit uV --duration 240 \\
         --out runs/ --name run1
 
+Rehearse the workflow without hardware (a declared-synthetic LSL stream)::
+
+    brainos-hwval test-signal --name hwval-dry-run --duration 300
+
 Document the setup (for docs/HARDWARE_VALIDATION.md)::
 
     brainos-hwval equipment-template > equipment.json
@@ -191,6 +195,15 @@ def parser() -> argparse.ArgumentParser:
             "--name", required=True, help="recording name ([a-z0-9][a-z0-9_-]*, max 48 chars)"
         )
 
+    ts = sub.add_parser(
+        "test-signal", help="publish a declared-synthetic LSL test stream (dry runs; needs pylsl)"
+    )
+    ts.add_argument("--name", default="hwval-test-signal", help="LSL stream name")
+    ts.add_argument("--channels", type=int, default=8)
+    ts.add_argument("--rate", type=_positive, default=1000.0, help="Hz")
+    ts.add_argument("--duration", type=_positive, help="seconds (default: until Ctrl-C)")
+    ts.add_argument("--seed", type=int, default=1)
+
     sub.add_parser("equipment-template", help="print an equipment manifest template")
     return ap
 
@@ -270,7 +283,7 @@ def _inspect(path: Path) -> dict[str, Any]:
     if path.is_dir() or path.name == "structure.oebin":
         rec = oe_ref.load_oe_recording(path)
         return {
-            "kind": "Open Ephys Binary recording",
+            "file_type": "Open Ephys Binary recording",
             "path": str(rec.path),
             "gui_version": rec.gui_version,
             "continuous": [c.describe() for c in rec.continuous],
@@ -282,7 +295,7 @@ def _inspect(path: Path) -> dict[str, Any]:
     if path.suffix.lower() in (".xdf", ".xdfz"):
         hdr, streams = xdf_ref.load_xdf(path)
         return {
-            "kind": "XDF",
+            "file_type": "XDF",
             "path": str(path),
             "header": hdr,
             "streams": [
@@ -291,7 +304,33 @@ def _inspect(path: Path) -> dict[str, Any]:
             ],
         }
     rec_b = brainos_rec.load_brainos_recording(path)
-    return {"kind": "BrainOS recording"} | brainos_rec.summary(rec_b)
+    return {"file_type": "BrainOS recording"} | brainos_rec.summary(rec_b)
+
+
+def _test_signal(args: argparse.Namespace) -> int:
+    try:
+        import pylsl  # noqa: F401
+    except ImportError as exc:
+        raise InputError("test-signal needs pylsl (pip install pylsl)") from exc
+    from brainos_hwval.testsignal import LSLTestSignal
+
+    if not 1 <= args.channels <= 1024:
+        raise InputError("--channels must be in [1, 1024]")
+    sig = LSLTestSignal(
+        args.name, channels=args.channels, rate=args.rate, seed=args.seed, duration_s=args.duration
+    ).start()
+    if sig.error is not None:
+        raise InputError(f"cannot publish: {sig.error}")
+    print(
+        f"Publishing LSL stream {args.name!r}: {args.channels} ch x {args.rate:g} Hz float32 "
+        "microvolts, declared synthetic. Ctrl-C to stop.",
+        flush=True,
+    )
+    try:
+        sig.join()
+    except KeyboardInterrupt:
+        sig.close()
+    return 0
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -308,6 +347,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.cmd == "inspect":
             print(json.dumps(_inspect(args.path), indent=1, default=str))
             return 0
+        if args.cmd == "test-signal":
+            return _test_signal(args)
         if args.cmd == "equipment-template":
             from brainos_hwval.scope import equipment_template
 
