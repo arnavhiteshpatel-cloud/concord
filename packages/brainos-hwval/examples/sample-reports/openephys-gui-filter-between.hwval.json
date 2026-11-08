@@ -1,7 +1,7 @@
 {
  "format": "brainos-hwval.report/1",
  "tool": "brainos-hwval 0.1.0",
- "created_at": "2026-11-08T00:44:48Z",
+ "created_at": "2026-11-08T00:57:33Z",
  "protocol": "openephys",
  "result": "inconclusive",
  "result_explanation": "INCONCLUSIVE: META-CHAIN: processors between ZMQ Interface and Record Node: ['Bandpass Filter']; ALIGN-CONTENT: the data could not be located by content (signal too uniform or values differ): alignment rests on timestamps/indices alone; VALUES: 1916028 of 1917040 values differ beyond the expected tolerance \u2014 not comparable: processors between ZMQ Interface and Record Node: ['Bandpass Filter']; CHANNEL-ORDER: values differ, but not as a channel permutation; SCALE: values differ, but not by a constant factor or offset",
@@ -50,25 +50,25 @@
  "inputs": [
   {
    "role": "reference_openephys_recording",
-   "path": "/tmp/pytest-of-root/pytest-20/test_gui_processor_between_zmq0/ref/2026-11-08_00-44-42/Record Node 103/experiment1/recording1",
+   "path": "/tmp/pytest-of-root/pytest-26/test_gui_processor_between_zmq0/ref/2026-11-08_00-57-27/Record Node 103/experiment1/recording1",
    "kind": "directory",
    "files": 12,
-   "bytes": 6472322,
-   "sha256": "5b1f42aecb2116476919a36033c0afdcd35339c3fa9859655f9886fa54a92007",
+   "bytes": 6516914,
+   "sha256": "aeaeed6b67e8a2b6a19c321ba9eb14cbaa75655882972ca80abe801787e2f272",
    "sha256_method": "sha256 over sorted lines '<relative path>\\0<file sha256>\\n'"
   },
   {
    "role": "brainos_recording",
-   "path": "/tmp/pytest-of-root/pytest-20/test_gui_processor_between_zmq0/brainos.brainos.jsonl",
+   "path": "/tmp/pytest-of-root/pytest-26/test_gui_processor_between_zmq0/brainos.brainos.jsonl",
    "kind": "file",
    "bytes": 31212190,
-   "sha256": "62b17cd3032431ae3762e7156fb8abc2211f4f66bfd9a6c5cdd5abdcc42c2512"
+   "sha256": "273bfc79b96cd63f99abbb6864a57a0d31b9dd2f7844054acedbe4429634ca85"
   }
  ],
  "acquisition": {
   "protocol": "Open Ephys ZMQ Interface",
   "reference_software": "Open Ephys GUI 1.1.0 Record Node (Binary format)",
-  "reference_recording": "/tmp/pytest-of-root/pytest-20/test_gui_processor_between_zmq0/ref/2026-11-08_00-44-42/Record Node 103/experiment1/recording1",
+  "reference_recording": "/tmp/pytest-of-root/pytest-26/test_gui_processor_between_zmq0/ref/2026-11-08_00-57-27/Record Node 103/experiment1/recording1",
   "reference_stream": {
    "folder_name": "File_Reader-100.example_data",
    "stream_name": "example_data",
@@ -99,17 +99,17 @@
    "bit_volts": [
     0.0500000007
    ],
-   "samples": 134675,
+   "samples": 135604,
    "first_sample_number": 0,
-   "last_sample_number": 134674,
+   "last_sample_number": 135603,
    "history": [
     "File Reader -> ZMQ Interface -> Bandpass Filter -> Record Node"
    ],
    "problems": []
   },
   "brainos_device": {
-   "device_id": "openephys:127.0.0.1:58183",
-   "display_name": "Open Ephys (ZMQ) \u00b7 127.0.0.1:58183",
+   "device_id": "openephys:127.0.0.1:49573",
+   "display_name": "Open Ephys (ZMQ) \u00b7 127.0.0.1:49573",
    "kind": "stream",
    "adapter": "brainos.openephys.zmq@0.1.0",
    "native_format": "Open Ephys ZMQ Interface: ZMQ PUB multipart [b'DATA\\0'|b'EVENT\\0', JSON header, float32 payload]; one message per channel per block"
@@ -140,7 +140,7 @@
    "stream": "example_data",
    "frame_samples": 929
   },
-  "sync_messages": "Software Time (milliseconds since midnight Jan 1st 1970 UTC): 1794098683260\nStart Time for File Reader (100) - example_data @ 40000 Hz: 0\n"
+  "sync_messages": "Software Time (milliseconds since midnight Jan 1st 1970 UTC): 1794099448544\nStart Time for File Reader (100) - example_data @ 40000 Hz: 0\n"
  },
  "summary": {
   "acquisition_protocol": "Open Ephys GUI: ZMQ Interface (reference: Record Node, Binary)",
@@ -166,7 +166,7 @@
    "CH16"
   ],
   "sample_rate_hz": 40000.0,
-  "reference_samples": 134675,
+  "reference_samples": 135604,
   "brainos_samples": 119815,
   "overlap_s": 2.995375,
   "samples_compared": 119815,
@@ -176,8 +176,8 @@
   "brainos_samples_without_counterpart": 0,
   "values_out_of_tolerance": 1916028,
   "max_abs_value_diff_uV": 224.10000931557343,
-  "brainos_ingest_drift_ppm": 55.70256943755836,
-  "excess_delay_max_s": 0.001402139663696289,
+  "brainos_ingest_drift_ppm": -144.99246525594467,
+  "excess_delay_max_s": 0.0023369789123535156,
   "reference_sample_number_breaks": 0,
   "result": "inconclusive"
  },
@@ -188,7 +188,7 @@
    "category": "input",
    "required": true,
    "status": "pass",
-   "summary": "134675 rows x 16 channels",
+   "summary": "135604 rows x 16 channels",
    "method": "structure.oebin parsed; continuous.dat size a multiple of channels x 2 bytes; sample_numbers.npy and timestamps.npy have one entry per row.",
    "evidence": {
     "problems": [],
@@ -198,11 +198,11 @@
      "missing_numbers": 0,
      "examples": []
     },
-    "rows": 134675,
+    "rows": 135604,
     "official_reader": {
      "status": "pass",
      "reader": "open-ephys-python-tools 1.0.1",
-     "rows_compared": "all sample numbers; scaled values at rows 0, 67337, 134674",
+     "rows_compared": "all sample numbers; scaled values at rows 0, 67802, 135603",
      "problems": []
     }
    }
@@ -218,7 +218,7 @@
    "evidence": {
     "status": "pass",
     "reader": "open-ephys-python-tools 1.0.1",
-    "rows_compared": "all sample numbers; scaled values at rows 0, 67337, 134674",
+    "rows_compared": "all sample numbers; scaled values at rows 0, 67802, 135603",
     "problems": []
    }
   },
@@ -229,7 +229,7 @@
    "required": true,
    "status": "pass",
    "summary": "129 frames, every line readable, seq contiguous, contract-valid",
-   "method": "Parse every line; require the brainos.recording/1 header, contiguous envelope seq numbers (the recorder writes every published event), and \u2014 if BrainOS is installed \u2014 validation of every envelope against BrainOS's contract models.",
+   "method": "Parse every line; require the brainos.recording/1 header, contiguous envelope seq numbers (the recorder writes every published event), no recorder recovery/active marker next to the file, and \u2014 if BrainOS is installed \u2014 validation of every envelope against BrainOS's contract models.",
    "evidence": {
     "event_counts": {
      "recording.frame": 129
@@ -244,7 +244,9 @@
      "validated": true,
      "valid_events": 129,
      "invalid_events": 0
-    }
+    },
+    "recovery_marker": null,
+    "active_marker": false
    }
   },
   {
@@ -287,9 +289,9 @@
      "bit_volts": [
       0.0500000007
      ],
-     "samples": 134675,
+     "samples": 135604,
      "first_sample_number": 0,
-     "last_sample_number": 134674,
+     "last_sample_number": 135603,
      "history": [
       "File Reader -> ZMQ Interface -> Bandpass Filter -> Record Node"
      ],
@@ -300,7 +302,7 @@
     ],
     "brainos_adapter": "brainos.openephys.zmq@0.1.0",
     "brainos_origin": [
-     "openephys:127.0.0.1:58183/example_data"
+     "openephys:127.0.0.1:49573/example_data"
     ],
     "gui_version": "1.1.0"
    }
@@ -434,7 +436,7 @@
      2786,
      122601
     ],
-    "reference_rows": 134675,
+    "reference_rows": 135604,
     "brainos_samples": 119815,
     "brainos_samples_outside_reference": 0,
     "brainos_samples_past_reference_end": 0,
@@ -453,7 +455,7 @@
     "reference_samples_in_overlap": 119815,
     "brainos_samples_mapped_into_overlap": 119815,
     "difference": 0,
-    "reference_total": 134675,
+    "reference_total": 135604,
     "brainos_total": 119815
    }
   },
@@ -1013,19 +1015,19 @@
    "category": "timing",
    "required": true,
    "status": "pass",
-   "summary": "worst excess ingest delay 1.4 ms (median 0.5 ms) vs threshold 1000 ms",
+   "summary": "worst excess ingest delay 2.3 ms (median 0.4 ms) vs threshold 1000 ms",
    "method": "BrainOS ingest wall clock minus the source time of each frame's last sample; the excess over the smallest observed value is the variable delay (buffering, transport, stalls). Without a measured clock pair, absolute latency is unknown.",
    "evidence": {
     "frames": 129,
-    "excess_delay_median_s": 0.000499725341796875,
-    "excess_delay_p95_s": 0.0009956359863281248,
-    "excess_delay_max_s": 0.001402139663696289,
-    "drift_ppm": 55.70256943755836,
+    "excess_delay_median_s": 0.0004291534423828125,
+    "excess_delay_p95_s": 0.001029062271118164,
+    "excess_delay_max_s": 0.0023369789123535156,
+    "drift_ppm": -144.99246525594467,
     "fit": {
-     "slope": 5.570256943755836e-05,
-     "intercept": 1794098683.237954,
-     "residual_std": 0.0002566595607749417,
-     "residual_max_abs": 0.0008449554443359375,
+     "slope": -0.00014499246525594468,
+     "intercept": 1794099448.52229,
+     "residual_std": 0.00031347397449885806,
+     "residual_max_abs": 0.0016472339630126953,
      "n": 129
     }
    }

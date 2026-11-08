@@ -39,8 +39,20 @@ def brainos_file(rec: BrainOSRecording) -> Check:
         "seq_gap_examples": rec.seq_gaps[:5],
         "seq_regressions": rec.seq_regressions,
         "contract": rec.contract,
+        "recovery_marker": rec.recovery,
+        "active_marker": rec.still_active,
     }
     problems = []
+    if rec.recovery is not None:
+        problems.append(
+            "BrainOS marked this recording incomplete (<name>.recovery.json: the recorder died "
+            "and the file was cut to its valid prefix)"
+        )
+    if rec.still_active:
+        problems.append(
+            "a <name>.active.json marker exists: the recording was still being written or its "
+            "writer crashed before recovery ran"
+        )
     if not rec.frames:
         problems.append(
             "no recording.frame events (raw frames excluded, or the source delivered only "
@@ -72,8 +84,9 @@ def brainos_file(rec: BrainOSRecording) -> Check:
         status,
         summary,
         "Parse every line; require the brainos.recording/1 header, contiguous envelope seq "
-        "numbers (the recorder writes every published event), and — if BrainOS is installed — "
-        "validation of every envelope against BrainOS's contract models.",
+        "numbers (the recorder writes every published event), no recorder recovery/active "
+        "marker next to the file, and — if BrainOS is installed — validation of every envelope "
+        "against BrainOS's contract models.",
         ev,
     )
 

@@ -16,13 +16,13 @@
 | Quantity | Value |
 | --- | --- |
 | acquisition protocol | Lab Streaming Layer (reference: XDF) |
-| stream | hwval-clean-3583 (EEG) on vm |
+| stream | hwval-clean-5491 (EEG) on vm |
 | channels | 8 |
 | channel labels | ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8"] |
 | nominal rate hz | 1000 |
 | effective rate reference hz | 1000 |
 | effective rate brainos hz | 1000 |
-| reference samples | 14520 |
+| reference samples | 14020 |
 | brainos samples | 10640 |
 | overlap s | 10.64 |
 | samples compared | 10640 |
@@ -33,10 +33,10 @@
 | values out of tolerance | 0 |
 | max abs value diff | 0 |
 | max timestamp discrepancy s | 4.547e-13 |
-| reference clock drift ppm | -0.36495 |
-| brainos ingest drift ppm | 8.26691 |
-| latency median s | 0.00437903 |
-| excess delay max s | 0.0141585 |
+| reference clock drift ppm | 1.8364 |
+| brainos ingest drift ppm | -12.1967 |
+| latency median s | 0.00441599 |
+| excess delay max s | 0.00911498 |
 | reference discontinuities | 0 |
 | result | pass |
 
@@ -44,9 +44,9 @@
 
 | Check | Status | Required | Finding |
 | --- | --- | --- | --- |
-| `REF-FILE` Reference XDF stream is readable and consistent | PASS | yes | 14520 samples read by pyxdf (footer sample_count 14519 vs 14520 samples read (LabRecorder footer count; the samples themselves are authoritative)) |
+| `REF-FILE` Reference XDF stream is readable and consistent | PASS | yes | 14020 samples read by pyxdf (footer sample_count 14019 vs 14020 samples read (LabRecorder footer count; the samples themselves are authoritative)) |
 | `BOS-FILE` BrainOS recording file is complete and well-formed | PASS | yes | 501 frames, every line readable, seq contiguous, contract-valid |
-| `IDENTITY` Both recordings are of the same LSL stream | PASS | yes | same LSL outlet (uid 1cf8fb9d-55b7-4a33-84a6-d1a2f459eac6) |
+| `IDENTITY` Both recordings are of the same LSL stream | PASS | yes | same LSL outlet (uid 22b95506-c162-407f-8bf2-45b67384afb3) |
 | `META-CHANNELS` Channel count and channel identities agree | PASS | yes | 8 channels, labels identical in order |
 | `META-RATE` Declared sampling rate agrees | PASS | yes | 1000 Hz on both sides |
 | `META-FORMAT` Stream type and sample format agree | PASS | yes | EEG / float32 |
@@ -64,31 +64,31 @@
 | `SCALE` Scaling and units are correct | PASS | yes | values equal the reference in the stated unit (factor 1) |
 | `LOSS-FLAGGED` BrainOS reported every loss it suffered | PASS | yes | no loss to report |
 | `TS-AGREE` Timestamps agree with the reference | PASS | yes | first-sample timestamps of 501 frames equal the source timestamps (max \|diff\| 4.5e-13 s) |
-| `DELAY` Data was not delayed beyond the threshold | PASS | yes | worst excess ingest delay 14.2 ms (median 2.7 ms) vs threshold 1000 ms; absolute latency median 4.4 ms |
+| `DELAY` Data was not delayed beyond the threshold | PASS | yes | worst excess ingest delay 9.1 ms (median 2.7 ms) vs threshold 1000 ms; absolute latency median 4.4 ms |
 | `RATE-EFFECTIVE` Effective sampling rate matches the nominal rate | PASS | advisory | effective rate 1000.0000 Hz (+0.0 ppm from nominal) |
 | `REF-CONTINUITY` Reference stream is continuous | PASS | advisory | the reference stream is continuous |
-| `CLOCKS` Clock offset and drift characterised | PASS | advisory | recorder-source offset median -0.015 ms, drift -0.36 ppm; BrainOS wall clock vs source drift +8.27 ppm |
+| `CLOCKS` Clock offset and drift characterised | PASS | advisory | recorder-source offset median -0.011 ms, drift +1.84 ppm; BrainOS wall clock vs source drift -12.20 ppm |
 | `EQUIPMENT` Acquisition hardware and software are documented | not tested | advisory | no equipment manifest given (--equipment); the run is not traceable to hardware |
 
 ## Acquisition source
 
 - **protocol**: Lab Streaming Layer
 - **reference software**: XDF file (LabRecorder or compatible), read with pyxdf
-- **xdf stream**: {"stream_id": 1, "name": "hwval-clean-3583", "type": "EEG", "source_id": "hwval-clean-3583-sid", "hostname": "vm", "uid": "1cf8fb9d-55b7-4a33-84a6-d1a2f459ea...
-- **xdf file header**: {"version": "1.0", "datetime": "2026-11-08T00:43:42+0000"}
-- **brainos device**: {"device_id": "lsl:hwval-clean-3583-sid", "display_name": "LSL \u00b7 hwval-clean-3583 (EEG) \u2014 declared synthetic", "kind": "simulated", "adapter": "bra...
+- **xdf stream**: {"stream_id": 1, "name": "hwval-clean-5491", "type": "EEG", "source_id": "hwval-clean-5491-sid", "hostname": "vm", "uid": "22b95506-c162-407f-8bf2-45b67384af...
+- **xdf file header**: {"version": "1.0", "datetime": "2026-11-08T00:56:27+0000"}
+- **brainos device**: {"device_id": "lsl:hwval-clean-5491-sid", "display_name": "LSL \u00b7 hwval-clean-5491 (EEG) \u2014 declared synthetic", "kind": "simulated", "adapter": "bra...
 - **brainos recording note**: Synthetic data (declared by the source).
 - **brainos schema version**: 1.4
-- **capture sidecar**: {"brainos_version": "0.3.0", "started_utc": "2026-11-08T00:43:45Z", "duration_s": 10.65707848, "stop_reason": "duration reached", "host": {"hostname": "vm", ...
+- **capture sidecar**: {"brainos_version": "0.3.0", "started_utc": "2026-11-08T00:56:30Z", "duration_s": 10.692358173, "stop_reason": "duration reached", "host": {"hostname": "vm",...
 - **reference software version**: LabRecorder 1.16.4 (LabRecorderCLI) with liblsl 1.16.2
 
 ## Inputs
 
 | Role | Path | Bytes | SHA-256 |
 | --- | --- | --- | --- |
-| reference_xdf | `/tmp/pytest-of-root/pytest-20/lr-clean0/labrecorder.xdf` | 546057 | `cbdac060eb7e76cf94c2def8913146f516bb7e4acf9e5841b579354f1d368d28` |
-| brainos_recording | `/tmp/pytest-of-root/pytest-20/lr-clean0/brainos.brainos.jsonl` | 1825212 | `4d473ac513e36b6e837e771530bf85e52533c4a89e234ed53c5b0058f2e84b55` |
-| capture_sidecar | `/tmp/pytest-of-root/pytest-20/lr-clean0/brainos.capture.json` | 3903 | `898fcda8302c08c7c0943ba4ecf39635c9cfca7ca18828815d7c433bc344f6f0` |
+| reference_xdf | `/tmp/pytest-of-root/pytest-26/lr-clean0/labrecorder.xdf` | 527333 | `2e6e994a8accb2f4b35524ce4ca3faed476e7b3e3abcf1f93678500d44cf573d` |
+| brainos_recording | `/tmp/pytest-of-root/pytest-26/lr-clean0/brainos.brainos.jsonl` | 1825119 | `baf5f67182cb05b21421e7b107682f6fb818fe1d10551b812a9769c489c60096` |
+| capture_sidecar | `/tmp/pytest-of-root/pytest-26/lr-clean0/brainos.capture.json` | 3904 | `7407b5c04cff88e81ecb2b62b25913b2133a70dc590aee119d8cd4456eae2690` |
 
 ## Tests performed and evidence
 
@@ -96,20 +96,20 @@
 
 *Method:* pyxdf loads the file (synchronize_clocks=False, dejitter_timestamps=False); sample and timestamp counts must agree.
 
-*Finding:* 14520 samples read by pyxdf (footer sample_count 14519 vs 14520 samples read (LabRecorder footer count; the samples themselves are authoritative))
+*Finding:* 14020 samples read by pyxdf (footer sample_count 14019 vs 14020 samples read (LabRecorder footer count; the samples themselves are authoritative))
 
 | Evidence | Value |
 | --- | --- |
-| samples | 14520 |
+| samples | 14020 |
 | pyxdf_effective_srate | 1000 |
 
 <details><summary>footer</summary>
 
 ```json
 {
- "first_timestamp": "3164.612419746",
- "last_timestamp": "3179.131419746",
- "sample_count": "14519"
+ "first_timestamp": "3929.429074409",
+ "last_timestamp": "3943.448074409",
+ "sample_count": "14019"
 }
 ```
 </details>
@@ -118,14 +118,14 @@
 
 ```json
 [
- "footer sample_count 14519 vs 14520 samples read (LabRecorder footer count; the samples themselves are authoritative)"
+ "footer sample_count 14019 vs 14020 samples read (LabRecorder footer count; the samples themselves are authoritative)"
 ]
 ```
 </details>
 
 ### `BOS-FILE` — BrainOS recording file is complete and well-formed: PASS
 
-*Method:* Parse every line; require the brainos.recording/1 header, contiguous envelope seq numbers (the recorder writes every published event), and — if BrainOS is installed — validation of every envelope against BrainOS's contract models.
+*Method:* Parse every line; require the brainos.recording/1 header, contiguous envelope seq numbers (the recorder writes every published event), no recorder recovery/active marker next to the file, and — if BrainOS is installed — validation of every envelope against BrainOS's contract models.
 
 *Finding:* 501 frames, every line readable, seq contiguous, contract-valid
 
@@ -135,6 +135,8 @@
 | malformed_lines | 0 |
 | seq_gaps | 0 |
 | seq_regressions | 0 |
+| recovery_marker | — |
+| active_marker | False |
 
 <details><summary>event_counts</summary>
 
@@ -160,7 +162,7 @@
 
 *Method:* XDF stream chosen by the capture sidecar's uid, else the stream name/source_id/host in the BrainOS device descriptor, else a unique channel count + rate; then every identity field available on both sides must agree.
 
-*Finding:* same LSL outlet (uid 1cf8fb9d-55b7-4a33-84a6-d1a2f459eac6)
+*Finding:* same LSL outlet (uid 22b95506-c162-407f-8bf2-45b67384afb3)
 
 | Evidence | Value |
 | --- | --- |
@@ -171,15 +173,15 @@
 ```json
 {
  "stream_id": 1,
- "name": "hwval-clean-3583",
+ "name": "hwval-clean-5491",
  "type": "EEG",
- "source_id": "hwval-clean-3583-sid",
+ "source_id": "hwval-clean-5491-sid",
  "hostname": "vm",
- "uid": "1cf8fb9d-55b7-4a33-84a6-d1a2f459eac6",
+ "uid": "22b95506-c162-407f-8bf2-45b67384afb3",
  "channel_count": 8,
  "nominal_srate": 1000.0,
  "channel_format": "float32",
- "samples": 14520,
+ "samples": 14020,
  "channels_described": true,
  "manufacturer": "brainos-hwval test signal (synthetic)",
  "declaration": {
@@ -194,9 +196,9 @@
 
 ```json
 {
- "name": "hwval-clean-3583",
+ "name": "hwval-clean-5491",
  "hostname": "vm",
- "source_id": "hwval-clean-3583-sid",
+ "source_id": "hwval-clean-5491-sid",
  "type": "EEG"
 }
 ```
@@ -206,11 +208,11 @@
 
 ```json
 {
- "name": "hwval-clean-3583",
+ "name": "hwval-clean-5491",
  "type": "EEG",
- "source_id": "hwval-clean-3583-sid",
+ "source_id": "hwval-clean-5491-sid",
  "hostname": "vm",
- "uid": "1cf8fb9d-55b7-4a33-84a6-d1a2f459eac6"
+ "uid": "22b95506-c162-407f-8bf2-45b67384afb3"
 }
 ```
 </details>
@@ -221,12 +223,12 @@
 [
  {
   "stream_id": 1,
-  "name": "hwval-clean-3583",
+  "name": "hwval-clean-5491",
   "type": "EEG",
-  "source_id": "hwval-clean-3583-sid",
+  "source_id": "hwval-clean-5491-sid",
   "channel_count": 8,
   "nominal_srate": 1000.0,
-  "samples": 14520
+  "samples": 14020
  }
 ]
 ```
@@ -401,7 +403,7 @@
   false
  ],
  "origins": [
-  "lsl:hwval-clean-3583@vm"
+  "lsl:hwval-clean-5491@vm"
  ],
  "adapters": [
   "brainos.lsl@0.1.0"
@@ -420,7 +422,7 @@
 | --- | --- |
 | overlap_rows | 10640 |
 | overlap_s | 10.64 |
-| reference_rows | 14520 |
+| reference_rows | 14020 |
 | brainos_samples | 10640 |
 | brainos_samples_outside_reference | 0 |
 | brainos_samples_past_reference_end | 0 |
@@ -430,8 +432,8 @@
 
 ```json
 [
- 3600,
- 14240
+ 3120,
+ 13760
 ]
 ```
 </details>
@@ -447,7 +449,7 @@
 | reference_samples_in_overlap | 10640 |
 | brainos_samples_mapped_into_overlap | 10640 |
 | difference | 0 |
-| reference_total | 14520 |
+| reference_total | 14020 |
 | brainos_total | 10640 |
 
 ### `LOSS` — No samples missing in BrainOS: PASS
@@ -739,28 +741,28 @@
 
 *Method:* BrainOS ingest wall clock minus the source time of each frame's last sample; the excess over the smallest observed value is the variable delay (buffering, transport, stalls). Absolute latency uses the clock pair measured by `brainos-hwval capture`.
 
-*Finding:* worst excess ingest delay 14.2 ms (median 2.7 ms) vs threshold 1000 ms; absolute latency median 4.4 ms
+*Finding:* worst excess ingest delay 9.1 ms (median 2.7 ms) vs threshold 1000 ms; absolute latency median 4.4 ms
 
 | Evidence | Value |
 | --- | --- |
 | frames | 501 |
-| excess_delay_median_s | 0.00268269 |
-| excess_delay_p95_s | 0.00521922 |
-| excess_delay_max_s | 0.0141585 |
-| drift_ppm | 8.26691 |
-| latency_median_s | 0.00437903 |
-| latency_p95_s | 0.00691557 |
-| latency_max_s | 0.0158548 |
-| latency_min_s | 0.00169635 |
+| excess_delay_median_s | 0.00270247 |
+| excess_delay_p95_s | 0.00520921 |
+| excess_delay_max_s | 0.00911498 |
+| drift_ppm | -12.1967 |
+| latency_median_s | 0.00441599 |
+| latency_p95_s | 0.00692272 |
+| latency_max_s | 0.0108285 |
+| latency_min_s | 0.00171351 |
 
 <details><summary>fit</summary>
 
 ```json
 {
- "slope": 8.266909555826703e-06,
- "intercept": 1794095457.7643104,
- "residual_std": 0.0016253425889869882,
- "residual_max_abs": 0.011481285095214844,
+ "slope": -1.2196694109325543e-05,
+ "intercept": 1794095457.8386068,
+ "residual_std": 0.0015802422321954323,
+ "residual_max_abs": 0.0063326358795166016,
  "n": 501
 }
 ```
@@ -776,7 +778,7 @@
 | --- | --- |
 | nominal_hz | 1000 |
 | reference_rate_hz | 1000 |
-| reference_ppm | 4.441e-10 |
+| reference_ppm | 0 |
 | brainos_rate_hz | 1000 |
 | brainos_ppm | -2.22e-10 |
 | advisory_threshold_ppm | 500 |
@@ -785,13 +787,13 @@
 
 ```json
 {
- "rate_hz": 1000.0000000000005,
+ "rate_hz": 1000.0,
  "segment_rows": [
   0,
-  14520
+  14020
  ],
- "segment_s": 14.518999999999778,
- "timestamp_jitter_std_s": 3.4691367398729954e-14,
+ "segment_s": 14.018999999999778,
+ "timestamp_jitter_std_s": 0.0,
  "timestamp_jitter_max_s": 4.547473508864641e-13
 }
 ```
@@ -823,7 +825,7 @@
 
 *Method:* Linear fit of LabRecorder's ClockOffset chunks (recorder minus source clock) against time; separately, BrainOS ingest wall clock minus source time against source time. Advisory: these characterise the clocks involved; offsets between clock domains are expected and are not errors.
 
-*Finding:* recorder-source offset median -0.015 ms, drift -0.36 ppm; BrainOS wall clock vs source drift +8.27 ppm
+*Finding:* recorder-source offset median -0.011 ms, drift +1.84 ppm; BrainOS wall clock vs source drift -12.20 ppm
 
 <details><summary>labrecorder_clock_offsets</summary>
 
@@ -832,18 +834,18 @@
  "measurements": 3,
  "usable": 3,
  "discarded": 0,
- "offset_median_s": -1.4908000139257638e-05,
- "offset_min_s": -2.741399998740235e-05,
- "offset_max_s": -1.125850008065754e-05,
- "drift_ppm": -0.36495008532293616,
+ "offset_median_s": -1.0747000260380446e-05,
+ "offset_min_s": -2.7745500119635835e-05,
+ "offset_max_s": -9.380999927088851e-06,
+ "drift_ppm": 1.8364000297446728,
  "fit": {
-  "slope": -3.6495008532293617e-07,
-  "intercept": 0.001140955963868749,
-  "residual_std": 6.755571032053529e-06,
-  "residual_max_abs": 9.553820174920853e-06,
+  "slope": 1.8364000297446727e-06,
+  "intercept": -0.007251538952694455,
+  "residual_std": 3.6846397899943024e-06,
+  "residual_max_abs": 5.210867563442377e-06,
   "n": 3
  },
- "span_s": 10.000279218500054
+ "span_s": 10.000256274499861
 }
 ```
 </details>
@@ -853,21 +855,21 @@
 ```json
 {
  "frames": 501,
- "excess_delay_median_s": 0.0026826858520507812,
- "excess_delay_p95_s": 0.005219221115112305,
- "excess_delay_max_s": 0.014158487319946289,
- "drift_ppm": 8.266909555826702,
+ "excess_delay_median_s": 0.002702474594116211,
+ "excess_delay_p95_s": 0.005209207534790039,
+ "excess_delay_max_s": 0.009114980697631836,
+ "drift_ppm": -12.196694109325543,
  "fit": {
-  "slope": 8.266909555826703e-06,
-  "intercept": 1794095457.7643104,
-  "residual_std": 0.0016253425889869882,
-  "residual_max_abs": 0.011481285095214844,
+  "slope": -1.2196694109325543e-05,
+  "intercept": 1794095457.8386068,
+  "residual_std": 0.0015802422321954323,
+  "residual_max_abs": 0.0063326358795166016,
   "n": 501
  },
- "latency_median_s": 0.0043790340423583984,
- "latency_p95_s": 0.006915569305419922,
- "latency_max_s": 0.015854835510253906,
- "latency_min_s": 0.0016963481903076172
+ "latency_median_s": 0.004415988922119141,
+ "latency_p95_s": 0.006922721862792969,
+ "latency_max_s": 0.010828495025634766,
+ "latency_min_s": 0.0017135143280029297
 }
 ```
 </details>
@@ -914,6 +916,6 @@
  },
  "command": null,
  "tool": "brainos-hwval 0.1.0",
- "created_at": "2026-11-08T00:43:59Z"
+ "created_at": "2026-11-08T00:56:44Z"
 }
 ```
