@@ -21,8 +21,8 @@ not closed-loop control.
 | Component | Level reached | Evidence (all executed) | Not yet done |
 | --- | --- | --- | --- |
 | Contracts, schema 1.2, provenance rules | 1 | `test_contracts.py`, JSON Schema drift test, TS SDK tests | — |
-| LSL adapter: discovery, metadata, units, timestamps, gaps, composite clocks, reconnect | **2** | `test_lsl.py` (16 tests) against liblsl 1.18 outlets; `bench_live.py` with the publisher in a separate process (30 kHz × 32/96 ch, 0 gaps); reconnect after killing the publisher process | Third-party LSL producers (vendor LSL apps, LabRecorder interop) not tested; no hardware |
-| Open Ephys ZMQ adapter: data/TTL/spikes, heartbeat, block assembly, loss counters | **2** | `test_openephys.py` (61 tests); the **official** plugin Python client (`plot_process_zmq.py`, SHA-256 pinned, downloaded at test time) parses our publisher's output bit-exactly; message layout derived line by line from the plugin source | Never run against the Open Ephys GUI or an acquisition board. Our publisher reproduces the plugin's format from source; a mismatch with the real plugin binary is possible (see docs/OPEN_EPHYS.md "Limitations") |
+| LSL adapter: discovery, metadata, units, timestamps, gaps, composite clocks, reconnect | **2** | `test_lsl.py` (16 tests) against liblsl 1.18 outlets; `bench_live.py` with the publisher in a separate process (30 kHz × 32/96 ch, 0 gaps); reconnect after killing the publisher process; (M5) BrainOS's recording of an outlet equals LabRecorder's recording of the same outlet bit for bit (`brainos-hwval`, below) | Third-party LSL producers (vendor LSL apps) not tested; no hardware |
+| Open Ephys ZMQ adapter: data/TTL/spikes, heartbeat, block assembly, loss counters | **2** | `test_openephys.py` (61 tests); the **official** plugin Python client (`plot_process_zmq.py`, SHA-256 pinned, downloaded at test time) parses our publisher's output bit-exactly; message layout derived line by line from the plugin source | (M5) Run against the real Open Ephys GUI 1.1.0 + ZMQ Interface 1.0.0 with the File Reader and compared with its Record Node (`brainos-hwval`, below). Never with an acquisition board |
 | Signal processing (filters, CAR, threshold crossings, band power) | 1 (+ numerical reference) | Chunk invariance exact; equals SciPy `sosfilt`; analytic band power; ≥ 95 % recall of injected synthetic spikes | Never applied to real broadband neural recordings |
 | Pipeline + streaming decoder | 2 + real-data replay | FALCON H1 block streamed over LSL: every bin received exactly once; decoded output equals the offline decoder bin for bin (`test_pipeline_live.py`); measured latency in docs/BENCHMARKS_LIVE.md | No live neural source |
 | Decoder compatibility + leakage guards | 1 | Tests refuse wrong channel count / feature / bin, training-session streams, cross-source models without override | — |
@@ -117,6 +117,19 @@ The registry itself is software:
 | --- | --- | --- | --- |
 | Decoder SDK (manifest, decoder host, loaders, CLI) | 1 | `packages/brainos-decoder-sdk/tests`: malformed manifests per rule; real ONNX (linear + recurrent), skops, pickle (refused / trusted / malicious never executed), TorchScript and safetensors files generated in the tests, loaded through a real host; crash, hang, garbage, invalid outputs; `brainos-decoder new` scaffold passes `check` | No third-party decoder from a lab has been run; no GPU execution |
 | Decoders in the pipeline (built-in + isolated), compatibility, mapping, passthrough, drift, calibration | 1 (2 for the FALCON passthrough path: genuine liblsl, prerecorded human data) | `backend/tests/test_decoder_compat.py`, `test_decoder_pipeline.py` (synthetic, declared), `test_pipeline_live.py` (FALCON over LSL: streamed decoded output == offline prediction bit for bit), `test_decoder_example.py` (installed example plugin, real server, SDK app after authorization) | No decoder BrainOS ran has been used by a person; drift thresholds unvalidated against closed-loop performance |
+
+## Acquisition verification toolkit (Milestone 5, `brainos-hwval`)
+
+`packages/brainos-hwval` compares a BrainOS recording with one made at the same time by the
+acquisition system's own reference software (docs/HARDWARE_VALIDATION.md). It is the
+instrument for level 3; using it with software sources gives level-2 evidence only, and its
+reports always state `hardware_verified: false`.
+
+| Component | Level reached | Evidence (all executed) | Not yet done |
+| --- | --- | --- | --- |
+| Comparison engine, readers (XDF via pyxdf, Open Ephys Binary cross-checked with open-ephys-python-tools), checks, reports, CLI | 1 | `tests/test_lsl_synthetic.py`, `test_oe_synthetic.py`: each injected defect (loss, duplicate, reorder, channel swap, unit/scale error, value corruption, timestamp shift, clock drift, identity, metadata, truncated file) caught by its specific check; report schema; CLI exit codes; `scripts/dist_check.py` installs the wheel alone (no BrainOS) and reads a recording made by the wheel-installed server | Thresholds are engineering choices, not standards |
+| BrainOS LSL path vs LabRecorder | 2 | `tests/test_labrecorder.py` with LabRecorderCLI 1.16.4 + liblsl 1.16.2 (downloaded, SHA-256 pinned): 8 ch × 1 kHz, every value bit-exact, timestamps < 1 µs apart; a source gap seen by both and attributed to the source; injected defects in the real files detected; the outlet identified by the uid kept in the BrainOS recording header | Source was a declared-synthetic publisher; no amplifier |
+| BrainOS Open Ephys path vs the GUI's Record Node | 2 | `tests/test_openephys_gui.py` with Open Ephys GUI 1.1.0 + ZMQ Interface 1.0.0 headless (Xvfb), File Reader sample data 16 ch × 40 kHz: values within half a quantisation step, sample numbers exact; a filter between the plugin and the Record Node is INCONCLUSIVE; File Reader loop: FAIL before the M5 adapter fix (0.72 s lost), PASS after | Never with an acquisition board |
 
 ## Installation, researcher workflow and security (Milestone 5, workstream D)
 

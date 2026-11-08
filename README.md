@@ -314,3 +314,25 @@ make dataset-t15            # day 468 blocks 0-3 (~90 MiB; Dryad API token: see 
 make e2e-communication      # the board selects words from the replayed block (historical + BrainOS)
 make cursorclick-report     # all 18 blocks: decoders, clicks, word selection -> docs/CURSOR_CLICK.md
 ```
+
+## Acquisition verification: `brainos-hwval` (Milestone 5)
+
+`packages/brainos-hwval` checks that BrainOS received exactly what an acquisition system
+produced: it compares a BrainOS recording with the recording the system's own reference
+software made at the same time (LabRecorder XDF for LSL sources, the Open Ephys GUI's Record
+Node in Binary format) and writes a JSON + Markdown report (PASS / FAIL / INCONCLUSIVE, per
+check: identity, channels, units, loss, duplicates, values, timestamps, delay). The comparison
+needs only `numpy` and `pyxdf`, not BrainOS. The laboratory procedure is
+[docs/HARDWARE_VALIDATION.md](docs/HARDWARE_VALIDATION.md). So far it has been run against the
+real LabRecorder and the real Open Ephys GUI with software sources only: **no acquisition
+hardware has been verified** (docs/VALIDATION_LEVELS.md).
+
+```bash
+brainos-hwval capture lsl --stream "MyAmp EEG" --duration 240 --out runs/ --name run1
+```
+```bash
+brainos-hwval lsl --reference runs/run1.xdf --brainos runs/run1.brainos.jsonl --out reports/
+```
+```bash
+make test-hwval   # also runs real LabRecorderCLI + Open Ephys GUI (Linux x86_64; see the Makefile)
+```

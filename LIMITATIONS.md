@@ -8,8 +8,11 @@ the PR description and delete it here.
 - **No hardware has ever been connected.** Milestone 3 adds live-protocol adapters (LSL,
   Open Ephys ZMQ Interface). They are **protocol-tested** with software publishers and with
   real recorded data streamed as *prerecorded*; none has been run against acquisition
-  hardware or the real Open Ephys GUI. See docs/VALIDATION_LEVELS.md. Nothing implies
-  compatibility with any company's implant; there is no vendor adapter.
+  hardware. Milestone 5's `brainos-hwval` compared BrainOS with the real LabRecorder and the
+  real Open Ephys GUI (File Reader input), i.e. reference *software* with software sources;
+  the hardware procedure (docs/HARDWARE_VALIDATION.md) has never been carried out. See
+  docs/VALIDATION_LEVELS.md. Nothing implies compatibility with any company's implant; there
+  is no vendor adapter.
 - **No human has used it.** Decoding, calibration, the command router, the board and the
   reference apps have never been used with a participant, live or closed-loop. Real-time
   decoding has been exercised on recorded human data replayed through the runtime (FALCON H1,
@@ -446,3 +449,17 @@ See docs/PERFORMANCE.md and docs/BENCHMARKS_SCALE.md for the measurements.
   encoder: identical output, about 2.5x slower per value.
 - The numba and C SOS-filter prototypes in the benchmark are not shipped; the DSP is scipy.
 
+## Acquisition verification toolkit (`brainos-hwval`, Milestone 5)
+
+- Software-level evidence only: LabRecorderCLI 1.16.4 / liblsl 1.16.2 with a declared-synthetic
+  LSL publisher, and Open Ephys GUI 1.1.0 + ZMQ Interface 1.0.0 with its File Reader. No
+  amplifier, acquisition board, signal generator or TTL source has been used; no report may be
+  read as hardware verification (`hardware_verified` is always false; a person signs off
+  level 3, §9 of docs/HARDWARE_VALIDATION.md).
+- The reference-software tests run on Linux x86_64 only (they download the official Linux
+  packages; the GUI runs headless under Xvfb with a PulseAudio null sink). The comparison
+  itself (numpy + pyxdf) runs anywhere Python 3.11+ does.
+- Thresholds (loss tolerance, value tolerance, delay) are engineering choices, not standards.
+- Without the `capture` sidecar the absolute BrainOS-vs-source latency is not reported (only
+  delay relative to the best case); the stream is still identified by the LSL uid kept in the
+  recording header.

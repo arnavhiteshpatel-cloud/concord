@@ -10,6 +10,9 @@ Three roles, each in its own new environment, none touching the repository's sou
 3. **Application developer** — installs only ``brainos`` (the application SDK: pydantic,
    httpx, websockets — no server, no numpy); receives the plugin's signal through the SDK.
    ``brainos-server`` in this environment fails with an install hint, not a traceback.
+4. **Lab verifying acquisition** — installs only ``brainos-hwval`` (numpy + pyxdf, no
+   BrainOS); reads a recording that the lab's server (2) made from the plugin, including the
+   source metadata BrainOS keeps in the recording header.
 
 Usage:  python scripts/dist_check.py [--keep]
 """
@@ -33,6 +36,7 @@ WHEELS = {
     "sdk": ROOT / "packages" / "brainos-adapter-sdk",
     "decoder_sdk": ROOT / "packages" / "brainos-decoder-sdk",  # brainos[server] needs it (M5)
     "brainos": ROOT / "backend",
+    "hwval": ROOT / "packages" / "brainos-hwval",  # hardware-validation toolkit (M5)
 }
 UV = shutil.which("uv")
 
@@ -232,6 +236,36 @@ def main() -> int:
         r = subprocess.run([str(app.parent / "brainos-server")], text=True, capture_output=True)
         assert r.returncode != 0 and "brainos[server]" in (r.stderr + r.stdout), r
         print("   brainos-server without the server extra: clear install hint")
+
+        # 4. lab verifying acquisition: the hwval toolkit alone reads a lab-server recording
+        http("POST", base + "/api/v1/runtime/connect", {"device_id": device_id})
+        http("POST", base + "/api/v1/recordings/start", {"name": "dist-hwval"})
+        time.sleep(1.5)
+        http("POST", base + "/api/v1/recordings/stop", {})
+        http("POST", base + "/api/v1/runtime/disconnect", {})
+        recording = tmp / "data" / "recordings" / "dist-hwval.brainos.jsonl"
+        hw = venv(tmp / "hwval")
+        install(hw, "brainos-hwval", find_links=dist)
+        mods = run(
+            [
+                str(hw),
+                "-c",
+                "import importlib.util as u; print([m for m in ('brainos', 'fastapi') "
+                "if u.find_spec(m)])",
+            ]
+        ).stdout.strip()
+        assert mods == "[]", f"brainos-hwval pulled in BrainOS: {mods}"
+        hcli = hw.parent / "brainos-hwval"
+        version = run([str(hcli), "--version"]).stdout.strip()
+        json.loads(run([str(hcli), "equipment-template"]).stdout)
+        info = json.loads(run([str(hcli), "inspect", str(recording)]).stdout)
+        assert info["file_type"] == "BrainOS recording" and info["frames"] > 0, info
+        assert info["device_id"] == device_id and info["source_metadata_in_header"], info
+        assert "cannot be reconstructed" in info["timing"], info
+        print(
+            f"4. lab verification ({version}, without BrainOS): read {info['frames']} frames "
+            f"of the server's recording; header source metadata present"
+        )
         print("DIST CHECK PASSED")
         return 0
     finally:
