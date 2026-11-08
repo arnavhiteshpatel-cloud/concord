@@ -195,11 +195,18 @@ def _free_display() -> int:
 
 def _port_free(port: int) -> bool:
     with socket.socket() as s:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # ignore TIME_WAIT leftovers
         try:
             s.bind(("127.0.0.1", port))
         except OSError:
             return False
     return True
+
+
+def _listening(port: int) -> bool:
+    with socket.socket() as s:
+        s.settimeout(1.0)
+        return s.connect_ex(("127.0.0.1", port)) == 0
 
 
 def free_port() -> int:
@@ -246,7 +253,10 @@ class OpenEphysGUI:
                 raise Unavailable(
                     f"{tool} not installed (apt-get install xvfb pulseaudio libasound2-plugins)"
                 )
-        if not _port_free(37497):
+        t_free = time.monotonic() + 15  # a previous GUI may still be shutting down
+        while _listening(37497) and time.monotonic() < t_free:
+            time.sleep(0.5)
+        if _listening(37497):
             raise Unavailable("port 37497 (Open Ephys HTTP API) is in use")
         self._install()
         xdg = self.home / "xdg"
@@ -357,6 +367,10 @@ class OpenEphysGUI:
         if not port or int(port[0]["value"]) != zmq_port:
             raise RuntimeError(f"ZMQ Interface data_port not set: {port}")
         return ids
+
+    def bundled_sample(self) -> Path:
+        """The sample recording shipped with the GUI (Binary format, GUI 0.4.5 layout)."""
+        return self.gui_dir / "open-ephys" / "resources"
 
     def set_status(self, mode: str) -> None:
         got = self.api("PUT", "/status", {"mode": mode}).get("mode")

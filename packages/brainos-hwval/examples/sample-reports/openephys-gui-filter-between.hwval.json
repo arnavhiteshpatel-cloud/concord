@@ -1,0 +1,1089 @@
+{
+ "format": "brainos-hwval.report/1",
+ "tool": "brainos-hwval 0.1.0",
+ "created_at": "2026-11-08T00:44:48Z",
+ "protocol": "openephys",
+ "result": "inconclusive",
+ "result_explanation": "INCONCLUSIVE: META-CHAIN: processors between ZMQ Interface and Record Node: ['Bandpass Filter']; ALIGN-CONTENT: the data could not be located by content (signal too uniform or values differ): alignment rests on timestamps/indices alone; VALUES: 1916028 of 1917040 values differ beyond the expected tolerance \u2014 not comparable: processors between ZMQ Interface and Record Node: ['Bandpass Filter']; CHANNEL-ORDER: values differ, but not as a channel permutation; SCALE: values differ, but not by a constant factor or offset",
+ "required_checks_by_status": {
+  "pass": [
+   "REF-FILE",
+   "BOS-FILE",
+   "IDENTITY",
+   "META-CHANNELS",
+   "META-RATE",
+   "META-UNITS",
+   "OVERLAP",
+   "SAMPLE-COUNT",
+   "LOSS",
+   "DUPLICATES",
+   "EXTRA",
+   "ORDER",
+   "LOSS-FLAGGED",
+   "TS-AGREE",
+   "DELAY"
+  ],
+  "fail": [],
+  "inconclusive": [
+   "META-CHAIN",
+   "ALIGN-CONTENT",
+   "VALUES",
+   "CHANNEL-ORDER",
+   "SCALE"
+  ],
+  "not_tested": []
+ },
+ "evidence_scope": {
+  "level": "none",
+  "hardware_verified": false,
+  "human_validated": false,
+  "statement": "The comparison did not pass; this run supports no compatibility claim.",
+  "not_a_hardware_run_because": [
+   "the comparison result is inconclusive, not pass",
+   "the operator did not declare acquisition hardware as the signal source",
+   "no equipment manifest",
+   "the reference stream's source processor is 'File Reader' (file playback, not hardware)",
+   "overlap 3 s < 240 s required for a hardware-validation run"
+  ],
+  "note": "brainos-hwval never sets hardware_verified or human_validated (docs/VALIDATION_LEVELS.md, docs/HARDWARE_VALIDATION.md)."
+ },
+ "inputs": [
+  {
+   "role": "reference_openephys_recording",
+   "path": "/tmp/pytest-of-root/pytest-20/test_gui_processor_between_zmq0/ref/2026-11-08_00-44-42/Record Node 103/experiment1/recording1",
+   "kind": "directory",
+   "files": 12,
+   "bytes": 6472322,
+   "sha256": "5b1f42aecb2116476919a36033c0afdcd35339c3fa9859655f9886fa54a92007",
+   "sha256_method": "sha256 over sorted lines '<relative path>\\0<file sha256>\\n'"
+  },
+  {
+   "role": "brainos_recording",
+   "path": "/tmp/pytest-of-root/pytest-20/test_gui_processor_between_zmq0/brainos.brainos.jsonl",
+   "kind": "file",
+   "bytes": 31212190,
+   "sha256": "62b17cd3032431ae3762e7156fb8abc2211f4f66bfd9a6c5cdd5abdcc42c2512"
+  }
+ ],
+ "acquisition": {
+  "protocol": "Open Ephys ZMQ Interface",
+  "reference_software": "Open Ephys GUI 1.1.0 Record Node (Binary format)",
+  "reference_recording": "/tmp/pytest-of-root/pytest-20/test_gui_processor_between_zmq0/ref/2026-11-08_00-44-42/Record Node 103/experiment1/recording1",
+  "reference_stream": {
+   "folder_name": "File_Reader-100.example_data",
+   "stream_name": "example_data",
+   "sample_rate": 40000.0,
+   "source_processor": "File Reader (100)",
+   "num_channels": 16,
+   "channel_names": [
+    "CH1",
+    "CH2",
+    "CH3",
+    "CH4",
+    "CH5",
+    "CH6",
+    "CH7",
+    "CH8",
+    "CH9",
+    "CH10",
+    "CH11",
+    "CH12",
+    "CH13",
+    "CH14",
+    "CH15",
+    "CH16"
+   ],
+   "units": [
+    "uV"
+   ],
+   "bit_volts": [
+    0.0500000007
+   ],
+   "samples": 134675,
+   "first_sample_number": 0,
+   "last_sample_number": 134674,
+   "history": [
+    "File Reader -> ZMQ Interface -> Bandpass Filter -> Record Node"
+   ],
+   "problems": []
+  },
+  "brainos_device": {
+   "device_id": "openephys:127.0.0.1:58183",
+   "display_name": "Open Ephys (ZMQ) \u00b7 127.0.0.1:58183",
+   "kind": "stream",
+   "adapter": "brainos.openephys.zmq@0.1.0",
+   "native_format": "Open Ephys ZMQ Interface: ZMQ PUB multipart [b'DATA\\0'|b'EVENT\\0', JSON header, float32 payload]; one message per channel per block"
+  },
+  "brainos_recording_params": {
+   "unit": "uV",
+   "source_unit": "uV",
+   "channel_count": 16,
+   "sample_rate_hz": 40000.0,
+   "channel_names": [
+    "CH1",
+    "CH2",
+    "CH3",
+    "CH4",
+    "CH5",
+    "CH6",
+    "CH7",
+    "CH8",
+    "CH9",
+    "CH10",
+    "CH11",
+    "CH12",
+    "CH13",
+    "CH14",
+    "CH15",
+    "CH16"
+   ],
+   "stream": "example_data",
+   "frame_samples": 929
+  },
+  "sync_messages": "Software Time (milliseconds since midnight Jan 1st 1970 UTC): 1794098683260\nStart Time for File Reader (100) - example_data @ 40000 Hz: 0\n"
+ },
+ "summary": {
+  "acquisition_protocol": "Open Ephys GUI: ZMQ Interface (reference: Record Node, Binary)",
+  "stream": "example_data from File Reader",
+  "gui_version": "1.1.0",
+  "channels": 16,
+  "channel_names": [
+   "CH1",
+   "CH2",
+   "CH3",
+   "CH4",
+   "CH5",
+   "CH6",
+   "CH7",
+   "CH8",
+   "CH9",
+   "CH10",
+   "CH11",
+   "CH12",
+   "CH13",
+   "CH14",
+   "CH15",
+   "CH16"
+  ],
+  "sample_rate_hz": 40000.0,
+  "reference_samples": 134675,
+  "brainos_samples": 119815,
+  "overlap_s": 2.995375,
+  "samples_compared": 119815,
+  "missing_in_brainos": 0,
+  "estimated_loss_fraction": 0.0,
+  "duplicated_in_brainos": 0,
+  "brainos_samples_without_counterpart": 0,
+  "values_out_of_tolerance": 1916028,
+  "max_abs_value_diff_uV": 224.10000931557343,
+  "brainos_ingest_drift_ppm": 55.70256943755836,
+  "excess_delay_max_s": 0.001402139663696289,
+  "reference_sample_number_breaks": 0,
+  "result": "inconclusive"
+ },
+ "checks": [
+  {
+   "id": "REF-FILE",
+   "title": "Reference Binary recording is readable and consistent",
+   "category": "input",
+   "required": true,
+   "status": "pass",
+   "summary": "134675 rows x 16 channels",
+   "method": "structure.oebin parsed; continuous.dat size a multiple of channels x 2 bytes; sample_numbers.npy and timestamps.npy have one entry per row.",
+   "evidence": {
+    "problems": [],
+    "sample_numbers": {
+     "jumps": 0,
+     "regressions": 0,
+     "missing_numbers": 0,
+     "examples": []
+    },
+    "rows": 134675,
+    "official_reader": {
+     "status": "pass",
+     "reader": "open-ephys-python-tools 1.0.1",
+     "rows_compared": "all sample numbers; scaled values at rows 0, 67337, 134674",
+     "problems": []
+    }
+   }
+  },
+  {
+   "id": "REF-READER",
+   "title": "Parser agrees with the official Open Ephys reader",
+   "category": "input",
+   "required": false,
+   "status": "pass",
+   "summary": "identical to open-ephys-python-tools 1.0.1",
+   "method": "Load the same recording with open-ephys-python-tools (BinaryRecording) and compare channel names, bit_volts, sample rate, every sample number, scaled values at three rows and the TTL event count. Required only if it fails.",
+   "evidence": {
+    "status": "pass",
+    "reader": "open-ephys-python-tools 1.0.1",
+    "rows_compared": "all sample numbers; scaled values at rows 0, 67337, 134674",
+    "problems": []
+   }
+  },
+  {
+   "id": "BOS-FILE",
+   "title": "BrainOS recording file is complete and well-formed",
+   "category": "input",
+   "required": true,
+   "status": "pass",
+   "summary": "129 frames, every line readable, seq contiguous, contract-valid",
+   "method": "Parse every line; require the brainos.recording/1 header, contiguous envelope seq numbers (the recorder writes every published event), and \u2014 if BrainOS is installed \u2014 validation of every envelope against BrainOS's contract models.",
+   "evidence": {
+    "event_counts": {
+     "recording.frame": 129
+    },
+    "frames": 129,
+    "malformed_lines": 0,
+    "malformed_examples": [],
+    "seq_gaps": 0,
+    "seq_gap_examples": [],
+    "seq_regressions": 0,
+    "contract": {
+     "validated": true,
+     "valid_events": 129,
+     "invalid_events": 0
+    }
+   }
+  },
+  {
+   "id": "IDENTITY",
+   "title": "Both recordings are of the same Open Ephys stream",
+   "category": "identity",
+   "required": true,
+   "status": "pass",
+   "summary": "same Open Ephys stream 'example_data'",
+   "method": "BrainOS descriptor 'stream' equals the structure.oebin stream_name; every BrainOS channel name exists in the reference; the BrainOS adapter is the Open Ephys ZMQ adapter.",
+   "evidence": {
+    "brainos_stream": "example_data",
+    "reference_stream": {
+     "folder_name": "File_Reader-100.example_data",
+     "stream_name": "example_data",
+     "sample_rate": 40000.0,
+     "source_processor": "File Reader (100)",
+     "num_channels": 16,
+     "channel_names": [
+      "CH1",
+      "CH2",
+      "CH3",
+      "CH4",
+      "CH5",
+      "CH6",
+      "CH7",
+      "CH8",
+      "CH9",
+      "CH10",
+      "CH11",
+      "CH12",
+      "CH13",
+      "CH14",
+      "CH15",
+      "CH16"
+     ],
+     "units": [
+      "uV"
+     ],
+     "bit_volts": [
+      0.0500000007
+     ],
+     "samples": 134675,
+     "first_sample_number": 0,
+     "last_sample_number": 134674,
+     "history": [
+      "File Reader -> ZMQ Interface -> Bandpass Filter -> Record Node"
+     ],
+     "problems": []
+    },
+    "reference_streams": [
+     "example_data"
+    ],
+    "brainos_adapter": "brainos.openephys.zmq@0.1.0",
+    "brainos_origin": [
+     "openephys:127.0.0.1:58183/example_data"
+    ],
+    "gui_version": "1.1.0"
+   }
+  },
+  {
+   "id": "META-CHAIN",
+   "title": "ZMQ Interface and Record Node see the same data",
+   "category": "metadata",
+   "required": true,
+   "status": "inconclusive",
+   "summary": "processors between ZMQ Interface and Record Node: ['Bandpass Filter']",
+   "method": "Each channel's 'history' in structure.oebin must contain the ZMQ Interface with no processor between it and the Record Node; otherwise BrainOS and the file legitimately carry different values.",
+   "evidence": {
+    "history": [
+     "File Reader -> ZMQ Interface -> Bandpass Filter -> Record Node"
+    ],
+    "source_processor": "File Reader"
+   }
+  },
+  {
+   "id": "META-CHANNELS",
+   "title": "Channel count and channel identities agree",
+   "category": "metadata",
+   "required": true,
+   "status": "pass",
+   "summary": "16 channels, names identical in order",
+   "method": "BrainOS channel_names (sent by the ZMQ Interface) must each be a reference channel_name, in reference order; the ZMQ Interface may send a selection.",
+   "evidence": {
+    "brainos_channels": [
+     "CH1",
+     "CH2",
+     "CH3",
+     "CH4",
+     "CH5",
+     "CH6",
+     "CH7",
+     "CH8",
+     "CH9",
+     "CH10",
+     "CH11",
+     "CH12",
+     "CH13",
+     "CH14",
+     "CH15",
+     "CH16"
+    ],
+    "reference_channels": [
+     "CH1",
+     "CH2",
+     "CH3",
+     "CH4",
+     "CH5",
+     "CH6",
+     "CH7",
+     "CH8",
+     "CH9",
+     "CH10",
+     "CH11",
+     "CH12",
+     "CH13",
+     "CH14",
+     "CH15",
+     "CH16"
+    ],
+    "mapping": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
+     15
+    ]
+   }
+  },
+  {
+   "id": "META-RATE",
+   "title": "Declared sampling rate agrees",
+   "category": "metadata",
+   "required": true,
+   "status": "pass",
+   "summary": "40000 Hz on both sides",
+   "method": "sample_rate_hz of every frame and of the descriptor equals the structure.oebin sample_rate.",
+   "evidence": {
+    "reference": 40000.0,
+    "brainos_frames": [
+     40000.0
+    ],
+    "brainos_descriptor": 40000.0
+   }
+  },
+  {
+   "id": "META-UNITS",
+   "title": "Units are interpreted correctly",
+   "category": "metadata",
+   "required": true,
+   "status": "pass",
+   "summary": "BrainOS 'uV' matches the file's units",
+   "method": "If BrainOS reports \u00b5V, the operator-declared unit must equal the structure.oebin channel units; 'arbitrary' is always a correct label for this protocol.",
+   "evidence": {
+    "brainos_units": [
+     "uV"
+    ],
+    "brainos_source_unit": "uV",
+    "reference_units": [
+     "uV"
+    ]
+   }
+  },
+  {
+   "id": "OVERLAP",
+   "title": "Recordings overlap enough to compare",
+   "category": "integrity",
+   "required": true,
+   "status": "pass",
+   "summary": "3.00 s of the recordings overlap (119815 samples)",
+   "method": "Span from the first to the last reference sample that a BrainOS frame maps to. BrainOS samples before the reference started or after it stopped are not compared and not counted as errors.",
+   "evidence": {
+    "overlap_rows": 119815,
+    "overlap_s": 2.995375,
+    "reference_row_span": [
+     2786,
+     122601
+    ],
+    "reference_rows": 134675,
+    "brainos_samples": 119815,
+    "brainos_samples_outside_reference": 0,
+    "brainos_samples_past_reference_end": 0,
+    "min_overlap_s": 2.0
+   }
+  },
+  {
+   "id": "SAMPLE-COUNT",
+   "title": "Sample counts agree within the overlap",
+   "category": "integrity",
+   "required": true,
+   "status": "pass",
+   "summary": "reference 119815 vs BrainOS 119815 samples in the overlap",
+   "method": "Count reference samples between the first and last BrainOS sample and the BrainOS samples mapped onto them (each counted once per frame that claims it).",
+   "evidence": {
+    "reference_samples_in_overlap": 119815,
+    "brainos_samples_mapped_into_overlap": 119815,
+    "difference": 0,
+    "reference_total": 134675,
+    "brainos_total": 119815
+   }
+  },
+  {
+   "id": "LOSS",
+   "title": "No samples missing in BrainOS",
+   "category": "integrity",
+   "required": true,
+   "status": "pass",
+   "summary": "no reference sample is missing from BrainOS",
+   "method": "Reference samples inside the overlap that no BrainOS frame maps to.",
+   "evidence": {
+    "missing_samples": 0,
+    "missing_fraction": 0.0,
+    "missing_runs": 0,
+    "max_loss_fraction": 0.0,
+    "runs": [],
+    "estimated_lost_duration_s": 0.0
+   }
+  },
+  {
+   "id": "DUPLICATES",
+   "title": "No duplicated samples in BrainOS",
+   "category": "integrity",
+   "required": true,
+   "status": "pass",
+   "summary": "none",
+   "method": "Reference samples claimed by more than one BrainOS frame.",
+   "evidence": {
+    "duplicated_samples": 0,
+    "runs": []
+   }
+  },
+  {
+   "id": "EXTRA",
+   "title": "No BrainOS samples without a reference counterpart",
+   "category": "integrity",
+   "required": true,
+   "status": "pass",
+   "summary": "every BrainOS sample in the reference's range has a counterpart",
+   "method": "BrainOS frames whose first-sample key lies within the reference's range but matches no reference sample.",
+   "evidence": {
+    "brainos_samples_without_counterpart": 0,
+    "frames": 0,
+    "frames_inside_a_reference_gap": 0,
+    "content_found_elsewhere": 0
+   }
+  },
+  {
+   "id": "ORDER",
+   "title": "BrainOS frames are in source order",
+   "category": "integrity",
+   "required": true,
+   "status": "pass",
+   "summary": "frames in source order",
+   "method": "Successive frames (in recording order) must map to increasing reference rows; a frame that cannot be mapped must not have a smaller first_sample_index than its predecessor.",
+   "evidence": {
+    "frames_mapped_before_their_predecessor": 0,
+    "frames_overlapping_predecessor": 0,
+    "unmapped_frames_with_index_regression": 0,
+    "examples": []
+   }
+  },
+  {
+   "id": "ALIGN-CONTENT",
+   "title": "Alignment confirmed by signal content (independent of timestamps)",
+   "category": "integrity",
+   "required": true,
+   "status": "inconclusive",
+   "summary": "the data could not be located by content (signal too uniform or values differ): alignment rests on timestamps/indices alone",
+   "method": "For evenly spaced frames (and every frame the key could not place), search the reference values for the frame's first 16 samples on all channels; compare the row found with the row given by the frame's timestamp / sample number.",
+   "evidence": {
+    "probed": 24,
+    "probed_mapped_by_key": 24,
+    "probed_unmapped": 0,
+    "agree": 0,
+    "disagree": 0,
+    "not_found": 24,
+    "ambiguous": 0,
+    "disagreements": []
+   }
+  },
+  {
+   "id": "VALUES",
+   "title": "Signal values agree within the expected numerical tolerance",
+   "category": "integrity",
+   "required": true,
+   "status": "inconclusive",
+   "summary": "1916028 of 1917040 values differ beyond the expected tolerance \u2014 not comparable: processors between ZMQ Interface and Record Node: ['Bandpass Filter']",
+   "method": "Every BrainOS sample is compared with the reference sample it maps to, channel by channel: |brainos - reference| <= tolerance. |diff| <= 0.51 x bit_volts of the channel ([0.0500000007] \u00b5V) \u2014 the Record Node's int16 rounding; samples clipped at the int16 limits are excluded.",
+   "evidence": {
+    "tolerance": "|diff| <= 0.51 x bit_volts of the channel ([0.0500000007] \u00b5V) \u2014 the Record Node's int16 rounding; samples clipped at the int16 limits are excluded.",
+    "values_compared": 1917040,
+    "values_exactly_equal": 0,
+    "values_out_of_tolerance": 1916028,
+    "max_abs_diff": 224.10000931557343,
+    "per_channel": [
+     {
+      "compared": 119815,
+      "exact": 0,
+      "within_tolerance": 62,
+      "within_float32": 62,
+      "out_of_tolerance": 119753,
+      "excluded_clipped_in_reference": 0,
+      "max_abs_diff": 178.20000967047343,
+      "rms_diff": 40.509868747901464,
+      "channel": "CH1"
+     },
+     {
+      "compared": 119815,
+      "exact": 0,
+      "within_tolerance": 62,
+      "within_float32": 62,
+      "out_of_tolerance": 119753,
+      "excluded_clipped_in_reference": 0,
+      "max_abs_diff": 161.45000625541562,
+      "rms_diff": 40.329122767813,
+      "channel": "CH2"
+     },
+     {
+      "compared": 119815,
+      "exact": 0,
+      "within_tolerance": 55,
+      "within_float32": 55,
+      "out_of_tolerance": 119760,
+      "excluded_clipped_in_reference": 0,
+      "max_abs_diff": 184.15000363765782,
+      "rms_diff": 38.57338991451712,
+      "channel": "CH3"
+     },
+     {
+      "compared": 119815,
+      "exact": 0,
+      "within_tolerance": 66,
+      "within_float32": 66,
+      "out_of_tolerance": 119749,
+      "excluded_clipped_in_reference": 0,
+      "max_abs_diff": 183.7000037048578,
+      "rms_diff": 39.09491661171953,
+      "channel": "CH4"
+     },
+     {
+      "compared": 119815,
+      "exact": 0,
+      "within_tolerance": 73,
+      "within_float32": 73,
+      "out_of_tolerance": 119742,
+      "excluded_clipped_in_reference": 0,
+      "max_abs_diff": 179.2500033275578,
+      "rms_diff": 40.16463158932606,
+      "channel": "CH5"
+     },
+     {
+      "compared": 119815,
+      "exact": 0,
+      "within_tolerance": 51,
+      "within_float32": 51,
+      "out_of_tolerance": 119764,
+      "excluded_clipped_in_reference": 0,
+      "max_abs_diff": 224.10000931557343,
+      "rms_diff": 43.506257760912966,
+      "channel": "CH6"
+     },
+     {
+      "compared": 119815,
+      "exact": 0,
+      "within_tolerance": 63,
+      "within_float32": 63,
+      "out_of_tolerance": 119752,
+      "excluded_clipped_in_reference": 0,
+      "max_abs_diff": 158.4500004193,
+      "rms_diff": 39.83481656457646,
+      "channel": "CH7"
+     },
+     {
+      "compared": 119815,
+      "exact": 0,
+      "within_tolerance": 62,
+      "within_float32": 62,
+      "out_of_tolerance": 119753,
+      "excluded_clipped_in_reference": 0,
+      "max_abs_diff": 168.49999650444218,
+      "rms_diff": 39.029617368866994,
+      "channel": "CH8"
+     },
+     {
+      "compared": 119815,
+      "exact": 0,
+      "within_tolerance": 86,
+      "within_float32": 86,
+      "out_of_tolerance": 119729,
+      "excluded_clipped_in_reference": 0,
+      "max_abs_diff": 170.90000933027343,
+      "rms_diff": 36.70235435890941,
+      "channel": "CH9"
+     },
+     {
+      "compared": 119815,
+      "exact": 0,
+      "within_tolerance": 69,
+      "within_float32": 69,
+      "out_of_tolerance": 119746,
+      "excluded_clipped_in_reference": 0,
+      "max_abs_diff": 142.34999707984218,
+      "rms_diff": 35.67077370006223,
+      "channel": "CH10"
+     },
+     {
+      "compared": 119815,
+      "exact": 0,
+      "within_tolerance": 60,
+      "within_float32": 60,
+      "out_of_tolerance": 119755,
+      "excluded_clipped_in_reference": 0,
+      "max_abs_diff": 151.29999714564218,
+      "rms_diff": 36.277169290805034,
+      "channel": "CH11"
+     },
+     {
+      "compared": 119815,
+      "exact": 0,
+      "within_tolerance": 72,
+      "within_float32": 72,
+      "out_of_tolerance": 119743,
+      "excluded_clipped_in_reference": 0,
+      "max_abs_diff": 156.5500060223156,
+      "rms_diff": 37.764788616646264,
+      "channel": "CH12"
+     },
+     {
+      "compared": 119815,
+      "exact": 0,
+      "within_tolerance": 61,
+      "within_float32": 61,
+      "out_of_tolerance": 119754,
+      "excluded_clipped_in_reference": 0,
+      "max_abs_diff": 167.0500008477,
+      "rms_diff": 39.358278204541236,
+      "channel": "CH13"
+     },
+     {
+      "compared": 119815,
+      "exact": 0,
+      "within_tolerance": 56,
+      "within_float32": 56,
+      "out_of_tolerance": 119759,
+      "excluded_clipped_in_reference": 0,
+      "max_abs_diff": 179.4000001176,
+      "rms_diff": 39.859399176109974,
+      "channel": "CH14"
+     },
+     {
+      "compared": 119815,
+      "exact": 0,
+      "within_tolerance": 61,
+      "within_float32": 61,
+      "out_of_tolerance": 119754,
+      "excluded_clipped_in_reference": 0,
+      "max_abs_diff": 146.89999714354218,
+      "rms_diff": 39.98015462253482,
+      "channel": "CH15"
+     },
+     {
+      "compared": 119815,
+      "exact": 0,
+      "within_tolerance": 53,
+      "within_float32": 53,
+      "out_of_tolerance": 119762,
+      "excluded_clipped_in_reference": 0,
+      "max_abs_diff": 158.0999973563422,
+      "rms_diff": 40.699723712167376,
+      "channel": "CH16"
+     }
+    ],
+    "examples": [
+     {
+      "frame_seq": 2,
+      "brainos_sample_index": 2786,
+      "reference_row": 2786,
+      "channel": 0,
+      "reference_channel": 0,
+      "reference_value": -16.6000002324,
+      "brainos_value": -10.600000381469727
+     },
+     {
+      "frame_seq": 2,
+      "brainos_sample_index": 2786,
+      "reference_row": 2786,
+      "channel": 1,
+      "reference_channel": 1,
+      "reference_value": -12.650000177099999,
+      "brainos_value": -18.700000762939453
+     },
+     {
+      "frame_seq": 2,
+      "brainos_sample_index": 2786,
+      "reference_row": 2786,
+      "channel": 2,
+      "reference_channel": 2,
+      "reference_value": -3.9500000553,
+      "brainos_value": -35.20000076293945
+     },
+     {
+      "frame_seq": 2,
+      "brainos_sample_index": 2786,
+      "reference_row": 2786,
+      "channel": 3,
+      "reference_channel": 3,
+      "reference_value": -3.5500000497,
+      "brainos_value": -48.25
+     },
+     {
+      "frame_seq": 2,
+      "brainos_sample_index": 2786,
+      "reference_row": 2786,
+      "channel": 4,
+      "reference_channel": 4,
+      "reference_value": -10.6500001491,
+      "brainos_value": -92.45000457763672
+     },
+     {
+      "frame_seq": 2,
+      "brainos_sample_index": 2786,
+      "reference_row": 2786,
+      "channel": 5,
+      "reference_channel": 5,
+      "reference_value": -25.4500003563,
+      "brainos_value": -171.60000610351562
+     },
+     {
+      "frame_seq": 2,
+      "brainos_sample_index": 2786,
+      "reference_row": 2786,
+      "channel": 6,
+      "reference_channel": 6,
+      "reference_value": -17.8500002499,
+      "brainos_value": -44.25
+     },
+     {
+      "frame_seq": 2,
+      "brainos_sample_index": 2786,
+      "reference_row": 2786,
+      "channel": 7,
+      "reference_channel": 7,
+      "reference_value": -25.850000361899998,
+      "brainos_value": -49.25
+     },
+     {
+      "frame_seq": 2,
+      "brainos_sample_index": 2786,
+      "reference_row": 2786,
+      "channel": 8,
+      "reference_channel": 8,
+      "reference_value": -6.6500000931,
+      "brainos_value": -50.400001525878906
+     },
+     {
+      "frame_seq": 2,
+      "brainos_sample_index": 2786,
+      "reference_row": 2786,
+      "channel": 9,
+      "reference_channel": 9,
+      "reference_value": -18.7000002618,
+      "brainos_value": -55.75
+     }
+    ],
+    "values_excluded_clipped_in_reference": 0
+   }
+  },
+  {
+   "id": "CHANNEL-ORDER",
+   "title": "Channels are in the reference order",
+   "category": "integrity",
+   "required": true,
+   "status": "inconclusive",
+   "summary": "values differ, but not as a channel permutation",
+   "method": "Every BrainOS channel is matched against every reference channel on a thin sample.",
+   "evidence": {
+    "best_matches": [
+     {
+      "channel": 0,
+      "expected_ref": 0,
+      "best_ref": 0,
+      "match_best": 0.000968054211035818,
+      "match_expected": 0.000968054211035818
+     },
+     {
+      "channel": 1,
+      "expected_ref": 1,
+      "best_ref": 11,
+      "match_best": 0.0012100677637947724,
+      "match_expected": 0.000484027105517909
+     },
+     {
+      "channel": 2,
+      "expected_ref": 2,
+      "best_ref": 8,
+      "match_best": 0.000968054211035818,
+      "match_expected": 0.0007260406582768635
+     },
+     {
+      "channel": 3,
+      "expected_ref": 3,
+      "best_ref": 0,
+      "match_best": 0.0007260406582768635,
+      "match_expected": 0.0002420135527589545
+     },
+     {
+      "channel": 4,
+      "expected_ref": 4,
+      "best_ref": 2,
+      "match_best": 0.0012100677637947724,
+      "match_expected": 0.000484027105517909
+     },
+     {
+      "channel": 5,
+      "expected_ref": 5,
+      "best_ref": 7,
+      "match_best": 0.0012100677637947724,
+      "match_expected": 0.0002420135527589545
+     },
+     {
+      "channel": 6,
+      "expected_ref": 6,
+      "best_ref": 9,
+      "match_best": 0.000968054211035818,
+      "match_expected": 0.0002420135527589545
+     },
+     {
+      "channel": 7,
+      "expected_ref": 7,
+      "best_ref": 4,
+      "match_best": 0.000968054211035818,
+      "match_expected": 0.0002420135527589545
+     },
+     {
+      "channel": 8,
+      "expected_ref": 8,
+      "best_ref": 3,
+      "match_best": 0.0012100677637947724,
+      "match_expected": 0.0007260406582768635
+     },
+     {
+      "channel": 9,
+      "expected_ref": 9,
+      "best_ref": 2,
+      "match_best": 0.001452081316553727,
+      "match_expected": 0.000968054211035818
+     },
+     {
+      "channel": 10,
+      "expected_ref": 10,
+      "best_ref": 0,
+      "match_best": 0.000968054211035818,
+      "match_expected": 0.0002420135527589545
+     },
+     {
+      "channel": 11,
+      "expected_ref": 11,
+      "best_ref": 9,
+      "match_best": 0.0012100677637947724,
+      "match_expected": 0.0007260406582768635
+     },
+     {
+      "channel": 12,
+      "expected_ref": 12,
+      "best_ref": 6,
+      "match_best": 0.0012100677637947724,
+      "match_expected": 0.0007260406582768635
+     },
+     {
+      "channel": 13,
+      "expected_ref": 13,
+      "best_ref": 4,
+      "match_best": 0.000968054211035818,
+      "match_expected": 0.000484027105517909
+     },
+     {
+      "channel": 14,
+      "expected_ref": 14,
+      "best_ref": 0,
+      "match_best": 0.001936108422071636,
+      "match_expected": 0.0
+     },
+     {
+      "channel": 15,
+      "expected_ref": 15,
+      "best_ref": 0,
+      "match_best": 0.000968054211035818,
+      "match_expected": 0.0007260406582768635
+     }
+    ]
+   }
+  },
+  {
+   "id": "SCALE",
+   "title": "Scaling and units are correct",
+   "category": "integrity",
+   "required": true,
+   "status": "inconclusive",
+   "summary": "values differ, but not by a constant factor or offset",
+   "method": "Least-squares factor per channel on a thin sample.",
+   "evidence": {
+    "unit_interpretation": "BrainOS converted from the operator-declared unit 'uV' to \u00b5V; reference ['uV'] x bit_volts -> \u00b5V x 1"
+   }
+  },
+  {
+   "id": "LOSS-FLAGGED",
+   "title": "BrainOS reported every loss it suffered",
+   "category": "integrity",
+   "required": true,
+   "status": "pass",
+   "summary": "no loss to report",
+   "method": "For each run of samples missing in BrainOS, the next BrainOS frame must carry the quality flag dropped_samples, or a device.status event (reconnecting, ...) must lie between the frames around the gap.",
+   "evidence": {
+    "loss_runs": 0,
+    "reported_by_frame_flag": 0,
+    "reported_by_device_status": 0,
+    "unreported_runs": 0,
+    "unreported_examples": [],
+    "frames_flagged_dropped_samples": 0,
+    "device_status_events": []
+   }
+  },
+  {
+   "id": "TS-AGREE",
+   "title": "Timestamps agree with the sample clock",
+   "category": "timing",
+   "required": true,
+   "status": "pass",
+   "summary": "all 129 frame timestamps equal sample_number / rate; reference timestamps.npy minus BrainOS: median 0 s",
+   "method": "BrainOS device_timestamp_ns must equal round(sample_number / sample_rate x 1e9) (docs/OPEN_EPHYS.md); the Record Node's timestamps.npy (synchronised seconds) is compared as an offset/drift (it may be synchronised to another stream).",
+   "evidence": {
+    "frames": 129,
+    "mismatches": 0,
+    "examples": [],
+    "reference_timestamps_npy_vs_brainos": {
+     "reference_minus_brainos_median_s": 0.0,
+     "max_abs_s": 0.0,
+     "drift_ppm": 0.0
+    }
+   }
+  },
+  {
+   "id": "EVENTS",
+   "title": "TTL events agree",
+   "category": "integrity",
+   "required": false,
+   "status": "not_tested",
+   "summary": "no TTL events in either recording (use a pulse generator to test events)",
+   "method": "Reference TTL events (events/<stream>/TTL: sample_numbers, states = \u00b1(line+1), full_words) within the sample range BrainOS covered are matched with BrainOS 'ttl' annotations (sample = device_timestamp x rate) on (sample, line, state).",
+   "evidence": {}
+  },
+  {
+   "id": "DELAY",
+   "title": "Data was not delayed beyond the threshold",
+   "category": "timing",
+   "required": true,
+   "status": "pass",
+   "summary": "worst excess ingest delay 1.4 ms (median 0.5 ms) vs threshold 1000 ms",
+   "method": "BrainOS ingest wall clock minus the source time of each frame's last sample; the excess over the smallest observed value is the variable delay (buffering, transport, stalls). Without a measured clock pair, absolute latency is unknown.",
+   "evidence": {
+    "frames": 129,
+    "excess_delay_median_s": 0.000499725341796875,
+    "excess_delay_p95_s": 0.0009956359863281248,
+    "excess_delay_max_s": 0.001402139663696289,
+    "drift_ppm": 55.70256943755836,
+    "fit": {
+     "slope": 5.570256943755836e-05,
+     "intercept": 1794098683.237954,
+     "residual_std": 0.0002566595607749417,
+     "residual_max_abs": 0.0008449554443359375,
+     "n": 129
+    }
+   }
+  },
+  {
+   "id": "REF-CONTINUITY",
+   "title": "Reference recording is continuous",
+   "category": "source",
+   "required": false,
+   "status": "pass",
+   "summary": "sample numbers are contiguous",
+   "method": "Differences between successive sample_numbers.npy entries must be exactly 1.",
+   "evidence": {
+    "jumps": 0,
+    "regressions": 0,
+    "missing_numbers": 0,
+    "examples": []
+   }
+  },
+  {
+   "id": "EQUIPMENT",
+   "title": "Acquisition hardware and software are documented",
+   "category": "scope",
+   "required": false,
+   "status": "not_tested",
+   "summary": "no equipment manifest given (--equipment); the run is not traceable to hardware",
+   "method": "Required fields of the brainos-hwval.equipment/1 manifest must be filled in.",
+   "evidence": {}
+  }
+ ],
+ "thresholds": {
+  "match_fraction_of_period": 0.25,
+  "timestamp_exact_s": 2e-06,
+  "value_rtol": 2.5e-07,
+  "value_atol": 0.0,
+  "float32_rtol": 2.5e-07,
+  "quantisation_steps": 0.51,
+  "max_loss_fraction": 0.0,
+  "min_overlap_s": 2.0,
+  "max_excess_delay_s": 1.0,
+  "rate_ppm_advisory": 500.0,
+  "content_probe_frames": 24
+ },
+ "limitations": [
+  "The Record Node stores 16-bit integers: values are verified to half a quantisation step (bit_volts / 2), not bit for bit. Samples at the int16 limits (clipped in the file) are excluded from the value comparison.",
+  "Values are comparable only if no processor that changes data sits between the ZMQ Interface and the Record Node; the channel 'history' in structure.oebin is used to check this.",
+  "The ZMQ Interface does not transmit units; unless the BrainOS operator declared the unit, BrainOS labels values 'arbitrary' and they are compared unscaled against the file's \u00b5V.",
+  "BrainOS does not emit data received while it learns the stream layout on connect (docs/OPEN_EPHYS.md); that start-up interval is outside the overlap and is not loss.",
+  "Data from the GUI's File Reader is file playback, not hardware, even though it passes through the real GUI and plugin."
+ ],
+ "environment": {
+  "brainos_hwval": "0.1.0",
+  "python": "3.12.3",
+  "platform": "Linux-6.18.44-fc-v310-x86_64-with-glibc2.39",
+  "numpy": "2.5.4",
+  "pyxdf": "1.18.0",
+  "open_ephys_python_tools": "1.0.1",
+  "brainos": "0.3.0"
+ },
+ "command": null
+}

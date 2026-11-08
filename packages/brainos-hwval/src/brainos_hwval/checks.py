@@ -8,7 +8,6 @@ when the input lacks what the check needs.
 
 from __future__ import annotations
 
-import itertools
 from collections.abc import Callable, Sequence
 from typing import Any
 
@@ -85,6 +84,7 @@ def overlap(comp: Comparison, rate: float, th: Thresholds) -> Check:
     ev = {
         "overlap_rows": rows,
         "overlap_s": secs,
+        "reference_row_span": list(comp.span) if comp.span else None,
         "reference_rows": comp.ref_rows,
         "brainos_samples": comp.brainos_samples,
         "brainos_samples_outside_reference": comp.outside_samples,
@@ -260,24 +260,33 @@ def extra(comp: Comparison) -> Check:
 
 
 def order(frames: Sequence[Frame], comp: Comparison) -> Check:
-    mapped = [m for m in comp.maps if m.row is not None]
-    back = overlap_n = 0
+    """Frames must follow the source order.
+
+    Where both frames map onto the reference, the reference rows decide (a sample-number reset
+    in the source is followed by BrainOS's index too, and is not a BrainOS reordering); where
+    a frame could not be mapped, its first_sample_index must not go backwards.
+    """
+    rows = {m.frame: m.row for m in comp.maps}
+    back = overlap_n = idx_back = 0
     ex: list[dict[str, Any]] = []
-    for prev, cur in itertools.pairwise(mapped):
-        p_end = prev.row + frames[prev.frame].n  # type: ignore[operator]
-        if cur.row < prev.row:  # type: ignore[operator]
-            back += 1
+    for i in range(1, len(frames)):
+        a, b = frames[i - 1], frames[i]
+        ra, rb = rows.get(i - 1), rows.get(i)
+        if ra is not None and rb is not None:
+            if rb < ra:
+                back += 1
+                if len(ex) < 5:
+                    ex.append({"frame_seq": b.seq, "row": rb, "previous_row": ra})
+            elif rb < ra + a.n:
+                overlap_n += 1
+        elif b.index < a.index + a.n:
+            idx_back += 1
             if len(ex) < 5:
-                ex.append(
-                    {"frame_seq": frames[cur.frame].seq, "row": cur.row, "previous_row": prev.row}
-                )
-        elif cur.row < p_end:  # type: ignore[operator]
-            overlap_n += 1
-    idx_back = sum(1 for a, b in itertools.pairwise(frames) if b.index < a.index + a.n)
+                ex.append({"frame_seq": b.seq, "index": b.index, "previous_index": a.index})
     ev = {
         "frames_mapped_before_their_predecessor": back,
         "frames_overlapping_predecessor": overlap_n,
-        "brainos_index_regressions": idx_back,
+        "unmapped_frames_with_index_regression": idx_back,
         "examples": ex,
     }
     st = Status.FAIL if back or idx_back else Status.PASS
@@ -288,8 +297,8 @@ def order(frames: Sequence[Frame], comp: Comparison) -> Check:
         True,
         st,
         "frames out of order" if st is Status.FAIL else "frames in source order",
-        "Successive frames (in recording order) must map to increasing reference rows, and "
-        "their first_sample_index must not go backwards.",
+        "Successive frames (in recording order) must map to increasing reference rows; a frame "
+        "that cannot be mapped must not have a smaller first_sample_index than its predecessor.",
         ev,
     )
 
@@ -485,44 +494,70 @@ def scale(comp: Comparison, diag: Diagnosis, unit_text: str) -> Check:
     )
 
 
-def loss_reporting(frames: Sequence[Frame], comp: Comparison) -> Check:
-    """Did BrainOS flag every loss it suffered (quality flag dropped_samples)?"""
+def loss_reporting(
+    frames: Sequence[Frame], comp: Comparison, statuses: Sequence[dict[str, Any]] = ()
+) -> Check:
+    """Did BrainOS report every loss it suffered?
+
+    A loss counts as reported if the first frame after it carries the quality flag
+    dropped_samples, or if BrainOS published a device.status event (e.g. reconnecting) between
+    the frames before and after it.
+    """
     miss = comp.missing_rows
     runs = _runs(miss)
     mapped = sorted((m.row, m.frame) for m in comp.maps if m.row is not None)
     rows = np.asarray([r for r, _ in mapped], dtype=np.int64)
+    status_seqs = sorted(int(s["seq"]) for s in statuses)
     silent = []
+    by_status = by_flag = 0
     for r, n in runs:
         k = int(np.searchsorted(rows, r + n, side="left"))
         if k >= len(mapped):
             continue
         f = frames[mapped[k][1]]
-        if "dropped_samples" not in f.flags:
+        prev_seq = frames[mapped[k - 1][1]].seq if k > 0 else -1
+        between = [q for q in status_seqs if prev_seq < q < f.seq]
+        if "dropped_samples" in f.flags:
+            by_flag += 1
+        elif between:
+            by_status += 1
+        else:
             silent.append({"reference_row": r, "length": n, "next_frame_seq": f.seq})
     flagged = sum("dropped_samples" in f.flags for f in frames)
     ev = {
         "loss_runs": len(runs),
-        "unflagged_runs": len(silent),
-        "unflagged_examples": silent[:10],
+        "reported_by_frame_flag": by_flag,
+        "reported_by_device_status": by_status,
+        "unreported_runs": len(silent),
+        "unreported_examples": silent[:10],
         "frames_flagged_dropped_samples": flagged,
+        "device_status_events": [
+            {"seq": s["seq"], **{k: s["payload"].get(k) for k in ("state", "detail")}}
+            for s in list(statuses)[:20]
+        ],
     }
     if not runs:
         st = Status.PASS
         msg = "no loss to report" + (f" ({flagged} frame(s) flagged anyway)" if flagged else "")
     elif silent:
         st = Status.FAIL
-        msg = f"{len(silent)} of {len(runs)} loss run(s) were not flagged by BrainOS (silent loss)"
+        msg = f"{len(silent)} of {len(runs)} loss run(s) were not reported by BrainOS (silent loss)"
     else:
-        st, msg = Status.PASS, f"all {len(runs)} loss run(s) were flagged dropped_samples"
+        st = Status.PASS
+        msg = (
+            f"all {len(runs)} loss run(s) were reported ({by_flag} by the dropped_samples flag, "
+            f"{by_status} by a device.status event)"
+        )
     return Check(
         "LOSS-FLAGGED",
-        "BrainOS flagged every loss it suffered",
+        "BrainOS reported every loss it suffered",
         Category.INTEGRITY,
         True,
         st,
         msg,
         "For each run of samples missing in BrainOS, the next BrainOS frame must carry the "
-        "quality flag dropped_samples.",
+        "quality flag dropped_samples, or a device.status event (reconnecting, ...) must lie "
+        "between the frames around the gap.",
         ev,
     )
 

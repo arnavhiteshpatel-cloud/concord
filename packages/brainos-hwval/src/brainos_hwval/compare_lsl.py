@@ -525,7 +525,7 @@ def compare_lsl(xdf_path: Path, brainos_path: Path, opts: LSLOptions) -> dict[st
         C.values(comp, tol_text, labels_b),
         C.channel_order(comp, diag, labels_b, labels_r),
         C.scale(comp, diag, unit_text),
-        C.loss_reporting(frames, comp),
+        C.loss_reporting(frames, comp, rec.status_events),
     ]
     checks.append(_timestamp_check(frames, comp, ts, th, rate))
     sig = _sidecar_signal(sidecar)
