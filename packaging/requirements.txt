@@ -1,0 +1,5 @@
+# Build-time only (the desktop app bundle); not a runtime dependency of BrainOS.
+# PyInstaller: bundles CPython + BrainOS + native wheels (numpy, scipy, h5py, liblsl, libzmq)
+# into BrainOS.app on macOS and the same onedir layout on Linux (docs/INSTALL_MAC.md).
+pyinstaller==6.22.3
+pyinstaller-hooks-contrib==2026.9

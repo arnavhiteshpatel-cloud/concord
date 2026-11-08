@@ -14,7 +14,7 @@ PACKAGE_TESTS := packages/brainos-brainflow packages/brainos-bci2000 examples/ad
                  packages/brainos-certify
 
 .PHONY: setup dev run build test test-backend test-frontend lint e2e e2e-setup bench bench-live dist-check schema clean \
-        dataset dataset-all model decoding-report dataset-t15 dataset-t15-day cursorclick-report
+        dataset dataset-all model decoding-report dataset-t15 dataset-t15-day cursorclick-report e2e-communication
 
 setup:  ## create .venv (Python 3.12) and install backend + frontend deps
 	@command -v uv >/dev/null && uv venv --python 3.12 $(VENV) || python3.12 -m venv $(VENV)
@@ -96,6 +96,9 @@ dataset-t15-day:  ## all 18 blocks of T15 day 468 (~472 MiB) for the cursor+clic
 cursorclick-report: dataset-t15-day  ## decoders + click + word selection -> docs/CURSOR_CLICK.md, demo models
 	$(PY) -m brainos.evaluation.run_cursorclick --write docs/CURSOR_CLICK.md
 
+e2e-communication: build  ## real board selects words from replayed T15 data (needs dataset-t15) -> reports/communication_e2e.json
+	node e2e/communication.cjs
+
 schema:  ## regenerate contracts/event-envelope.v1.schema.json
 	$(PY) scripts/export_schema.py
 
@@ -135,3 +138,28 @@ lint: lint-decoders
 lint-decoders:  ## mypy --strict: decoder SDK + example decoder plugin
 	cd packages/brainos-decoder-sdk && ../../$(VENV)/bin/mypy src/brainos_decoder_sdk
 	cd examples/decoders/brainos-example-decoder && ../../../$(VENV)/bin/mypy --strict src/brainos_example_decoder
+
+# ------------------------------------------------------------------------ M5-D
+# Release workstream D: installation, desktop bundle, lab acceptance. Ordinary use needs none
+# of these: `brainos start` (pip install) or BrainOS.app (docs/INSTALL_MAC.md).
+.PHONY: console-stage app app-smoke lab-acceptance lint-packaging
+APP_EXE := $(if $(filter Darwin,$(shell uname -s)),packaging/dist/BrainOS.app/Contents/MacOS/BrainOS,packaging/dist/BrainOS/BrainOS)
+
+console-stage:  ## copy the built console into the Python package (wheels and the app ship it)
+	$(PY) packaging/stage_console.py --build
+
+app:  ## desktop bundle (PyInstaller): BrainOS.app + .dmg on macOS, BrainOS/ on Linux -> packaging/dist/
+	@if command -v uv >/dev/null; then uv pip install --python $(PY) -e packages/brainos-bci2000 -r packaging/requirements.txt; \
+	  else $(PY) -m pip install -e packages/brainos-bci2000 -r packaging/requirements.txt; fi
+	$(PY) packaging/build_app.py --build-console $(if $(filter Darwin,$(shell uname -s)),--dmg,)
+
+app-smoke:  ## run the built bundle like a user (headless, crash recovery); add ARGS=--window for the window
+	$(PY) packaging/smoke_test.py $(APP_EXE) --report reports/smoke-app.json $(ARGS)
+
+lab-acceptance:  ## clean-room lab acceptance from built wheels in fresh venvs -> reports/lab-acceptance.json
+	$(PY) scripts/lab_acceptance.py
+
+lint-packaging:  ## ruff + mypy --strict for packaging/ (CI: package-linux)
+	cd backend && ../$(VENV)/bin/ruff check ../packaging && ../$(VENV)/bin/ruff format --check ../packaging
+	cd backend && ../$(VENV)/bin/mypy --strict ../packaging/app_entry.py ../packaging/stage_console.py \
+	  ../packaging/build_app.py ../packaging/smoke_test.py

@@ -1,0 +1,455 @@
+"""Smoke-test a built BrainOS desktop bundle as a user would run it (no repository code used).
+
+    python packaging/smoke_test.py EXECUTABLE [--app BrainOS.app] [--gui] [--dmg BrainOS.dmg]
+                                   [--report report.json]
+
+EXECUTABLE is ``BrainOS.app/Contents/MacOS/BrainOS`` (macOS) or ``BrainOS/BrainOS`` (Linux).
+Steps (each recorded in the report; any failure exits 1):
+
+1. ``--version`` and ``doctor`` from the bundle itself.
+2. Headless launch with a fresh data directory: health, the console page, the built-in
+   sources, bundled native parts (scipy pipeline presets, NWB support, liblsl), the plugin
+   host inside the bundle (BCI2000 plugin discovered as compatible), Simulated Profile A
+   connected over REST with events flowing, a research session and a recording; then SIGTERM
+   (= Quit) and checks that the recording was closed cleanly with private permissions.
+3. Crash recovery: SIGKILL mid-recording, relaunch, the recording is kept and marked
+   incomplete.
+4. ``--gui`` (macOS): ``open`` the .app like a double-click, then quit it with an Apple Event
+   (as Cmd-Q / Dock > Quit do) and check the clean shutdown.
+5. ``--dmg``: attach the disk image read-only and run step 2 from the mounted app.
+"""
+
+from __future__ import annotations
+
+import argparse
+import contextlib
+import json
+import os
+import shutil
+import signal
+import socket
+import stat
+import subprocess
+import sys
+import tempfile
+import time
+import urllib.error
+import urllib.request
+from collections.abc import Callable
+from pathlib import Path
+from typing import Any, ParamSpec
+
+P = ParamSpec("P")
+BUNDLE_ID = "org.brainos.desktop"
+STEPS: list[dict[str, Any]] = []
+
+
+def free_port() -> int:
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        port: int = s.getsockname()[1]
+        return port
+
+
+def http(method: str, url: str, body: Any = None, timeout: float = 10) -> Any:
+    data = json.dumps(body).encode() if body is not None else None
+    req = urllib.request.Request(
+        url, data=data, method=method, headers={"content-type": "application/json"}
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        raw = r.read()
+        ctype = r.headers.get("content-type", "")
+    return json.loads(raw) if "json" in ctype else raw.decode("utf-8", "replace")
+
+
+def healthy(base: str) -> dict[str, Any] | None:
+    try:
+        h = http("GET", base + "/api/v1/health", timeout=1)
+        return h if isinstance(h, dict) else None
+    except (OSError, urllib.error.URLError, ValueError):
+        return None
+
+
+def wait_until(cond: Any, timeout: float, what: str, interval: float = 0.25) -> Any:
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        value = cond()
+        if value:
+            return value
+        time.sleep(interval)
+    raise AssertionError(f"timed out after {timeout:.0f} s waiting for {what}")
+
+
+def step(name: str) -> Callable[[Callable[P, str]], Callable[P, str]]:
+    def deco(fn: Callable[P, str]) -> Callable[P, str]:
+        def run(*a: P.args, **kw: P.kwargs) -> str:
+            t0 = time.monotonic()
+            try:
+                detail = fn(*a, **kw)
+            except Exception as exc:
+                STEPS.append(
+                    {
+                        "step": name,
+                        "ok": False,
+                        "seconds": round(time.monotonic() - t0, 1),
+                        "detail": f"{type(exc).__name__}: {exc}",
+                    }
+                )
+                print(f"  FAIL {name}: {exc}", flush=True)
+                raise
+            STEPS.append(
+                {
+                    "step": name,
+                    "ok": True,
+                    "seconds": round(time.monotonic() - t0, 1),
+                    "detail": detail,
+                }
+            )
+            print(f"  ok   {name}: {detail}", flush=True)
+            return detail
+
+        return run
+
+    return deco
+
+
+def env_for(data: Path, port: int) -> dict[str, str]:
+    env = {k: v for k, v in os.environ.items() if not k.startswith("BRAINOS_")}
+    env.update(
+        {
+            "BRAINOS_DATA_DIR": str(data),
+            "BRAINOS_PORT": str(port),
+            "BRAINOS_CONFIG": str(data.parent / "no-config.toml"),
+            "BRAINOS_OPEN_BROWSER": "0",
+        }
+    )
+    return env
+
+
+def launch(exe: Path, data: Path, port: int) -> subprocess.Popen[bytes]:
+    log = (data.parent / f"launch-{port}.log").open("ab")
+    return subprocess.Popen(
+        [str(exe), "--headless", "--no-browser"],
+        env=env_for(data, port),
+        stdout=log,
+        stderr=subprocess.STDOUT,
+    )
+
+
+def wait_healthy(
+    base: str, proc: subprocess.Popen[bytes] | None, timeout: float = 180
+) -> dict[str, Any]:
+    def ready() -> dict[str, Any] | None:
+        if proc is not None and proc.poll() is not None:
+            raise AssertionError(f"the app exited during startup (code {proc.returncode})")
+        return healthy(base)
+
+    h: dict[str, Any] = wait_until(ready, timeout, "the app to become healthy")
+    return h
+
+
+def mode(p: Path) -> int:
+    return stat.S_IMODE(p.stat().st_mode)
+
+
+@step("version")
+def check_version(exe: Path) -> str:
+    out = subprocess.run([str(exe), "--version"], capture_output=True, text=True, timeout=120)
+    text = (out.stdout + out.stderr).strip()
+    assert out.returncode == 0, text
+    if not text:  # a windowed bootloader may have no console streams; doctor checks the rest
+        return "exit 0 (no console output from the windowed executable)"
+    assert text.startswith("BrainOS "), text
+    return text
+
+
+@step("decoder host from the bundle")
+def check_decoder_host(exe: Path) -> str:
+    """The isolated decoder host (M5-A) is started as ``<exe> -m brainos_decoder_sdk.host``."""
+    out = subprocess.run(
+        [str(exe), "-m", "brainos_decoder_sdk.host", "--list"],
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+    assert out.returncode == 0, (out.stdout + out.stderr).strip()[-2000:]
+    if not out.stdout.strip():  # a windowed bootloader may have no console streams
+        return "exit 0 (no console output from the windowed executable)"
+    listed = json.loads(out.stdout)
+    return f"--list answered ({len(listed) if isinstance(listed, list) else 'object'})"
+
+
+@step("doctor from the bundle")
+def check_doctor(exe: Path, work: Path) -> str:
+    data, port = work / "doctor-data", free_port()
+    report = work / "doctor.json"
+    out = subprocess.run(
+        [str(exe), "doctor", "--json", str(report), "--no-plugins"],
+        env=env_for(data, port),
+        capture_output=True,
+        text=True,
+        timeout=180,
+    )
+    rep = json.loads(report.read_text())
+    assert rep["format"] == "brainos.support-report/1", rep.get("format")
+    checks = {c["id"]: c["status"] for c in rep["checks"]}
+    for cid in ("dsp", "nwb", "lsl", "zmq"):
+        assert checks.get(cid) == "ok", f"{cid}: {checks.get(cid)} (bundled dependency missing?)"
+    assert rep["platform"]["frozen_app"] is True
+    assert out.returncode == 0, out.stdout + out.stderr
+    tk = checks.get("tk", "n/a")
+    return f"exit 0; {rep['summary']}; install={rep['brainos']['install']}; tk={tk}"
+
+
+def exercise(base: str, label: str) -> dict[str, Any]:
+    """Everything a first session touches, through the REST API the console uses."""
+    page = http("GET", base + "/")
+    assert isinstance(page, str) and "<title>" in page and "BrainOS" in page, "console page"
+    devices = {d["device_id"] for d in http("GET", base + "/api/v1/devices")}
+    assert {"sim-a", "sim-b"} <= devices, devices
+    presets = http("GET", base + "/api/v1/pipeline/presets")
+    assert "spikeband_threshold" in presets, "scipy pipeline presets missing"
+    assert http("GET", base + "/api/v1/datasets")["nwb_support"] is True, "pynwb missing"
+    lsl = http("POST", base + "/api/v1/sources/lsl/discover", {"wait_s": 0.3})
+    assert lsl["library"], "liblsl did not load"
+    plugins = wait_until(
+        lambda: (p := http("GET", base + "/api/v1/plugins"))["discovered_at_ns"] and p,
+        120,
+        "plugin discovery",
+    )
+    status = {p["name"]: p["status"] for p in plugins["plugins"]}
+    assert status.get("bci2000") == "compatible", f"plugin host in the bundle: {status}"
+    session = http("POST", base + "/api/v1/sessions", {"name": f"smoke {label}"})
+    http("POST", base + "/api/v1/runtime/connect", {"device_id": "sim-a"})
+    first = http("GET", base + "/api/v1/diagnostics")["counters"]["events_published"]
+    wait_until(
+        lambda: (
+            http("GET", base + "/api/v1/diagnostics")["counters"]["events_published"] > first + 50
+        ),
+        20,
+        "events from Simulated Profile A",
+    )
+    rates = {
+        e["event_type"]: e["rate_hz"]
+        for e in http("GET", base + "/api/v1/diagnostics")["event_types"]
+    }
+    rec = http("POST", base + "/api/v1/recordings/start", {"name": f"smoke-{label}"})["name"]
+    time.sleep(1.5)
+    return {
+        "session": session["id"],
+        "recording": rec,
+        "frame_rate_hz": rates.get("recording.frame"),
+        "plugins": status,
+        "lsl": lsl["library"][:40],
+    }
+
+
+@step("headless launch, sources, plugin host, events, quit (SIGTERM)")
+def check_headless(exe: Path, work: Path, label: str = "headless") -> str:
+    data, port = work / f"data-{label}", free_port()
+    base = f"http://127.0.0.1:{port}"
+    proc = launch(exe, data, port)
+    try:
+        h = wait_healthy(base, proc)
+        info = exercise(base, label)
+        proc.send_signal(signal.SIGTERM)
+        code = proc.wait(60)
+    finally:
+        if proc.poll() is None:
+            proc.kill()
+    assert code == 0, f"exit code {code} after SIGTERM"
+    assert healthy(base) is None, "still answering after quit"
+    rec = data / "recordings" / f"{info['recording']}.brainos.jsonl"
+    assert rec.exists() and not (data / "recordings" / f"{info['recording']}.active.json").exists()
+    assert mode(rec) == 0o600 and mode(data) == 0o700, "private permissions"
+    s = json.loads((data / "sessions" / info["session"] / "session.json").read_text())
+    assert s["status"] == "closed", s["status"]
+    return (
+        f"BrainOS {h['version']} healthy; sim-a frames {info['frame_rate_hz']} Hz; plugins "
+        f"{info['plugins']}; recording closed cleanly (0600, data dir 0700); session closed"
+    )
+
+
+@step("crash recovery (SIGKILL mid-recording, relaunch)")
+def check_crash(exe: Path, work: Path) -> str:
+    data, port = work / "data-crash", free_port()
+    base = f"http://127.0.0.1:{port}"
+    proc = launch(exe, data, port)
+    try:
+        wait_healthy(base, proc)
+        http("POST", base + "/api/v1/runtime/connect", {"device_id": "sim-a"})
+        name = http("POST", base + "/api/v1/recordings/start", {"name": "crash"})["name"]
+        time.sleep(1.5)
+        proc.kill()
+        proc.wait(30)
+    finally:
+        if proc.poll() is None:
+            proc.kill()
+    proc = launch(exe, data, port)
+    try:
+        wait_healthy(base, proc)
+        rec = next(r for r in http("GET", base + "/api/v1/recordings") if r["name"] == name)
+        assert rec["complete"] is False and rec["recovery"]["valid_events"] > 0, rec
+        proc.send_signal(signal.SIGTERM)
+        assert proc.wait(60) == 0
+    finally:
+        if proc.poll() is None:
+            proc.kill()
+    return f"kept {rec['recovery']['valid_events']} events, marked incomplete"
+
+
+@step("window mode (Tk status window), quit (SIGTERM reaches the window's event loop)")
+def check_window(exe: Path, work: Path) -> str:
+    data, port = work / "data-window", free_port()
+    base = f"http://127.0.0.1:{port}"
+    log = (work / f"launch-{port}.log").open("ab")
+    proc = subprocess.Popen(
+        [str(exe), "--no-browser"], env=env_for(data, port), stdout=log, stderr=subprocess.STDOUT
+    )
+    try:
+        wait_healthy(base, proc)
+        http("POST", base + "/api/v1/runtime/connect", {"device_id": "sim-a"})
+        name = http("POST", base + "/api/v1/recordings/start", {"name": "window"})["name"]
+        time.sleep(1.0)
+        text = (data / "logs" / "brainos.log").read_text()
+        assert "BrainOS window open" in text, "the app did not open its window"
+        assert "no window could be created" not in text and "no window toolkit" not in text
+        proc.send_signal(signal.SIGTERM)
+        code = proc.wait(60)
+    finally:
+        if proc.poll() is None:
+            proc.kill()
+    assert code == 0, f"exit code {code}"
+    rec = data / "recordings" / f"{name}.brainos.jsonl"
+    assert rec.exists() and not (data / "recordings" / f"{name}.active.json").exists()
+    return "window opened; quit stopped the server cleanly; recording closed"
+
+
+@step("macOS: open the .app (double-click equivalent), quit with an Apple Event")
+def check_gui(app: Path, work: Path) -> str:
+    data, port = work / "data-gui", free_port()
+    base = f"http://127.0.0.1:{port}"
+    subprocess.run(
+        [
+            "open",
+            "-n",
+            str(app),
+            "--args",
+            "--no-browser",
+            "--port",
+            str(port),
+            "--data-dir",
+            str(data),
+        ],
+        check=True,
+        timeout=60,
+    )
+    h = wait_healthy(base, None)
+    http("POST", base + "/api/v1/runtime/connect", {"device_id": "sim-a"})
+    name = http("POST", base + "/api/v1/recordings/start", {"name": "gui"})["name"]
+    time.sleep(1.0)
+    how = "Apple Event (quit)"
+    q = subprocess.run(
+        ["osascript", "-e", f'tell application id "{BUNDLE_ID}" to quit'],
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    if q.returncode != 0:
+        how = f"SIGTERM (Apple Event refused on this machine: {q.stderr.strip()[:120]})"
+        subprocess.run(["pkill", "-TERM", "-f", str(app / "Contents" / "MacOS" / "BrainOS")])
+    wait_until(lambda: healthy(base) is None, 60, "the app to quit")
+    wait_until(lambda: not (data / "brainos.pid").exists(), 30, "the instance lock to be released")
+    rec = data / "recordings" / f"{name}.brainos.jsonl"
+    assert rec.exists() and not (data / "recordings" / f"{name}.active.json").exists(), (
+        "recording not closed"
+    )
+    window = "unknown"
+    log = data / "logs" / "brainos.log"
+    if log.exists():
+        window = "headless fallback" if "no window toolkit" in log.read_text() else "Tk window"
+    return f"BrainOS {h['version']} launched via `open`; quit by {how}; recording closed; {window}"
+
+
+@step("macOS: the .dmg mounts and its app runs")
+def check_dmg(dmg: Path, work: Path) -> str:
+    mnt = work / "mnt"
+    mnt.mkdir()
+    subprocess.run(
+        ["hdiutil", "attach", "-nobrowse", "-readonly", "-mountpoint", str(mnt), str(dmg)],
+        check=True,
+        timeout=120,
+    )
+    try:
+        app = mnt / "BrainOS.app"
+        assert app.is_dir() and (mnt / "Applications").is_symlink(), "dmg layout"
+        detail = check_headless(app / "Contents" / "MacOS" / "BrainOS", work, label="dmg")
+    finally:
+        subprocess.run(["hdiutil", "detach", str(mnt)], timeout=120)
+    return f"mounted read-only; {detail}"
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    ap.add_argument("executable", type=Path)
+    ap.add_argument("--app", type=Path, help="the .app bundle (macOS) for --gui")
+    ap.add_argument("--gui", action="store_true")
+    ap.add_argument(
+        "--window",
+        action="store_true",
+        help="also run with the status window (needs a display: macOS, or Linux DISPLAY)",
+    )
+    ap.add_argument("--dmg", type=Path)
+    ap.add_argument("--report", type=Path)
+    ap.add_argument("--keep", action="store_true")
+    args = ap.parse_args(argv)
+    if args.gui and (sys.platform != "darwin" or args.app is None):
+        raise SystemExit("--gui needs macOS and --app")
+    work = Path(tempfile.mkdtemp(prefix="brainos-smoke-"))
+    exe = args.executable
+    checks: list[Callable[[], str]] = [
+        lambda: check_version(exe),
+        lambda: check_decoder_host(exe),
+        lambda: check_doctor(exe, work),
+        lambda: check_headless(exe, work),
+        lambda: check_crash(exe, work),
+    ]
+    if args.window:
+        checks.append(lambda: check_window(exe, work))
+    if args.gui:
+        checks.append(lambda: check_gui(args.app, work))
+    if args.dmg:
+        checks.append(lambda: check_dmg(args.dmg, work))
+    ok = False
+    try:
+        # every check runs even if an earlier one failed: one CI run reports all of them
+        failures = (AssertionError, OSError, subprocess.SubprocessError, ValueError, KeyError)
+        for check in checks:
+            with contextlib.suppress(*failures):  # recorded in STEPS by @step
+                check()
+        ok = len(STEPS) >= len(checks) and all(s["ok"] for s in STEPS)
+    finally:
+        report = {
+            "ok": ok,
+            "platform": sys.platform,
+            "executable": str(args.executable),
+            "steps": STEPS,
+        }
+        if args.report:
+            args.report.write_text(json.dumps(report, indent=1) + "\n")
+        if not ok:
+            for log in sorted(work.glob("launch-*.log")):
+                print(
+                    f"--- {log.name} (tail)\n"
+                    + "\n".join(log.read_text(errors="replace").splitlines()[-40:])
+                )
+        if not args.keep:
+            shutil.rmtree(work, ignore_errors=True)
+    print("SMOKE TEST PASSED" if ok else "SMOKE TEST FAILED")
+    return 0 if ok else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

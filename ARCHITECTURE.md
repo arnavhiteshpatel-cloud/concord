@@ -711,3 +711,66 @@ Guide: docs/DECODER_SDK.md. This section is normative for the runtime side.
   /models/discovery`, `POST /models/discover`, `POST /models/{id}/trust`, and the calibration
   routes above (moved from `live_routes.py`). `POST /pipeline/start` waits until isolated
   decoders are loaded.
+
+## M5-D. Installation, researcher workflow and local safeguards
+
+Additive; no event-contract change (schema stays 1.4). `RecordingInfo` gains `complete` and
+`recovery`; `/health` gains `pid`.
+
+### M5-D.1 Processes and configuration
+
+`brainos serve` (= `brainos-server`, `python -m brainos.server`) is the only server entry: it
+checks the bind address (non-loopback refused without `allow_remote`), sets umask 077,
+installs redacting log handlers (stderr + `<data>/logs/brainos.log`) and takes an exclusive
+lock on `<data>/brainos.pid`. `brainos start` runs it detached and waits for `/health`;
+`brainos stop` calls `POST /safe-stop`, then SIGTERM (graceful shutdown closes recordings and
+the active session), SIGKILL only after a timeout. The desktop app (`brainos/desktop.py`) runs
+the same server in a thread and a Tk window in the main thread. Settings: environment >
+config file (`brainos/config.py`, TOML, validated, refused if writable by others) > defaults.
+A source checkout keeps `data/` and `frontend/dist`; an installed copy uses the per-user
+directory and the console staged into the package.
+
+### M5-D.2 Storage layout (all 0700 directories / 0600 files)
+
+```
+<data>/recordings/<name>.brainos.jsonl     recording (format unchanged)
+                  <name>.active.json       while written (OS-locked by the writer)
+                  <name>.recovery.json     after recovery: status, counts, hashes
+                  <name>.discarded.bin     bytes after the last complete event (if any)
+<data>/models/<model_id>.json
+<data>/sessions/<id>/session.json          brainos.session/1: name, operator, notes, times, recordings, models
+<data>/sessions/<id>/log.jsonl             session log (no personal data)
+<data>/sessions/<id>/exports/*.zip         brainos.session-bundle/1
+<data>/logs/  <data>/support/  <data>/brainos.pid
+```
+
+### M5-D.3 REST (operator endpoints, `/api/v1`)
+
+| Endpoint | Purpose |
+| --- | --- |
+| `GET/POST /sessions`, `GET /sessions/{id}`, `POST /sessions/{id}/close` | research sessions (`close` performs a safe stop by default) |
+| `POST /sessions/{id}/export`, `GET /sessions/{id}/exports/{file}` | reproducibility bundle `{include_recordings, include_personal}` |
+| `DELETE /sessions/{id}?confirm={id}[&delete_recordings=true]` | delete a closed session |
+| `POST /safe-stop` | command output off → recording closed → decoding stopped → source disconnected |
+| `GET /storage` | usage, retention policy, startup retention result, recovered recordings, interrupted sessions |
+| `DELETE /recordings/{name}?confirm={name}`, `DELETE /models/{id}?confirm={id}` | deletion; refused while in use |
+| `GET /system/doctor[?format=markdown]` | the support report |
+
+Errors use the usual envelope with codes `not_found`, `invalid_state`,
+`confirmation_required`, `forbidden_origin`.
+
+### M5-D.4 Middleware
+
+`LocalOriginMiddleware` (outermost) refuses browser requests from other sites and DNS
+rebinding (HTTP and WebSocket). `SessionAuditMiddleware` records state-changing API calls into
+the active session's log, with the configuration of the calls that determine what was
+computed (source, pipeline, router, recording, calibration, authorization).
+
+### M5-D.5 Recovery and reproduction
+
+At startup: tighten permissions, `Recorder.recover()` (markers not held by a live process, and
+legacy files not ending in a newline), mark sessions left active as `interrupted`, apply the
+retention policy. `brainos reproduce` verifies every file against the bundle manifest,
+re-fits calibrated decoders from bundled recordings with the logged request, and recomputes
+recorded linear-decoder output bin by bin (after `len(kernel)` warm-up bins per
+discontinuity), within a 1e-6 relative tolerance.
