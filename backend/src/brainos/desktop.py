@@ -118,6 +118,12 @@ def run_window(
         root = tk.Tk()
     except Exception as exc:  # TclError: no display, broken Tcl/Tk installation
         raise WindowUnavailable(str(exc)) from exc
+    # Creating the Tk root initializes Cocoa on macOS, which can replace the process's SIGTERM
+    # disposition (CI: the windowed app exited with status 1 on SIGTERM without the safe quit).
+    # Reinstate ours so SIGTERM / SIGINT (e.g. `brainos stop`) run the same quit as the window.
+    previous = {sig: signal.getsignal(sig) for sig in (signal.SIGTERM, signal.SIGINT)}
+    for sig in previous:
+        signal.signal(sig, lambda *_: stop_event.set())
     root.title("BrainOS")
     root.resizable(False, False)
     frame = tk.Frame(root, padx=18, pady=14)
@@ -167,7 +173,11 @@ def run_window(
     root.after(200, poll)
     if on_ready is not None:
         on_ready(root)
-    root.mainloop()
+    try:
+        root.mainloop()
+    finally:
+        for sig, handler in previous.items():
+            signal.signal(sig, handler)
     return result["code"]
 
 
