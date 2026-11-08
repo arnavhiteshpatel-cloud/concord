@@ -6,6 +6,7 @@ skipped otherwise. The packaged app is checked by packaging/smoke_test.py."""
 from __future__ import annotations
 
 import os
+import signal
 import threading
 from pathlib import Path
 from typing import Any
@@ -42,7 +43,7 @@ QUITS = {
 }
 
 
-@pytest.mark.parametrize("how", [*QUITS, "sigterm_event"])
+@pytest.mark.parametrize("how", [*QUITS, "sigterm_event", "sigterm_signal"])
 def test_every_quit_path_stops_safely(tmp_path: Path, how: str) -> None:
     port = free_port()
     settings = make_settings(tmp_path, port=port)
@@ -58,11 +59,15 @@ def test_every_quit_path_stops_safely(tmp_path: Path, how: str) -> None:
         assert _find(root, f"{base}") is not None  # the window shows where the console is
         if how == "sigterm_event":
             root.after(400, stop.set)  # what the SIGTERM handler does
+        elif how == "sigterm_signal":  # a real SIGTERM, after Tk is initialized (macOS CI)
+            root.after(400, lambda: os.kill(os.getpid(), signal.SIGTERM))
         else:
             root.after(400, lambda: QUITS[how](root))
 
+    before = signal.getsignal(signal.SIGTERM)
     code = run_window(srv, base, stop, lambda: opened.append(1), on_ready=ready)
     assert code == 0 and not srv.alive
+    assert signal.getsignal(signal.SIGTERM) is before  # the window restores the handlers
     rec = tmp_path / "data" / "recordings"
     assert (rec / "win.brainos.jsonl").exists() and not (rec / "win.active.json").exists()
     with pytest.raises(httpx.HTTPError):
