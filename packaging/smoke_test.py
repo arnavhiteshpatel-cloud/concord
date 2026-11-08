@@ -163,6 +163,22 @@ def check_version(exe: Path) -> str:
     return text
 
 
+@step("decoder host from the bundle")
+def check_decoder_host(exe: Path) -> str:
+    """The isolated decoder host (M5-A) is started as ``<exe> -m brainos_decoder_sdk.host``."""
+    out = subprocess.run(
+        [str(exe), "-m", "brainos_decoder_sdk.host", "--list"],
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+    assert out.returncode == 0, (out.stdout + out.stderr).strip()[-2000:]
+    if not out.stdout.strip():  # a windowed bootloader may have no console streams
+        return "exit 0 (no console output from the windowed executable)"
+    listed = json.loads(out.stdout)
+    return f"--list answered ({len(listed) if isinstance(listed, list) else 'object'})"
+
+
 @step("doctor from the bundle")
 def check_doctor(exe: Path, work: Path) -> str:
     data, port = work / "doctor-data", free_port()
@@ -395,6 +411,7 @@ def main(argv: list[str] | None = None) -> int:
     exe = args.executable
     checks: list[Callable[[], str]] = [
         lambda: check_version(exe),
+        lambda: check_decoder_host(exe),
         lambda: check_doctor(exe, work),
         lambda: check_headless(exe, work),
         lambda: check_crash(exe, work),

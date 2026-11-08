@@ -31,6 +31,7 @@ MAC = sys.platform == "darwin"
 hiddenimports = [
     *collect_submodules("brainos"),
     *collect_submodules("brainos_adapter_sdk"),
+    *collect_submodules("brainos_decoder_sdk"),  # isolated decoder host (M5-A)
     *collect_submodules("brainos_bci2000"),
     *collect_submodules("uvicorn"),
     *collect_submodules("hdmf"),
@@ -45,6 +46,7 @@ datas += collect_data_files("pynwb") + collect_data_files("hdmf")  # NWB schema 
 for dist in (
     "brainos",
     "brainos-adapter-sdk",
+    "brainos-decoder-sdk",
     "brainos-bci2000",
     "pydantic",
     "fastapi",
