@@ -1,0 +1,176 @@
+name: Release
+
+# Builds the downloadable BrainOS release from the repository as it is and publishes it as a
+# GitHub Release with fixed asset names, so the README can link straight to the files:
+#
+#   BrainOS-macos-arm64.dmg       desktop app, macOS 14+ on Apple Silicon (unsigned)
+#   BrainOS-linux-x86_64.tar.gz   desktop bundle for Linux x86_64 (extract, run ./BrainOS/BrainOS)
+#   *.whl                         Python packages (brainos with the console, the SDKs, brainos-hwval)
+#   SHA256SUMS.txt                checksums of every file above
+#
+# Every bundle is smoke-tested on its platform (the same checks as the CI package jobs) before
+# anything is published. To publish: Actions -> Release -> Run workflow (enter the tag, e.g.
+# v0.3.0, which must match the version in backend/pyproject.toml), or push a tag `v*`.
+# Pull requests that change this file run the builds and tests without publishing.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag, e.g. v0.3.0 (must equal v + the version in backend/pyproject.toml)"
+        required: true
+  push:
+    tags: ["v*"]
+  pull_request:
+    paths:
+      - ".github/workflows/release.yml"
+
+permissions:
+  contents: read
+
+env:
+  TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: v
+        name: The tag must name the version being built
+        run: |
+          version=$(python3 -c "import tomllib; print(tomllib.load(open('backend/pyproject.toml','rb'))['project']['version'])")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" != "pull_request" ] && [ "$TAG" != "v$version" ]; then
+            echo "::error::tag $TAG does not match the BrainOS version $version (expected v$version)"
+            exit 1
+          fi
+
+  macos:
+    needs: check-version
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install the build environment
+        run: |
+          python -m pip install -e packages/brainos-adapter-sdk -e packages/brainos-decoder-sdk -e "backend[lab]" -e packages/brainos-bci2000
+          python -m pip install -r packaging/requirements.txt
+      - name: Build BrainOS.app and the .dmg
+        run: python packaging/build_app.py --build-console --dmg
+      - name: Smoke test the app and the .dmg
+        run: |
+          mkdir -p reports
+          python packaging/smoke_test.py packaging/dist/BrainOS.app/Contents/MacOS/BrainOS \
+            --app packaging/dist/BrainOS.app --window --gui \
+            --dmg "$(ls packaging/dist/BrainOS-*.dmg)" --report reports/smoke-macos.json
+      - name: Name the download
+        run: |
+          mkdir -p out
+          cp "$(ls packaging/dist/BrainOS-*.dmg)" out/BrainOS-macos-arm64.dmg
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-macos
+          path: out/
+
+  linux:
+    needs: check-version
+    # Ubuntu 22.04: the bundle then runs on distributions with glibc 2.35 or newer
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Tk runtime and a virtual display (for the window check)
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends libtk8.6 xvfb
+      - name: Install the build environment
+        run: |
+          python -m pip install -e packages/brainos-adapter-sdk -e packages/brainos-decoder-sdk -e "backend[lab]" -e packages/brainos-bci2000
+          python -m pip install -r packaging/requirements.txt
+      - name: Build the bundle
+        run: python packaging/build_app.py --build-console
+      - name: Smoke test (headless, crash recovery, Tk window under Xvfb)
+        run: |
+          mkdir -p reports
+          xvfb-run -a python packaging/smoke_test.py packaging/dist/BrainOS/BrainOS --window --report reports/smoke-linux.json
+      - name: Package the download
+        run: |
+          mkdir -p out
+          tar -czf out/BrainOS-linux-x86_64.tar.gz -C packaging/dist BrainOS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-linux
+          path: out/
+
+  wheels:
+    needs: check-version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Stage the console into the brainos package
+        run: python packaging/stage_console.py --build
+      - name: Build the wheels
+        run: |
+          python -m pip install --upgrade pip
+          for p in backend packages/brainos-adapter-sdk packages/brainos-decoder-sdk packages/brainos-hwval; do
+            python -m pip wheel --no-deps -w out "$p"
+          done
+          ls -l out
+      - name: Clean-room check of the wheels (the CI distribution check)
+        run: python scripts/dist_check.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-wheels
+          path: out/*.whl
+
+  publish:
+    needs: [check-version, macos, linux, wheels]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: assets
+          merge-multiple: true
+      - name: Checksums
+        working-directory: assets
+        run: |
+          sha256sum * > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+      - name: Create the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          notes="docs/releases/$TAG.md"
+          if [ ! -f "$notes" ]; then echo "::error::missing release notes $notes"; exit 1; fi
+          gh release create "$TAG" assets/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "BrainOS ${{ needs.check-version.outputs.version }} — research preview" \
+            --notes-file "$notes"

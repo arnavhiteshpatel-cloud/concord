@@ -1,0 +1,22 @@
+name: Feature request
+description: Suggest something BrainOS should do.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: What do you need to do?
+      description: Describe the research task and why the current features do not cover it.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would help?
+      description: Your idea of a solution, if you have one.
+  - type: markdown
+    attributes:
+      value: |
+        BrainOS is read-only by design: it will not send commands or stimulation to devices.
+        Integrations with specific acquisition systems are usually best done as a
+        [source plugin](https://github.com/arnavhiteshpatel-cloud/brainos/blob/main/docs/ADAPTER_SDK.md).
