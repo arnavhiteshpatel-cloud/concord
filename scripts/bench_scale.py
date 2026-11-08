@@ -699,6 +699,8 @@ async def _live_body(
     stalled_consumer: bool,
     rss_every_s: float | None,
 ) -> dict[str, Any]:
+    import httpx
+
     from brainos.sdk import RuntimeClient
 
     await srv.ready()
@@ -733,7 +735,16 @@ async def _live_body(
         try:
             await rc.start_pipeline(**proc, model_id=model_id, router=router)
         except Exception as exc:
-            return {"kind": kind, "channels": channels, "rate": rate, "error": f"{exc}"[:200]}
+            await asyncio.sleep(0.3)  # let the RSS watchdog record a kill it just made
+            err = f"pipeline start failed: {type(exc).__name__}: {exc}"[:200]
+            if isinstance(exc, httpx.TimeoutException):
+                err = "pipeline start timed out: runtime unresponsive (event loop saturated)"
+            if srv.rss_killed_after_s is not None:
+                err = (
+                    f"runtime RSS exceeded {RSS_CAP_MB:.0f} MB {srv.rss_killed_after_s:.1f} s "
+                    "after start (before the pipeline could start); stopped by the benchmark"
+                )
+            return {"kind": kind, "channels": channels, "rate": rate, "error": err}
         await asyncio.sleep(WARMUP_S)
         for a in apps:
             a.arm()
@@ -923,9 +934,11 @@ async def _micro_one(channels: int, n: int, reps: int) -> dict[str, Any]:
     data = (rng.standard_normal((n, channels)) * 10).astype(np.float32)
     part = {"data": data, "ts": [1.0 + i / FS_RAW for i in range(n)], "first_index": 0}
     t_norm = best_of(lambda: adapter._signal_drafts(part), reps)
-    draft = adapter._signal_drafts(part)[0]
+    # one 10 ms chunk may become several frames (frame size cap): every stage below handles
+    # all of them, so each figure is per chunk of n samples
+    drafts = adapter._signal_drafts(part)
     tmp = Path(tempfile.mkdtemp())
-    rt = Runtime(DeviceRegistry(OperatorIntentSource(), tmp), Recorder(tmp), queue_size=4)
+    rt = Runtime(DeviceRegistry(OperatorIntentSource(), tmp), Recorder(tmp), queue_size=64)
     # bypass connect(): the offline adapter is never opened; only its pure normalize() is used
     rt._device, rt._session_id, rt._adapter = (
         adapter.descriptor,
@@ -934,38 +947,59 @@ async def _micro_one(channels: int, n: int, reps: int) -> dict[str, Any]:
     )
     rt._state = RuntimeState.STREAMING
     now = time.monotonic_ns()
-    t_ingest = best_of(lambda: rt._ingest(draft, now), reps)
+
+    def ingest_chunk() -> None:
+        for d in drafts:
+            rt._ingest(d, now)
+
+    t_ingest = best_of(ingest_chunk, reps)
     sub = rt.register_app(AppInfo(id="m", name="m"), [], [Capability.RECORDING])
 
-    async def send_one() -> int:
-        rt._ingest(draft, now)
-        frame, enq = await asyncio.wait_for(sub.next_message(), 5)
-        while enq is None:  # a control message (runtime snapshot): not the frame
+    async def send_chunk() -> int:
+        ingest_chunk()
+        size = 0
+        for _ in drafts:
             frame, enq = await asyncio.wait_for(sub.next_message(), 5)
-        return len(frame)
+            while enq is None:  # a control message (runtime snapshot): not a frame
+                frame, enq = await asyncio.wait_for(sub.next_message(), 5)
+            size += len(frame)
+        return size
 
     assert Capability.RECORDING in sub.allowed, sub.negotiation
-    size = await send_one()
+    size = await send_chunk()
     t_send = float("inf")
     for _ in range(reps):
         t0 = time.perf_counter()
-        await send_one()
+        await send_chunk()
         t_send = min(t_send, time.perf_counter() - t0)
     rt.unregister_app(sub.connection_id)
     captured: list[Any] = []
     rt.bus.add_tap(lambda env, _j: captured.append(env))
     rt.start_pipeline(PipelineStartRequest(processing={"preset": "spikeband_threshold"}))
     run = rt.pipeline._run
+
+    def chunk_envs() -> list[Any]:
+        captured.clear()
+        ingest_chunk()
+        return list(captured)
+
     for _ in range(int(1.2 * FS_RAW / n) + 2):  # past the 1 s RMS window
-        rt.pipeline._process(run, _last(rt, draft, now, captured))
-    env = _last(rt, draft, now, captured)
-    t_proc = best_of(lambda: rt.pipeline._process(run, env), reps)
+        for e in chunk_envs():
+            rt.pipeline._process(run, e)
+    envs = chunk_envs()
+
+    def process_chunk() -> None:
+        for e in envs:
+            rt.pipeline._process(run, e)
+
+    t_proc = best_of(process_chunk, reps)
     await rt.pipeline.aclose()
     values = n * channels
     frames_per_s = FS_RAW / n
     out = {
         "channels": channels,
         "samples": n,
+        "frames": len(drafts),
         "json_bytes": size,
         "normalize_us": t_norm * 1e6,
         "ingest_us": t_ingest * 1e6,
@@ -976,11 +1010,6 @@ async def _micro_one(channels: int, n: int, reps: int) -> dict[str, Any]:
         out[k + "_ns_per_value"] = out[k + "_us"] * 1e3 / values
         out[k + "_core_pct"] = out[k + "_us"] * 1e-6 * frames_per_s * 100
     return out
-
-
-def _last(rt: Any, draft: Any, now: int, captured: list[Any]) -> Any:
-    rt._ingest(draft, now)
-    return captured[-1]
 
 
 def section_micro(quick: bool) -> list[dict[str, Any]]:
@@ -1214,6 +1243,31 @@ def _alt_chain_split(reps: int, rng: np.random.Generator) -> list[dict[str, Any]
     return [{"stage": k, "us_per_chunk": v * 1e6} for k, v in parts.items()]
 
 
+def _alt_deflate(ch: int, n: int, reps: int, rng: np.random.Generator) -> dict[str, Any]:
+    """CPU cost of WebSocket permessage-deflate on one raw frame's JSON, as uvicorn's
+    websockets server applies it by default (zlib defaults, 15-bit window, context kept)."""
+    import zlib
+
+    a = (rng.standard_normal((ch, n)) * 10).astype(np.float32).astype(np.float64)
+    text = (json.dumps(a.tolist()) + " ").encode()  # size/shape like the frame's JSON text
+    comp = zlib.compressobj(-1, zlib.DEFLATED, -15)
+    out = b""
+
+    def deflate() -> None:
+        nonlocal out
+        out = comp.compress(text) + comp.flush(zlib.Z_SYNC_FLUSH)
+
+    t = best_of(deflate, reps)
+    return {
+        "channels": ch,
+        "samples": n,
+        "json_kb": len(text) / 1e3,
+        "compressed_kb": len(out) / 1e3,
+        "ms_per_frame": t * 1e3,
+        "mb_per_s": len(text) / t / 1e6,
+    }
+
+
 def section_alternatives(quick: bool) -> dict[str, Any]:
     reps = 3 if quick else 7
     rng = np.random.default_rng(0)
@@ -1227,6 +1281,7 @@ def section_alternatives(quick: bool) -> dict[str, Any]:
         out["sos"] += _alt_sos(ch, reps, rng, c_sos, nb_sos)
     shutil.rmtree(tmp, ignore_errors=True)
     out["chain_split"] = _alt_chain_split(reps, rng)
+    out["deflate"] = [_alt_deflate(ch, n, reps, rng) for ch, n in ((64, 150), (256, 300))]
     return out
 
 
@@ -1425,12 +1480,14 @@ async def section_recovery(tmp: Path, quick: bool) -> list[dict[str, Any]]:
             await srv.ready()
             srv.watch_rss(RSS_CAP_MB)
             async with RuntimeClient(srv.base, timeout=30) as rc:
+                await app.start()  # before the source: a saturated runtime cannot accept it
+                app.arm()
                 did = await open_lsl_source(rc, sid)
                 await rc.connect(did)
                 await rc.start_pipeline("spikeband_threshold")
-                await app.start()
-                app.arm()
                 await asyncio.sleep(4.0)
+                if not app.bins:
+                    raise RuntimeError("no features reached the app before the kill")
                 kill(pub)
                 t_kill = time.monotonic()
                 while (await rc.runtime()).state != "reconnecting":
@@ -1460,6 +1517,12 @@ async def section_recovery(tmp: Path, quick: bool) -> list[dict[str, Any]]:
                     }
                 )
                 print(f"recovery {rows[-1]}", flush=True)
+        except Exception as exc:  # recorded, not fatal
+            err = f"{type(exc).__name__}: {exc}"[:200]
+            if srv.rss_killed_after_s is not None:
+                err = f"runtime RSS exceeded {RSS_CAP_MB:.0f} MB; stopped by the benchmark"
+            rows.append({"channels": ch, "error": err})
+            print(f"recovery ch={ch} ERROR {err}", flush=True)
         finally:
             await app.stop()
             kill(pub)
@@ -1504,6 +1567,11 @@ def _line(tag: str, r: dict[str, Any]) -> str:
 # ============================================================================ markdown
 
 
+def _cmd(command: str) -> str:
+    """The command as run, with absolute output paths shown by file name only."""
+    return " ".join(Path(t).name if t.startswith("/") else t for t in command.split())
+
+
 def f(v: Any, spec: str = ".1f") -> str:
     if v is None or (isinstance(v, float) and np.isnan(v)):
         return "—"
@@ -1517,12 +1585,21 @@ def render(res: dict[str, Any]) -> str:
     p("# BrainOS performance at scale (Milestone 5, workstream E)\n")
     p(
         "> Generated by `scripts/bench_scale.py` on the machine below; every number was "
-        "measured by that run. **All streams are benchmark-generated synthetic data** "
+        "measured by the run(s) listed. **All streams are benchmark-generated synthetic data** "
         f"(declared synthetic, origin `{ORIGIN}`) and **all decoders are random-weight "
         "decoders generated by the benchmark** (not trained; outputs meaningless; no decoding "
         "quality is measured). No hardware. Re-run: `make bench-scale`.\n"
     )
-    p(f"Measured {res['started']} with `{res['command']}`.\n")
+    if res.get("runs"):
+        p("Assembled from these runs of the script (later runs supply the listed sections):\n")
+        for run in res["runs"]:
+            p(
+                f"- {run['started']}: `{_cmd(run['command'])}` (load {run['load_start']} -> "
+                f"{run['load_end']}): {', '.join(run['sections'])}"
+            )
+        p("")
+    else:
+        p(f"Measured {res['started']} with `{_cmd(res['command'])}`.\n")
     p("| | |\n|---|---|")
     for k in (
         "cpu",
@@ -1549,17 +1626,18 @@ def render(res: dict[str, Any]) -> str:
         "(LSL clock = host monotonic clock in every process).\n"
     )
     if "micro" in res:
-        p("## 1. Per-frame cost of the data path (in-process, real code paths)\n")
+        p("## 1. Cost of the raw data path per 10 ms chunk (in-process, real code paths)\n")
         p(
-            "One `recording.frame` of 300 samples (10 ms at 30 kHz) from float32 LSL data. "
-            "*normalize* = LSL adapter `normalize`; *ingest* = runtime stamp + validate + "
-            "publish with no subscriber; *ingest + send* = the same plus one WebSocket "
-            "subscriber granted `recording` dequeuing the frame text; *process* = pipeline "
-            "(`spikeband_threshold`) on one frame. % core = cost at 100 frames/s (30 kHz).\n"
+            "One chunk of 300 samples (10 ms at 30 kHz) of float32 LSL data, as the LSL "
+            "adapter turns it into `recording.frame` events (one, or several where the frame "
+            "size cap applies). *normalize* = LSL adapter `normalize`; *ingest* = runtime "
+            "stamp + validate + publish with no subscriber; *ingest + send* = the same plus "
+            "one WebSocket subscriber granted `recording` dequeuing the frame text; *process* "
+            "= pipeline (`spikeband_threshold`). % core = cost at 100 chunks/s (30 kHz).\n"
         )
         p(
-            "| channels | JSON MB/frame | normalize µs (ns/value, % core) | ingest µs (…) "
-            "| ingest + send µs (…) | process µs (…) |"
+            "| channels | frames · JSON MB per chunk | normalize µs (ns/value, % core) "
+            "| ingest µs (…) | ingest + send µs (…) | process µs (…) |"
         )
         p("|---:|---:|---:|---:|---:|---:|")
         for r in res["micro"]:
@@ -1567,7 +1645,11 @@ def render(res: dict[str, Any]) -> str:
                 f"{r[k + '_us']:,.0f} ({r[k + '_ns_per_value']:.1f}, {r[k + '_core_pct']:.0f}%)"
                 for k in ("normalize", "ingest", "ingest_send", "process")
             ]
-            p(f"| {r['channels']} | {r['json_bytes'] / 1e6:.2f} | " + " | ".join(cells) + " |")
+            p(
+                f"| {r['channels']} | {r.get('frames', 1)} · {r['json_bytes'] / 1e6:.2f} | "
+                + " | ".join(cells)
+                + " |"
+            )
         p("")
     if "alternatives" in res:
         alt = res["alternatives"]
@@ -1601,6 +1683,17 @@ def render(res: dict[str, Any]) -> str:
         p("| stage | µs/chunk |\n|---|---:|")
         for r in alt["chain_split"]:
             p(f"| {r['stage']} | {r['us_per_chunk']:,.0f} |")
+        if alt.get("deflate"):
+            p("\n### 2.5 WebSocket permessage-deflate on raw-frame JSON (uvicorn's default)\n")
+            p(
+                "| channels x samples | JSON KB | deflated KB | ms per frame | MB/s |\n"
+                "|---|---:|---:|---:|---:|"
+            )
+            for r in alt["deflate"]:
+                p(
+                    f"| {r['channels']} x {r['samples']} | {r['json_kb']:,.0f} "
+                    f"| {r['compressed_kb']:,.0f} | {r['ms_per_frame']:.1f} | {r['mb_per_s']:.0f} |"
+                )
         p("")
     if "chain" in res:
         p("## 3. Processing throughput (SignalChain alone, 10 ms chunks, one core)\n")
@@ -1739,6 +1832,9 @@ def render(res: dict[str, Any]) -> str:
             "|---:|---:|---:|---|---:|---|"
         )
         for r in res["recovery"]:
+            if "error" in r:
+                p(f"| {r['channels']} | error: {r['error']} |||||")
+                continue
             p(
                 f"| {r['channels']} | {r['detect_s']:.2f} | {r['recover_s']:.2f} | {r['state']} "
                 f"| {r['reconnects']} | {'yes' if r['pipeline_running'] else 'no'} |"
@@ -1815,16 +1911,36 @@ def _live_row(r: dict[str, Any]) -> str:
 # ================================================================ before/after compare
 
 
+def _cell(r: dict[str, Any], key: str) -> str:
+    """One live-run metric for the comparison table ("failed" for a failed run)."""
+    if "error" in r:
+        return "failed"
+    a = r["app"]
+    value = {
+        "cpu": f(r["cpu_pct"]["runtime"], ".0f"),
+        "samples": f(r["samples_per_s_per_ch"], ",.0f"),
+        "features": f"{r['features_per_s']:.1f}",
+        "missing": str(a["missing_bins"]),
+        "feat": f(a["feat"]["p99"]),
+        "cmd": f(a["cmd"]["p99"]),
+        "dropped": f(r["dropped_inputs"], "d"),
+        "subdrops": f(r.get("subscriber_drops"), "d"),
+        "viewer": f(r.get("viewer", {}).get("frames_per_s"), ".1f") if r.get("viewer") else "—",
+    }[key]
+    return value
+
+
 def compare(before: dict[str, Any], after: dict[str, Any]) -> str:
+    """Markdown tables: the same sections from two saved runs (e.g. 6b82e05 vs m5-perf)."""
     L: list[str] = []
     p = L.append
     p(
-        f"Before: {before['started']} (`{before.get('label', 'before')}`); after: {after['started']} (`{after.get('label', 'after')}`).\n"
+        f"Before: {before['started']} (`{before.get('label') or 'before'}`); "
+        f"after: {after['started']} (`{after.get('label') or 'after'}`).\n"
     )
     if "micro" in before and "micro" in after:
-        p(
-            "| channels | stage | before µs/frame | after µs/frame | speed-up |\n|---:|---|---:|---:|---:|"
-        )
+        p("Per 10 ms chunk of 30 kHz data (section 1 of the report):\n")
+        p("| channels | stage | before µs | after µs | speed-up |\n|---:|---|---:|---:|---:|")
         for b, a in zip(before["micro"], after["micro"], strict=True):
             for k in ("normalize", "ingest", "ingest_send", "process"):
                 p(
@@ -1834,34 +1950,72 @@ def compare(before: dict[str, Any], after: dict[str, Any]) -> str:
             tb = b["normalize_us"] + b["ingest_us"] + b["process_us"]
             ta = a["normalize_us"] + a["ingest_us"] + a["process_us"]
             p(
-                f"| {b['channels']} | **normalize + ingest + process** | {tb:,.0f} | {ta:,.0f} | **{tb / ta:.1f}x** |"
+                f"| {b['channels']} | **normalize + ingest + process** | {tb:,.0f} | {ta:,.0f} "
+                f"| **{tb / ta:.1f}x** |"
             )
         p("")
-    for sec in ("raw", "ecog", "counts"):
-        if sec in before and sec in after:
-            p(f"**{sec}**\n")
-            p(
-                "| channels | rate | runtime CPU % before → after | samples/s/ch before → after "
-                "| missing bins before → after | feature p99 ms before → after "
-                "| command p99 ms before → after | dropped inputs before → after |"
-            )
-            p("|---:|---:|---:|---:|---:|---:|---:|---:|")
-            for b, a in zip(before[sec], after[sec], strict=False):
-                if "error" in b or "error" in a:
-                    p(
-                        f"| {b.get('channels')} | {b.get('rate')} | {b.get('error', '')} → {a.get('error', '')} ||||||"
-                    )
-                    continue
-                p(
-                    f"| {b['channels']} | {b['rate']:g} | {f(b['cpu_pct']['runtime'], '.0f')} → "
-                    f"{f(a['cpu_pct']['runtime'], '.0f')} | {b['samples_per_s_per_ch']:,.0f} → "
-                    f"{a['samples_per_s_per_ch']:,.0f} | {b['app']['missing_bins']} → "
-                    f"{a['app']['missing_bins']} | {f(b['app']['feat']['p99'])} → "
-                    f"{f(a['app']['feat']['p99'])} | {f(b['app']['cmd']['p99'])} → "
-                    f"{f(a['app']['cmd']['p99'])} | {b['dropped_inputs']} → {a['dropped_inputs']} |"
-                )
-            p("")
+    cols = [
+        ("cpu", "runtime CPU %"),
+        ("samples", "samples/s/ch"),
+        ("features", "features/s at app"),
+        ("missing", "missing bins"),
+        ("feat", "feature p99 ms"),
+        ("cmd", "command p99 ms"),
+        ("dropped", "dropped inputs"),
+    ]
+    for sec, extra in (("raw", []), ("ecog", []), ("counts", []), ("consumers", ["viewer"])):
+        if sec not in before or sec not in after:
+            continue
+        keys = cols + [(k, "viewer frames/s") for k in extra]
+        p(f"**{sec}** (before → after)\n")
+        p("| channels | rate | " + " | ".join(t for _, t in keys) + " |")
+        p("|---:|---:|" + "---:|" * len(keys))
+        for b, a in zip(before[sec], after[sec], strict=False):
+            name = f"{b.get('scenario', '')} {b['channels']}".strip()
+            cells = [f"{_cell(b, k)} → {_cell(a, k)}" for k, _ in keys]
+            p(f"| {name} | {b['rate']:g} | " + " | ".join(cells) + " |")
+        failures = [(b, a) for b, a in zip(before[sec], after[sec], strict=False) if "error" in b]
+        for b, a in failures:
+            after_txt = a.get("error", "ran")
+            p(f"\n- before, {b['channels']} ch: {b['error']}; after: {after_txt}.")
+        p("")
+    if "recovery" in before and "recovery" in after:
+        p("**recovery** (before → after)\n")
+        for b, a in zip(before["recovery"], after["recovery"], strict=False):
+            bt = b.get("error") or f"recovered in {b['recover_s']:.2f} s"
+            at = a.get("error") or f"recovered in {a['recover_s']:.2f} s"
+            p(f"- {b['channels']} ch: {bt} → {at}")
+        p("")
     return "\n".join(L) + "\n"
+
+
+def assemble(runs: list[dict[str, Any]]) -> dict[str, Any]:
+    """One report from several saved runs: later runs replace whole sections; the header
+    lists every run and the sections it supplied (nothing is averaged or edited)."""
+    merged: dict[str, Any] = {k: v for k, v in runs[0].items() if k not in SECTIONS}
+    supplied: dict[int, list[str]] = {}
+    for i, run in enumerate(runs):
+        for sec in SECTIONS:
+            if sec in run:
+                merged[sec] = run[sec]
+                for j in supplied:
+                    if sec in supplied[j]:
+                        supplied[j].remove(sec)
+                supplied.setdefault(i, []).append(sec)
+    merged["runs"] = [
+        {
+            "started": run["started"],
+            "command": run["command"],
+            "load_start": run.get("load_start"),
+            "load_end": run.get("load_end"),
+            "sections": supplied.get(i, []),
+        }
+        for i, run in enumerate(runs)
+        if supplied.get(i)
+    ]
+    merged["load_start"] = runs[0].get("load_start")
+    merged["load_end"] = runs[-1].get("load_end")
+    return merged
 
 
 # ================================================================================ main
@@ -1939,11 +2093,21 @@ def main() -> None:
     ap.add_argument("--label", default=None, help="label stored in the JSON (e.g. a commit)")
     ap.add_argument("--rss-cap-mb", type=float, default=2500.0, help="stop runtimes above")
     ap.add_argument("--compare", nargs=2, type=Path, metavar=("BEFORE", "AFTER"))
+    ap.add_argument("--assemble", nargs="+", type=Path, help="render saved runs (later win)")
     args = ap.parse_args()
     RSS_CAP_MB = args.rss_cap_mb
     if args.compare:
         b, a = (json.loads(p.read_text()) for p in args.compare)
         print(compare(b, a))
+        return
+    if args.assemble:
+        merged = assemble([json.loads(p.read_text()) for p in args.assemble])
+        if args.json:
+            args.json.write_text(json.dumps(merged, indent=1, default=str))
+        text = render(merged)
+        print(text)
+        if args.write:
+            args.write.write_text(text)
         return
     res: dict[str, Any] = {
         "started": time.strftime("%Y-%m-%d %H:%M %Z"),
