@@ -1,5 +1,35 @@
 # Datasets — selection, verification, and known pitfalls
 
+## All datasets at a glance
+
+BrainOS replays these public recordings. Each file is pinned by SHA-256 in
+`backend/src/brainos/datasets/` and checked whenever it is loaded; the console labels each
+replay **Offline Replay** and shows whether the checksum matches. The files are downloaded from
+the original archives under their terms and are never redistributed in this repository.
+
+| Dataset | Signals | Participant | Demo files | License and terms | Get it without a terminal | Details |
+| --- | --- | --- | --- | --- | --- | --- |
+| **FALCON H1** — DANDI [000954](https://dandiarchive.org/dandiset/000954/draft) | Intracortical multi-unit spiking, 176 channels, 20 ms bins; cued 7-DoF reach-and-grasp kinematics | one person with two 96-channel motor-cortex arrays | 2 blocks, 8.7 MiB | CC-BY-4.0 + Data Use Agreement (no re-identification, no contact, no redistribution) | [block 110520](https://api.dandiarchive.org/api/assets/e40a2eca-883d-4c80-81e3-4203a49506b5/download/), [block 111022](https://api.dandiarchive.org/api/assets/98f1e471-ad68-4006-b090-9a3e347852e6/download/) | below |
+| **AJILE12** — DANDI [000055](https://dandiarchive.org/dandiset/000055/0.220127.0436) | Raw ECoG, 64-electrode grid, 500 Hz; pose and curated reach events | one person (clinical epilepsy monitoring) | 2 slices, ~157 MiB | CC-BY-4.0, open access | needs one command (`brainos dataset ajile12`): the slices are cut from ~10 GB files | [ECOG.md](ECOG.md) |
+| **T15 cursor + click** — Dryad [10.5061/dryad.prr4xgxzq](https://datadryad.org/dataset/doi:10.5061/dryad.prr4xgxzq) | Threshold crossings and spike band power from 256 speech-motor-cortex electrodes, 10 ms bins; task state; the original decoders' outputs | one person (BrainGate2 participant T15) | 4 blocks of day 468, 92 MiB | CC0 | download in the browser from the Dryad page (free account) | [CURSOR_CLICK.md](CURSOR_CLICK.md) |
+
+Put downloaded files in the `datasets` folder inside BrainOS's data folder (any subfolder):
+`~/Library/Application Support/BrainOS/data/datasets` for the Mac app,
+`~/.local/share/brainos/data/datasets` for the Linux bundle, `data/datasets` in a source
+checkout. Step by step: [GETTING_STARTED.md §4](GETTING_STARTED.md#4-replay-real-human-recordings-10-minutes).
+From a source checkout, `make dataset`, `make dataset-ecog` and `make dataset-t15` download and
+verify them.
+
+**Citations.** FALCON H1: Ye J, Collinger JL, Gaunt R (2024) *FALCON Benchmark H1: Human 7DoF
+Reach and Grasp Motor BCI*, DANDI archive. AJILE12: Peterson SM, Singh SH, Dichter B, Scheid M,
+Rao RPN, Brunton BW (2022) *AJILE12: Long-term naturalistic human intracranial neural recordings
+and pose*, DANDI archive, doi:10.48324/dandi.000055/0.220127.0436. T15: Singer-Clark T et al.
+(2025) *Data from: Speech motor cortex enables BCI cursor control and click*, Dryad,
+doi:10.5061/dryad.prr4xgxzq (publication: J Neural Eng 2025, doi:10.1088/1741-2552/add0e5).
+
+The rest of this page documents FALCON H1, the first dataset integrated.
+
+
 ## Selected dataset
 
 | | |

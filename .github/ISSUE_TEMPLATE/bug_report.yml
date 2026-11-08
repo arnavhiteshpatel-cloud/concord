@@ -1,0 +1,71 @@
+name: Bug report
+description: Something in BrainOS does not work as documented.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting. **Do not attach neural recordings, participant information,
+        credentials or API tokens.** The support report (below) contains none of these.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+      placeholder: |
+        1. Opened BrainOS, chose Connect a source → Simulated Profile A
+        2. …
+        Expected: …
+        Instead: …
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: How you run BrainOS
+      options:
+        - macOS app (.dmg from a release)
+        - Linux bundle (from a release)
+        - Python install from a checkout (make setup)
+        - Python install from wheels
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: BrainOS version
+      description: "Shown in the support report, or run `brainos version`."
+      placeholder: "0.3.0"
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "macOS 15.1 on M2 / Ubuntu 24.04"
+    validations:
+      required: true
+  - type: dropdown
+    id: source
+    attributes:
+      label: Source connected at the time
+      options:
+        - None
+        - Simulated Profile A or B
+        - Recorded human data (offline replay)
+        - Lab Streaming Layer (LSL)
+        - Open Ephys
+        - A plugin (BrainFlow, BCI2000, other)
+        - Other
+  - type: textarea
+    id: support
+    attributes:
+      label: Support report
+      description: "Console → Advanced → Support report → Create, then attach the Markdown file (or run `brainos doctor`). It contains no neural or personal data."
+  - type: textarea
+    id: log
+    attributes:
+      label: Session log or error message
+      description: Copy the relevant lines from the console's Session log or the error shown.
+      render: text

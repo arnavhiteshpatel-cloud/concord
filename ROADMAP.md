@@ -1,4 +1,36 @@
-# BrainOS — 14-Day Roadmap
+# BrainOS roadmap
+
+Where BrainOS stands and what comes next. Every item is "done" only when its verification has
+run; what has been validated, and what has not, is in
+[docs/VALIDATION_LEVELS.md](docs/VALIDATION_LEVELS.md).
+
+## Done
+
+| Milestone | Result | Details |
+| --- | --- | --- |
+| 1. MVP vertical slice | Contracts, simulated devices, runtime, REST + WebSocket API, Python and TypeScript SDKs, console, communication board | [MVP_SPEC.md](MVP_SPEC.md) |
+| 2. Genuine human data | Recorded intracortical data (FALCON H1) replayed and decoded offline without leakage | [docs/DECODING.md](docs/DECODING.md) |
+| 3. Live acquisition | LSL and Open Ephys sources, streaming pipeline, calibration, command router | [docs/LAB_GUIDE.md](docs/LAB_GUIDE.md) |
+| 4. Integration ecosystem | Adapter SDK and plugins (BrainFlow, BCI2000), control bridge, certification toolkit | [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md) |
+| 5. Research-ready release (0.3.0) | Decoder SDK, human ECoG, cursor + click to communication board (open loop), desktop app and lab workflow, performance at 1024 channels, compatibility registry, acquisition-verification toolkit | [CHANGELOG.md](CHANGELOG.md) |
+
+## Next
+
+Candidates for the next milestones. None has started.
+
+| Item | Why | Verification gate |
+| --- | --- | --- |
+| **First hardware verification (level 3)**: one LSL amplifier and one Open Ephys acquisition board | No component has run with acquisition hardware | The complete run set of [docs/HARDWARE_VALIDATION.md](docs/HARDWARE_VALIDATION.md) §9 passes and is signed off |
+| Signed and notarized macOS app; Windows support | The app is unsigned; Windows is not supported | Installs without security overrides on a clean machine; smoke tests on Windows |
+| Publish the Python packages (PyPI) and the TypeScript SDK (npm) | Today they install from release wheels or a checkout | Clean-room installs from the public indexes |
+| Per-application authentication | Application identities are self-declared ([docs/SECURITY.md](docs/SECURITY.md)) | Unauthenticated applications refused; tests for every route |
+| Clock synchronisation between devices and the runtime | No offset or drift estimation beyond what LSL provides | Tests with injected clock skew; offset shown in diagnostics |
+| Per-sample source timestamps and segmented recordings | Only the first sample of a frame keeps its source timestamp; one recording is one file | Round-trip tests; `brainos-hwval` timing checks on per-sample data |
+| Several sources in one session | One source at a time today | Design document, then a flagged implementation with no regression |
+| Closed-loop evaluation (level 4) | Only offline, open-loop results exist | Only with a clinical research partner under an approved protocol |
+
+<details>
+<summary>The original 14-day plan (Milestone 1, historical)</summary>
 
 Each milestone is small, ends with a verification gate, and is not "done"
 until its gate passes in CI. Days are working days for one engineer + agents.
@@ -35,3 +67,5 @@ until its gate passes in CI. Days are working days for one engineer + agents.
   from ARCHITECTURE.md §4.2 unchanged. Behavioral labels never become intents.
 - No stimulation/write path is on this roadmap. Adding one requires a
   separate safety design and is out of scope for the company's first year.
+
+</details>
