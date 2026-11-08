@@ -43,6 +43,37 @@ changes.
 | [docs/MILESTONE4_PLAN.md](docs/MILESTONE4_PLAN.md) | Milestone 4 extension points, workstreams, validation levels |
 | [CLAUDE.md](CLAUDE.md) | Rules for agents/engineers working in this repo |
 
+## M5-D: install, start, and run a research session
+
+**Desktop app (macOS, Apple Silicon):** open `BrainOS-<version>-macos-arm64.dmg` (CI job
+`package-macos`, or `make app` on a Mac), drag BrainOS to Applications, open it (it is
+unsigned: see [docs/INSTALL_MAC.md](docs/INSTALL_MAC.md) for the one-time Gatekeeper step).
+The console opens in your browser; quitting stops everything safely.
+
+**From a checkout (macOS or Linux):** after `make setup` and `make build` (below),
+
+```bash
+.venv/bin/brainos start
+```
+
+starts BrainOS in the background on http://127.0.0.1:8000 and opens the console;
+`brainos status`, `brainos stop` (safe stop, then exit), `brainos doctor` (support report
+without neural or personal data), `brainos config init` (an optional config file with safe
+defaults), `brainos dataset` (the demo recordings), `brainos reproduce <bundle>.zip`.
+
+In the console, the strip above the rows holds **New session** (name, operator, notes),
+**Session and export…** (a reproducibility bundle) and **Safe stop & disconnect**;
+**Advanced → Stored data** deletes recordings, models and sessions; **Advanced → Support
+report**.
+
+| Document | Purpose |
+| --- | --- |
+| [docs/INSTALL_MAC.md](docs/INSTALL_MAC.md) | Mac users: the app or pip, first launch, configuration |
+| [docs/LAB_SETUP.md](docs/LAB_SETUP.md) | Labs with their own acquisition system: adapters, network topology, step by step |
+| [docs/FIRST_LAB_SESSION.md](docs/FIRST_LAB_SESSION.md) | Validation protocol for the first session with real equipment (a protocol, not a result) |
+| [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Symptoms and fixes |
+| [docs/SECURITY.md](docs/SECURITY.md) | What is and is not protected (no authentication; not a medical device) |
+
 ## Quick start (macOS, Apple Silicon)
 
 Prerequisites: [Homebrew](https://brew.sh), then
@@ -265,3 +296,21 @@ In the console, **Start decoding** lists every decoder:
 Pickle / joblib files are refused unless you mark the exact file trusted. Guide:
 [docs/DECODER_SDK.md](docs/DECODER_SDK.md). Example plugin:
 [examples/decoders/brainos-example-decoder](examples/decoders/brainos-example-decoder/README.md).
+
+## Milestone 5, P0: neural-to-communication on genuine human data
+
+Recorded intracortical data from a person with paralysis controlling a cursor and clicking
+(participant T15, Singer-Clark et al., Dryad doi:10.5061/dryad.prr4xgxzq, CC0) replays as
+"Recorded Human Intracortical Data (cursor + click) — Offline Replay" (`t15:*` devices): threshold
+crossings and spike band power, task state, and the original online decoders' outputs
+(labelled historical, never BrainOS). BrainOS's own Kalman cursor decoder and click decoder,
+trained only on earlier calibration blocks, recover the movement intention on held-out blocks
+(angle error 28.0° vs 27.3° for the original online decoder; docs/CURSOR_CLICK.md), and drive
+the participant board end to end in a browser (docs/NEURAL_COMMUNICATION.md). Open loop only:
+nobody has communicated through BrainOS.
+
+```bash
+make dataset-t15            # day 468 blocks 0-3 (~90 MiB; Dryad API token: see --help)
+make e2e-communication      # the board selects words from the replayed block (historical + BrainOS)
+make cursorclick-report     # all 18 blocks: decoders, clicks, word selection -> docs/CURSOR_CLICK.md
+```

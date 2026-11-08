@@ -10,25 +10,31 @@ the PR description and delete it here.
   real recorded data streamed as *prerecorded*; none has been run against acquisition
   hardware or the real Open Ephys GUI. See docs/VALIDATION_LEVELS.md. Nothing implies
   compatibility with any company's implant; there is no vendor adapter.
-- **No human has used it.** Decoding, calibration, the command router and the reference app
-  have never been used with a participant, live or closed-loop. Real-time decoding has been
-  exercised only on FALCON H1 blocks streamed as prerecorded data, where it reproduces the
-  offline decoder exactly. That shows the software path, not BCI performance.
-- **Decoders are linear baselines.** Ridge regression on causally filtered features
-  (held-out R² ≈ 0.08–0.14 within-day on FALCON H1, docs/DECODING.md). No cross-day,
-  cross-participant or cross-modality transfer is claimed; a model from another source is
-  refused unless the operator overrides, and the override is shown.
+- **No human has used it.** Decoding, calibration, the command router, the board and the
+  reference apps have never been used with a participant, live or closed-loop. Real-time
+  decoding has been exercised on recorded human data replayed through the runtime (FALCON H1,
+  T15 cursor + click, AJILE12 ECoG), where it reproduces the offline decoders exactly. That
+  shows the software path, not BCI performance; open-loop numbers are not communication rates
+  (docs/NEURAL_COMMUNICATION.md).
+- **Decoders are classical.** Built in: ridge, LDA, a velocity Kalman filter and a logistic
+  click decoder (M5); other families (ONNX, skops, TorchScript) load through the decoder SDK.
+  Measured: held-out R² ≈ 0.08–0.14 within-day on FALCON H1 (docs/DECODING.md); on T15 cursor
+  + click, Kalman angle error 28.0° vs 27.3° for the original online decoder
+  (docs/CURSOR_CLICK.md). No cross-day, cross-participant or cross-modality transfer is
+  claimed; a model from another source is refused unless the operator overrides (never across
+  modalities), and the override is shown.
 - **Synthetic signals.** Simulated Profile A/B frames are noise + sinusoids. The LSL/Open
   Ephys test publishers emit noise plus biphasic spikes whose rates are cosine-tuned to a
   latent velocity — enough to exercise the pipeline, not physiological. Do not draw
   scientific conclusions from them.
-- **Real-data scope.** The NWB reader supports spike-time `units` tables, plus the FALCON H1
-  behavior layout. Raw voltage (`ElectricalSeries`), LFP/ECoG, imaging and processed-only
-  files are rejected with an explicit "unsupported modality" error. Behavior is read only from
-  the FALCON H1 layout; other datasets replay neural features without behavior.
-- **One dataset, one participant.** FALCON H1 is one person, one cued task, within-day
-  blocks. Kinematics are cued, in arbitrary units. No electrode geometry is available.
-  See docs/DATASETS.md.
+- **Real-data scope.** Readers: NWB spike-time `units` tables (FALCON H1 behavior layout),
+  NWB raw-voltage `ElectricalSeries` in the layouts covered (AJILE12 ECoG, M5-B), and the T15
+  cursor + click MATLAB blocks (M5-P0). Imaging and other layouts are refused with an explicit
+  error.
+- **Three datasets, one participant each.** FALCON H1 (intracortical, reach and grasp),
+  T15 (intracortical, speech motor cortex, cursor + click; day 468 evaluated), AJILE12 sub-07
+  (ECoG, natural reaching). All results are within-participant and offline/open loop.
+  See docs/DATASETS.md, docs/CURSOR_CLICK.md, docs/ECOG.md.
 - **Dataset is a DANDI draft.** 000954 has no published version; BrainOS pins every file by
   SHA-256, so a changed upstream file fails verification instead of silently changing results.
 
@@ -36,8 +42,8 @@ the PR description and delete it here.
 
 - **No authentication or authorization.** Any local process can connect, control the
   runtime (including configuring sources, pipelines and the command router), and inject
-  simulated intents. The server binds `127.0.0.1` by default and warns
-  if bound elsewhere. Do not expose it to a network.
+  simulated intents. The server binds `127.0.0.1` by default and refuses any other
+  address unless `allow_remote` is set (M5-D). Do not expose it to a network.
 - No TLS, no audit log, no signed adapters. Operator authorization of applications for
   decoded commands (M4) is keyed by the application id each client declares itself: it
   prevents mistakes (an app receiving commands nobody meant for it), not a malicious local
@@ -66,7 +72,7 @@ the PR description and delete it here.
 - **Recording limits**: 300 s or 200 MB per recording, then auto-stop; with
   `exclude_raw` (features + labels only) 3600 s. Raw 30 kHz × 96 ch frames as JSON reach
   200 MB in seconds — use LabRecorder/Open Ephys for raw archival. Re-recording a local file
-  replay is not supported. Recordings cannot be deleted from the UI.
+  replay is not supported.
 - **Replay** loops by default (no UI toggle). Speed is adjustable 0.1–64× via
   `/api/v1/runtime/playback` (console offers 0.5–8×). Seeking to a position is not supported.
 - **Pause** discards packets at the runtime (simulators also stop generating). Discarded
@@ -169,8 +175,9 @@ the PR description and delete it here.
   `make bench` locally for yours.
 - npm uses `legacy-peer-deps` (frontend/.npmrc) to work around an npm 10 resolver bug with
   Vitest 4's optional peer dependencies; peers we need are pinned explicitly.
-- No packaging/publishing of the SDKs yet (installed from the repo). `brainos` now depends on
-  `brainos-adapter-sdk`, which must be installed from `packages/` first (`make setup` does).
+- Nothing is published to PyPI yet: wheels are built from the repo (M5-D: `brainos[lab]`,
+  the desktop bundle). `brainos[server]` depends on `brainos-adapter-sdk`, which must be
+  built or installed from `packages/` first (`make setup` does).
 - Diagnostics are in-memory only and reset on restart.
 
 ## Ecosystem plugins (Milestone 4, `brainos-brainflow`, `brainos-bci2000`)
@@ -237,7 +244,7 @@ protocol.
   accumulates error trial after trial. Even the original decoder's own recorded outputs,
   integrated by the board, select the cued word in only 65 % of trials on the 14 x 14 grid
   (the session itself: 94 %); BrainOS's decoders through the board are near chance on fine
-  boards (14 x 14: 1 %, chance 0.5 %; 2 x 2: 43 %, chance 25 %). Per-trial anchoring to the
+  boards (14 x 14: 1 %, chance 0.5 %; 2 x 2: 44 %, chance 25 %). Per-trial anchoring to the
   recorded cursor position (which reproduces the session) is an offline analysis and is never
   fed to an application: recorded positions are behavioral labels, never commands.
 - **Historical outputs are not BrainOS.** The original decoders' outputs are replayed as
@@ -360,3 +367,38 @@ See docs/APPLICATIONS.md.
 - **The example decoder is hand-set** (not trained) and only shown above chance on BrainOS's
   synthetic motor-imagery generator. It is a teaching example, not an EEG decoder.
 - The decoder-host IPC round trip per step is not benchmarked here (workstream E).
+
+## M5-D: installation, desktop app, researcher workflow, security
+
+- **The macOS app has been built and smoke-tested only on GitHub Actions `macos-latest`**
+  (Apple Silicon runners; job `package-macos`), never installed by hand on a physical Mac or
+  used with equipment. The identical bundle layout is built and smoke-tested on Linux
+  (`package-linux`, and locally). Apple Silicon and macOS 14 or later only (the bundled
+  numpy/scipy wheels require it); Intel Macs and older macOS use the pip installation.
+- **Unsigned and not notarized** (ad-hoc signature only): Gatekeeper blocks the first launch
+  until the user allows it (docs/INSTALL_MAC.md). No auto-update.
+- The app bundles BrainOS's built-in sources and the BCI2000 plugin. BrainFlow and other
+  plugins need the pip installation (a frozen app cannot install packages). Test publishers
+  (`python -m brainos.testing.publish`) are not available from the app.
+- The status window needs Tk; where no window can be created the app runs without it (quit
+  with `BrainOS stop`). The Apple Event quit is tested on CI only if the runner permits
+  sending Apple Events; otherwise the job falls back to SIGTERM and says so.
+- **Security**: see docs/SECURITY.md. No authentication or TLS; any local process (including
+  other users') can use the API; no encryption at rest; deletion is not secure erasure;
+  plugins are not sandboxed. Browser cross-site / DNS-rebinding requests are refused, but a
+  local web server on a loopback port is treated like any other local program.
+- **Crash recovery** loses at most the last ~0.25 s of a recording (the flush interval) plus
+  what the operating system had not written to disk at a power loss (no fsync per event).
+- **Session log** records operator actions through the API while a session is active; it is
+  not tamper-proof, does not identify who acted, and does not record actions while no
+  session is active. Simulated pointer/select/text inputs and free-text stop reasons are not
+  recorded.
+- **`brainos reproduce`** re-fits calibrated decoders from bundled recordings and recomputes
+  recorded *linear* decoder output; classifier (LDA) output and command-router output are not
+  recomputed, and models trained outside a session (e.g. `make model` on FALCON H1) are
+  reproduced only from the dataset, not from the bundle. Identical model ids need the same
+  numerical libraries; other builds may differ in the last digits (reported with tolerances).
+- Retention runs only at server start; it does not delete while BrainOS runs.
+- The lab acceptance test (`scripts/lab_acceptance.py`) approximates an outside lab on one
+  machine with software publishers and the FALCON H1 file; it is not a test with acquisition
+  hardware or a participant.
