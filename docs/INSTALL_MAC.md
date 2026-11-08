@@ -178,7 +178,7 @@ brainos doctor
 ## What has been tested
 
 The app bundle is built and smoke-tested automatically on GitHub Actions `macos-latest`
-(Apple Silicon) by the **package-macos** job. In the run for commit 336ecc4 (PR #9) every check
+(Apple Silicon) by the **package-macos** job. In the run for commit 3cd64fb (PR #9) every check
 passed: the bundled executable's version; the isolated decoder host started from the bundle;
 `BrainOS doctor` (14 ok, 0 fail); a headless launch with Simulated Profile A streaming, the
 BCI2000 plugin discovered by the plugin host inside the app, a recording closed cleanly on quit
