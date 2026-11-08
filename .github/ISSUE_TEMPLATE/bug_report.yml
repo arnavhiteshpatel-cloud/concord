@@ -62,7 +62,7 @@ body:
     id: support
     attributes:
       label: Support report
-      description: "Console → Advanced → Support report → Create, then attach the Markdown file (or run `brainos doctor`). It contains no neural or personal data."
+      description: "In the console: Advanced → Support report → Create support report → Download Markdown, then attach the file here (or run `brainos doctor`). It contains no neural or personal data."
   - type: textarea
     id: log
     attributes:

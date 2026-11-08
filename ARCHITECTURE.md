@@ -1,8 +1,12 @@
 # BrainOS — Architecture
 
-Status: v1 + Milestone 2 (schema 1.1: recorded human data, offline decoding) + Milestone 3
-(schema 1.2: live LSL / Open Ephys acquisition, streaming pipeline, calibration, command router; §11). This document is normative: if code and this
-document disagree, one of them is a bug.
+Status: BrainOS 0.3.0 (Milestone 5), event schema 1.4. v1 + Milestone 2 (schema 1.1: recorded
+human data, offline decoding) + Milestone 3 (schema 1.2: live LSL / Open Ephys acquisition,
+streaming pipeline, calibration, command router; §11) + Milestone 4 (source plugins §12, control
+bridge) + Milestone 5 (ECoG, applications, decoders, installation, performance; §13–16).
+This document is normative: if code and this document disagree, one of them is a bug. For a
+non-technical introduction, see the [README](README.md) and the
+[user guide](docs/USER_GUIDE.md).
 
 ## 1. System overview
 
