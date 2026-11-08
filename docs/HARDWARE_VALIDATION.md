@@ -135,8 +135,12 @@ The reference must cover the whole BrainOS recording. Order matters:
    the operator console's recording control (REST `POST /api/v1/recordings/start` and
    `/stop`; files in `data/recordings/`, raw frames included) also works; the sidecar is then
    absent and absolute latency is not reported.
-4. Let the run last **≥ 240 s** of overlap. BrainOS's recorder stops raw recordings at 300 s
-   (`runtime/recorder.py`), so `--duration` is limited to 290 s.
+4. Let the run last **≥ 240 s** of overlap. `capture` sets the recorder's limits for the run
+   (`--duration` + 30 s, `--max-size-mb`, default 2048), up to 24 h. When recording from the
+   console instead, raise `[recording] max_duration_s` / `max_size_mb` in the config file
+   first: the defaults stop a raw recording at 300 s / 200 MiB. Since Milestone 5 the
+   recording header keeps the LSL outlet's uid, so the comparison identifies the stream
+   without the capture sidecar.
 5. **Stop BrainOS first**, then stop the reference a few seconds later.
 6. Copy the reference file(s) and the BrainOS files into one run folder. **Do not edit,
    re-save, convert or post-process them.** The reports record SHA-256 sums of every input.
@@ -366,4 +370,4 @@ are in `packages/brainos-hwval/examples/sample-reports/`:
 These are level-2 (protocol-tested / software) results. No physical acquisition hardware has
 been used. Requirements still open for the first hardware run: access to an acquisition system
 with an LSL app or the Open Ephys GUI with an acquisition board, a signal generator and a
-TTL source; the BrainOS recorder's 300 s raw-recording cap limits each run to < 300 s.
+TTL source. (The former 300 s raw-recording cap is now a configurable default.)

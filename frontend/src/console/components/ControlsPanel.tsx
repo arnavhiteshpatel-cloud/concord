@@ -59,7 +59,7 @@ export function RecordingPanel({
           </button>
         )}
         {!runtime?.recording && (
-          <label className="check" title="Everything except raw frames; limit 3600 s instead of 300 s">
+          <label className="check" title="Everything except raw frames; longer duration limit (default 3600 s instead of 300 s; [recording] in the config file)">
             <input
               type="checkbox"
               checked={excludeRaw}

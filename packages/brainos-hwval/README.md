@@ -34,7 +34,11 @@ Python ≥ 3.11. The comparison needs only `numpy` and `pyxdf`.
 ```bash
 # 1. record with the reference software and BrainOS at the same time (see the protocol), e.g.
 brainos-hwval capture lsl --stream "MyAmp EEG" --duration 240 --out runs/ --name run1
-#    (or record in the BrainOS console: Recordings -> Start; the sidecar is then absent)
+#    (capture sets the recorder's limits for the run: --duration + 30 s, --max-size-mb 2048.
+#    Or record in the BrainOS console: Recordings -> Start, after raising [recording]
+#    max_duration_s / max_size_mb in the BrainOS config, whose defaults stop a raw recording
+#    at 300 s / 200 MiB. The sidecar is then absent; the recording header still identifies
+#    the LSL outlet by uid.)
 
 # 2. compare
 brainos-hwval lsl --reference runs/run1.xdf --brainos runs/run1.brainos.jsonl \

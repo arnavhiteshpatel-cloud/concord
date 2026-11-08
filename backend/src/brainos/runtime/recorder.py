@@ -20,7 +20,9 @@ import contextlib
 import hashlib
 import json
 import logging
+import math
 import os
+import shutil
 import time
 from collections.abc import Callable
 from pathlib import Path
@@ -47,9 +49,23 @@ except ImportError:  # pragma: no cover - Windows
 
 log = logging.getLogger(__name__)
 
+# Defaults; each Recorder takes its own limits (Settings: recording_max_duration_s, ...).
 MAX_DURATION_S = 300.0
 MAX_DURATION_NO_RAW_S = 3600.0  # features + labels only: small enough for calibration sessions
 MAX_BYTES = 200 * 1024 * 1024
+# Bounds for configured limits (same as brainos.config): long runs, but never unbounded.
+LIMIT_MAX_DURATION_S = 24 * 3600.0
+LIMIT_MAX_BYTES = 100 * 1024**3
+MIN_FREE_BYTES = 256 * 1024 * 1024  # a recording stops cleanly before the disk is full
+FREE_SPACE_CHECK_BYTES = 32 * 1024 * 1024  # check free space every 32 MiB written
+# What a recording's timestamps can and cannot reconstruct (written into every header).
+TIMING_NOTE = (
+    "recording.frame: device_timestamp_ns is the source-clock time of the frame's FIRST sample "
+    "(LSL: its source timestamp; Open Ephys: sample number / rate, with first_sample_index "
+    "exact); timestamp_ns is the BrainOS host wall clock at ingest. Sample i of a frame is at "
+    "first + i / sample_rate_hz (nominal rate). Per-sample source timestamps inside a frame "
+    "(e.g. LSL per-sample stamps and their jitter) are not stored and cannot be reconstructed."
+)
 RAW_EVENT = "recording.frame"
 FLUSH_INTERVAL_S = 0.25
 ACTIVE_SUFFIX = ".active.json"
@@ -98,6 +114,40 @@ def _sidecar(directory: Path, name: str, suffix: str) -> Path:
     return directory / f"{name}{suffix}"
 
 
+def _free_bytes(directory: Path) -> int | None:
+    try:
+        return shutil.disk_usage(directory).free
+    except OSError:
+        return None
+
+
+def _plain(value: Any, depth: int = 0) -> Any:
+    if depth > 16:
+        raise ValueError("source metadata nested too deeply")
+    if value is None or isinstance(value, bool | int | str):
+        return value
+    if isinstance(value, float):
+        return value if math.isfinite(value) else None  # strict JSON has no NaN / Infinity
+    if isinstance(value, dict):
+        return {str(k): _plain(v, depth + 1) for k, v in value.items()}
+    if isinstance(value, list | tuple):
+        return [_plain(v, depth + 1) for v in value]
+    return str(value)
+
+
+def _json_safe(value: dict[str, Any] | None) -> dict[str, Any] | None:
+    """A plain-JSON copy of the adapter's snapshot (non-finite numbers -> null), or None if it
+    cannot be represented: a header must always be writable."""
+    if value is None:
+        return None
+    try:
+        out = _plain(value)
+    except (TypeError, ValueError, RecursionError) as exc:
+        log.warning("source metadata not recorded: %s", exc)
+        return None
+    return out if isinstance(out, dict) else None
+
+
 def _pid_alive(pid: int) -> bool:
     try:
         os.kill(pid, 0)
@@ -109,8 +159,30 @@ def _pid_alive(pid: int) -> bool:
 
 
 class Recorder:
-    def __init__(self, directory: Path) -> None:
+    def __init__(
+        self,
+        directory: Path,
+        *,
+        max_duration_s: float = MAX_DURATION_S,
+        max_duration_no_raw_s: float = MAX_DURATION_NO_RAW_S,
+        max_bytes: int = MAX_BYTES,
+        min_free_bytes: int = MIN_FREE_BYTES,
+    ) -> None:
+        for what, v, hi in (
+            ("max_duration_s", max_duration_s, LIMIT_MAX_DURATION_S),
+            ("max_duration_no_raw_s", max_duration_no_raw_s, LIMIT_MAX_DURATION_S),
+            ("max_bytes", max_bytes, LIMIT_MAX_BYTES),
+        ):
+            if not 0 < v <= hi:
+                raise ValueError(f"recording {what} must be in (0, {hi:g}]; got {v!r}")
+        if min_free_bytes < 0:
+            raise ValueError("min_free_bytes must be >= 0")
         self.directory = directory
+        self.max_duration_s = float(max_duration_s)
+        self.max_duration_no_raw_s = float(max_duration_no_raw_s)
+        self.max_bytes = int(max_bytes)
+        self.min_free_bytes = int(min_free_bytes)
+        self._next_space_check = 0
         self._fh: IO[str] | None = None
         self._marker_fd: int | None = None
         self._name: str | None = None
@@ -136,10 +208,17 @@ class Recorder:
                 log.exception("recording listener failed (%s %s)", kind, name)
 
     def start(
-        self, device: DeviceDescriptor, name: str | None = None, *, exclude_raw: bool = False
+        self,
+        device: DeviceDescriptor,
+        name: str | None = None,
+        *,
+        exclude_raw: bool = False,
+        source_metadata: dict[str, Any] | None = None,
     ) -> str:
         """Start recording. ``exclude_raw`` drops ``recording.frame`` events (features, labels,
-        intents and annotations are kept), e.g. for long calibration sessions."""
+        intents and annotations are kept), e.g. for long calibration sessions.
+        ``source_metadata``: the adapter's own description of the source at the start (e.g. LSL
+        uid / source_id / host / time correction), stored in the header as a snapshot."""
         if self._fh is not None:
             raise RecorderError(f"already recording {self._name!r}")
         # a local file player is its own recording; external streams (LSL, Open Ephys) that
@@ -154,6 +233,12 @@ class Recorder:
             raise RecorderError(str(exc)) from exc
         if path.exists():
             raise RecorderError(f"recording {name!r} already exists")
+        free = _free_bytes(self.directory)
+        if free is not None and free < self.min_free_bytes:
+            raise RecorderError(
+                f"only {free / 2**20:.0f} MiB free in {self.directory}; recording needs at least "
+                f"{self.min_free_bytes / 2**20:.0f} MiB"
+            )
         header = RecordingHeader(
             format=RECORDING_FORMAT,
             schema_version=SCHEMA_VERSION,
@@ -161,6 +246,14 @@ class Recorder:
             device=device,
             synthetic=device.synthetic,
             note=_note(device) + (" Raw signal frames excluded." if exclude_raw else ""),
+            source_metadata=_json_safe(source_metadata),
+            timing=TIMING_NOTE,
+            limits={
+                "max_duration_s": (
+                    self.max_duration_no_raw_s if exclude_raw else self.max_duration_s
+                ),
+                "max_bytes": self.max_bytes,
+            },
         )
         try:
             fd = open_private(path, exclusive=True)
@@ -168,12 +261,13 @@ class Recorder:
             raise RecorderError(f"recording {name!r} already exists") from None
         self._marker_fd = self._write_marker(name, device, header.created_at_ns)
         self._fh = os.fdopen(fd, "w", encoding="utf-8")
-        line = header.model_dump_json() + "\n"
+        line = header.model_dump_json(exclude_none=True) + "\n"
         self._fh.write(line)
         self._fh.flush()  # header must be readable while recording (device listing)
         self._name, self._device, self._exclude_raw = name, device, exclude_raw
         self._started = self._last_flush = time.monotonic()
         self._bytes, self._events = len(line), 0
+        self._next_space_check = self._bytes + FREE_SPACE_CHECK_BYTES
         self.stop_reason = None
         log.info("recording %s started for %s", name, device.device_id)
         self._notify("started", name, {"device_id": device.device_id, "exclude_raw": exclude_raw})
@@ -223,11 +317,16 @@ class Recorder:
             return
         self._bytes += len(event_json) + 1
         self._events += 1
-        limit = MAX_DURATION_NO_RAW_S if self._exclude_raw else MAX_DURATION_S
+        limit = self.max_duration_no_raw_s if self._exclude_raw else self.max_duration_s
         if time.monotonic() - self._started > limit:
             self.stop("max duration reached")
-        elif self._bytes > MAX_BYTES:
+        elif self._bytes > self.max_bytes:
             self.stop("max size reached")
+        elif self._bytes >= self._next_space_check:
+            self._next_space_check = self._bytes + FREE_SPACE_CHECK_BYTES
+            free = _free_bytes(self.directory)
+            if free is not None and free < self.min_free_bytes:
+                self.stop(f"disk space low ({free / 2**20:.0f} MiB free)")
 
     def stop(self, reason: str = "stopped") -> RecordingInfo | None:
         if self._fh is None or self._name is None or self._device is None:

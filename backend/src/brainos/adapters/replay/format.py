@@ -48,6 +48,12 @@ class RecordingHeader(BaseModel):
     device: DeviceDescriptor
     synthetic: bool
     note: str = ""
+    # Milestone 5 (optional, additive): the adapter's description of the source when the
+    # recording started (e.g. LSL uid, source_id, host, time correction), what the
+    # timestamps can reconstruct, and the limits the recording ran under.
+    source_metadata: dict[str, Any] | None = None
+    timing: str | None = None
+    limits: dict[str, float] | None = None
 
 
 @dataclass(frozen=True, slots=True)

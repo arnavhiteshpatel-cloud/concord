@@ -3,13 +3,16 @@
 This drives the unchanged BrainOS acquisition path — LiveSourceRegistry, the LSL or Open
 Ephys adapter, Runtime and Recorder — exactly as the console does, and writes:
 
-* ``<name>.brainos.jsonl``  the BrainOS recording (format brainos.recording/1);
+* ``<name>.brainos.jsonl``  the BrainOS recording (format brainos.recording/1); since BrainOS
+  Milestone 5 its header holds the adapter's source metadata at the START (LSL uid,
+  source_id, host, time correction) and a statement of what its timestamps can reconstruct;
 * ``<name>.capture.json``   a sidecar with what the recording itself does not keep: the
-  adapter's source metadata (LSL uid, time correction, integrity counters), BrainOS wall-clock
-  vs ``lsl_local_clock`` pairs (for absolute latency), runtime diagnostics and versions.
+  adapter's source metadata at the END (final integrity counters), BrainOS wall-clock vs
+  ``lsl_local_clock`` pairs (for absolute latency), runtime diagnostics and versions.
 
 The console or REST API can produce the same recording; the sidecar is optional for the
-comparison.
+comparison. The recorder's duration and size limits are set per capture (BrainOS's own
+defaults, 300 s and 200 MiB with raw frames, are configurable in its ``[recording]`` config).
 """
 
 from __future__ import annotations
@@ -30,7 +33,10 @@ from brainos_hwval.model import InputError
 log = logging.getLogger(__name__)
 
 SIDECAR_FORMAT = "brainos-hwval.capture/1"
-MAX_DURATION_S = 290.0  # the BrainOS recorder stops raw recordings at 300 s
+MAX_DURATION_S = 24 * 3600.0  # BrainOS's upper bound for a recording limit (MAX_RECORDING_S)
+MAX_SIZE_MB = 100 * 1024  # BrainOS's upper bound for a recording size limit (MAX_RECORDING_MIB)
+DEFAULT_MAX_SIZE_MB = 2048
+LIMIT_MARGIN_S = 30.0  # the recorder's duration limit sits this far past --duration
 NAME_RE = re.compile(r"^[a-z0-9][a-z0-9_\-]{0,47}$")  # BrainOS recording names
 
 
@@ -62,9 +68,14 @@ def _clock_pair() -> dict[str, Any] | None:
     return {"wall_ns": best[0], "lsl_local_clock_s": best[1], "uncertainty_ns": best[2]}
 
 
-def _prepare(out_dir: Path, name: str, duration_s: float) -> None:
-    if not 0 < duration_s <= MAX_DURATION_S:
-        raise InputError(f"--duration must be in (0, {MAX_DURATION_S:g}] s (BrainOS recorder cap)")
+def _prepare(out_dir: Path, name: str, duration_s: float, max_size_mb: int) -> None:
+    if not 0 < duration_s <= MAX_DURATION_S - LIMIT_MARGIN_S:
+        raise InputError(
+            f"--duration must be in (0, {MAX_DURATION_S - LIMIT_MARGIN_S:g}] s "
+            "(BrainOS recording limit)"
+        )
+    if not 1 <= max_size_mb <= MAX_SIZE_MB:
+        raise InputError(f"--max-size-mb must be 1-{MAX_SIZE_MB}")
     if not NAME_RE.match(name):
         raise InputError(f"--name {name!r}: use [a-z0-9][a-z0-9_-]*, at most 48 characters")
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -80,6 +91,7 @@ async def _run(
     name: str,
     protocol: str,
     params: dict[str, Any],
+    max_size_mb: int = DEFAULT_MAX_SIZE_MB,
 ) -> tuple[Path, Path]:
     brainos = _import_brainos()
     from brainos.adapters.simulated import OperatorIntentSource
@@ -93,7 +105,17 @@ async def _run(
         models_dir=out_dir / "_none",
     )
     device_id = await asyncio.to_thread(configure, reg)
-    rt = Runtime(reg, Recorder(out_dir))
+    try:
+        recorder = Recorder(
+            out_dir,
+            max_duration_s=duration_s + LIMIT_MARGIN_S,
+            max_bytes=max_size_mb * 1024 * 1024,
+        )
+    except TypeError as exc:  # a BrainOS from before configurable recording limits
+        raise InputError(
+            f"this BrainOS cannot set recording limits (needs Milestone 5 or later): {exc}"
+        ) from exc
+    rt = Runtime(reg, recorder)
     pairs: list[dict[str, Any]] = []
     started = time.time_ns()
     try:
@@ -132,6 +154,7 @@ async def _run(
         "started_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(started / 1e9)),
         "duration_s": (time.time_ns() - started) / 1e9,
         "stop_reason": stop_reason,
+        "recorder_limits": {"max_duration_s": recorder.max_duration_s, "max_size_mb": max_size_mb},
         "host": {"hostname": socket.gethostname(), "platform": platform.platform()},
         "clock_pairs": pairs,
         "source_metadata": meta,
@@ -151,6 +174,7 @@ def capture_lsl(
     out_dir: Path,
     name: str,
     discover_s: float = 2.0,
+    max_size_mb: int = DEFAULT_MAX_SIZE_MB,
 ) -> tuple[Path, Path]:
     """Record the LSL stream named ``stream`` (optionally narrowed by source_id / host)."""
 
@@ -179,8 +203,8 @@ def capture_lsl(
         return str(reg.live.configure_lsl(d.key, None, None).device_id)
 
     params = {"stream": stream, "source_id": source_id, "hostname": hostname}
-    _prepare(out_dir, name, duration_s)
-    return asyncio.run(_run(configure, duration_s, out_dir, name, "lsl", params))
+    _prepare(out_dir, name, duration_s, max_size_mb)
+    return asyncio.run(_run(configure, duration_s, out_dir, name, "lsl", params, max_size_mb))
 
 
 def capture_openephys(
@@ -191,6 +215,7 @@ def capture_openephys(
     duration_s: float,
     out_dir: Path,
     name: str,
+    max_size_mb: int = DEFAULT_MAX_SIZE_MB,
 ) -> tuple[Path, Path]:
     """Record the Open Ephys ZMQ Interface at ``host:data_port``."""
 
@@ -204,5 +229,5 @@ def capture_openephys(
         return str(reg.live.configure_openephys(cfg).device_id)
 
     params = {"host": host, "data_port": data_port, "unit": unit}
-    _prepare(out_dir, name, duration_s)
-    return asyncio.run(_run(configure, duration_s, out_dir, name, "openephys", params))
+    _prepare(out_dir, name, duration_s, max_size_mb)
+    return asyncio.run(_run(configure, duration_s, out_dir, name, "openephys", params, max_size_mb))

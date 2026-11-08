@@ -54,7 +54,7 @@ Support report** in the console.) Logs are in `<data directory>/logs/`: `brainos
 | --- | --- |
 | A recording is marked *incomplete* | BrainOS stopped while writing it (crash, kill, power loss). Every complete event was kept; see `<name>.recovery.json` next to it; bytes after the last complete event are in `<name>.discarded.bin`. |
 | A research session is *interrupted* | BrainOS stopped unexpectedly while it was active. Start a new session; the old one can still be exported. |
-| Recording stopped by itself | 300 s / 200 MB limit with raw frames (3600 s with *Features and labels only*). Use your acquisition software for raw archival. |
+| Recording stopped by itself | A recording limit was reached: by default 300 s / 200 MiB with raw frames (3600 s with *Features and labels only*), or free disk space fell below 256 MiB. The file is complete. Raise the limits in `[recording]` of the config file (`brainos config show`; up to 24 h / 100 GiB) or use your acquisition software for raw archival. |
 | Delete is refused | The item is in use (recording being written, active session, model of the running pipeline). Stop it first. |
 | `brainos reproduce` says `nothing_to_reproduce` | The bundle was exported without recordings; export again with *Include the session's recordings*. |
 | `brainos reproduce` reports a different model id | Different numerical libraries can change the last digits of the weights; the report shows the differences and the metrics. Install the versions listed in the bundle's `environment.json`. |

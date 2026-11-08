@@ -272,6 +272,14 @@ Sources:
 | Source | Device ids | Emits |
 | --- | --- | --- |
 | `BrainOSRecordingSource` | `replay:<name>` | the recorded envelopes (runtime status events excluded) |
+
+A BrainOS recording (`brainos.recording/1`) is a header line followed by one envelope per
+line. Header: `format`, `schema_version`, `created_at_ns`, `device` (descriptor),
+`synthetic`, `note`, and since Milestone 5 (optional, additive) `source_metadata` (the
+adapter's own description of the source when recording started, e.g. LSL uid / source_id /
+host / time correction), `timing` (what the timestamps can reconstruct: the first sample of a
+frame carries the source time, later samples are at the nominal rate; per-sample source
+stamps are not stored) and `limits` (the duration and size limits the recording ran under).
 | `NWBUnitsSource` (M2) | `nwb:<file-slug>` | per bin: `features.binned` (`processed_feature`), `behavior.sample` (`behavioral_label`) if the file has kinematics, `intent.kinematics` (`decoded_intent`) only if a held-out decoder is attached |
 
 `NWBUnitsSource` reads NWB `units.spike_times` with PyNWB, bins them on demand in
@@ -372,7 +380,7 @@ send data toward devices.
 | App → runtime | Apps are untrusted. Hello is validated; unknown capabilities rejected; apps receive only granted capabilities; no write path exists. |
 | Network exposure | Server binds `127.0.0.1` by default. **No authentication in v1** — local single-user demo only. Do not expose to a network. |
 | Simulation endpoints | `/api/v1/sim/*` exist only for simulated devices and are disabled by `BRAINOS_ENABLE_SIM=0`. They are an operator tool, not an app API. |
-| Data at rest | Recordings are written to `data/recordings/` (gitignored). With M3 live sources they may contain real neural data: treat the directory as research data under your protocol. No encryption. |
+| Data at rest | Recordings are written to `data/recordings/` (gitignored). With M3 live sources they may contain real neural data: treat the directory as research data under your protocol. No encryption. Size and duration are bounded (`[recording]`, default 300 s / 200 MiB with raw frames, at most 24 h / 100 GiB) and a recording stops cleanly below 256 MiB free disk. |
 | Acquisition networks (M3) | LSL inlets and the Open Ephys SUB socket only *receive*. The Open Ephys heartbeat REQ sends only `{application, uuid, type: "heartbeat"}` (the plugin's event-injection request is not implemented). BrainOS opens no listening socket other than its HTTP server (default `127.0.0.1`). LSL discovery uses liblsl's multicast/broadcast on the local network. |
 | Decoded commands → apps (M4) | Default deny: an app id receives decoded `intent.pointer` / `intent.selection` / `intent.text` only while the operator has authorized it for that capability (`/api/v1/control`); enforced in negotiation (`not_authorized`) and again on the bus. App ids are self-declared (no authentication). docs/CONTROL_BRIDGE.md. |
 | Source plugins (M4) | Third-party plugin code runs in a separate process (fault isolation) and everything it sends is validated twice; it is **not sandboxed** — same user, files and network as BrainOS (§12, docs/ADAPTER_SDK.md §5). |
