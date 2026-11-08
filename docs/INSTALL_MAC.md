@@ -17,13 +17,15 @@ Two ways to install; both give the same BrainOS:
 
 ### Get it
 
-The `.dmg` is built by this repository's CI (job **package-macos**, artifact
-`brainos-macos-dmg`), or on a Mac from a checkout with `make setup && make app`
-(output: `packaging/dist/BrainOS-<version>-macos-arm64.dmg`). The app requires macOS 14
-because the numerical libraries it bundles (numpy, scipy for Apple Silicon) do; on older
-macOS use the pip installation, which picks libraries for your system. There is no public download
-page. Use only a build from your own lab's CI or one you built yourself: the app is unsigned,
-so macOS cannot tell you who made it.
+Download **[BrainOS-macos-arm64.dmg](https://github.com/arnavhiteshpatel-cloud/brainos/releases/latest/download/BrainOS-macos-arm64.dmg)**
+from the [Releases page](https://github.com/arnavhiteshpatel-cloud/brainos/releases/latest). It
+is built and smoke-tested by this repository's release workflow (`.github/workflows/release.yml`);
+`SHA256SUMS.txt` on the release page lists its checksum. You can also build it yourself on a Mac
+from a checkout with `make setup && make app` (output:
+`packaging/dist/BrainOS-<version>-macos-arm64.dmg`). The app requires macOS 14 because the
+numerical libraries it bundles (numpy, scipy for Apple Silicon) do; on older macOS use the pip
+installation, which picks libraries for your system. The app is unsigned, so macOS cannot tell
+you who made it: use only a release from this repository or a build you made yourself.
 
 ### Install
 
@@ -90,7 +92,10 @@ neural recordings; see docs/SECURITY.md on deletion).
 
 ## B. With Python (`pip`)
 
-Packages are not on PyPI yet; install from a checkout of this repository. Prerequisites:
+Packages are not on PyPI yet. Either download the wheels from the
+[Releases page](https://github.com/arnavhiteshpatel-cloud/brainos/releases/latest) into one folder
+and run `pip install --find-links <that folder> "brainos[lab]"` in a Python 3.12 environment, or
+install from a checkout of this repository. For a checkout, the prerequisites are:
 [Homebrew](https://brew.sh), then
 
 ```bash

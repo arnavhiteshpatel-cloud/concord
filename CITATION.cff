@@ -1,0 +1,64 @@
+cff-version: 1.2.0
+message: >-
+  If you use BrainOS in your research, please cite it as below, and cite every dataset you
+  use with it (listed under references).
+type: software
+title: "BrainOS: a hardware-agnostic, read-only runtime and SDK for brain-computer interfaces"
+abstract: >-
+  BrainOS receives neural data from acquisition systems and recordings, labels every event
+  with its provenance, runs decoders, and passes decoded commands only to applications an
+  operator authorizes. Research software; validated in software and with protocol-level test
+  sources only, not with acquisition hardware or participants.
+authors:
+  - name: "BrainOS contributors"
+version: "0.3.0"
+repository-code: "https://github.com/arnavhiteshpatel-cloud/brainos"
+keywords:
+  - brain-computer interface
+  - neural data
+  - lab streaming layer
+  - open ephys
+  - neurodata without borders
+  - decoding
+references:
+  - type: data
+    title: "FALCON Benchmark H1: Human 7DoF Reach and Grasp Motor BCI"
+    authors:
+      - family-names: Ye
+        given-names: Joel
+      - family-names: Collinger
+        given-names: Jennifer L.
+      - family-names: Gaunt
+        given-names: Robert
+    year: 2024
+    publisher:
+      name: DANDI archive
+    url: "https://dandiarchive.org/dandiset/000954/draft"
+  - type: data
+    title: "AJILE12: Long-term naturalistic human intracranial neural recordings and pose"
+    authors:
+      - family-names: Peterson
+        given-names: Steven M.
+      - family-names: Singh
+        given-names: Satpreet H.
+      - family-names: Dichter
+        given-names: Benjamin
+      - family-names: Scheid
+        given-names: Michael
+      - family-names: Rao
+        given-names: Rajesh P. N.
+      - family-names: Brunton
+        given-names: Bingni W.
+    year: 2022
+    publisher:
+      name: DANDI archive
+    doi: "10.48324/dandi.000055/0.220127.0436"
+  - type: data
+    title: "Data from: Speech motor cortex enables BCI cursor control and click"
+    authors:
+      - family-names: Singer-Clark
+        given-names: Tyler
+    year: 2025
+    publisher:
+      name: Dryad
+    doi: "10.5061/dryad.prr4xgxzq"
