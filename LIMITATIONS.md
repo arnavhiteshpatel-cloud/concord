@@ -10,25 +10,31 @@ the PR description and delete it here.
   real recorded data streamed as *prerecorded*; none has been run against acquisition
   hardware or the real Open Ephys GUI. See docs/VALIDATION_LEVELS.md. Nothing implies
   compatibility with any company's implant; there is no vendor adapter.
-- **No human has used it.** Decoding, calibration, the command router and the reference app
-  have never been used with a participant, live or closed-loop. Real-time decoding has been
-  exercised only on FALCON H1 blocks streamed as prerecorded data, where it reproduces the
-  offline decoder exactly. That shows the software path, not BCI performance.
-- **Decoders are linear baselines.** Ridge regression on causally filtered features
-  (held-out R² ≈ 0.08–0.14 within-day on FALCON H1, docs/DECODING.md). No cross-day,
-  cross-participant or cross-modality transfer is claimed; a model from another source is
-  refused unless the operator overrides, and the override is shown.
+- **No human has used it.** Decoding, calibration, the command router, the board and the
+  reference apps have never been used with a participant, live or closed-loop. Real-time
+  decoding has been exercised on recorded human data replayed through the runtime (FALCON H1,
+  T15 cursor + click, AJILE12 ECoG), where it reproduces the offline decoders exactly. That
+  shows the software path, not BCI performance; open-loop numbers are not communication rates
+  (docs/NEURAL_COMMUNICATION.md).
+- **Decoders are classical.** Built in: ridge, LDA, a velocity Kalman filter and a logistic
+  click decoder (M5); other families (ONNX, skops, TorchScript) load through the decoder SDK.
+  Measured: held-out R² ≈ 0.08–0.14 within-day on FALCON H1 (docs/DECODING.md); on T15 cursor
+  + click, Kalman angle error 28.0° vs 27.3° for the original online decoder
+  (docs/CURSOR_CLICK.md). No cross-day, cross-participant or cross-modality transfer is
+  claimed; a model from another source is refused unless the operator overrides (never across
+  modalities), and the override is shown.
 - **Synthetic signals.** Simulated Profile A/B frames are noise + sinusoids. The LSL/Open
   Ephys test publishers emit noise plus biphasic spikes whose rates are cosine-tuned to a
   latent velocity — enough to exercise the pipeline, not physiological. Do not draw
   scientific conclusions from them.
-- **Real-data scope.** The NWB reader supports spike-time `units` tables, plus the FALCON H1
-  behavior layout. Raw voltage (`ElectricalSeries`), LFP/ECoG, imaging and processed-only
-  files are rejected with an explicit "unsupported modality" error. Behavior is read only from
-  the FALCON H1 layout; other datasets replay neural features without behavior.
-- **One dataset, one participant.** FALCON H1 is one person, one cued task, within-day
-  blocks. Kinematics are cued, in arbitrary units. No electrode geometry is available.
-  See docs/DATASETS.md.
+- **Real-data scope.** Readers: NWB spike-time `units` tables (FALCON H1 behavior layout),
+  NWB raw-voltage `ElectricalSeries` in the layouts covered (AJILE12 ECoG, M5-B), and the T15
+  cursor + click MATLAB blocks (M5-P0). Imaging and other layouts are refused with an explicit
+  error.
+- **Three datasets, one participant each.** FALCON H1 (intracortical, reach and grasp),
+  T15 (intracortical, speech motor cortex, cursor + click; day 468 evaluated), AJILE12 sub-07
+  (ECoG, natural reaching). All results are within-participant and offline/open loop.
+  See docs/DATASETS.md, docs/CURSOR_CLICK.md, docs/ECOG.md.
 - **Dataset is a DANDI draft.** 000954 has no published version; BrainOS pins every file by
   SHA-256, so a changed upstream file fails verification instead of silently changing results.
 
