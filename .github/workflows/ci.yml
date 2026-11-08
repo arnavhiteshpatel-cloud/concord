@@ -160,12 +160,28 @@ jobs:
           npx playwright install --with-deps chromium
       - name: End-to-end demo (AT-25)
         run: node e2e/demo.cjs
+      - name: Cache T15 cursor+click files (M5 P0)
+        uses: actions/cache@v4
+        with:
+          path: data/datasets/dryad-prr4xgxzq
+          key: dryad-t15-${{ hashFiles('backend/src/brainos/datasets/dryad/*.json') }}
+      - name: "M5 P0: neural-to-communication e2e (real T15 data; needs DRYAD_CLIENT_ID / DRYAD_CLIENT_SECRET)"
+        env:
+          DRYAD_CLIENT_ID: ${{ secrets.DRYAD_CLIENT_ID }}
+          DRYAD_CLIENT_SECRET: ${{ secrets.DRYAD_CLIENT_SECRET }}
+        run: |
+          if python -m brainos.datasets.dryad --verify > /dev/null || { [ -n "$DRYAD_CLIENT_ID" ] && python -m brainos.datasets.dryad; }; then
+            node e2e/communication.cjs
+          else
+            echo "::warning::neural-to-communication e2e skipped: no T15 data (add the DRYAD_CLIENT_ID and DRYAD_CLIENT_SECRET repository secrets)"
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: e2e-report
           path: |
             reports/e2e.json
+            reports/communication_e2e.json
             e2e/screenshots/
 
   # ------------------------------------------------------------------------ M5-D
