@@ -1,0 +1,22 @@
+name: Question or help with setup
+description: Ask how to do something with BrainOS.
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before asking, please check [Getting started](https://github.com/arnavhiteshpatel-cloud/brainos/blob/main/docs/GETTING_STARTED.md),
+        the [user guide](https://github.com/arnavhiteshpatel-cloud/brainos/blob/main/docs/USER_GUIDE.md)
+        and the [FAQ](https://github.com/arnavhiteshpatel-cloud/brainos/blob/main/docs/FAQ.md).
+  - type: textarea
+    id: goal
+    attributes:
+      label: What are you trying to do?
+      description: The goal, and what you have tried so far.
+    validations:
+      required: true
+  - type: textarea
+    id: setup
+    attributes:
+      label: Your setup
+      description: BrainOS version, operating system, and the acquisition system or dataset involved (if any).
