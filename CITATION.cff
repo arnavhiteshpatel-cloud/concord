@@ -12,7 +12,7 @@ abstract: >-
 authors:
   - name: "Concord contributors"
 version: "0.3.0"
-repository-code: "https://github.com/arnavhiteshpatel-cloud/brainos"
+repository-code: "https://github.com/arnavhiteshpatel-cloud/concord"
 keywords:
   - brain-computer interface
   - neural data

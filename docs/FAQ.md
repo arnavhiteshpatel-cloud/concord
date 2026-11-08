@@ -100,7 +100,7 @@ decoders, tests, benchmarks).
 
 The app is not signed with an Apple developer certificate or notarized by Apple, so macOS cannot
 tell who built it. Download it only from this repository's
-[Releases page](https://github.com/arnavhiteshpatel-cloud/brainos/releases), where it was built
+[Releases page](https://github.com/arnavhiteshpatel-cloud/concord/releases), where it was built
 and smoke-tested by the repository's own release workflow; `SHA256SUMS.txt` on that page lists
 its checksum. Then allow it once:
 **System Settings → Privacy & Security → Open Anyway** (macOS 15+) or Control-click →
@@ -202,7 +202,7 @@ protocol; that has not been done.
 
 Create a support report (**Advanced → Support report → Create support report**; it contains no
 neural or personal data) and attach it to a
-[bug report](https://github.com/arnavhiteshpatel-cloud/brainos/issues/new/choose). Security
+[bug report](https://github.com/arnavhiteshpatel-cloud/concord/issues/new/choose). Security
 problems: see [SECURITY.md](../SECURITY.md) and do not open a public issue.
 
 ### How do I cite Concord?

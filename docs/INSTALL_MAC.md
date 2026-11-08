@@ -17,8 +17,8 @@ Two ways to install; both give the same Concord:
 
 ### Get it
 
-Download **[Concord-macos-arm64.dmg](https://github.com/arnavhiteshpatel-cloud/brainos/releases/latest/download/Concord-macos-arm64.dmg)**
-from the [Releases page](https://github.com/arnavhiteshpatel-cloud/brainos/releases/latest). It
+Download **[Concord-macos-arm64.dmg](https://github.com/arnavhiteshpatel-cloud/concord/releases/latest/download/Concord-macos-arm64.dmg)**
+from the [Releases page](https://github.com/arnavhiteshpatel-cloud/concord/releases/latest). It
 is built and smoke-tested by this repository's release workflow (`.github/workflows/release.yml`);
 `SHA256SUMS.txt` on the release page lists its checksum. You can also build it yourself on a Mac
 from a checkout with `make setup && make app` (output:
@@ -93,7 +93,7 @@ neural recordings; see docs/SECURITY.md on deletion).
 ## B. With Python (`pip`)
 
 Packages are not on PyPI yet. Either download the wheels from the
-[Releases page](https://github.com/arnavhiteshpatel-cloud/brainos/releases/latest) into one folder
+[Releases page](https://github.com/arnavhiteshpatel-cloud/concord/releases/latest) into one folder
 and run `pip install --find-links <that folder> "concordos[lab]"` in a Python 3.12 environment, or
 install from a checkout of this repository. For a checkout, the prerequisites are:
 [Homebrew](https://brew.sh), then
@@ -103,7 +103,7 @@ brew install uv node
 ```
 
 ```bash
-git clone https://github.com/arnavhiteshpatel-cloud/brainos.git
+git clone https://github.com/arnavhiteshpatel-cloud/concord.git
 ```
 
 ```bash

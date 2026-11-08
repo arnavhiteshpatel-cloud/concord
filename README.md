@@ -5,13 +5,13 @@ Concord receives neural data from acquisition systems and recordings, shows wher
 data came from, runs decoders, and passes decoded commands only to applications an operator
 has authorized.
 
-[![Download for macOS](https://img.shields.io/badge/Download-macOS%20(Apple%20Silicon)-1f2328?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/arnavhiteshpatel-cloud/brainos/releases/latest/download/Concord-macos-arm64.dmg)
-[![Download for Linux](https://img.shields.io/badge/Download-Linux%20x86__64-1f2328?style=for-the-badge&logo=linux&logoColor=white)](https://github.com/arnavhiteshpatel-cloud/brainos/releases/latest/download/Concord-linux-x86_64.tar.gz)
-[![All downloads](https://img.shields.io/badge/All%20downloads-Releases-0969da?style=for-the-badge&logo=github)](https://github.com/arnavhiteshpatel-cloud/brainos/releases/latest)
+[![Download for macOS](https://img.shields.io/badge/Download-macOS%20(Apple%20Silicon)-1f2328?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/arnavhiteshpatel-cloud/concord/releases/latest/download/Concord-macos-arm64.dmg)
+[![Download for Linux](https://img.shields.io/badge/Download-Linux%20x86__64-1f2328?style=for-the-badge&logo=linux&logoColor=white)](https://github.com/arnavhiteshpatel-cloud/concord/releases/latest/download/Concord-linux-x86_64.tar.gz)
+[![All downloads](https://img.shields.io/badge/All%20downloads-Releases-0969da?style=for-the-badge&logo=github)](https://github.com/arnavhiteshpatel-cloud/concord/releases/latest)
 [![Getting started](https://img.shields.io/badge/Start%20here-Getting%20started-2da44e?style=for-the-badge)](docs/GETTING_STARTED.md)
 
-[![CI](https://github.com/arnavhiteshpatel-cloud/brainos/actions/workflows/ci.yml/badge.svg)](https://github.com/arnavhiteshpatel-cloud/brainos/actions/workflows/ci.yml)
-[![Hardware validation kit](https://github.com/arnavhiteshpatel-cloud/brainos/actions/workflows/hwval.yml/badge.svg)](https://github.com/arnavhiteshpatel-cloud/brainos/actions/workflows/hwval.yml)
+[![CI](https://github.com/arnavhiteshpatel-cloud/concord/actions/workflows/ci.yml/badge.svg)](https://github.com/arnavhiteshpatel-cloud/concord/actions/workflows/ci.yml)
+[![Hardware validation kit](https://github.com/arnavhiteshpatel-cloud/concord/actions/workflows/hwval.yml/badge.svg)](https://github.com/arnavhiteshpatel-cloud/concord/actions/workflows/hwval.yml)
 
 > [!IMPORTANT]
 > **Research software, not a medical device.** Concord never sends anything to a device. It has
@@ -42,9 +42,9 @@ has authorized.
 
 | Your computer | Download | Install |
 | --- | --- | --- |
-| **Mac** with Apple Silicon (M1 or later), macOS 14 or later | [**Concord-macos-arm64.dmg**](https://github.com/arnavhiteshpatel-cloud/brainos/releases/latest/download/Concord-macos-arm64.dmg) | Open the `.dmg`, drag Concord to Applications. The app is not signed by Apple; the first time, Control-click it → **Open** (macOS 14) or **System Settings → Privacy & Security → Open Anyway** (macOS 15+). |
-| **Linux** x86_64 (Ubuntu 22.04 or later, or similar) | [**Concord-linux-x86_64.tar.gz**](https://github.com/arnavhiteshpatel-cloud/brainos/releases/latest/download/Concord-linux-x86_64.tar.gz) | Extract it and run `Concord/Concord`. |
-| Python 3.12 (any platform with Python, for developers) | Wheels on the [Releases page](https://github.com/arnavhiteshpatel-cloud/brainos/releases/latest), or [from source](#developers-install-from-source) | `pip install --find-links <folder with the wheels> "concordos[lab]"` |
+| **Mac** with Apple Silicon (M1 or later), macOS 14 or later | [**Concord-macos-arm64.dmg**](https://github.com/arnavhiteshpatel-cloud/concord/releases/latest/download/Concord-macos-arm64.dmg) | Open the `.dmg`, drag Concord to Applications. The app is not signed by Apple; the first time, Control-click it → **Open** (macOS 14) or **System Settings → Privacy & Security → Open Anyway** (macOS 15+). |
+| **Linux** x86_64 (Ubuntu 22.04 or later, or similar) | [**Concord-linux-x86_64.tar.gz**](https://github.com/arnavhiteshpatel-cloud/concord/releases/latest/download/Concord-linux-x86_64.tar.gz) | Extract it and run `Concord/Concord`. |
+| Python 3.12 (any platform with Python, for developers) | Wheels on the [Releases page](https://github.com/arnavhiteshpatel-cloud/concord/releases/latest), or [from source](#developers-install-from-source) | `pip install --find-links <folder with the wheels> "concordos[lab]"` |
 | Windows | — | Not supported yet. |
 
 When Concord starts, a small window shows **"Concord is running at http://127.0.0.1:8000"**
@@ -150,7 +150,7 @@ You need [uv](https://docs.astral.sh/uv/) (it installs Python 3.12) and Node 20 
 Mac, `brew install uv node`.
 
 ```bash
-git clone https://github.com/arnavhiteshpatel-cloud/brainos.git
+git clone https://github.com/arnavhiteshpatel-cloud/concord.git
 ```
 ```bash
 cd concord
@@ -205,7 +205,7 @@ details**) and listed in [DATASETS.md](docs/DATASETS.md).
 
 Concord is in active development; see the [changelog](CHANGELOG.md) and the
 [roadmap](ROADMAP.md). Questions, bug reports and hardware-validation results are welcome as
-[issues](https://github.com/arnavhiteshpatel-cloud/brainos/issues/new/choose); read
+[issues](https://github.com/arnavhiteshpatel-cloud/concord/issues/new/choose); read
 [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. The design documents are
 [PRODUCT.md](PRODUCT.md), [ARCHITECTURE.md](ARCHITECTURE.md) and [MVP_SPEC.md](MVP_SPEC.md).
 
