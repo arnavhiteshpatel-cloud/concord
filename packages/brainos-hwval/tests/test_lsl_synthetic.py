@@ -410,3 +410,16 @@ def test_not_xdf_is_input_error(tmp_path: Path) -> None:
         compare_lsl(bad, b, LSLOptions())
     with pytest.raises(InputError, match="not a BrainOS recording"):
         compare_lsl(tmp_path / "ref.xdf", tmp_path / "ref.xdf", LSLOptions())
+
+
+@pytest.mark.parametrize("marker", ["recovery", "active"])
+def test_recorder_markers_fail_the_file_check(tmp_path: Path, marker: str) -> None:
+    """BrainOS's recorder marks crashed/unfinished recordings next to the file."""
+    case = LSLCase()
+    x, b = case.write(tmp_path)
+    (tmp_path / f"run.{marker}.json").write_text('{"status": "incomplete"}')
+    rep = compare_lsl(x, b, LSLOptions())
+    assert "BOS-FILE" in failed(rep)
+    ev = by_id(rep)["BOS-FILE"]["evidence"]
+    assert (ev["recovery_marker"] is not None) == (marker == "recovery")
+    assert ev["active_marker"] == (marker == "active")

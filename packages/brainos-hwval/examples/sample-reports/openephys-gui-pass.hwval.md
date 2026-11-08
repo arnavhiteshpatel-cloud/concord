@@ -21,7 +21,7 @@
 | channels | 16 |
 | channel names | ["CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8", "CH9", "CH10", "CH11", "CH12", "CH13", "CH14", "CH15", "CH16"] |
 | sample rate hz | 40000 |
-| reference samples | 134675 |
+| reference samples | 135604 |
 | brainos samples | 119815 |
 | overlap s | 2.99538 |
 | samples compared | 119815 |
@@ -31,8 +31,8 @@
 | brainos samples without counterpart | 0 |
 | values out of tolerance | 0 |
 | max abs value diff uV | 9.872e-06 |
-| brainos ingest drift ppm | 61.8135 |
-| excess delay max s | 0.00701332 |
+| brainos ingest drift ppm | -47.0803 |
+| excess delay max s | 0.00247931 |
 | reference sample number breaks | 0 |
 | result | pass |
 
@@ -40,7 +40,7 @@
 
 | Check | Status | Required | Finding |
 | --- | --- | --- | --- |
-| `REF-FILE` Reference Binary recording is readable and consistent | PASS | yes | 134675 rows x 16 channels |
+| `REF-FILE` Reference Binary recording is readable and consistent | PASS | yes | 135604 rows x 16 channels |
 | `REF-READER` Parser agrees with the official Open Ephys reader | PASS | advisory | identical to open-ephys-python-tools 1.0.1 |
 | `BOS-FILE` BrainOS recording file is complete and well-formed | PASS | yes | 129 frames, every line readable, seq contiguous, contract-valid |
 | `IDENTITY` Both recordings are of the same Open Ephys stream | PASS | yes | same Open Ephys stream 'example_data' |
@@ -61,7 +61,7 @@
 | `LOSS-FLAGGED` BrainOS reported every loss it suffered | PASS | yes | no loss to report |
 | `TS-AGREE` Timestamps agree with the sample clock | PASS | yes | all 129 frame timestamps equal sample_number / rate; reference timestamps.npy minus BrainOS: median 0 s |
 | `EVENTS` TTL events agree | not tested | advisory | no TTL events in either recording (use a pulse generator to test events) |
-| `DELAY` Data was not delayed beyond the threshold | PASS | yes | worst excess ingest delay 7.0 ms (median 0.5 ms) vs threshold 1000 ms |
+| `DELAY` Data was not delayed beyond the threshold | PASS | yes | worst excess ingest delay 2.5 ms (median 0.3 ms) vs threshold 1000 ms |
 | `REF-CONTINUITY` Reference recording is continuous | PASS | advisory | sample numbers are contiguous |
 | `EQUIPMENT` Acquisition hardware and software are documented | not tested | advisory | no equipment manifest given (--equipment); the run is not traceable to hardware |
 
@@ -69,11 +69,11 @@
 
 - **protocol**: Open Ephys ZMQ Interface
 - **reference software**: Open Ephys GUI 1.1.0 Record Node (Binary format)
-- **reference recording**: /tmp/pytest-of-root/pytest-20/oe-uv0/ref/2026-11-08_00-44-24/Record Node 102/experiment1/recording1
+- **reference recording**: /tmp/pytest-of-root/pytest-26/oe-uv0/ref/2026-11-08_00-57-09/Record Node 102/experiment1/recording1
 - **reference stream**: {"folder_name": "File_Reader-100.example_data", "stream_name": "example_data", "sample_rate": 40000.0, "source_processor": "File Reader (100)", "num_channels...
-- **brainos device**: {"device_id": "openephys:127.0.0.1:49031", "display_name": "Open Ephys (ZMQ) \u00b7 127.0.0.1:49031", "kind": "stream", "adapter": "brainos.openephys.zmq@0.1...
+- **brainos device**: {"device_id": "openephys:127.0.0.1:35567", "display_name": "Open Ephys (ZMQ) \u00b7 127.0.0.1:35567", "kind": "stream", "adapter": "brainos.openephys.zmq@0.1...
 - **brainos recording params**: {"unit": "uV", "source_unit": "uV", "channel_count": 16, "sample_rate_hz": 40000.0, "channel_names": ["CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8",...
-- **sync messages**: Software Time (milliseconds since midnight Jan 1st 1970 UTC): 1794098665978
+- **sync messages**: Software Time (milliseconds since midnight Jan 1st 1970 UTC): 1794099430902
 Start Time for File Reader (100) - example_data @ 40000 Hz: 0
 
 
@@ -81,8 +81,8 @@ Start Time for File Reader (100) - example_data @ 40000 Hz: 0
 
 | Role | Path | Bytes | SHA-256 |
 | --- | --- | --- | --- |
-| reference_openephys_recording | `/tmp/pytest-of-root/pytest-20/oe-uv0/ref/2026-11-08_00-44-24/Record Node 102/experiment1/recording1` | 6472018 | `59b7bba02a8d215ea1de5b55a84d2869ad51ac451f55a56969eb907fe7ac55ea` |
-| brainos_recording | `/tmp/pytest-of-root/pytest-20/oe-uv0/brainos.brainos.jsonl` | 31212190 | `37508a3a68ef86196acf05958f1716babb63bfbd0503079f2ac9b2de2f23bd54` |
+| reference_openephys_recording | `/tmp/pytest-of-root/pytest-26/oe-uv0/ref/2026-11-08_00-57-09/Record Node 102/experiment1/recording1` | 6516610 | `75a85bf7ed8db20e5264a71146415fdf6d9a6c1b6db201d0ddc78c325d446898` |
+| brainos_recording | `/tmp/pytest-of-root/pytest-26/oe-uv0/brainos.brainos.jsonl` | 31212190 | `44871b51f8d6bacae25ca77ffbf950a0c40b0c47bbbff9e8abbe525e67026121` |
 
 ## Tests performed and evidence
 
@@ -90,11 +90,11 @@ Start Time for File Reader (100) - example_data @ 40000 Hz: 0
 
 *Method:* structure.oebin parsed; continuous.dat size a multiple of channels x 2 bytes; sample_numbers.npy and timestamps.npy have one entry per row.
 
-*Finding:* 134675 rows x 16 channels
+*Finding:* 135604 rows x 16 channels
 
 | Evidence | Value |
 | --- | --- |
-| rows | 134675 |
+| rows | 135604 |
 
 <details><summary>sample_numbers</summary>
 
@@ -114,7 +114,7 @@ Start Time for File Reader (100) - example_data @ 40000 Hz: 0
 {
  "status": "pass",
  "reader": "open-ephys-python-tools 1.0.1",
- "rows_compared": "all sample numbers; scaled values at rows 0, 67337, 134674",
+ "rows_compared": "all sample numbers; scaled values at rows 0, 67802, 135603",
  "problems": []
 }
 ```
@@ -130,11 +130,11 @@ Start Time for File Reader (100) - example_data @ 40000 Hz: 0
 | --- | --- |
 | status | pass |
 | reader | open-ephys-python-tools 1.0.1 |
-| rows_compared | all sample numbers; scaled values at rows 0, 67337, 134674 |
+| rows_compared | all sample numbers; scaled values at rows 0, 67802, 135603 |
 
 ### `BOS-FILE` — BrainOS recording file is complete and well-formed: PASS
 
-*Method:* Parse every line; require the brainos.recording/1 header, contiguous envelope seq numbers (the recorder writes every published event), and — if BrainOS is installed — validation of every envelope against BrainOS's contract models.
+*Method:* Parse every line; require the brainos.recording/1 header, contiguous envelope seq numbers (the recorder writes every published event), no recorder recovery/active marker next to the file, and — if BrainOS is installed — validation of every envelope against BrainOS's contract models.
 
 *Finding:* 129 frames, every line readable, seq contiguous, contract-valid
 
@@ -144,6 +144,8 @@ Start Time for File Reader (100) - example_data @ 40000 Hz: 0
 | malformed_lines | 0 |
 | seq_gaps | 0 |
 | seq_regressions | 0 |
+| recovery_marker | — |
+| active_marker | False |
 
 <details><summary>event_counts</summary>
 
@@ -210,9 +212,9 @@ Start Time for File Reader (100) - example_data @ 40000 Hz: 0
  "bit_volts": [
   0.0500000007
  ],
- "samples": 134675,
+ "samples": 135604,
  "first_sample_number": 0,
- "last_sample_number": 134674,
+ "last_sample_number": 135603,
  "history": [
   "File Reader -> ZMQ Interface -> Record Node"
  ],
@@ -234,7 +236,7 @@ Start Time for File Reader (100) - example_data @ 40000 Hz: 0
 
 ```json
 [
- "openephys:127.0.0.1:49031/example_data"
+ "openephys:127.0.0.1:35567/example_data"
 ]
 ```
 </details>
@@ -394,7 +396,7 @@ Start Time for File Reader (100) - example_data @ 40000 Hz: 0
 | --- | --- |
 | overlap_rows | 119815 |
 | overlap_s | 2.99538 |
-| reference_rows | 134675 |
+| reference_rows | 135604 |
 | brainos_samples | 119815 |
 | brainos_samples_outside_reference | 0 |
 | brainos_samples_past_reference_end | 0 |
@@ -421,7 +423,7 @@ Start Time for File Reader (100) - example_data @ 40000 Hz: 0
 | reference_samples_in_overlap | 119815 |
 | brainos_samples_mapped_into_overlap | 119815 |
 | difference | 0 |
-| reference_total | 134675 |
+| reference_total | 135604 |
 | brainos_total | 119815 |
 
 ### `LOSS` — No samples missing in BrainOS: PASS
@@ -800,24 +802,24 @@ Start Time for File Reader (100) - example_data @ 40000 Hz: 0
 
 *Method:* BrainOS ingest wall clock minus the source time of each frame's last sample; the excess over the smallest observed value is the variable delay (buffering, transport, stalls). Without a measured clock pair, absolute latency is unknown.
 
-*Finding:* worst excess ingest delay 7.0 ms (median 0.5 ms) vs threshold 1000 ms
+*Finding:* worst excess ingest delay 2.5 ms (median 0.3 ms) vs threshold 1000 ms
 
 | Evidence | Value |
 | --- | --- |
 | frames | 129 |
-| excess_delay_median_s | 0.000494 |
-| excess_delay_p95_s | 0.00149817 |
-| excess_delay_max_s | 0.00701332 |
-| drift_ppm | 61.8135 |
+| excess_delay_median_s | 0.0003374 |
+| excess_delay_p95_s | 0.0009101 |
+| excess_delay_max_s | 0.00247931 |
+| drift_ppm | -47.0803 |
 
 <details><summary>fit</summary>
 
 ```json
 {
- "slope": 6.181350910553682e-05,
- "intercept": 1794098665.9559884,
- "residual_std": 0.0006709945959817173,
- "residual_max_abs": 0.00632786750793457,
+ "slope": -4.70803334966318e-05,
+ "intercept": 1794099430.8808148,
+ "residual_std": 0.00032101174889033354,
+ "residual_max_abs": 0.0020599365234375,
  "n": 129
 }
 ```
@@ -877,6 +879,6 @@ Start Time for File Reader (100) - example_data @ 40000 Hz: 0
  },
  "command": null,
  "tool": "brainos-hwval 0.1.0",
- "created_at": "2026-11-08T00:44:30Z"
+ "created_at": "2026-11-08T00:57:15Z"
 }
 ```

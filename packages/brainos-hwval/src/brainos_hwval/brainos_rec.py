@@ -75,6 +75,11 @@ class BrainOSRecording:
     seq_gaps: list[tuple[int, int]]  # (expected seq, found seq)
     seq_regressions: int
     contract: dict[str, Any] = field(default_factory=dict)
+    # BrainOS recorder markers next to the file (runtime/recorder.py, Milestone 5 D):
+    # <name>.recovery.json = the writer died and the file was cut to its valid prefix;
+    # <name>.active.json = a recorder is (or was, if it crashed) still writing the file.
+    recovery: dict[str, Any] | None = None
+    still_active: bool = False
 
     @property
     def device(self) -> dict[str, Any]:
@@ -209,6 +214,16 @@ def load_brainos_recording(path: Path, *, validate_contract: bool = True) -> Bra
                 statuses.append(
                     {"seq": seq, "t_wall_ns": t_wall, "payload": env.get("payload") or {}}
                 )
+    stem = path.name.removesuffix(".brainos.jsonl")
+    recovery: dict[str, Any] | None = None
+    rec_marker = path.parent / f"{stem}.recovery.json"
+    if rec_marker.is_file():
+        try:
+            loaded = json.loads(rec_marker.read_text(encoding="utf-8"))
+            recovery = loaded if isinstance(loaded, dict) else {"raw": loaded}
+        except (OSError, ValueError) as exc:
+            recovery = {"unreadable": str(exc)}
+    still_active = (path.parent / f"{stem}.active.json").is_file()
     contract: dict[str, Any] = (
         {"validated": True, "valid_events": contract_ok, "invalid_events": contract_bad}
         if validator is not None
@@ -227,6 +242,8 @@ def load_brainos_recording(path: Path, *, validate_contract: bool = True) -> Bra
         seq_gaps=seq_gaps,
         seq_regressions=regressions,
         contract=contract,
+        recovery=recovery,
+        still_active=still_active,
     )
 
 
