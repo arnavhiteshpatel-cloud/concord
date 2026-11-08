@@ -5,13 +5,13 @@
 **Level achieved: `adapter_implementation`** - adapter implementation: every required automated check passed  
 Checks: 26 pass, 2 warn, 0 fail, 1 not run. Exit code 0.  
 Plugin `bci2000`, device `app-connector`; origin `bci2000:127.0.0.1:20321 (processed control information, not raw signal)` (synthetic=True, prerecorded=True).  
-Run 2026-11-08T07:09:46Z on Linux x86_64 (Intel(R) Xeon(R) Processor @ 2.10GHz, 4 CPUs), Python 3.12.3, adapter SDK 1.0.0 (API 1.0), Concord 0.3.0, concord-certify 0.1.0.
+Run 2026-11-08T07:22:26Z on Linux x86_64 (Intel(R) Xeon(R) Processor @ 2.10GHz, 4 CPUs), Python 3.12.3, adapter SDK 1.0.0 (API 1.0), Concord 0.3.0, concord-certify 0.1.0.
 
 ## Summary
 
 | Check | Status | Reason |
 | --- | --- | --- |
-| `manifest.load` | PASS | plugin loaded in its own host process (pid 3300) in 0.18 s |
+| `manifest.load` | PASS | plugin loaded in its own host process (pid 7488) in 0.17 s |
 | `manifest.valid` | PASS | manifest valid (host and local validation) |
 | `manifest.api_compat` | PASS | plugin API 1.0 runs on SDK API 1.0 (SDK 1.0.0) |
 | `manifest.entry_point` | PASS | entry point bci2000 = concord_bci2000.plugin:BCI2000AppConnectorPlugin (concord-bci2000) |
@@ -23,22 +23,22 @@ Run 2026-11-08T07:09:46Z on Linux x86_64 (Intel(R) Xeon(R) Processor @ 2.10GHz, 
 | `metadata.channel_identity` | PASS | 4 opens (open_1, reopen_same_host, fresh_host_after_kill, concord_runtime): identical stream ids, labels, order, units, rates (20 channels) |
 | `timing.monotonic` | PASS | 1560 timestamps in 3 session(s) never decrease (within or across chunks) |
 | `timing.rate` | PASS | primary 32.012347 Hz from timestamps vs nominal 32 Hz (+0.039 %, tolerance ±2 %) |
-| `timing.jitter` | PASS | primary timestamp residual p50/p99/max 0.2798/2.8644/2.8758 ms; arrival interval p50/p99 31.2434/37.3029 ms |
-| `timing.clock_domain` | PASS | source clock: offset to host monotonic 1198 s (origin unknown by declaration; not checkable); drift -9.7 ppm vs host monotonic |
+| `timing.jitter` | PASS | primary timestamp residual p50/p99/max 0.2798/2.8644/2.8758 ms; arrival interval p50/p99 31.2562/37.4219 ms |
+| `timing.clock_domain` | PASS | source clock: offset to host monotonic 1958 s (origin unknown by declaration; not checkable); drift -12.2 ppm vs host monotonic |
 | `integrity.read` | PASS | 642 reads over 20.0 s, 1346 samples (all streams), no errors |
 | `integrity.chunk_validation` | PASS | 1594 chunks validated by the host and again by the certifier |
 | `integrity.sample_index` | PASS | 1560 samples in 3 session(s): 0 gaps, 0 overlaps |
 | `integrity.markers` | PASS | 58 marker(s) in order, within the primary stream's time span |
 | `integrity.plugin_stats` | PASS | 11 counter(s), none reporting loss |
-| `reconnect.clean_reopen` | PASS | closed in 0.2 ms, reopened in 0.119 s, first data 0.120 s after open; identity unchanged |
-| `reconnect.host_killed` | PASS | SIGKILL after 16 reads surfaced as a link loss in 2.8 ms; fresh host: first data 0.341 s after start (0.11 s after open); identity unchanged; exit code 0 |
-| `performance.throughput` | PASS | primary delivered 32.0118 samples/s over 20.0 s vs nominal 32 Hz (+0.037 %); 5426.8 B/s over IPC |
+| `reconnect.clean_reopen` | PASS | closed in 0.2 ms, reopened in 0.118 s, first data 0.119 s after open; identity unchanged |
+| `reconnect.host_killed` | PASS | SIGKILL after 16 reads surfaced as a link loss in 3.0 ms; fresh host: first data 0.247 s after start (0.097 s after open); identity unchanged; exit code 0 |
+| `performance.throughput` | PASS | primary delivered 32.0119 samples/s over 20.0 s vs nominal 32 Hz (+0.037 %); 5426.5 B/s over IPC |
 | `performance.latency` | NOT RUN | not applicable: clock domain 'source' has no known relation to a host clock (latency cannot be measured; see timing.clock_domain for the offset) |
-| `performance.host_resources` | PASS | host process CPU 2.3 % of one core, RSS peak 32.8 MiB (median 32.8 MiB) |
-| `performance.ipc` | PASS | 5426.8 B/s, 32.06 reads/s; ping round trip p50/p99 0.1026/0.473 ms |
+| `performance.host_resources` | PASS | host process CPU 2.3 % of one core, RSS peak 33.0 MiB (median 33.0 MiB) |
+| `performance.ipc` | PASS | 5426.5 B/s, 32.06 reads/s; ping round trip p50/p99 0.1315/0.3526 ms |
 | `runtime.descriptor` (optional) | PASS | descriptor kind=simulated modality=None invasive=None integration=plugin matches the declarations |
 | `runtime.negotiation` (optional) | PASS | granted ['behavior', 'device_status', 'kinematic_intent', 'recording']; every other capability rejected (unsupported_by_device); command app suspended |
-| `runtime.envelopes` (optional) | PASS | 342 of 342 events validated against contract 1.4 (pydantic + JSON Schema); 0 invalid, 0 undeclared, 0 decode errors |
+| `runtime.envelopes` (optional) | PASS | 343 of 343 events validated against contract 1.4 (pydantic + JSON Schema); 0 invalid, 0 undeclared, 0 decode errors |
 | `runtime.provenance` (optional) | PASS | provenance kinds, synthetic/replayed flags, origin and model ids as declared; no command events |
 
 ## Validation levels
@@ -61,9 +61,9 @@ Level definitions: docs/CERTIFICATION.md. `adapter_implementation` is the only l
 | Entry point | bci2000 |
 | Manifest | concord-bci2000 0.1.0, API 1.0, ecosystem bci2000, roles ['behavior', 'decoder_output', 'markers'] |
 | Distribution | concord-bci2000 0.1.0 (editable) |
-| RECORD | 9 of 9 hashed entries verified (10 files), sha256 2a10ae5113cf221311821a018217c265f946dff3e20ef5a241c33addb9c9cffc |
-| Module files | 5 files under /home/user/brainos/packages/concord-bci2000/src/concord_bci2000, tree sha256 dfc0b5b9c3820ee0f3eae76aa925fa65f9ffbdbed848ddf2f8acf112b9298483 |
-| Git | 0d86b8aefcf455c8503f12abfbdfd26afd13913e (dirty) |
+| RECORD | 9 of 9 hashed entries verified (10 files), sha256 5d1290066c43a2c36aac59d268dbc06bde2622cb9e0fb0ec6ab9a7c86624fd85 |
+| Module files | 5 files under /home/user/concord/packages/concord-bci2000/src/concord_bci2000, tree sha256 dfc0b5b9c3820ee0f3eae76aa925fa65f9ffbdbed848ddf2f8acf112b9298483 |
+| Git | f8b0081d53b3642152810195ed8e2c96c3a56126 (clean) |
 
 | Stream | Role | Channels | Rate (Hz) | Clock | Modality | Invasive | Units |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -82,7 +82,7 @@ Level definitions: docs/CERTIFICATION.md. `adapter_implementation` is the only l
 ### Manifest & compatibility
 
 **`manifest.load` - PASS** - Plugin host starts and the plugin loads  
-plugin loaded in its own host process (pid 3300) in 0.18 s
+plugin loaded in its own host process (pid 7488) in 0.17 s
 
 <details><summary>evidence</summary>
 
@@ -91,9 +91,9 @@ plugin loaded in its own host process (pid 3300) in 0.18 s
  "host_api_version": "1.0",
  "host_python": "3.12.3",
  "host_sdk_version": "1.0.0",
- "pid": 3300,
+ "pid": 7488,
  "protocol": "concord.plugin-ipc/1",
- "startup_s": 0.178
+ "startup_s": 0.166
 }
 ```
 
@@ -217,27 +217,27 @@ concord-bci2000 0.1.0: 9 of 9 hashed RECORD entries verified; module tree sha256
 ```json
 {
  "distribution": {
-  "direct_url": "file:///home/user/brainos/packages/concord-bci2000",
+  "direct_url": "file:///home/user/concord/packages/concord-bci2000",
   "editable": true,
   "name": "concord-bci2000",
   "version": "0.1.0"
  },
  "git": {
-  "commit": "0d86b8aefcf455c8503f12abfbdfd26afd13913e",
-  "dirty": true,
-  "dirty_files": 5
+  "commit": "f8b0081d53b3642152810195ed8e2c96c3a56126",
+  "dirty": false,
+  "dirty_files": 0
  },
  "module": {
   "file_count": 5,
   "name": "concord_bci2000.plugin",
-  "path": "/home/user/brainos/packages/concord-bci2000/src/concord_bci2000",
+  "path": "/home/user/concord/packages/concord-bci2000/src/concord_bci2000",
   "tree_sha256": "dfc0b5b9c3820ee0f3eae76aa925fa65f9ffbdbed848ddf2f8acf112b9298483"
  },
  "record": {
   "files": 10,
   "mismatched": [],
   "missing": [],
-  "sha256": "2a10ae5113cf221311821a018217c265f946dff3e20ef5a241c33addb9c9cffc",
+  "sha256": "5d1290066c43a2c36aac59d268dbc06bde2622cb9e0fb0ec6ab9a7c86624fd85",
   "unhashed": 1,
   "verified": 9
  }
@@ -280,7 +280,7 @@ session.synthetic_and_prerecorded: both synthetic and prerecorded are set; Conco
 
 ```json
 {
- "open_s": 0.104,
+ "open_s": 0.119,
  "options_resolved": {
   "address": "127.0.0.1",
   "behavior_states": "auto",
@@ -486,7 +486,7 @@ primary 32.012347 Hz from timestamps vs nominal 32 Hz (+0.039 %, tolerance ±2 %
 </details>
 
 **`timing.jitter` - PASS** - Timestamp and arrival jitter distribution  
-primary timestamp residual p50/p99/max 0.2798/2.8644/2.8758 ms; arrival interval p50/p99 31.2434/37.3029 ms
+primary timestamp residual p50/p99/max 0.2798/2.8644/2.8758 ms; arrival interval p50/p99 31.2562/37.4219 ms
 
 <details><summary>evidence</summary>
 
@@ -495,13 +495,13 @@ primary timestamp residual p50/p99/max 0.2798/2.8644/2.8758 ms; arrival interval
  "streams": {
   "control_signal": {
    "arrival_interval_ms": {
-    "max": 52.5387,
-    "mean": 31.2338,
-    "min": 9.7736,
+    "max": 40.7648,
+    "mean": 31.2355,
+    "min": 21.1874,
     "n": 641,
-    "p50": 31.2434,
-    "p95": 32.4879,
-    "p99": 37.3029
+    "p50": 31.2562,
+    "p95": 31.725,
+    "p99": 37.4219
    },
    "interval_error_ms": {
     "max": 3.25,
@@ -534,13 +534,13 @@ primary timestamp residual p50/p99/max 0.2798/2.8644/2.8758 ms; arrival interval
   },
   "state_changes": {
    "arrival_interval_ms": {
-    "max": 589.4888,
-    "mean": 522.7903,
-    "min": 497.7769,
+    "max": 587.0344,
+    "mean": 522.7814,
+    "min": 499.3106,
     "n": 37,
-    "p50": 505.78,
-    "p95": 587.108,
-    "p99": 588.6408
+    "p50": 505.7878,
+    "p95": 586.9968,
+    "p99": 587.0263
    },
    "residual_ms": {
     "max": 367.4294,
@@ -564,13 +564,13 @@ primary timestamp residual p50/p99/max 0.2798/2.8644/2.8758 ms; arrival interval
   },
   "states": {
    "arrival_interval_ms": {
-    "max": 52.5387,
-    "mean": 31.2338,
-    "min": 9.7736,
+    "max": 40.7648,
+    "mean": 31.2355,
+    "min": 21.1874,
     "n": 641,
-    "p50": 31.2434,
-    "p95": 32.4879,
-    "p99": 37.3029
+    "p50": 31.2562,
+    "p95": 31.725,
+    "p99": 37.4219
    },
    "interval_error_ms": {
     "max": 3.25,
@@ -609,7 +609,7 @@ primary timestamp residual p50/p99/max 0.2798/2.8644/2.8758 ms; arrival interval
 </details>
 
 **`timing.clock_domain` - PASS** - Timestamps are plausible for the declared clock domain  
-source clock: offset to host monotonic 1198 s (origin unknown by declaration; not checkable); drift -9.7 ppm vs host monotonic
+source clock: offset to host monotonic 1958 s (origin unknown by declaration; not checkable); drift -12.2 ppm vs host monotonic
 
 <details><summary>evidence</summary>
 
@@ -617,25 +617,25 @@ source clock: offset to host monotonic 1198 s (origin unknown by declaration; no
 {
  "description": "BCI2000 SourceTime state (16-bit millisecond counter of BCI2000's monotonic clock at block acquisition), unwrapped; arbitrary origin.",
  "domain": "source",
- "drift_ppm": -9.7,
+ "drift_ppm": -12.2,
  "drift_span_s": 20.02,
  "offset_newest_s": {
-  "max": 1198.0952,
-  "mean": 1198.0614,
-  "min": 1198.0603,
+  "max": 1958.0374,
+  "mean": 1958.0043,
+  "min": 1958.0032,
   "n": 642,
-  "p50": 1198.0611,
-  "p95": 1198.0625,
-  "p99": 1198.0676
+  "p50": 1958.0041,
+  "p95": 1958.0048,
+  "p99": 1958.0107
  },
  "offset_oldest_s": {
-  "max": 1198.1262,
-  "mean": 1198.0615,
-  "min": 1198.0603,
+  "max": 1958.0684,
+  "mean": 1958.0044,
+  "min": 1958.0032,
   "n": 642,
-  "p50": 1198.0611,
-  "p95": 1198.0625,
-  "p99": 1198.0676
+  "p50": 1958.0041,
+  "p95": 1958.0048,
+  "p99": 1958.0108
  },
  "reference_clock": "host monotonic clock"
 }
@@ -655,7 +655,7 @@ source clock: offset to host monotonic 1198 s (origin unknown by declaration; no
  "empty_reads": 0,
  "failure": null,
  "first_data_after_s": 0.001,
- "ran_s": 20.022,
+ "ran_s": 20.023,
  "reads": 642,
  "requested_s": 20.0,
  "samples": 1346
@@ -811,7 +811,7 @@ source clock: offset to host monotonic 1198 s (origin unknown by declaration; no
 ### Reconnection & fault injection
 
 **`reconnect.clean_reopen` - PASS** - Clean close, reopen, data again, identity unchanged  
-closed in 0.2 ms, reopened in 0.119 s, first data 0.120 s after open; identity unchanged
+closed in 0.2 ms, reopened in 0.118 s, first data 0.119 s after open; identity unchanged
 
 <details><summary>evidence</summary>
 
@@ -819,11 +819,11 @@ closed in 0.2 ms, reopened in 0.119 s, first data 0.120 s after open; identity u
 {
  "close_s": 0.0,
  "failure": null,
- "first_data_after_open_s": 0.12,
+ "first_data_after_open_s": 0.119,
  "identity_differences": [],
  "identity_unchanged": true,
  "read_s": 2.03,
- "reopen_s": 0.119,
+ "reopen_s": 0.118,
  "samples": 142
 }
 ```
@@ -831,30 +831,30 @@ closed in 0.2 ms, reopened in 0.119 s, first data 0.120 s after open; identity u
 </details>
 
 **`reconnect.host_killed` - PASS** - Host killed mid-stream: link loss reported, fresh open  
-SIGKILL after 16 reads surfaced as a link loss in 2.8 ms; fresh host: first data 0.341 s after start (0.11 s after open); identity unchanged; exit code 0
+SIGKILL after 16 reads surfaced as a link loss in 3.0 ms; fresh host: first data 0.247 s after start (0.097 s after open); identity unchanged; exit code 0
 
 <details><summary>evidence</summary>
 
 ```json
 {
  "failure": null,
- "first_data_after_host_start_s": 0.341,
- "first_data_after_open_s": 0.11,
+ "first_data_after_host_start_s": 0.247,
+ "first_data_after_open_s": 0.097,
  "fresh_host_exit_code": 0,
- "fresh_host_start_s": 0.232,
+ "fresh_host_start_s": 0.15,
  "identity_differences": [],
  "identity_unchanged": true,
  "kill": {
-  "detect_s": 0.0028,
+  "detect_s": 0.003,
   "detected_as": "HostDied",
   "host_exit_code": -9,
   "killed": true,
   "message": "plugin host exited (code -9)",
-  "pid": 3300,
+  "pid": 7488,
   "reads_before_kill": 16,
   "signal": "SIGKILL"
  },
- "open_s": 0.108,
+ "open_s": 0.096,
  "samples": 142
 }
 ```
@@ -864,25 +864,25 @@ SIGKILL after 16 reads surfaced as a link loss in 2.8 ms; fresh host: first data
 ### Performance
 
 **`performance.throughput` - PASS** - Sustained delivery rate keeps up with the nominal rate  
-primary delivered 32.0118 samples/s over 20.0 s vs nominal 32 Hz (+0.037 %); 5426.8 B/s over IPC
+primary delivered 32.0119 samples/s over 20.0 s vs nominal 32 Hz (+0.037 %); 5426.5 B/s over IPC
 
 <details><summary>evidence</summary>
 
 ```json
 {
- "duration_s": 20.022,
- "ipc_bytes_per_s": 5426.8,
+ "duration_s": 20.023,
+ "ipc_bytes_per_s": 5426.5,
  "ipc_bytes_received": 108656,
  "streams": {
   "control_signal": {
-   "arrival_span_s": 20.021,
+   "arrival_span_s": 20.022,
    "chunks": 642,
    "error_percent": 0.037,
    "nominal_hz": 32.0,
-   "rate_hz": 32.0118,
-   "rate_hz_endpoints": 32.0666,
+   "rate_hz": 32.0119,
+   "rate_hz_endpoints": 32.0648,
    "samples": 644,
-   "samples_per_s_overall": 32.164
+   "samples_per_s_overall": 32.163
   },
   "state_changes": {
    "chunks": 38,
@@ -891,14 +891,14 @@ primary delivered 32.0118 samples/s over 20.0 s vs nominal 32 Hz (+0.037 %); 542
    "samples_per_s_overall": 2.897
   },
   "states": {
-   "arrival_span_s": 20.021,
+   "arrival_span_s": 20.022,
    "chunks": 642,
    "error_percent": 0.037,
    "nominal_hz": 32.0,
-   "rate_hz": 32.0118,
-   "rate_hz_endpoints": 32.0666,
+   "rate_hz": 32.0119,
+   "rate_hz_endpoints": 32.0648,
    "samples": 644,
-   "samples_per_s_overall": 32.164
+   "samples_per_s_overall": 32.163
   }
  },
  "tolerance_percent": 2.0
@@ -911,7 +911,7 @@ primary delivered 32.0118 samples/s over 20.0 s vs nominal 32 Hz (+0.037 %); 542
 not applicable: clock domain 'source' has no known relation to a host clock (latency cannot be measured; see timing.clock_domain for the offset)
 
 **`performance.host_resources` - PASS** - Plugin host process CPU and memory  
-host process CPU 2.3 % of one core, RSS peak 32.8 MiB (median 32.8 MiB)
+host process CPU 2.3 % of one core, RSS peak 33.0 MiB (median 33.0 MiB)
 
 <details><summary>evidence</summary>
 
@@ -920,26 +920,26 @@ host process CPU 2.3 % of one core, RSS peak 32.8 MiB (median 32.8 MiB)
  "clock_ticks_per_s": 100,
  "cpu_percent_of_one_core": 2.3,
  "cpu_s": 0.47,
- "pid": 3300,
- "rss_mib_max_sampled": 32.8,
- "rss_mib_median": 32.8,
- "rss_mib_peak": 32.8,
+ "pid": 7488,
+ "rss_mib_max_sampled": 33.0,
+ "rss_mib_median": 33.0,
+ "rss_mib_peak": 33.0,
  "rss_samples": 80,
- "wall_s": 20.023
+ "wall_s": 20.024
 }
 ```
 
 </details>
 
 **`performance.ipc` - PASS** - IPC volume and round-trip time  
-5426.8 B/s, 32.06 reads/s; ping round trip p50/p99 0.1026/0.473 ms
+5426.5 B/s, 32.06 reads/s; ping round trip p50/p99 0.1315/0.3526 ms
 
 <details><summary>evidence</summary>
 
 ```json
 {
  "empty_read_fraction": 0.0,
- "host_bytes_per_s": 5426.8,
+ "host_bytes_per_s": 5426.5,
  "host_counters": {
   "bytes": 108656,
   "chunks": 1322,
@@ -947,13 +947,13 @@ host process CPU 2.3 % of one core, RSS peak 32.8 MiB (median 32.8 MiB)
   "samples": 1346
  },
  "ping_round_trip_ms": {
-  "max": 0.4867,
-  "mean": 0.1629,
-  "min": 0.0883,
+  "max": 0.3528,
+  "mean": 0.1735,
+  "min": 0.0995,
   "n": 30,
-  "p50": 0.1026,
-  "p95": 0.4316,
-  "p99": 0.473
+  "p50": 0.1315,
+  "p95": 0.332,
+  "p99": 0.3526
  },
  "reads_per_s": 32.06
 }
@@ -1114,23 +1114,23 @@ granted ['behavior', 'device_status', 'kinematic_intent', 'recording']; every ot
 </details>
 
 **`runtime.envelopes` - PASS** - Every event validates against the Concord contracts  
-342 of 342 events validated against contract 1.4 (pydantic + JSON Schema); 0 invalid, 0 undeclared, 0 decode errors
+343 of 343 events validated against contract 1.4 (pydantic + JSON Schema); 0 invalid, 0 undeclared, 0 decode errors
 
 <details><summary>evidence</summary>
 
 ```json
 {
  "event_schema_versions": {
-  "1.4": 342
+  "1.4": 343
  },
  "event_types": {
   "behavior.sample": 163,
   "device.status": 3,
   "intent.kinematics": 163,
-  "recording.annotation": 13
+  "recording.annotation": 14
  },
- "events_published": 342,
- "events_validated": 342,
+ "events_published": 343,
+ "events_validated": 343,
  "invalid": [],
  "runtime_diagnostics": {
   "decode_errors": 0,

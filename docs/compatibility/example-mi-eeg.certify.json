@@ -5,9 +5,9 @@
   "name": "concord-certify",
   "version": "0.1.0"
  },
- "generated_at": "2026-11-08T07:09:07Z",
- "started_at": "2026-11-08T07:08:33Z",
- "elapsed_s": 34.15,
+ "generated_at": "2026-11-08T07:21:46Z",
+ "started_at": "2026-11-08T07:21:12Z",
+ "elapsed_s": 34.07,
  "environment": {
   "os": "Linux",
   "os_release": "6.18.44-fc-v310",
@@ -81,7 +81,7 @@
     "name": "concord-example-adapter",
     "version": "0.1.0",
     "editable": true,
-    "direct_url": "file:///home/user/brainos/examples/adapters/concord-example-adapter",
+    "direct_url": "file:///home/user/concord/examples/adapters/concord-example-adapter",
     "requires": [
      {
       "requirement": "concord-adapter-sdk<2,>=1.0",
@@ -98,13 +98,13 @@
      "unhashed": 1,
      "mismatched": [],
      "missing": [],
-     "sha256": "fd71105015feb22366d1f71b312ffee2bcfdbea16231590b9a0ad9026a635afb"
+     "sha256": "7e504bb7534b8f87c2037804e2bb15463456389298c7b1fd65ce437e3e1709c3"
     }
    },
    "module": {
     "name": "concord_example_adapter.plugin",
     "package": "concord_example_adapter",
-    "path": "/home/user/brainos/examples/adapters/concord-example-adapter/src/concord_example_adapter",
+    "path": "/home/user/concord/examples/adapters/concord-example-adapter/src/concord_example_adapter",
     "files": [
      {
       "path": "__init__.py",
@@ -133,9 +133,9 @@
    "versions": {},
    "errors": [],
    "git": {
-    "commit": "0d86b8aefcf455c8503f12abfbdfd26afd13913e",
-    "dirty": true,
-    "dirty_files": 4
+    "commit": "f8b0081d53b3642152810195ed8e2c96c3a56126",
+    "dirty": false,
+    "dirty_files": 0
    }
   },
   "session": {
@@ -298,14 +298,14 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "plugin loaded in its own host process (pid 2791) in 0.13 s",
+   "reason": "plugin loaded in its own host process (pid 7407) in 0.13 s",
    "evidence": {
-    "pid": 2791,
+    "pid": 7407,
     "protocol": "concord.plugin-ipc/1",
     "host_sdk_version": "1.0.0",
     "host_api_version": "1.0",
     "host_python": "3.12.3",
-    "startup_s": 0.133
+    "startup_s": 0.131
    }
   },
   {
@@ -404,7 +404,7 @@
      "name": "concord-example-adapter",
      "version": "0.1.0",
      "editable": true,
-     "direct_url": "file:///home/user/brainos/examples/adapters/concord-example-adapter"
+     "direct_url": "file:///home/user/concord/examples/adapters/concord-example-adapter"
     },
     "record": {
      "files": 10,
@@ -412,18 +412,18 @@
      "unhashed": 1,
      "mismatched": [],
      "missing": [],
-     "sha256": "fd71105015feb22366d1f71b312ffee2bcfdbea16231590b9a0ad9026a635afb"
+     "sha256": "7e504bb7534b8f87c2037804e2bb15463456389298c7b1fd65ce437e3e1709c3"
     },
     "module": {
      "name": "concord_example_adapter.plugin",
-     "path": "/home/user/brainos/examples/adapters/concord-example-adapter/src/concord_example_adapter",
+     "path": "/home/user/concord/examples/adapters/concord-example-adapter/src/concord_example_adapter",
      "file_count": 4,
      "tree_sha256": "00e2d8391de66cdfe4fc75d23b7cccf6f037c78a2f491bd82b19898f3272ce9a"
     },
     "git": {
-     "commit": "0d86b8aefcf455c8503f12abfbdfd26afd13913e",
-     "dirty": true,
-     "dirty_files": 4
+     "commit": "f8b0081d53b3642152810195ed8e2c96c3a56126",
+     "dirty": false,
+     "dirty_files": 0
     }
    }
   },
@@ -447,7 +447,7 @@
       }
      }
     ],
-    "discover_s": 0.0,
+    "discover_s": 0.001,
     "problems": [],
     "tested_device": "mi-eeg"
    }
@@ -461,7 +461,7 @@
    "applicable": true,
    "reason": "3 stream(s), primary 'eeg', synthetic=True prerecorded=False, opened in 0.01 s",
    "evidence": {
-    "open_s": 0.01,
+    "open_s": 0.009,
     "primary_stream": "eeg",
     "synthetic": true,
     "prerecorded": false,
@@ -667,7 +667,7 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "primary timestamp residual p50/p99/max 0.0/0.0/0.0 ms; arrival interval p50/p99 100.0225/103.0664 ms",
+   "reason": "primary timestamp residual p50/p99/max 0.0/0.0/0.0 ms; arrival interval p50/p99 100.0063/101.549 ms",
    "evidence": {
     "streams": {
      "eeg": {
@@ -691,12 +691,12 @@
       },
       "arrival_interval_ms": {
        "n": 199,
-       "min": 83.3078,
-       "p50": 100.0225,
-       "p95": 100.7475,
-       "p99": 103.0664,
-       "max": 116.7546,
-       "mean": 99.9985
+       "min": 98.0214,
+       "p50": 100.0063,
+       "p95": 100.6032,
+       "p99": 101.549,
+       "max": 102.035,
+       "mean": 99.9963
       },
       "samples_per_chunk": {
        "n": 200,
@@ -730,12 +730,12 @@
       },
       "arrival_interval_ms": {
        "n": 199,
-       "min": 83.3078,
-       "p50": 100.0225,
-       "p95": 100.7475,
-       "p99": 103.0664,
-       "max": 116.7546,
-       "mean": 99.9985
+       "min": 98.0214,
+       "p50": 100.0063,
+       "p95": 100.6032,
+       "p99": 101.549,
+       "max": 102.035,
+       "mean": 99.9963
       },
       "samples_per_chunk": {
        "n": 200,
@@ -760,12 +760,12 @@
       },
       "arrival_interval_ms": {
        "n": 4,
-       "min": 3999.5483,
-       "p50": 4000.0735,
-       "p95": 4000.1535,
-       "p99": 4000.1589,
-       "max": 4000.1603,
-       "mean": 3999.9639
+       "min": 3999.5811,
+       "p50": 3999.8414,
+       "p95": 4000.2733,
+       "p99": 4000.3226,
+       "max": 4000.3349,
+       "mean": 3999.8997
       },
       "samples_per_chunk": {
        "n": 5,
@@ -789,7 +789,7 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "source clock: offset to host monotonic 0.0058 s (origin unknown by declaration; not checkable); drift +1.4 ppm vs host monotonic",
+   "reason": "source clock: offset to host monotonic 0.0058 s (origin unknown by declaration; not checkable); drift -3.8 ppm vs host monotonic",
    "evidence": {
     "domain": "source",
     "description": "generator sample clock: monotonic time at open() + sample index / 250 Hz",
@@ -798,21 +798,21 @@
      "n": 200,
      "min": 0.0053,
      "p50": 0.0058,
-     "p95": 0.0064,
-     "p99": 0.0089,
-     "max": 0.0224,
-     "mean": 0.0059
+     "p95": 0.0062,
+     "p99": 0.0076,
+     "max": 0.0079,
+     "mean": 0.0058
     },
     "offset_oldest_s": {
      "n": 200,
      "min": 0.1013,
      "p50": 0.1018,
-     "p95": 0.1024,
-     "p99": 0.1049,
-     "max": 0.1184,
-     "mean": 0.1019
+     "p95": 0.1022,
+     "p99": 0.1036,
+     "max": 0.1039,
+     "mean": 0.1018
     },
-    "drift_ppm": 1.4,
+    "drift_ppm": -3.8,
     "drift_span_s": 19.9
    }
   },
@@ -826,11 +826,11 @@
    "reason": "200 reads over 20.0 s, 6005 samples (all streams), no errors",
    "evidence": {
     "requested_s": 20.0,
-    "ran_s": 20.0,
+    "ran_s": 20.001,
     "reads": 200,
     "empty_reads": 0,
     "samples": 6005,
-    "first_data_after_s": 0.1,
+    "first_data_after_s": 0.101,
     "failure": null
    }
   },
@@ -938,8 +938,8 @@
      }
     },
     "primary_span": [
-     1177.926273383,
-     1197.9222733830002
+     1937.408356122,
+     1957.404356122
     ]
    }
   },
@@ -972,13 +972,13 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "closed in 0.1 ms, reopened in 0.001 s, first data 0.102 s after open; identity unchanged",
+   "reason": "closed in 0.2 ms, reopened in 0.001 s, first data 0.102 s after open; identity unchanged",
    "evidence": {
     "close_s": 0.0,
     "reopen_s": 0.001,
     "first_data_after_open_s": 0.102,
     "samples": 601,
-    "read_s": 2.001,
+    "read_s": 2.002,
     "failure": null,
     "identity_unchanged": true,
     "identity_differences": []
@@ -991,22 +991,22 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "SIGKILL after 5 reads surfaced as a link loss in 2.5 ms; fresh host: first data 0.227 s after start (0.11 s after open); identity unchanged; exit code 0",
+   "reason": "SIGKILL after 5 reads surfaced as a link loss in 3.6 ms; fresh host: first data 0.241 s after start (0.111 s after open); identity unchanged; exit code 0",
    "evidence": {
     "kill": {
-     "pid": 2791,
+     "pid": 7407,
      "signal": "SIGKILL",
      "killed": true,
      "reads_before_kill": 5,
      "detected_as": "HostDied",
      "message": "plugin host exited (code -9)",
-     "detect_s": 0.0025,
+     "detect_s": 0.0036,
      "host_exit_code": -9
     },
-    "fresh_host_start_s": 0.117,
-    "open_s": 0.009,
-    "first_data_after_open_s": 0.11,
-    "first_data_after_host_start_s": 0.227,
+    "fresh_host_start_s": 0.13,
+    "open_s": 0.01,
+    "first_data_after_open_s": 0.111,
+    "first_data_after_host_start_s": 0.241,
     "samples": 601,
     "failure": null,
     "identity_unchanged": true,
@@ -1021,30 +1021,30 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "primary delivered 249.9997 samples/s over 20.0 s vs nominal 250 Hz (-0.000 %); 10601.9 B/s over IPC",
+   "reason": "primary delivered 250.0009 samples/s over 20.0 s vs nominal 250 Hz (+0.000 %); 10601.7 B/s over IPC",
    "evidence": {
-    "duration_s": 20.0,
+    "duration_s": 20.001,
     "tolerance_percent": 2.0,
     "streams": {
      "eeg": {
       "samples": 5000,
       "chunks": 200,
-      "samples_per_s_overall": 249.998,
+      "samples_per_s_overall": 249.994,
       "nominal_hz": 250.0,
-      "arrival_span_s": 19.9,
-      "rate_hz": 249.9997,
-      "rate_hz_endpoints": 250.0038,
-      "error_percent": -0.0
+      "arrival_span_s": 19.899,
+      "rate_hz": 250.0009,
+      "rate_hz_endpoints": 250.0093,
+      "error_percent": 0.0
      },
      "cue": {
       "samples": 1000,
       "chunks": 200,
-      "samples_per_s_overall": 50.0,
+      "samples_per_s_overall": 49.999,
       "nominal_hz": 50.0,
-      "arrival_span_s": 19.9,
-      "rate_hz": 49.9999,
-      "rate_hz_endpoints": 50.0008,
-      "error_percent": -0.0
+      "arrival_span_s": 19.899,
+      "rate_hz": 50.0002,
+      "rate_hz_endpoints": 50.0019,
+      "error_percent": 0.0
      },
      "markers": {
       "samples": 5,
@@ -1054,7 +1054,7 @@
      }
     },
     "ipc_bytes_received": 212040,
-    "ipc_bytes_per_s": 10601.9
+    "ipc_bytes_per_s": 10601.7
    }
   },
   {
@@ -1074,15 +1074,15 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "host process CPU 1.2 % of one core, RSS peak 38.3 MiB (median 38.3 MiB)",
+   "reason": "host process CPU 1.2 % of one core, RSS peak 38.4 MiB (median 38.4 MiB)",
    "evidence": {
-    "pid": 2791,
+    "pid": 7407,
     "wall_s": 20.001,
-    "cpu_s": 0.24,
+    "cpu_s": 0.25,
     "cpu_percent_of_one_core": 1.2,
-    "rss_mib_median": 38.3,
-    "rss_mib_max_sampled": 38.3,
-    "rss_mib_peak": 38.3,
+    "rss_mib_median": 38.4,
+    "rss_mib_max_sampled": 38.4,
+    "rss_mib_peak": 38.4,
     "rss_samples": 80,
     "clock_ticks_per_s": 100
    }
@@ -1094,7 +1094,7 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "10601.9 B/s, 10.0 reads/s; ping round trip p50/p99 0.0963/0.2168 ms",
+   "reason": "10601.7 B/s, 10.0 reads/s; ping round trip p50/p99 0.1193/0.3329 ms",
    "evidence": {
     "host_counters": {
      "samples": 6005,
@@ -1102,17 +1102,17 @@
      "reads": 200,
      "bytes": 212040
     },
-    "host_bytes_per_s": 10601.9,
+    "host_bytes_per_s": 10601.7,
     "reads_per_s": 10.0,
     "empty_read_fraction": 0.0,
     "ping_round_trip_ms": {
      "n": 30,
-     "min": 0.0842,
-     "p50": 0.0963,
-     "p95": 0.1989,
-     "p99": 0.2168,
-     "max": 0.2211,
-     "mean": 0.1137
+     "min": 0.1066,
+     "p50": 0.1193,
+     "p95": 0.2183,
+     "p99": 0.3329,
+     "max": 0.3663,
+     "mean": 0.1356
     }
    }
   },
@@ -1271,18 +1271,18 @@
    "required": false,
    "status": "pass",
    "applicable": true,
-   "reason": "299 of 299 events validated against contract 1.4 (pydantic + JSON Schema); 0 invalid, 0 undeclared, 0 decode errors",
+   "reason": "305 of 305 events validated against contract 1.4 (pydantic + JSON Schema); 0 invalid, 0 undeclared, 0 decode errors",
    "evidence": {
     "schema_version": "1.4",
     "event_schema_versions": {
-     "1.4": 299
+     "1.4": 305
     },
-    "events_published": 299,
-    "events_validated": 299,
+    "events_published": 305,
+    "events_validated": 305,
     "event_types": {
      "device.status": 3,
-     "recording.frame": 49,
-     "behavior.sample": 245,
+     "recording.frame": 50,
+     "behavior.sample": 250,
      "recording.annotation": 2
     },
     "invalid": [],
