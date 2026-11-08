@@ -71,7 +71,11 @@ a = Analysis(  # noqa: F821
     pathex=[str(SRC)],
     datas=datas,
     hiddenimports=hiddenimports,
-    excludes=["pytest", "mypy", "ruff", "IPython", "matplotlib", "notebook", "jupyter"],
+    # orjson (M5-E's fast array encoder) is left out on macOS: its macOS wheels require macOS 15,
+    # which would raise the app's minimum above the 14.0 it declares. BrainOS then uses its
+    # byte-identical pure-Python encoder (runtime/fastjson.py), ~2.5x slower for raw frames.
+    excludes=["pytest", "mypy", "ruff", "IPython", "matplotlib", "notebook", "jupyter"]
+    + (["orjson"] if MAC else []),
     noarchive=False,
 )
 pyz = PYZ(a.pure)  # noqa: F821

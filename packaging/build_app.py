@@ -157,7 +157,12 @@ def main(argv: list[str] | None = None) -> int:
         info.update(macos_minimum(bundle))
         required = str(info.get("macos_min_required") or "0")
         if tuple(int(x) for x in required.split(".")) > (14,):
-            print(f"WARNING: bundled libraries need macOS {required}; Info.plist says 14.0")
+            # the app would claim to run where it cannot: fail the build (set_by names the file)
+            raise SystemExit(
+                f"bundled library {info.get('macos_min_set_by')} needs macOS {required}; the app "
+                "declares 14.0 (LSMinimumSystemVersion). Exclude it on macOS or raise the minimum "
+                "in brainos.spec and docs/INSTALL_MAC.md."
+            )
     if args.dmg:
         if not mac:
             raise SystemExit("--dmg needs macOS (hdiutil)")

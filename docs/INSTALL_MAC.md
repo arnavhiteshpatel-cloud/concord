@@ -178,11 +178,18 @@ brainos doctor
 ## What has been tested
 
 The app bundle is built and smoke-tested automatically on GitHub Actions `macos-latest`
-(Apple Silicon) by the **package-macos** job: the bundled executable started headless, the
-console page, every built-in source type, the plugin host inside the app, Simulated Profile A
-streaming over the API, a recording closed cleanly on quit, crash recovery after a kill,
-the status window, launching with `open` and quitting with an Apple Event, and the app run
-from the mounted `.dmg`; its `build-info.json` records the minimum macOS that the bundled
-native libraries actually require. The identical bundle layout is built and tested on Linux by
-**package-linux**. Nobody has yet installed it by hand on a physical Mac and used it with
-equipment; see LIMITATIONS.md.
+(Apple Silicon) by the **package-macos** job. In the run for commit 336ecc4 (PR #9) every check
+passed: the bundled executable's version; the isolated decoder host started from the bundle;
+`BrainOS doctor` (14 ok, 0 fail); a headless launch with Simulated Profile A streaming, the
+BCI2000 plugin discovered by the plugin host inside the app, a recording closed cleanly on quit
+(SIGTERM) with private file permissions; crash recovery after a SIGKILL mid-recording; the Tk
+status window quitting cleanly on SIGTERM; launching with `open` (the double-click
+equivalent) and quitting with an Apple Event; and the app run from the mounted, verified
+`.dmg`. (The first macOS run found that SIGTERM did not reach the window's event loop; fixed
+in 336ecc4.) The build fails if any bundled library needs a newer macOS than the app declares
+(14.0); orjson, whose macOS wheels need macOS 15, is therefore left out of the app (BrainOS
+uses its byte-identical pure-Python encoder instead). The identical bundle layout is built and
+tested on Linux by **package-linux**.
+
+Not tested: installing the `.dmg` by hand on a physical Mac (Gatekeeper prompts, a real
+display, a real browser) and using it with acquisition equipment; see LIMITATIONS.md.
