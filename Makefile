@@ -133,6 +133,25 @@ PY_PKGS += -e "packages/brainos-decoder-sdk[onnx,sklearn,dev]" -e examples/decod
 PLUGIN_SRC += ../packages/brainos-decoder-sdk ../examples/decoders/brainos-example-decoder
 PACKAGE_TESTS += packages/brainos-decoder-sdk examples/decoders/brainos-example-decoder
 
+# ---------------------------------------------------------------- Milestone 5: hardware validation
+# brainos-hwval compares BrainOS recordings with independent reference recordings (LabRecorder
+# XDF, Open Ephys Binary); docs/HARDWARE_VALIDATION.md. `make test` runs its synthetic-defect
+# and CLI tests; `make test-hwval` also runs the real LabRecorderCLI and Open Ephys GUI
+# (downloaded on first use, pinned by SHA-256, never vendored; Linux x86_64 with
+# libpugixml1v5, xvfb and pulseaudio installed), as the CI workflow hwval.yml does.
+PY_PKGS += -e "packages/brainos-hwval[dev,openephys,capture]"
+HWVAL := packages/brainos-hwval
+.PHONY: lint-hwval test-hwval
+lint: lint-hwval
+lint-hwval:  ## ruff + mypy --strict: hardware-validation toolkit (src + tests)
+	cd $(HWVAL) && ../../$(VENV)/bin/ruff check . && ../../$(VENV)/bin/ruff format --check . && ../../$(VENV)/bin/mypy
+test-backend: test-hwval-synthetic
+.PHONY: test-hwval-synthetic
+test-hwval-synthetic:
+	cd $(HWVAL) && $(CURDIR)/$(PY) -m pytest -q -m "not reference_software"
+test-hwval:  ## all hwval tests incl. real LabRecorder + Open Ephys GUI; none may be skipped
+	cd $(HWVAL) && HWVAL_REQUIRE_REFERENCE_SOFTWARE=1 $(CURDIR)/$(PY) -m pytest -q -rs
+
 .PHONY: lint-decoders
 lint: lint-decoders
 lint-decoders:  ## mypy --strict: decoder SDK + example decoder plugin

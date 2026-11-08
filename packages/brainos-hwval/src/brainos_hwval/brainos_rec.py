@@ -3,6 +3,7 @@
 Layout (backend/src/brainos/adapters/replay/format.py, runtime/recorder.py):
 
 * line 1: header ``{"format", "schema_version", "created_at_ns", "device", "synthetic", "note"}``
+  (+ optional ``source_metadata``, ``timing``, ``limits`` since BrainOS Milestone 5)
   where ``device`` is the DeviceDescriptor the adapter refined after ``open()``;
 * line 2+: one EventEnvelope per line, in ``seq`` order. ``recording.frame`` payloads carry
   ``samples[channel][sample]``, ``first_sample_index``, ``sample_rate_hz`` and ``unit``;
@@ -288,6 +289,10 @@ def summary(rec: BrainOSRecording) -> dict[str, Any]:
         "kind": d.get("kind"),
         "synthetic": rec.header.get("synthetic"),
         "note": rec.header.get("note"),
+        # BrainOS >= Milestone 5 headers: what the timestamps can reconstruct, and whether the
+        # adapter's source metadata (e.g. the LSL uid) was kept at the start of the recording
+        "timing": rec.header.get("timing"),
+        "source_metadata_in_header": isinstance(rec.header.get("source_metadata"), dict),
         "event_counts": rec.event_counts,
         "frames": len(frames),
         "samples": n,

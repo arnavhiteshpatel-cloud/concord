@@ -84,6 +84,7 @@ make schema       # regenerate contracts JSON Schema after changing models
 make dataset      # download + verify demo recordings (DANDI 000954) -> data/datasets/
 make model        # baseline decoder on downloaded blocks -> data/models/, reports/decoding.json
 make decoding-report  # all 13 blocks -> docs/DECODING.md
+make test-hwval   # brainos-hwval incl. real LabRecorder + Open Ephys GUI (docs/HARDWARE_VALIDATION.md)
 ```
 
 Backend only: `cd backend && ../.venv/bin/pytest -q`.

@@ -6,8 +6,11 @@ data, commands or events to it. The only thing it sends is the plugin's heartbea
 random uuid), and you can turn that off.
 
 **Validation level: protocol-tested.** The implementation has been tested against
-BrainOS's own protocol-faithful test publisher and against the plugin's official Python
-client. It has **not** been tested against a running Open Ephys GUI or against acquisition hardware.
+BrainOS's own protocol-faithful test publisher, against the plugin's official Python
+client, and (Milestone 5, `brainos-hwval`) against the real Open Ephys GUI 1.1.0 with the
+ZMQ Interface 1.0.0, run headless with the GUI's File Reader, compared sample for sample with
+the GUI's own Record Node (docs/HARDWARE_VALIDATION.md). It has **not** been tested against
+acquisition hardware.
 
 ## Source of the protocol facts
 
@@ -66,7 +69,8 @@ All protocol facts come from `open-ephys-plugins/zmq-interface` at commit `38513
    - incomplete and discarded blocks;
    - malformed messages, which are rejected with a specific reason and counted, and are
      also reported to the runtime as decode errors;
-   - stalls, heartbeats, and the sender→local wall-clock offset (last and minimum).
+   - stalls, heartbeats, and the sender→local wall-clock offset (last and minimum);
+   - sample-clock resets (`sample_clock_resets`, see 6).
 6. **Link errors** (`DeviceLinkError`, so the runtime reconnects and learns the layout again):
    - no message for `stall_timeout_s`;
    - `message_num` reset (acquisition restarted);
@@ -74,6 +78,15 @@ All protocol facts come from `open-ephys-plugins/zmq-interface` at commit `38513
    - a learned channel missing from 3 consecutive blocks;
    - a new spike electrode. The electrode is kept, so the next descriptor includes it.
      This does not apply if the electrodes were declared with `spike_electrodes`.
+
+   A `sample_num` that goes back while `message_num` continues (the GUI's File Reader
+   looping to the start of its file) is **not** a link error: the adapter keeps streaming
+   from the next block start at the new sample number, without reconnecting. Frames keep the
+   source's sample numbers, so the discontinuity stays visible: `first_sample_index` and the
+   device timestamps go back, the runtime flags that frame `timestamp_regression` and counts
+   it in diagnostics, the adapter counts it in `sample_clock_resets` and logs a warning.
+   (Before Milestone 5 this reconnected and lost about 0.7 s of data at each loop; found by
+   `brainos-hwval` against the real GUI.)
 7. **Pause.** While paused, the adapter keeps reading and discarding messages (it counts
    them). On resume it waits for the next block start, so the first frame after a pause is
    not reported as a loss.
@@ -120,8 +133,9 @@ When connection fails, `open()` reports which of these cases applies:
 
 ## Limitations
 
-- Not tested against a real GUI or real hardware. BrainOS cannot tell whether the GUI is
-  reading hardware, a file or a simulator.
+- Tested against the real GUI only with its File Reader (Linux, headless); never with
+  acquisition hardware. BrainOS cannot tell whether the GUI is reading hardware, a file or a
+  simulator.
 - The plugin's sample rate and channel count must fit the contract: ≤ 100 kHz and
   ≤ 1024 channels.
 - Only the plugin's selected stream is sent. TTLs from other streams are filtered out by the
