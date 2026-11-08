@@ -296,3 +296,21 @@ In the console, **Start decoding** lists every decoder:
 Pickle / joblib files are refused unless you mark the exact file trusted. Guide:
 [docs/DECODER_SDK.md](docs/DECODER_SDK.md). Example plugin:
 [examples/decoders/brainos-example-decoder](examples/decoders/brainos-example-decoder/README.md).
+
+## Milestone 5, P0: neural-to-communication on genuine human data
+
+Recorded intracortical data from a person with paralysis controlling a cursor and clicking
+(participant T15, Singer-Clark et al., Dryad doi:10.5061/dryad.prr4xgxzq, CC0) replays as
+"Recorded Human Intracortical Data (cursor + click) — Offline Replay" (`t15:*` devices): threshold
+crossings and spike band power, task state, and the original online decoders' outputs
+(labelled historical, never BrainOS). BrainOS's own Kalman cursor decoder and click decoder,
+trained only on earlier calibration blocks, recover the movement intention on held-out blocks
+(angle error 28.0° vs 27.3° for the original online decoder; docs/CURSOR_CLICK.md), and drive
+the participant board end to end in a browser (docs/NEURAL_COMMUNICATION.md). Open loop only:
+nobody has communicated through BrainOS.
+
+```bash
+make dataset-t15            # day 468 blocks 0-3 (~90 MiB; Dryad API token: see --help)
+make e2e-communication      # the board selects words from the replayed block (historical + BrainOS)
+make cursorclick-report     # all 18 blocks: decoders, clicks, word selection -> docs/CURSOR_CLICK.md
+```

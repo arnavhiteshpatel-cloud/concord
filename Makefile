@@ -14,7 +14,7 @@ PACKAGE_TESTS := packages/brainos-brainflow packages/brainos-bci2000 examples/ad
                  packages/brainos-certify
 
 .PHONY: setup dev run build test test-backend test-frontend lint e2e e2e-setup bench bench-live dist-check schema clean \
-        dataset dataset-all model decoding-report dataset-t15 dataset-t15-day cursorclick-report
+        dataset dataset-all model decoding-report dataset-t15 dataset-t15-day cursorclick-report e2e-communication
 
 setup:  ## create .venv (Python 3.12) and install backend + frontend deps
 	@command -v uv >/dev/null && uv venv --python 3.12 $(VENV) || python3.12 -m venv $(VENV)
@@ -95,6 +95,9 @@ dataset-t15-day:  ## all 18 blocks of T15 day 468 (~472 MiB) for the cursor+clic
 
 cursorclick-report: dataset-t15-day  ## decoders + click + word selection -> docs/CURSOR_CLICK.md, demo models
 	$(PY) -m brainos.evaluation.run_cursorclick --write docs/CURSOR_CLICK.md
+
+e2e-communication: build  ## real board selects words from replayed T15 data (needs dataset-t15) -> reports/communication_e2e.json
+	node e2e/communication.cjs
 
 schema:  ## regenerate contracts/event-envelope.v1.schema.json
 	$(PY) scripts/export_schema.py
