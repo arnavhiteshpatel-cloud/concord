@@ -156,7 +156,8 @@ def main(argv: list[str] | None = None) -> int:
     if mac:
         info.update(macos_minimum(bundle))
         required = str(info.get("macos_min_required") or "0")
-        if tuple(int(x) for x in required.split(".")) > (14,):
+        parts = [int(x) for x in required.split(".")]
+        if tuple(parts + [0] * (3 - len(parts))) > (14, 0, 0):  # "14.0" is not above 14
             # the app would claim to run where it cannot: fail the build (set_by names the file)
             raise SystemExit(
                 f"bundled library {info.get('macos_min_set_by')} needs macOS {required}; the app "
