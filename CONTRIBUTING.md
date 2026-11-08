@@ -8,9 +8,9 @@ been validated, and they keep it safe. Please read them before opening a pull re
 
 | You want to… | Do this |
 | --- | --- |
-| Report a problem | [Open a bug report](https://github.com/arnavhiteshpatel-cloud/brainos/issues/new?template=bug_report.yml). Attach the support report from **Advanced → Support report** (or `concord doctor`): it contains no neural or personal data. |
-| Ask how to do something | [Ask a question](https://github.com/arnavhiteshpatel-cloud/brainos/issues/new?template=question.yml), after checking the [FAQ](docs/FAQ.md) and [troubleshooting](docs/TROUBLESHOOTING.md). |
-| Share a hardware-validation result | [Submit a `concord-hwval` report](https://github.com/arnavhiteshpatel-cloud/brainos/issues/new?template=hardware_validation.yml) ([protocol](docs/HARDWARE_VALIDATION.md)). |
+| Report a problem | [Open a bug report](https://github.com/arnavhiteshpatel-cloud/concord/issues/new?template=bug_report.yml). Attach the support report from **Advanced → Support report** (or `concord doctor`): it contains no neural or personal data. |
+| Ask how to do something | [Ask a question](https://github.com/arnavhiteshpatel-cloud/concord/issues/new?template=question.yml), after checking the [FAQ](docs/FAQ.md) and [troubleshooting](docs/TROUBLESHOOTING.md). |
+| Share a hardware-validation result | [Submit a `concord-hwval` report](https://github.com/arnavhiteshpatel-cloud/concord/issues/new?template=hardware_validation.yml) ([protocol](docs/HARDWARE_VALIDATION.md)). |
 | Connect a new acquisition system | Write a source plugin with the [adapter SDK](docs/ADAPTER_SDK.md) and check it with [`concord-certify`](docs/CERTIFICATION.md). Plugins live in their own package; the core does not need to change. |
 | Bring your own decoder | Use the [decoder SDK](docs/DECODER_SDK.md). |
 | Write an application | Use the [Python or TypeScript SDK](docs/SDK.md). |
@@ -24,7 +24,7 @@ issue or a pull request.
 You need [uv](https://docs.astral.sh/uv/) (it installs Python 3.12) and Node 20 or newer.
 
 ```bash
-git clone https://github.com/arnavhiteshpatel-cloud/brainos.git
+git clone https://github.com/arnavhiteshpatel-cloud/concord.git
 ```
 ```bash
 cd concord
