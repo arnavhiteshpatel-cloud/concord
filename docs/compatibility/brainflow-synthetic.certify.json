@@ -5,9 +5,9 @@
   "name": "concord-certify",
   "version": "0.1.0"
  },
- "generated_at": "2026-11-08T07:09:43Z",
- "started_at": "2026-11-08T07:09:07Z",
- "elapsed_s": 35.32,
+ "generated_at": "2026-11-08T07:22:23Z",
+ "started_at": "2026-11-08T07:21:47Z",
+ "elapsed_s": 35.88,
  "environment": {
   "os": "Linux",
   "os_release": "6.18.44-fc-v310",
@@ -115,7 +115,7 @@
     "name": "concord-brainflow",
     "version": "0.1.0",
     "editable": true,
-    "direct_url": "file:///home/user/brainos/packages/concord-brainflow",
+    "direct_url": "file:///home/user/concord/packages/concord-brainflow",
     "requires": [
      {
       "requirement": "brainflow>=5.12",
@@ -136,13 +136,13 @@
      "unhashed": 1,
      "mismatched": [],
      "missing": [],
-     "sha256": "44ce7bbb358442787874cc17d59ec1e4bbbf56d0c9103fc83acb5ffdc13b01b2"
+     "sha256": "672de55e6644214b71cb6e13364347cf4a86fa30a3d7500c051cba3041527c40"
     }
    },
    "module": {
     "name": "concord_brainflow.plugin",
     "package": "concord_brainflow",
-    "path": "/home/user/brainos/packages/concord-brainflow/src/concord_brainflow",
+    "path": "/home/user/concord/packages/concord-brainflow/src/concord_brainflow",
     "files": [
      {
       "path": "__init__.py",
@@ -183,9 +183,9 @@
    },
    "errors": [],
    "git": {
-    "commit": "0d86b8aefcf455c8503f12abfbdfd26afd13913e",
-    "dirty": true,
-    "dirty_files": 6
+    "commit": "f8b0081d53b3642152810195ed8e2c96c3a56126",
+    "dirty": false,
+    "dirty_files": 0
    }
   },
   "session": {
@@ -384,14 +384,14 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "plugin loaded in its own host process (pid 2976) in 0.14 s",
+   "reason": "plugin loaded in its own host process (pid 7443) in 0.12 s",
    "evidence": {
-    "pid": 2976,
+    "pid": 7443,
     "protocol": "concord.plugin-ipc/1",
     "host_sdk_version": "1.0.0",
     "host_api_version": "1.0",
     "host_python": "3.12.3",
-    "startup_s": 0.14
+    "startup_s": 0.121
    }
   },
   {
@@ -524,7 +524,7 @@
      "name": "concord-brainflow",
      "version": "0.1.0",
      "editable": true,
-     "direct_url": "file:///home/user/brainos/packages/concord-brainflow"
+     "direct_url": "file:///home/user/concord/packages/concord-brainflow"
     },
     "record": {
      "files": 10,
@@ -532,18 +532,18 @@
      "unhashed": 1,
      "mismatched": [],
      "missing": [],
-     "sha256": "44ce7bbb358442787874cc17d59ec1e4bbbf56d0c9103fc83acb5ffdc13b01b2"
+     "sha256": "672de55e6644214b71cb6e13364347cf4a86fa30a3d7500c051cba3041527c40"
     },
     "module": {
      "name": "concord_brainflow.plugin",
-     "path": "/home/user/brainos/packages/concord-brainflow/src/concord_brainflow",
+     "path": "/home/user/concord/packages/concord-brainflow/src/concord_brainflow",
      "file_count": 6,
      "tree_sha256": "d86fdf6b946fbad2d18aabaf9540c3642144545bd84eea838063a627384b40c0"
     },
     "git": {
-     "commit": "0d86b8aefcf455c8503f12abfbdfd26afd13913e",
-     "dirty": true,
-     "dirty_files": 6
+     "commit": "f8b0081d53b3642152810195ed8e2c96c3a56126",
+     "dirty": false,
+     "dirty_files": 0
     }
    }
   },
@@ -743,7 +743,7 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "12002 timestamps in 3 session(s) never decrease (within or across chunks)",
+   "reason": "12004 timestamps in 3 session(s) never decrease (within or across chunks)",
    "evidence": {
     "streams": {
      "main.exg": {
@@ -755,19 +755,19 @@
       "decreases": 0
      },
      "reopen.exg": {
-      "samples": 502,
+      "samples": 501,
       "decreases": 0
      },
      "reopen.aux": {
-      "samples": 502,
+      "samples": 501,
       "decreases": 0
      },
      "fresh_host.exg": {
-      "samples": 499,
+      "samples": 501,
       "decreases": 0
      },
      "fresh_host.aux": {
-      "samples": 499,
+      "samples": 501,
       "decreases": 0
      }
     }
@@ -780,7 +780,7 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "primary 249.931817 Hz from timestamps vs nominal 250 Hz (-0.027 %, tolerance \u00b12 %)",
+   "reason": "primary 249.934453 Hz from timestamps vs nominal 250 Hz (-0.026 %, tolerance \u00b12 %)",
    "evidence": {
     "tolerance_percent": 2.0,
     "streams": {
@@ -788,19 +788,19 @@
       "nominal_hz": 250.0,
       "clock": "unix",
       "samples": 5000,
-      "time_span_s": 20.001455,
-      "rate_hz": 249.931817,
-      "rate_hz_lsq": 249.933944,
-      "error_percent": -0.027
+      "time_span_s": 20.001244,
+      "rate_hz": 249.934453,
+      "rate_hz_lsq": 249.936409,
+      "error_percent": -0.026
      },
      "aux": {
       "nominal_hz": 250.0,
       "clock": "unix",
       "samples": 5000,
-      "time_span_s": 20.001455,
-      "rate_hz": 249.931817,
-      "rate_hz_lsq": 249.933944,
-      "error_percent": -0.027
+      "time_span_s": 20.001244,
+      "rate_hz": 249.934453,
+      "rate_hz_lsq": 249.936409,
+      "error_percent": -0.026
      }
     }
    }
@@ -812,45 +812,45 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "primary timestamp residual p50/p99/max 0.0274/0.1725/9.3033 ms; arrival interval p50/p99 3.3012/5.9215 ms",
+   "reason": "primary timestamp residual p50/p99/max 0.0322/0.1605/1.8446 ms; arrival interval p50/p99 3.305/5.8901 ms",
    "evidence": {
     "streams": {
      "exg": {
       "residual_ms": {
        "n": 5000,
        "min": 0.0,
-       "p50": 0.0274,
-       "p95": 0.0753,
-       "p99": 0.1725,
-       "max": 9.3033,
-       "mean": 0.041
+       "p50": 0.0322,
+       "p95": 0.0956,
+       "p99": 0.1605,
+       "max": 1.8446,
+       "mean": 0.043
       },
       "interval_error_ms": {
        "n": 4999,
        "min": 0.0001,
-       "p50": 0.0221,
-       "p95": 0.1031,
-       "p99": 0.3783,
-       "max": 9.1199,
-       "mean": 0.0474
+       "p50": 0.021,
+       "p95": 0.0909,
+       "p99": 0.26,
+       "max": 1.8631,
+       "mean": 0.0374
       },
       "arrival_interval_ms": {
-       "n": 4991,
-       "min": 0.8006,
-       "p50": 3.3012,
-       "p95": 5.5877,
-       "p99": 5.9215,
-       "max": 15.8324,
-       "mean": 4.0075
+       "n": 4992,
+       "min": 0.8376,
+       "p50": 3.305,
+       "p95": 5.5917,
+       "p99": 5.8901,
+       "max": 19.003,
+       "mean": 4.0063
       },
       "samples_per_chunk": {
-       "n": 4992,
+       "n": 4993,
        "min": 1.0,
        "p50": 1.0,
        "p95": 1.0,
        "p99": 1.0,
        "max": 3.0,
-       "mean": 1.0016
+       "mean": 1.0014
       },
       "truncated_to_samples": null
      },
@@ -858,38 +858,38 @@
       "residual_ms": {
        "n": 5000,
        "min": 0.0,
-       "p50": 0.0274,
-       "p95": 0.0753,
-       "p99": 0.1725,
-       "max": 9.3033,
-       "mean": 0.041
+       "p50": 0.0322,
+       "p95": 0.0956,
+       "p99": 0.1605,
+       "max": 1.8446,
+       "mean": 0.043
       },
       "interval_error_ms": {
        "n": 4999,
        "min": 0.0001,
-       "p50": 0.0221,
-       "p95": 0.1031,
-       "p99": 0.3783,
-       "max": 9.1199,
-       "mean": 0.0474
+       "p50": 0.021,
+       "p95": 0.0909,
+       "p99": 0.26,
+       "max": 1.8631,
+       "mean": 0.0374
       },
       "arrival_interval_ms": {
-       "n": 4991,
-       "min": 0.8006,
-       "p50": 3.3012,
-       "p95": 5.5877,
-       "p99": 5.9215,
-       "max": 15.8324,
-       "mean": 4.0075
+       "n": 4992,
+       "min": 0.8376,
+       "p50": 3.305,
+       "p95": 5.5917,
+       "p99": 5.8901,
+       "max": 19.003,
+       "mean": 4.0063
       },
       "samples_per_chunk": {
-       "n": 4992,
+       "n": 4993,
        "min": 1.0,
        "p50": 1.0,
        "p95": 1.0,
        "p99": 1.0,
        "max": 3.0,
-       "mean": 1.0016
+       "mean": 1.0014
       },
       "truncated_to_samples": null
      }
@@ -904,30 +904,30 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "unix timestamps within 1.80 ms (median) of the wall clock (time.time); drift -1.4 ppm vs host monotonic",
+   "reason": "unix timestamps within 1.80 ms (median) of the wall clock (time.time); drift +0.3 ppm vs host monotonic",
    "evidence": {
     "domain": "unix",
     "description": "BrainFlow timestamp channel: UNIX time in seconds. For some boards BrainFlow stamps packages on the PC when they are received (BrainFlow docs, Data Format Description).",
     "reference_clock": "wall clock (time.time)",
     "offset_newest_s": {
-     "n": 4992,
+     "n": 4993,
      "min": 0.0005,
      "p50": 0.0018,
      "p95": 0.0028,
      "p99": 0.0031,
-     "max": 0.0143,
+     "max": 0.0119,
      "mean": 0.0018
     },
     "offset_oldest_s": {
-     "n": 4992,
+     "n": 4993,
      "min": 0.0005,
      "p50": 0.0018,
      "p95": 0.0028,
      "p99": 0.0031,
-     "max": 0.0143,
+     "max": 0.0158,
      "mean": 0.0018
     },
-    "drift_ppm": -1.4,
+    "drift_ppm": 0.3,
     "drift_span_s": 20.0
    }
   },
@@ -938,11 +938,11 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "4992 reads over 20.0 s, 10000 samples (all streams), no errors",
+   "reason": "4993 reads over 20.0 s, 10000 samples (all streams), no errors",
    "evidence": {
     "requested_s": 20.0,
-    "ran_s": 20.003,
-    "reads": 4992,
+    "ran_s": 20.001,
+    "reads": 4993,
     "empty_reads": 0,
     "samples": 10000,
     "first_data_after_s": 0.001,
@@ -956,9 +956,9 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "11972 chunks validated by the host and again by the certifier",
+   "reason": "11986 chunks validated by the host and again by the certifier",
    "evidence": {
-    "chunks_validated": 11972,
+    "chunks_validated": 11986,
     "errors": [],
     "warnings": [],
     "host_notices": {}
@@ -971,7 +971,7 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "12002 samples in 3 session(s): 0 gaps, 0 overlaps",
+   "reason": "12004 samples in 3 session(s): 0 gaps, 0 overlaps",
    "evidence": {
     "streams": {
      "main.exg": {
@@ -991,7 +991,7 @@
       "loss_fraction": 0.0
      },
      "reopen.exg": {
-      "samples": 502,
+      "samples": 501,
       "first_index": 0,
       "gaps": 0,
       "lost_samples": 0,
@@ -999,7 +999,7 @@
       "loss_fraction": 0.0
      },
      "reopen.aux": {
-      "samples": 502,
+      "samples": 501,
       "first_index": 0,
       "gaps": 0,
       "lost_samples": 0,
@@ -1007,7 +1007,7 @@
       "loss_fraction": 0.0
      },
      "fresh_host.exg": {
-      "samples": 499,
+      "samples": 501,
       "first_index": 0,
       "gaps": 0,
       "lost_samples": 0,
@@ -1015,7 +1015,7 @@
       "loss_fraction": 0.0
      },
      "fresh_host.aux": {
-      "samples": 499,
+      "samples": 501,
       "first_index": 0,
       "gaps": 0,
       "lost_samples": 0,
@@ -1025,7 +1025,7 @@
     },
     "gaps": 0,
     "lost_samples": 0,
-    "samples": 12002
+    "samples": 12004
    }
   },
   {
@@ -1054,13 +1054,13 @@
      "package_num_unusable": 0,
      "timestamp_regressions": 0,
      "marker_row_nonzero": 0,
-     "chunks_emitted": 9984
+     "chunks_emitted": 9986
     },
     "invalid_stats": 0,
     "host_counters": {
      "samples": 10000,
-     "chunks": 9984,
-     "reads": 4992,
+     "chunks": 9986,
+     "reads": 4993,
      "bytes": 1240000
     }
    }
@@ -1072,13 +1072,13 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "closed in 4.7 ms, reopened in 0.004 s, first data 0.005 s after open; identity unchanged",
+   "reason": "closed in 2.8 ms, reopened in 0.002 s, first data 0.003 s after open; identity unchanged",
    "evidence": {
-    "close_s": 0.005,
-    "reopen_s": 0.004,
-    "first_data_after_open_s": 0.005,
-    "samples": 1004,
-    "read_s": 2.005,
+    "close_s": 0.003,
+    "reopen_s": 0.002,
+    "first_data_after_open_s": 0.003,
+    "samples": 1002,
+    "read_s": 2.002,
     "failure": null,
     "identity_unchanged": true,
     "identity_differences": []
@@ -1091,23 +1091,23 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "SIGKILL after 125 reads surfaced as a link loss in 2.5 ms; fresh host: first data 0.135 s after start (0.005 s after open); identity unchanged; exit code 0",
+   "reason": "SIGKILL after 124 reads surfaced as a link loss in 3.1 ms; fresh host: first data 0.134 s after start (0.007 s after open); identity unchanged; exit code 0",
    "evidence": {
     "kill": {
-     "pid": 2976,
+     "pid": 7443,
      "signal": "SIGKILL",
      "killed": true,
-     "reads_before_kill": 125,
+     "reads_before_kill": 124,
      "detected_as": "HostDied",
-     "message": "plugin host exited (code -9):     \"serial_number\": \"\", |     \"serial_port\": \"\", |     \"timeout\": 0 | } | [plugin brainflow pid 2976] INFO concord_brainflow.plugin: opened BrainFlow SYNTHETIC_BOARD (format SYNTHETIC_BOARD, brainflow 5.23.0)",
-     "detect_s": 0.0025,
+     "message": "plugin host exited (code -9):     \"serial_number\": \"\", |     \"serial_port\": \"\", |     \"timeout\": 0 | } | [plugin brainflow pid 7443] INFO concord_brainflow.plugin: opened BrainFlow SYNTHETIC_BOARD (format SYNTHETIC_BOARD, brainflow 5.23.0)",
+     "detect_s": 0.0031,
      "host_exit_code": -9
     },
-    "fresh_host_start_s": 0.13,
+    "fresh_host_start_s": 0.127,
     "open_s": 0.004,
-    "first_data_after_open_s": 0.005,
-    "first_data_after_host_start_s": 0.135,
-    "samples": 998,
+    "first_data_after_open_s": 0.007,
+    "first_data_after_host_start_s": 0.134,
+    "samples": 1002,
     "failure": null,
     "identity_unchanged": true,
     "identity_differences": [],
@@ -1121,34 +1121,34 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "primary delivered 249.9343 samples/s over 20.0 s vs nominal 250 Hz (-0.026 %); 61991.6 B/s over IPC",
+   "reason": "primary delivered 249.9363 samples/s over 20.0 s vs nominal 250 Hz (-0.025 %); 61997.4 B/s over IPC",
    "evidence": {
-    "duration_s": 20.003,
+    "duration_s": 20.001,
     "tolerance_percent": 2.0,
     "streams": {
      "exg": {
       "samples": 5000,
-      "chunks": 4992,
-      "samples_per_s_overall": 249.966,
+      "chunks": 4993,
+      "samples_per_s_overall": 249.989,
       "nominal_hz": 250.0,
-      "arrival_span_s": 20.001,
-      "rate_hz": 249.9343,
-      "rate_hz_endpoints": 249.9327,
-      "error_percent": -0.026
+      "arrival_span_s": 19.999,
+      "rate_hz": 249.9363,
+      "rate_hz_endpoints": 249.9565,
+      "error_percent": -0.025
      },
      "aux": {
       "samples": 5000,
-      "chunks": 4992,
-      "samples_per_s_overall": 249.966,
+      "chunks": 4993,
+      "samples_per_s_overall": 249.989,
       "nominal_hz": 250.0,
-      "arrival_span_s": 20.001,
-      "rate_hz": 249.9343,
-      "rate_hz_endpoints": 249.9327,
-      "error_percent": -0.026
+      "arrival_span_s": 19.999,
+      "rate_hz": 249.9363,
+      "rate_hz_endpoints": 249.9565,
+      "error_percent": -0.025
      }
     },
     "ipc_bytes_received": 1240000,
-    "ipc_bytes_per_s": 61991.6
+    "ipc_bytes_per_s": 61997.4
    }
   },
   {
@@ -1158,25 +1158,25 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "newest-sample latency p50/p95/p99/max 1.7805/2.8013/3.0856/14.2562 ms",
+   "reason": "newest-sample latency p50/p95/p99/max 1.7705/2.7945/3.1002/11.905 ms",
    "evidence": {
     "reference_clock": "wall clock (time.time)",
     "newest_sample_latency_ms": {
-     "n": 4992,
-     "min": 0.4668,
-     "p50": 1.7805,
-     "p95": 2.8013,
-     "p99": 3.0856,
-     "max": 14.2562,
-     "mean": 1.7803
+     "n": 4993,
+     "min": 0.4814,
+     "p50": 1.7705,
+     "p95": 2.7945,
+     "p99": 3.1002,
+     "max": 11.905,
+     "mean": 1.7836
     },
     "oldest_sample_latency_s": {
-     "n": 4992,
+     "n": 4993,
      "min": 0.0005,
      "p50": 0.0018,
      "p95": 0.0028,
      "p99": 0.0031,
-     "max": 0.0143,
+     "max": 0.0158,
      "mean": 0.0018
     },
     "note": "read latency = arrival time at the certifier minus the sample's own timestamp; machine-dependent, includes the source's buffering and the plugin's read timeout"
@@ -1189,15 +1189,15 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "host process CPU 17.0 % of one core, RSS peak 35.8 MiB (median 35.5 MiB)",
+   "reason": "host process CPU 16.7 % of one core, RSS peak 38.1 MiB (median 37.7 MiB)",
    "evidence": {
-    "pid": 2976,
-    "wall_s": 20.004,
-    "cpu_s": 3.4,
-    "cpu_percent_of_one_core": 17.0,
-    "rss_mib_median": 35.5,
-    "rss_mib_max_sampled": 35.8,
-    "rss_mib_peak": 35.8,
+    "pid": 7443,
+    "wall_s": 20.001,
+    "cpu_s": 3.35,
+    "cpu_percent_of_one_core": 16.7,
+    "rss_mib_median": 37.7,
+    "rss_mib_max_sampled": 38.1,
+    "rss_mib_peak": 38.1,
     "rss_samples": 80,
     "clock_ticks_per_s": 100
    }
@@ -1209,25 +1209,25 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "61991.6 B/s, 249.57 reads/s; ping round trip p50/p99 0.1631/0.4037 ms",
+   "reason": "61997.4 B/s, 249.64 reads/s; ping round trip p50/p99 0.1036/0.2775 ms",
    "evidence": {
     "host_counters": {
      "samples": 10000,
-     "chunks": 9984,
-     "reads": 4992,
+     "chunks": 9986,
+     "reads": 4993,
      "bytes": 1240000
     },
-    "host_bytes_per_s": 61991.6,
-    "reads_per_s": 249.57,
+    "host_bytes_per_s": 61997.4,
+    "reads_per_s": 249.64,
     "empty_read_fraction": 0.0,
     "ping_round_trip_ms": {
      "n": 30,
-     "min": 0.1363,
-     "p50": 0.1631,
-     "p95": 0.2966,
-     "p99": 0.4037,
-     "max": 0.4458,
-     "mean": 0.199
+     "min": 0.0996,
+     "p50": 0.1036,
+     "p95": 0.2132,
+     "p99": 0.2775,
+     "max": 0.299,
+     "mean": 0.1305
     }
    }
   },
@@ -1437,8 +1437,8 @@
  ],
  "host_log_tail": [
   "}",
-  "[plugin brainflow pid 3089] INFO concord_brainflow.plugin: opened BrainFlow SYNTHETIC_BOARD (format SYNTHETIC_BOARD, brainflow 5.23.0)",
-  "[2026-11-08 07:09:08.011] [board_logger] [info] incoming json: {",
+  "[plugin brainflow pid 7461] INFO concord_brainflow.plugin: opened BrainFlow SYNTHETIC_BOARD (format SYNTHETIC_BOARD, brainflow 5.23.0)",
+  "[2026-11-08 07:21:47.345] [board_logger] [info] incoming json: {",
   "    \"file\": \"\",",
   "    \"file_anc\": \"\",",
   "    \"file_aux\": \"\",",
@@ -1456,8 +1456,8 @@
   "    \"serial_port\": \"\",",
   "    \"timeout\": 0",
   "}",
-  "[plugin brainflow pid 2976] INFO concord_brainflow.plugin: opened BrainFlow SYNTHETIC_BOARD (format SYNTHETIC_BOARD, brainflow 5.23.0)",
-  "[2026-11-08 07:09:28.036] [board_logger] [info] incoming json: {",
+  "[plugin brainflow pid 7443] INFO concord_brainflow.plugin: opened BrainFlow SYNTHETIC_BOARD (format SYNTHETIC_BOARD, brainflow 5.23.0)",
+  "[2026-11-08 07:22:07.356] [board_logger] [info] incoming json: {",
   "    \"file\": \"\",",
   "    \"file_anc\": \"\",",
   "    \"file_aux\": \"\",",
@@ -1475,6 +1475,6 @@
   "    \"serial_port\": \"\",",
   "    \"timeout\": 0",
   "}",
-  "[plugin brainflow pid 2976] INFO concord_brainflow.plugin: opened BrainFlow SYNTHETIC_BOARD (format SYNTHETIC_BOARD, brainflow 5.23.0)"
+  "[plugin brainflow pid 7443] INFO concord_brainflow.plugin: opened BrainFlow SYNTHETIC_BOARD (format SYNTHETIC_BOARD, brainflow 5.23.0)"
  ]
 }

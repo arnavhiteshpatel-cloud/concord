@@ -5,9 +5,9 @@
   "name": "concord-certify",
   "version": "0.1.0"
  },
- "generated_at": "2026-11-08T07:10:19Z",
- "started_at": "2026-11-08T07:09:46Z",
- "elapsed_s": 33.22,
+ "generated_at": "2026-11-08T07:22:59Z",
+ "started_at": "2026-11-08T07:22:26Z",
+ "elapsed_s": 32.98,
  "environment": {
   "os": "Linux",
   "os_release": "6.18.44-fc-v310",
@@ -105,7 +105,7 @@
     "name": "concord-bci2000",
     "version": "0.1.0",
     "editable": true,
-    "direct_url": "file:///home/user/brainos/packages/concord-bci2000",
+    "direct_url": "file:///home/user/concord/packages/concord-bci2000",
     "requires": [
      {
       "requirement": "concord-adapter-sdk<2,>=1.0",
@@ -122,13 +122,13 @@
      "unhashed": 1,
      "mismatched": [],
      "missing": [],
-     "sha256": "2a10ae5113cf221311821a018217c265f946dff3e20ef5a241c33addb9c9cffc"
+     "sha256": "5d1290066c43a2c36aac59d268dbc06bde2622cb9e0fb0ec6ab9a7c86624fd85"
     }
    },
    "module": {
     "name": "concord_bci2000.plugin",
     "package": "concord_bci2000",
-    "path": "/home/user/brainos/packages/concord-bci2000/src/concord_bci2000",
+    "path": "/home/user/concord/packages/concord-bci2000/src/concord_bci2000",
     "files": [
      {
       "path": "__init__.py",
@@ -164,9 +164,9 @@
    },
    "errors": [],
    "git": {
-    "commit": "0d86b8aefcf455c8503f12abfbdfd26afd13913e",
-    "dirty": true,
-    "dirty_files": 5
+    "commit": "f8b0081d53b3642152810195ed8e2c96c3a56126",
+    "dirty": false,
+    "dirty_files": 0
    }
   },
   "session": {
@@ -341,14 +341,14 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "plugin loaded in its own host process (pid 3300) in 0.18 s",
+   "reason": "plugin loaded in its own host process (pid 7488) in 0.17 s",
    "evidence": {
-    "pid": 3300,
+    "pid": 7488,
     "protocol": "concord.plugin-ipc/1",
     "host_sdk_version": "1.0.0",
     "host_api_version": "1.0",
     "host_python": "3.12.3",
-    "startup_s": 0.178
+    "startup_s": 0.166
    }
   },
   {
@@ -471,7 +471,7 @@
      "name": "concord-bci2000",
      "version": "0.1.0",
      "editable": true,
-     "direct_url": "file:///home/user/brainos/packages/concord-bci2000"
+     "direct_url": "file:///home/user/concord/packages/concord-bci2000"
     },
     "record": {
      "files": 10,
@@ -479,18 +479,18 @@
      "unhashed": 1,
      "mismatched": [],
      "missing": [],
-     "sha256": "2a10ae5113cf221311821a018217c265f946dff3e20ef5a241c33addb9c9cffc"
+     "sha256": "5d1290066c43a2c36aac59d268dbc06bde2622cb9e0fb0ec6ab9a7c86624fd85"
     },
     "module": {
      "name": "concord_bci2000.plugin",
-     "path": "/home/user/brainos/packages/concord-bci2000/src/concord_bci2000",
+     "path": "/home/user/concord/packages/concord-bci2000/src/concord_bci2000",
      "file_count": 5,
      "tree_sha256": "dfc0b5b9c3820ee0f3eae76aa925fa65f9ffbdbed848ddf2f8acf112b9298483"
     },
     "git": {
-     "commit": "0d86b8aefcf455c8503f12abfbdfd26afd13913e",
-     "dirty": true,
-     "dirty_files": 5
+     "commit": "f8b0081d53b3642152810195ed8e2c96c3a56126",
+     "dirty": false,
+     "dirty_files": 0
     }
    }
   },
@@ -527,7 +527,7 @@
    "applicable": true,
    "reason": "session.synthetic_and_prerecorded: both synthetic and prerecorded are set; Concord treats the source as synthetic",
    "evidence": {
-    "open_s": 0.104,
+    "open_s": 0.119,
     "primary_stream": "control_signal",
     "synthetic": true,
     "prerecorded": true,
@@ -737,7 +737,7 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "primary timestamp residual p50/p99/max 0.2798/2.8644/2.8758 ms; arrival interval p50/p99 31.2434/37.3029 ms",
+   "reason": "primary timestamp residual p50/p99/max 0.2798/2.8644/2.8758 ms; arrival interval p50/p99 31.2562/37.4219 ms",
    "evidence": {
     "streams": {
      "control_signal": {
@@ -761,12 +761,12 @@
       },
       "arrival_interval_ms": {
        "n": 641,
-       "min": 9.7736,
-       "p50": 31.2434,
-       "p95": 32.4879,
-       "p99": 37.3029,
-       "max": 52.5387,
-       "mean": 31.2338
+       "min": 21.1874,
+       "p50": 31.2562,
+       "p95": 31.725,
+       "p99": 37.4219,
+       "max": 40.7648,
+       "mean": 31.2355
       },
       "samples_per_chunk": {
        "n": 642,
@@ -800,12 +800,12 @@
       },
       "arrival_interval_ms": {
        "n": 641,
-       "min": 9.7736,
-       "p50": 31.2434,
-       "p95": 32.4879,
-       "p99": 37.3029,
-       "max": 52.5387,
-       "mean": 31.2338
+       "min": 21.1874,
+       "p50": 31.2562,
+       "p95": 31.725,
+       "p99": 37.4219,
+       "max": 40.7648,
+       "mean": 31.2355
       },
       "samples_per_chunk": {
        "n": 642,
@@ -830,12 +830,12 @@
       },
       "arrival_interval_ms": {
        "n": 37,
-       "min": 497.7769,
-       "p50": 505.78,
-       "p95": 587.108,
-       "p99": 588.6408,
-       "max": 589.4888,
-       "mean": 522.7903
+       "min": 499.3106,
+       "p50": 505.7878,
+       "p95": 586.9968,
+       "p99": 587.0263,
+       "max": 587.0344,
+       "mean": 522.7814
       },
       "samples_per_chunk": {
        "n": 38,
@@ -859,30 +859,30 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "source clock: offset to host monotonic 1198 s (origin unknown by declaration; not checkable); drift -9.7 ppm vs host monotonic",
+   "reason": "source clock: offset to host monotonic 1958 s (origin unknown by declaration; not checkable); drift -12.2 ppm vs host monotonic",
    "evidence": {
     "domain": "source",
     "description": "BCI2000 SourceTime state (16-bit millisecond counter of BCI2000's monotonic clock at block acquisition), unwrapped; arbitrary origin.",
     "reference_clock": "host monotonic clock",
     "offset_newest_s": {
      "n": 642,
-     "min": 1198.0603,
-     "p50": 1198.0611,
-     "p95": 1198.0625,
-     "p99": 1198.0676,
-     "max": 1198.0952,
-     "mean": 1198.0614
+     "min": 1958.0032,
+     "p50": 1958.0041,
+     "p95": 1958.0048,
+     "p99": 1958.0107,
+     "max": 1958.0374,
+     "mean": 1958.0043
     },
     "offset_oldest_s": {
      "n": 642,
-     "min": 1198.0603,
-     "p50": 1198.0611,
-     "p95": 1198.0625,
-     "p99": 1198.0676,
-     "max": 1198.1262,
-     "mean": 1198.0615
+     "min": 1958.0032,
+     "p50": 1958.0041,
+     "p95": 1958.0048,
+     "p99": 1958.0108,
+     "max": 1958.0684,
+     "mean": 1958.0044
     },
-    "drift_ppm": -9.7,
+    "drift_ppm": -12.2,
     "drift_span_s": 20.02
    }
   },
@@ -896,7 +896,7 @@
    "reason": "642 reads over 20.0 s, 1346 samples (all streams), no errors",
    "evidence": {
     "requested_s": 20.0,
-    "ran_s": 20.022,
+    "ran_s": 20.023,
     "reads": 642,
     "empty_reads": 0,
     "samples": 1346,
@@ -1051,11 +1051,11 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "closed in 0.2 ms, reopened in 0.119 s, first data 0.120 s after open; identity unchanged",
+   "reason": "closed in 0.2 ms, reopened in 0.118 s, first data 0.119 s after open; identity unchanged",
    "evidence": {
     "close_s": 0.0,
-    "reopen_s": 0.119,
-    "first_data_after_open_s": 0.12,
+    "reopen_s": 0.118,
+    "first_data_after_open_s": 0.119,
     "samples": 142,
     "read_s": 2.03,
     "failure": null,
@@ -1070,22 +1070,22 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "SIGKILL after 16 reads surfaced as a link loss in 2.8 ms; fresh host: first data 0.341 s after start (0.11 s after open); identity unchanged; exit code 0",
+   "reason": "SIGKILL after 16 reads surfaced as a link loss in 3.0 ms; fresh host: first data 0.247 s after start (0.097 s after open); identity unchanged; exit code 0",
    "evidence": {
     "kill": {
-     "pid": 3300,
+     "pid": 7488,
      "signal": "SIGKILL",
      "killed": true,
      "reads_before_kill": 16,
      "detected_as": "HostDied",
      "message": "plugin host exited (code -9)",
-     "detect_s": 0.0028,
+     "detect_s": 0.003,
      "host_exit_code": -9
     },
-    "fresh_host_start_s": 0.232,
-    "open_s": 0.108,
-    "first_data_after_open_s": 0.11,
-    "first_data_after_host_start_s": 0.341,
+    "fresh_host_start_s": 0.15,
+    "open_s": 0.096,
+    "first_data_after_open_s": 0.097,
+    "first_data_after_host_start_s": 0.247,
     "samples": 142,
     "failure": null,
     "identity_unchanged": true,
@@ -1100,29 +1100,29 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "primary delivered 32.0118 samples/s over 20.0 s vs nominal 32 Hz (+0.037 %); 5426.8 B/s over IPC",
+   "reason": "primary delivered 32.0119 samples/s over 20.0 s vs nominal 32 Hz (+0.037 %); 5426.5 B/s over IPC",
    "evidence": {
-    "duration_s": 20.022,
+    "duration_s": 20.023,
     "tolerance_percent": 2.0,
     "streams": {
      "control_signal": {
       "samples": 644,
       "chunks": 642,
-      "samples_per_s_overall": 32.164,
+      "samples_per_s_overall": 32.163,
       "nominal_hz": 32.0,
-      "arrival_span_s": 20.021,
-      "rate_hz": 32.0118,
-      "rate_hz_endpoints": 32.0666,
+      "arrival_span_s": 20.022,
+      "rate_hz": 32.0119,
+      "rate_hz_endpoints": 32.0648,
       "error_percent": 0.037
      },
      "states": {
       "samples": 644,
       "chunks": 642,
-      "samples_per_s_overall": 32.164,
+      "samples_per_s_overall": 32.163,
       "nominal_hz": 32.0,
-      "arrival_span_s": 20.021,
-      "rate_hz": 32.0118,
-      "rate_hz_endpoints": 32.0666,
+      "arrival_span_s": 20.022,
+      "rate_hz": 32.0119,
+      "rate_hz_endpoints": 32.0648,
       "error_percent": 0.037
      },
      "state_changes": {
@@ -1133,7 +1133,7 @@
      }
     },
     "ipc_bytes_received": 108656,
-    "ipc_bytes_per_s": 5426.8
+    "ipc_bytes_per_s": 5426.5
    }
   },
   {
@@ -1153,15 +1153,15 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "host process CPU 2.3 % of one core, RSS peak 32.8 MiB (median 32.8 MiB)",
+   "reason": "host process CPU 2.3 % of one core, RSS peak 33.0 MiB (median 33.0 MiB)",
    "evidence": {
-    "pid": 3300,
-    "wall_s": 20.023,
+    "pid": 7488,
+    "wall_s": 20.024,
     "cpu_s": 0.47,
     "cpu_percent_of_one_core": 2.3,
-    "rss_mib_median": 32.8,
-    "rss_mib_max_sampled": 32.8,
-    "rss_mib_peak": 32.8,
+    "rss_mib_median": 33.0,
+    "rss_mib_max_sampled": 33.0,
+    "rss_mib_peak": 33.0,
     "rss_samples": 80,
     "clock_ticks_per_s": 100
    }
@@ -1173,7 +1173,7 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "5426.8 B/s, 32.06 reads/s; ping round trip p50/p99 0.1026/0.473 ms",
+   "reason": "5426.5 B/s, 32.06 reads/s; ping round trip p50/p99 0.1315/0.3526 ms",
    "evidence": {
     "host_counters": {
      "samples": 1346,
@@ -1181,17 +1181,17 @@
      "reads": 642,
      "bytes": 108656
     },
-    "host_bytes_per_s": 5426.8,
+    "host_bytes_per_s": 5426.5,
     "reads_per_s": 32.06,
     "empty_read_fraction": 0.0,
     "ping_round_trip_ms": {
      "n": 30,
-     "min": 0.0883,
-     "p50": 0.1026,
-     "p95": 0.4316,
-     "p99": 0.473,
-     "max": 0.4867,
-     "mean": 0.1629
+     "min": 0.0995,
+     "p50": 0.1315,
+     "p95": 0.332,
+     "p99": 0.3526,
+     "max": 0.3528,
+     "mean": 0.1735
     }
    }
   },
@@ -1350,19 +1350,19 @@
    "required": false,
    "status": "pass",
    "applicable": true,
-   "reason": "342 of 342 events validated against contract 1.4 (pydantic + JSON Schema); 0 invalid, 0 undeclared, 0 decode errors",
+   "reason": "343 of 343 events validated against contract 1.4 (pydantic + JSON Schema); 0 invalid, 0 undeclared, 0 decode errors",
    "evidence": {
     "schema_version": "1.4",
     "event_schema_versions": {
-     "1.4": 342
+     "1.4": 343
     },
-    "events_published": 342,
-    "events_validated": 342,
+    "events_published": 343,
+    "events_validated": 343,
     "event_types": {
      "device.status": 3,
      "intent.kinematics": 163,
      "behavior.sample": 163,
-     "recording.annotation": 13
+     "recording.annotation": 14
     },
     "invalid": [],
     "runtime_diagnostics": {
