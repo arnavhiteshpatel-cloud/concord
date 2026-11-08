@@ -69,10 +69,24 @@ the PR description and delete it here.
   the dev container). Not optimized.
 - **Rolling rates** in Diagnostics use a 5 s window with a 1 s floor; they under-report
   during the first second after a connect.
-- **Recording limits**: 300 s or 200 MB per recording, then auto-stop; with
-  `exclude_raw` (features + labels only) 3600 s. Raw 30 kHz × 96 ch frames as JSON reach
-  200 MB in seconds — use LabRecorder/Open Ephys for raw archival. Re-recording a local file
-  replay is not supported.
+- **Recording limits**: by default 300 s or 200 MiB per recording, then a clean auto-stop
+  (the file is complete and replayable); with `exclude_raw` (features + labels only) 3600 s.
+  Configurable in `[recording]` of the config file or `BRAINOS_RECORDING_MAX_S` /
+  `_MAX_NO_RAW_S` / `_MAX_MB` / `_MIN_FREE_MB`, up to 24 h and 100 GiB per recording; a
+  recording refuses to start, or stops cleanly, below 256 MiB free disk space. There is no
+  automatic segmentation into several files: one recording is one file. Recordings are JSON
+  text, much larger than the binary samples: raw 30 kHz × 96 ch frames reach 200 MiB in
+  seconds, so use LabRecorder/Open Ephys for raw archival. Re-recording a local file replay is not
+  supported.
+- **Timing in recordings**: a `recording.frame` stores the source-clock time of its first
+  sample (`device_timestamp_ns`) and the host ingest time; later samples are placed at the
+  nominal rate. Per-sample source timestamps inside a frame (LSL per-sample stamps and their
+  jitter) are not stored and cannot be reconstructed; Open Ephys frames keep exact sample
+  numbers. The header states this (`timing`) and keeps the adapter's source metadata at the
+  start of the recording (`source_metadata`: LSL uid, source_id, host, time correction;
+  Open Ephys host/ports/stream); integrity counters at the end are in diagnostics, not the
+  header. Recordings with these header fields cannot be opened by BrainOS builds before
+  Milestone 5 (the header model forbids unknown keys).
 - **Replay** loops by default (no UI toggle). Speed is adjustable 0.1–64× via
   `/api/v1/runtime/playback` (console offers 0.5–8×). Seeking to a position is not supported.
 - **Pause** discards packets at the runtime (simulators also stop generating). Discarded

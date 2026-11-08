@@ -34,7 +34,8 @@ class ConfigError(ValueError):
     """The config file cannot be used (syntax, unknown key, wrong type, unsafe permissions)."""
 
 
-# section -> key -> (type, description). Types: "str", "int", "bool", "days", "level".
+# section -> key -> (type, description).
+# Types: "str", "int", "bool", "days", "level", "seconds", "mib", "mib0".
 SCHEMA: dict[str, dict[str, tuple[str, str]]] = {
     "server": {
         "host": ("str", "interface to listen on; keep 127.0.0.1 (BrainOS has no authentication)"),
@@ -56,6 +57,22 @@ SCHEMA: dict[str, dict[str, tuple[str, str]]] = {
         "exports_days": ("days", "delete export bundles older than this (0 = keep)"),
         "models_days": ("days", "delete decoder models older than this (0 = keep)"),
     },
+    "recording": {
+        "max_duration_s": (
+            "seconds",
+            "a recording with raw signal frames stops after this many seconds (default 300)",
+        ),
+        "max_duration_no_raw_s": (
+            "seconds",
+            "a features-and-labels-only recording stops after this many seconds (default 3600)",
+        ),
+        "max_size_mb": ("mib", "a recording stops after this many MiB (default 200)"),
+        "min_free_mb": (
+            "mib0",
+            "a recording refuses to start, or stops cleanly, below this much free disk "
+            "space in MiB (default 256)",
+        ),
+    },
     "simulation": {
         "enabled": ("bool", "offer Simulated Profile A/B and the simulator controls"),
     },
@@ -65,6 +82,9 @@ SCHEMA: dict[str, dict[str, tuple[str, str]]] = {
 }
 
 LOG_LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR")
+# Upper bounds for [recording] limits: long validation runs, but never unbounded.
+MAX_RECORDING_S = 24 * 3600
+MAX_RECORDING_MIB = 100 * 1024
 
 
 def frozen() -> bool:
@@ -187,9 +207,24 @@ def permission_problem(path: Path) -> str | None:
     return None
 
 
-def _coerce(section: str, key: str, value: Any) -> Any:
+def _coerce(section: str, key: str, value: Any, where: str | None = None) -> Any:
     kind, _ = SCHEMA[section][key]
-    where = f"[{section}] {key}"
+    where = where or f"[{section}] {key}"
+    if kind == "seconds":
+        if (
+            isinstance(value, bool)
+            or not isinstance(value, int | float)
+            or not 0 < value <= MAX_RECORDING_S
+        ):
+            raise ConfigError(f"{where} must be a number of seconds in (0, {MAX_RECORDING_S}]")
+        return float(value)
+    if kind in ("mib", "mib0"):
+        low = 1 if kind == "mib" else 0
+        if isinstance(value, bool) or not isinstance(value, int):
+            raise ConfigError(f"{where} must be an integer number of MiB")
+        if not low <= value <= MAX_RECORDING_MIB:
+            raise ConfigError(f"{where} must be {low}-{MAX_RECORDING_MIB} MiB")
+        return value
     if kind == "bool":
         if not isinstance(value, bool):
             raise ConfigError(f"{where} must be true or false")
@@ -212,6 +247,16 @@ def _coerce(section: str, key: str, value: Any) -> Any:
     if isinstance(value, bool) or not isinstance(value, int | float) or value < 0:
         raise ConfigError(f"{where} must be a number of days >= 0")
     return None if value == 0 else float(value)
+
+
+def coerce_env(env: str, section: str, key: str, raw: str) -> Any:
+    """An environment variable for a numeric config key, validated like the file value."""
+    kind, _ = SCHEMA[section][key]
+    try:
+        value: Any = int(raw) if kind in ("mib", "mib0") else float(raw)
+    except ValueError:
+        raise ConfigError(f"{env}={raw!r} is not a number") from None
+    return _coerce(section, key, value, env)
 
 
 def parse_config(text: str, path: Path) -> dict[str, dict[str, Any]]:
@@ -273,6 +318,14 @@ def template() -> str:
         "sessions_days = 0",
         "exports_days = 0",
         "models_days = 0",
+        "",
+        "[recording]",
+        "# Limits of one recording; it stops cleanly (and is complete and replayable) when one",
+        "# is reached. For longer runs raise them; at most 86400 s and 102400 MiB.",
+        "max_duration_s = 300          # with raw signal frames",
+        "max_duration_no_raw_s = 3600  # features and labels only",
+        "max_size_mb = 200",
+        "min_free_mb = 256             # stop before the disk is full",
         "",
         "[simulation]",
         "enabled = true",

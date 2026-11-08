@@ -356,6 +356,41 @@ def test_stream_selection_among_several(tmp_path: Path) -> None:
         compare_lsl(x, b, LSLOptions(stream="nope"))
 
 
+def _header_meta(uid: str, name: str = "synth-eeg") -> dict[str, Any]:
+    """The shape BrainOS's LSL adapter writes into the recording header (M5)."""
+    stream = {"role": "signal", "name": name, "source_id": "synth-sid", "uid": uid}
+    return {"source_metadata": {"protocol": "lsl", "streams": [stream]}}
+
+
+def test_header_uid_tells_apart_outlets_with_the_same_name(tmp_path: Path) -> None:
+    """A console-made recording (no capture sidecar) identifies its outlet by the uid the
+    BrainOS header keeps, e.g. when the source restarted under the same name during the XDF."""
+    case = LSLCase()
+    restarted = LSLCase(seed=42)  # same name, source_id and host; different data and uid
+    x, b = case.write(tmp_path)
+    old, new = restarted.xstream(uid="old-outlet"), case.xstream(uid="new-outlet")
+    write_xdf(x, [old, new])
+    with pytest.raises(InputError, match="cannot tell which XDF stream"):
+        compare_lsl(x, b, LSLOptions())  # name/source_id/host match both outlets
+    x, b = case.write(tmp_path, header_extra=_header_meta("new-outlet"))
+    write_xdf(x, [old, new])
+    rep = compare_lsl(x, b, LSLOptions())
+    assert rep["result"] == "pass"
+    ident = next(c for c in rep["checks"] if c["id"] == "IDENTITY")
+    assert ident["status"] == "pass" and ident["summary"] == "same LSL outlet (uid new-outlet)"
+    assert ident["evidence"]["selected_by"] == "same LSL stream uid (recording header)"
+    assert ident["evidence"]["header_identity"]["uid"] == "new-outlet"
+
+
+def test_header_uid_contradicting_the_xdf_stream_fails_identity(tmp_path: Path) -> None:
+    case = LSLCase()
+    x, b = case.write(tmp_path, header_extra=_header_meta("some-other-outlet"))
+    rep = compare_lsl(x, b, LSLOptions())
+    assert "IDENTITY" in failed(rep)
+    ident = next(c for c in rep["checks"] if c["id"] == "IDENTITY")
+    assert "(recording header)" in ident["summary"]
+
+
 def test_provenance_must_be_carried(tmp_path: Path) -> None:
     case = LSLCase()
     xs = case.xstream(declaration={"synthetic": "true"})

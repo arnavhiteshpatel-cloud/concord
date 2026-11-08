@@ -12,6 +12,7 @@ detected against the *real* LabRecorder file.
 from __future__ import annotations
 
 import copy
+import json
 import os
 import time
 from collections.abc import Iterator
@@ -86,6 +87,24 @@ def gapped(tmp_path_factory: pytest.TempPathFactory) -> Iterator[Session]:
 
 def _cmp(xdf: Path, bos: Path, side: Path | None = None) -> dict[str, Any]:
     return compare_lsl(xdf, bos, LSLOptions(sidecar=side))
+
+
+def test_recording_header_identifies_the_outlet_without_the_sidecar(clean: Session) -> None:
+    """BrainOS >= M5 keeps the LSL adapter's source metadata in the recording header, so a
+    recording made from the console (no capture sidecar) is matched to its XDF stream by uid."""
+    xdf, bos, _side, _log = clean
+    with bos.open(encoding="utf-8") as fh:
+        header = json.loads(fh.readline())
+    signal = next(s for s in header["source_metadata"]["streams"] if s["role"] == "signal")
+    rep = _cmp(xdf, bos, None)
+    ident = by_id(rep)["IDENTITY"]
+    assert ident["status"] == "pass"
+    assert ident["evidence"]["selected_by"] == "same LSL stream uid (recording header)"
+    assert ident["evidence"]["xdf_stream"]["uid"] == signal["uid"]
+    assert "cannot be reconstructed" in header["timing"]
+    from brainos_hwval.capture import LIMIT_MARGIN_S
+
+    assert header["limits"]["max_duration_s"] == 10.0 + LIMIT_MARGIN_S
 
 
 def test_labrecorder_round_trip_passes(clean: Session) -> None:

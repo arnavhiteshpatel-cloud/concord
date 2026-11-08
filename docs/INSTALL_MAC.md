@@ -164,7 +164,8 @@ brainos config show
 
 `init` writes a commented file (mode 600) listing every key: `[server]` host/port (host stays
 127.0.0.1: BrainOS has no authentication), `[storage]` data folder, `[retention]` days to keep
-recordings, sessions, exports and models (0 = keep forever; applied at startup).
+recordings, sessions, exports and models (0 = keep forever; applied at startup), `[recording]`
+limits of one recording (default 300 s / 200 MiB with raw frames; up to 24 h / 100 GiB).
 Environment variables (`BRAINOS_PORT`, `BRAINOS_DATA_DIR`, …) override the file.
 
 ## Troubleshooting

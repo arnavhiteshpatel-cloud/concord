@@ -162,8 +162,10 @@ def write_brainos(
     rate: float,
     prov: dict[str, Any],
     annotations: Iterable[tuple[int, int, str, Any]] = (),
+    header_extra: dict[str, Any] | None = None,
 ) -> None:
-    """``annotations``: (t_wall_ns, t_dev_ns, label, value) — emitted in time order."""
+    """``annotations``: (t_wall_ns, t_dev_ns, label, value) — emitted in time order.
+    ``header_extra``: optional header fields (e.g. ``source_metadata``, BrainOS >= M5)."""
     header = {
         "format": "brainos.recording/1",
         "schema_version": SCHEMA,
@@ -171,6 +173,7 @@ def write_brainos(
         "device": device,
         "synthetic": bool(device.get("synthetic")),
         "note": "",
+        **(header_extra or {}),
     }
     items: list[tuple[int, int, dict[str, Any]]] = []
     for f in frames:
@@ -356,6 +359,7 @@ class LSLCase:
         frames: list[BFrame] | None = None,
         device: dict[str, Any] | None = None,
         prov: dict[str, Any] | None = None,
+        header_extra: dict[str, Any] | None = None,
     ) -> tuple[Path, Path]:
         x = root / "ref.xdf"
         b = root / "run.brainos.jsonl"
@@ -366,6 +370,7 @@ class LSLCase:
             frames if frames is not None else self.frames(),
             self.rate,
             prov or lsl_provenance(self.name, self.host),
+            header_extra=header_extra,
         )
         return x, b
 

@@ -190,6 +190,13 @@ def parser() -> argparse.ArgumentParser:
     )
     for c in (cl, co):
         c.add_argument("--duration", type=_positive, required=True, metavar="SECONDS")
+        c.add_argument(
+            "--max-size-mb",
+            type=int,
+            default=2048,
+            metavar="MIB",
+            help="stop the BrainOS recording at this size (default 2048; at most 102400)",
+        )
         c.add_argument("--out", type=Path, required=True, help="output directory")
         c.add_argument(
             "--name", required=True, help="recording name ([a-z0-9][a-z0-9_-]*, max 48 chars)"
@@ -365,6 +372,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                     duration_s=args.duration,
                     out_dir=args.out,
                     name=args.name,
+                    max_size_mb=args.max_size_mb,
                 )
             else:
                 rec, side = capture.capture_openephys(
@@ -374,8 +382,11 @@ def main(argv: Sequence[str] | None = None) -> int:
                     duration_s=args.duration,
                     out_dir=args.out,
                     name=args.name,
+                    max_size_mb=args.max_size_mb,
                 )
             print(f"BrainOS recording: {rec}\nSidecar:           {side}")
+            stop = json.loads(side.read_text(encoding="utf-8")).get("stop_reason")
+            print(f"Stopped:           {stop}")
             return 0
     except InputError as exc:
         print(f"brainos-hwval: error: {exc}", file=sys.stderr)

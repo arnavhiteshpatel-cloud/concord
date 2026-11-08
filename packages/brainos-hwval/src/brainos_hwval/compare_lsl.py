@@ -91,14 +91,25 @@ def _load_sidecar(path: Path | None) -> dict[str, Any] | None:
     return data
 
 
-def _sidecar_signal(sc: dict[str, Any] | None) -> dict[str, Any] | None:
-    if not sc:
+def _signal_stream(meta: Any) -> dict[str, Any] | None:
+    """The signal stream of a BrainOS LSL adapter's ``source_metadata``."""
+    if not isinstance(meta, dict):
         return None
-    meta = sc.get("source_metadata") or {}
-    for s in meta.get("streams", []):
+    for s in meta.get("streams") or []:
         if isinstance(s, dict) and s.get("role") == "signal":
             return s
     return None
+
+
+def _sidecar_signal(sc: dict[str, Any] | None) -> dict[str, Any] | None:
+    """From the capture sidecar: the adapter's metadata at the END of the capture."""
+    return _signal_stream(sc.get("source_metadata")) if sc else None
+
+
+def _header_signal(rec: BrainOSRecording) -> dict[str, Any] | None:
+    """From the recording header (BrainOS >= Milestone 5): the adapter's metadata at the START
+    of the recording, so a console-made recording identifies its LSL outlet without a sidecar."""
+    return _signal_stream(rec.header.get("source_metadata"))
 
 
 def select_stream(
@@ -110,6 +121,12 @@ def select_stream(
     numeric = [s for s in streams if s.is_numeric and s.nominal_srate > 0]
     ident = _identity_from_descriptor(rec)
     sig = _sidecar_signal(sidecar)
+    hsig = _header_signal(rec)
+    uids = [
+        (where, str(x["uid"]))
+        for where, x in (("capture sidecar", sig), ("recording header", hsig))
+        if x and x.get("uid")
+    ]
     listing = [s.describe() for s in streams]
     how = ""
     chosen: XDFStream | None = None
@@ -133,10 +150,11 @@ def select_stream(
                 f"XDF stream {chosen.name!r} is not a regularly sampled numeric "
                 "stream; it cannot be compared with recording.frame data"
             )
-    elif sig and sig.get("uid"):
-        hits = [s for s in numeric if s.uid == sig["uid"]]
+    elif uids:
+        where, uid = uids[0]
+        hits = [s for s in numeric if s.uid == uid]
         if len(hits) == 1:
-            chosen, how = hits[0], "same LSL stream uid (capture sidecar)"
+            chosen, how = hits[0], f"same LSL stream uid ({where})"
     if chosen is None and ident["name"]:
         hits = [
             s
@@ -180,6 +198,9 @@ def select_stream(
         "sidecar_identity": None
         if sig is None
         else {k: sig.get(k) for k in ("name", "type", "source_id", "hostname", "uid")},
+        "header_identity": None
+        if hsig is None
+        else {k: hsig.get(k) for k in ("name", "type", "source_id", "hostname", "uid")},
         "streams_in_file": [
             {
                 k: d[k]
@@ -203,14 +224,15 @@ def select_stream(
         contradictions.append(f"source_id {ident['source_id']!r} vs {chosen.source_id!r}")
     if ident["hostname"] is not None and ident["hostname"] != chosen.hostname:
         contradictions.append(f"host {ident['hostname']!r} vs {chosen.hostname!r}")
-    if sig and sig.get("uid") and sig["uid"] != chosen.uid:
-        contradictions.append(f"uid {sig['uid']!r} vs {chosen.uid!r}")
+    for where, uid in uids:
+        if uid != chosen.uid:
+            contradictions.append(f"uid {uid!r} ({where}) vs {chosen.uid!r}")
     adapter = str(rec.device.get("adapter", ""))
     if not adapter.startswith(LSL_ADAPTER_PREFIX):
         contradictions.append(f"BrainOS recording was made by adapter {adapter!r}, not LSL")
     if contradictions:
         st, msg = Status.FAIL, "BrainOS recorded a different stream: " + "; ".join(contradictions)
-    elif sig and sig.get("uid") == chosen.uid:
+    elif uids:  # every uid known agreed (else a contradiction above)
         st, msg = Status.PASS, f"same LSL outlet (uid {chosen.uid})"
     elif ident["name"] and ident["source_id"] is not None:
         st, msg = Status.PASS, f"same stream name {chosen.name!r}, source_id and host"
@@ -232,9 +254,10 @@ def select_stream(
         True,
         st,
         msg,
-        "XDF stream chosen by the capture sidecar's uid, else the stream name/source_id/host in "
-        "the BrainOS device descriptor, else a unique channel count + rate; then every identity "
-        "field available on both sides must agree.",
+        "XDF stream chosen by the LSL uid (capture sidecar, else the recording header's "
+        "source_metadata), else the stream name/source_id/host in the BrainOS device "
+        "descriptor, else a unique channel count + rate; then every identity field available "
+        "on both sides must agree.",
         ev,
     )
 

@@ -26,6 +26,7 @@ import secrets
 import time
 import uuid
 from collections.abc import Sequence
+from typing import Any
 
 from pydantic import ValidationError
 
@@ -590,11 +591,31 @@ class Runtime:
         ):
             raise RuntimeCommandError(ErrorCode.INVALID_STATE, "connect a device before recording")
         try:
-            rec = self.recorder.start(self._device, name, exclude_raw=exclude_raw)
+            rec = self.recorder.start(
+                self._device,
+                name,
+                exclude_raw=exclude_raw,
+                source_metadata=self._source_metadata_snapshot(),
+            )
         except RecorderError as exc:
             raise RuntimeCommandError(ErrorCode.RECORDING_ERROR, str(exc)) from exc
         self._broadcast_runtime()
         return rec
+
+    def _source_metadata_snapshot(self) -> dict[str, Any] | None:
+        """The connected adapter's own description of its source (LSL / Open Ephys / plugin),
+        for the recording header. Never blocks a recording from starting."""
+        get = getattr(self._adapter, "source_metadata", None)
+        if not callable(get):
+            return None
+        try:
+            meta = get()
+        except Exception as exc:
+            log.exception("source metadata unavailable for the recording header")
+            device_id = self._device.device_id if self._device else None
+            self.diagnostics.record_error("source_metadata", device_id, repr(exc))
+            return None
+        return meta if isinstance(meta, dict) else None
 
     def stop_recording(self) -> RecordingInfo:
         info = self.recorder.stop("stopped by operator")

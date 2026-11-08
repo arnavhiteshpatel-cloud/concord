@@ -108,7 +108,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         models_dir=settings.models_dir,
         plugins=PluginRegistry(python=settings.plugin_python, extra_path=settings.plugin_path),
     )
-    recorder = Recorder(settings.recordings_dir)
+    recorder = Recorder(
+        settings.recordings_dir,
+        max_duration_s=settings.recording_max_duration_s,
+        max_duration_no_raw_s=settings.recording_max_duration_no_raw_s,
+        max_bytes=settings.recording_max_bytes,
+        min_free_bytes=settings.recording_min_free_bytes,
+    )
     runtime = Runtime(
         registry,
         recorder,

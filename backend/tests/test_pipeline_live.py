@@ -141,6 +141,13 @@ async def test_calibrate_from_falcon_streamed_over_lsl(
     info = rt.stop_recording()
     assert info.name == name
     path = tmp_path / "rec" / f"{name}.brainos.jsonl"
+    with path.open() as fh:
+        header = json.loads(fh.readline())
+    src = header["source_metadata"]  # the LSL adapter's own snapshot when recording started
+    assert src["protocol"] == "lsl" and src["device_id"] == did
+    assert all(st["uid"] and st["source_id"] for st in src["streams"])
+    assert src["streams"][0]["declared"]["prerecorded"] is True
+    assert "cannot be reconstructed" in header["timing"]
     msgs = _read_recording(path)
     feats = [e for e in msgs if e["event_type"] == "features.binned"]
     counts, beh, valid = _file_arrays(EVAL_FILE)
