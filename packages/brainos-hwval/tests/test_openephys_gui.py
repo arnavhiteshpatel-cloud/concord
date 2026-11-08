@@ -165,10 +165,10 @@ def test_gui_processor_between_zmq_and_record_node(guis: GUIs, tmp_path: Path) -
 def test_gui_file_reader_loop_reset(guis: GUIs, tmp_path: Path) -> None:
     """Recording past the 5 s sample file: the File Reader restarts its sample numbers.
 
-    BrainOS's adapter treats the reset as an acquisition restart and reconnects; the samples
-    that arrive while it re-learns the stream are missing from BrainOS. The toolkit must report
-    that loss (FAIL), attribute the reset to the reference (advisory), and see that BrainOS
-    reported it through device.status rather than silently.
+    The toolkit attributes the reset to the reference (advisory REF-CONTINUITY) and checks
+    that BrainOS followed it without reordering or loss. (Before the Milestone 5 release the
+    adapter treated the reset as an acquisition restart, reconnected and lost ~0.72 s; this
+    test reported that FAIL and now guards the fix.)
     """
     ref, bos = _record(guis, tmp_path, seconds=7.0)
     rep = compare_openephys(ref, bos, OPTS)
@@ -178,10 +178,10 @@ def test_gui_file_reader_loop_reset(guis: GUIs, tmp_path: Path) -> None:
     assert st["VALUES"] == "pass"
     assert st["DELAY"] == "pass"
     loss = by_id(rep)["LOSS"]["evidence"]
-    if loss["missing_samples"]:
-        assert st["LOSS"] == "fail" and rep["result"] == "fail"
-        assert st["LOSS-FLAGGED"] == "pass"
-        assert by_id(rep)["LOSS-FLAGGED"]["evidence"]["reported_by_device_status"] >= 1
+    # Regression (fixed in the Milestone 5 release): BrainOS used to reconnect at the reset and
+    # lose ~0.72 s (28,793 samples at 40 kHz). It now follows the source's new sample base.
+    assert loss["missing_samples"] == 0 and st["LOSS"] == "pass", loss
+    assert st["SAMPLE-COUNT"] == "pass" and rep["result"] == "pass"
     if EXAMPLES:
         R.write(rep, Path(EXAMPLES), "openephys-gui-file-reader-loop")
 
