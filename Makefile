@@ -163,3 +163,9 @@ lint-packaging:  ## ruff + mypy --strict for packaging/ (CI: package-linux)
 	cd backend && ../$(VENV)/bin/ruff check ../packaging && ../$(VENV)/bin/ruff format --check ../packaging
 	cd backend && ../$(VENV)/bin/mypy --strict ../packaging/app_entry.py ../packaging/stage_console.py \
 	  ../packaging/build_app.py ../packaging/smoke_test.py
+
+# ---- M5-E: performance at scale (docs/PERFORMANCE.md) -------------------------------------
+.PHONY: bench-scale
+bench-scale:  ## scaling to 4096 ch, multi-stream, 10-min soak, end-to-end over WS (~30 min) -> docs/BENCHMARKS_SCALE.md
+	@mkdir -p reports
+	$(PY) scripts/bench_scale.py --json reports/bench_scale.json --write docs/BENCHMARKS_SCALE.md

@@ -37,6 +37,7 @@ from brainos.adapters.base import (
     EventDraft,
     NativePacket,
     PacketDecodeError,
+    frame_samples_limit,
 )
 from brainos.adapters.lsl import discovery
 from brainos.adapters.lsl.metadata import (
@@ -520,7 +521,8 @@ class LSLAdapter(DeviceAdapter):
             values = values * np.asarray(self._units.scales)
         # Each frame must be contiguous in time: split at every gap and at the size limit.
         n = values.shape[0]
-        cuts = sorted({0, *gap_starts, *range(0, n, MAX_FRAME_SAMPLES)} - {n})
+        step = frame_samples_limit(s.channel_count, MAX_FRAME_SAMPLES)
+        cuts = sorted({0, *gap_starts, *range(0, n, step)} - {n})
         for start, end in zip(cuts, [*cuts[1:], n], strict=True):
             block = values[start:end]
             out.append(
@@ -531,7 +533,8 @@ class LSLAdapter(DeviceAdapter):
                         "channel_count": s.channel_count,
                         "first_sample_index": first + start,
                         "unit": self._units.unit,
-                        "samples": block.T.tolist(),
+                        # (channels, n) array view; the contract copies it (M5-E fast path)
+                        "samples": block.T,
                     },
                     self._quality(start in gap_starts),
                     self._p_raw,

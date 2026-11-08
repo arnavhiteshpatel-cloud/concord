@@ -336,7 +336,7 @@ async def test_simulated_source_control_state_on_connect_pause_resume_disconnect
 
 def _peek(sub: Subscriber) -> list[dict[str, Any]]:
     return [
-        json.loads(f'{{"type":"event","delivery_seq":{d},"event":{ev}}}')
+        json.loads(f'{{"type":"event","delivery_seq":{d},"event":{ev.text}}}')
         for d, ev, *_ in sub._events
     ]
 
