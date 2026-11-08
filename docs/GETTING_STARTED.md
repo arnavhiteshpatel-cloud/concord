@@ -24,8 +24,8 @@ about 20 minutes, **without using a terminal**. Every step shows what you should
 
 ### On a Mac (Apple Silicon, macOS 14 Sonoma or later)
 
-1. Download **[Concord-macos-arm64.dmg](https://github.com/arnavhiteshpatel-cloud/brainos/releases/latest/download/Concord-macos-arm64.dmg)**
-   (from the [Releases page](https://github.com/arnavhiteshpatel-cloud/brainos/releases/latest)).
+1. Download **[Concord-macos-arm64.dmg](https://github.com/arnavhiteshpatel-cloud/concord/releases/latest/download/Concord-macos-arm64.dmg)**
+   (from the [Releases page](https://github.com/arnavhiteshpatel-cloud/concord/releases/latest)).
 2. Double-click the downloaded `.dmg` and drag **Concord** onto **Applications**.
 3. Open Concord from Applications. The first time, macOS blocks it because the app is not
    signed with an Apple developer certificate:
@@ -42,7 +42,7 @@ Intel Macs and macOS 13 or older: use the Python installation in
 
 ### On Linux (x86_64, e.g. Ubuntu 22.04 or later)
 
-1. Download **[Concord-linux-x86_64.tar.gz](https://github.com/arnavhiteshpatel-cloud/brainos/releases/latest/download/Concord-linux-x86_64.tar.gz)**.
+1. Download **[Concord-linux-x86_64.tar.gz](https://github.com/arnavhiteshpatel-cloud/concord/releases/latest/download/Concord-linux-x86_64.tar.gz)**.
 2. Extract it (right-click → *Extract Here* in most file managers).
 3. Open the `Concord` folder and run the program named **Concord** (double-click it if your
    file manager runs programs; otherwise run `./Concord/Concord` in a terminal once).
@@ -244,7 +244,7 @@ exported and reproduced.
 the data folder (readable only by your user account), and deletes what you no longer need
 (it asks for confirmation). **Advanced → Support report → Create support report** produces a
 report of versions, ports, permissions and recent problems **without any neural or personal
-data**; attach it when you [report a problem](https://github.com/arnavhiteshpatel-cloud/brainos/issues/new/choose).
+data**; attach it when you [report a problem](https://github.com/arnavhiteshpatel-cloud/concord/issues/new/choose).
 
 ![Stored data and support report](images/12-stored-data-and-support.png)
 

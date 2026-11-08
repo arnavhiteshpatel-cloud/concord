@@ -6,7 +6,7 @@ body:
     attributes:
       value: |
         Thank you for testing Concord against your equipment. Follow the
-        [hardware validation protocol](https://github.com/arnavhiteshpatel-cloud/brainos/blob/main/docs/HARDWARE_VALIDATION.md).
+        [hardware validation protocol](https://github.com/arnavhiteshpatel-cloud/concord/blob/main/docs/HARDWARE_VALIDATION.md).
         Attach the **report files only** (`*.hwval.json` and `*.hwval.md`), never the recordings:
         they may contain neural data. Use a phantom, signal generator or shorted inputs, never a
         person or an animal.

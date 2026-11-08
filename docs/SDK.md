@@ -96,7 +96,7 @@ reducer (`model.ts`) plus a view that only consumes SDK events.
 
 ## Event envelope (schema 1.0)
 
-See [ARCHITECTURE.md §4](../ARCHITECTURE.md#4-event-envelope-schema-10) and the JSON Schema
+See [ARCHITECTURE.md §4](../ARCHITECTURE.md#4-event-envelope-schema-14-1114-are-additive-over-10) and the JSON Schema
 at `contracts/event-envelope.v1.schema.json` (also served at `/api/v1/schema/event`).
 
 Note for JavaScript: `timestamp_ns` values exceed `Number.MAX_SAFE_INTEGER`; after

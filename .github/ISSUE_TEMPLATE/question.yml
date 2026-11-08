@@ -5,9 +5,9 @@ body:
   - type: markdown
     attributes:
       value: |
-        Before asking, please check [Getting started](https://github.com/arnavhiteshpatel-cloud/brainos/blob/main/docs/GETTING_STARTED.md),
-        the [user guide](https://github.com/arnavhiteshpatel-cloud/brainos/blob/main/docs/USER_GUIDE.md)
-        and the [FAQ](https://github.com/arnavhiteshpatel-cloud/brainos/blob/main/docs/FAQ.md).
+        Before asking, please check [Getting started](https://github.com/arnavhiteshpatel-cloud/concord/blob/main/docs/GETTING_STARTED.md),
+        the [user guide](https://github.com/arnavhiteshpatel-cloud/concord/blob/main/docs/USER_GUIDE.md)
+        and the [FAQ](https://github.com/arnavhiteshpatel-cloud/concord/blob/main/docs/FAQ.md).
   - type: textarea
     id: goal
     attributes:

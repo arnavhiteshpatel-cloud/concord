@@ -156,7 +156,8 @@ def test_gui_processor_between_zmq_and_record_node(guis: GUIs, tmp_path: Path) -
     assert status(rep)["META-CHAIN"] == "inconclusive"
     assert "Bandpass Filter" in by_id(rep)["META-CHAIN"]["summary"]
     assert status(rep)["VALUES"] == "inconclusive"
-    assert rep["result"] == "inconclusive"
+    failed = {k: v for k, v in status(rep).items() if v == "fail"}
+    assert rep["result"] == "inconclusive", (failed, rep["result_explanation"])
     assert status(rep)["LOSS"] == "pass"  # sample accounting is still valid
     if EXAMPLES:
         R.write(rep, Path(EXAMPLES), "openephys-gui-filter-between")

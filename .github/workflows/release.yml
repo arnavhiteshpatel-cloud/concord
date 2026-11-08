@@ -11,6 +11,8 @@ name: Release
 # Every bundle is smoke-tested on its platform (the same checks as the CI package jobs) before
 # anything is published. To publish: Actions -> Release -> Run workflow (enter the tag, e.g.
 # v0.3.0, which must match the version in backend/pyproject.toml), or push a tag `v*`.
+# Running it for an existing release replaces its files and notes; with "retarget" it
+# recreates the release and its tag on the commit being built.
 # Pull requests that change this file run the builds and tests without publishing.
 
 on:
@@ -19,6 +21,10 @@ on:
       tag:
         description: "Release tag, e.g. v0.3.0 (must equal v + the version in backend/pyproject.toml)"
         required: true
+      retarget:
+        description: "Recreate an existing release and its tag on this commit (else only its files and notes are replaced)"
+        type: boolean
+        default: false
   push:
     tags: ["v*"]
   pull_request:
@@ -185,10 +191,15 @@ jobs:
       - name: Create the GitHub Release (or replace the files of an existing one)
         env:
           GH_TOKEN: ${{ github.token }}
+          RETARGET: ${{ github.event_name == 'workflow_dispatch' && inputs.retarget }}
           TITLE: "Concord ${{ needs.check-version.outputs.version }} — research preview"
         run: |
           notes="docs/releases/$TAG.md"
           if [ ! -f "$notes" ]; then echo "::error::missing release notes $notes"; exit 1; fi
+          if [ "$RETARGET" = "true" ] && gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            # the tag (and the release's source archives) must point at this commit
+            gh release delete "$TAG" --cleanup-tag --yes --repo "$GITHUB_REPOSITORY"
+          fi
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
             gh release upload "$TAG" assets/* --clobber --repo "$GITHUB_REPOSITORY"
             # remove any file this build did not produce
