@@ -42,11 +42,12 @@ def recording(tmp_path_factory: pytest.TempPathFactory) -> tuple[Path, np.ndarra
     data = np.ascontiguousarray(np.delete(data, np.arange(DROP.start, DROP.stop), axis=1))
     path = tmp_path_factory.mktemp("bf") / "synthetic.csv"
     DataFilter.write_file(data, str(path), "w")
-    # What BrainFlow's own reader gets back from the file. write_file prints "%lf"
-    # (data_handler.cpp), i.e. 6 decimals: the file holds the capture at that precision.
+    # What BrainFlow's own reader gets back from the file. Up to BrainFlow 5.23, write_file
+    # printed "%lf" (6 decimals); from 5.24 it writes full precision and the file round-trips
+    # the capture exactly. The plugin must deliver whatever the file holds, bit for bit.
     from_file = np.asarray(DataFilter.read_file(str(path)), dtype=np.float64)
     six_decimals = np.vectorize(lambda x: float(f"{x:.6f}"))(data)
-    assert np.array_equal(from_file, six_decimals)
+    assert np.array_equal(from_file, six_decimals) or np.array_equal(from_file, data)
     return path, from_file
 
 

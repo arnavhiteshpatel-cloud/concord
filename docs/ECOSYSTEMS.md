@@ -141,8 +141,9 @@ session, is idempotent and never raises; a released board can be opened again.
   no gaps; close idempotent; reopen after release.
 * `test_bf_playback.py` (2): a synthetic capture (BoardShim, 2.4 s, > 256 samples so the
   counter wraps) with 5 samples deleted, written by BrainFlow's own `DataFilter.write_file`.
-  `write_file` prints `%lf` (6 decimals, `data_handler.cpp`); the test checks the file equals
-  the capture rounded to 6 decimals, then that every value played back through the plugin
+  Up to BrainFlow 5.23 `write_file` printed `%lf` (6 decimals, `data_handler.cpp`); from 5.24
+  it writes full precision. The test checks the file holds one of the two (the capture rounded
+  to 6 decimals, or the capture exactly), then that every value played back through the plugin
   is **bit-for-bit equal** to `DataFilter.read_file` of the same file (exg and aux), that the
   5 deleted samples appear as a 5-sample `first_index` gap and `dropped_packets == 5`, that
   the counter wrap is not taken as loss, that the session is `prerecorded`, and that the end
