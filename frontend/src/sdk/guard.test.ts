@@ -2,7 +2,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { BrainOSStream } from "./client";
 import { CommandGuard, attachGuard } from "./guard";
-import type { Capability, EventEnvelope, NegotiationResult, RuntimeSnapshot } from "./types";
+import type { Capability, EnvelopeOf, EventEnvelope, NegotiationResult, RuntimeSnapshot } from "./types";
 
 class Clock {
   wall = 1_700_000_000_000;
@@ -140,5 +140,88 @@ describe("attachGuard", () => {
     detach();
     stream.handle(JSON.stringify({ type: "negotiation", negotiation: neg(["selection"]) }));
     expect(g.isActive("selection")).toBe(false); // detached: no longer updated
+  });
+});
+
+// ------------------------------------------------------------------ schema 1.4 (M5-C)
+
+function ctl(active: boolean, capabilities: string[], reason: string, session_id = "ses_aaaaaaaa"): EnvelopeOf<"control.state"> {
+  return {
+    schema_version: "1.4",
+    session_id,
+    device_id: "d",
+    seq: 2,
+    timestamp_ns: Date.now() * 1e6,
+    device_timestamp_ns: null,
+    quality: { score: 1, flags: [] },
+    provenance: { kind: "runtime", adapter: "brainos.runtime@0.1.0", synthetic: false, model_id: null, origin: "runtime", replayed: false },
+    event_type: "control.state",
+    capability: "control_status",
+    payload: { active, capabilities, reason },
+  };
+}
+
+function nav(clock: Clock): EventEnvelope {
+  const base = cmd(clock, "intent.selection");
+  return { ...base, event_type: "intent.navigate", capability: "navigation", payload: { direction: "next", confidence: 0.8 } };
+}
+
+describe("CommandGuard + control.state (schema 1.4)", () => {
+  it("gates commands on the runtime's control.state and stops with its reason", () => {
+    const clock = new Clock();
+    const stops: string[] = [];
+    const states: string[] = [];
+    const g = guard(clock, stops, { onControlState: (c) => states.push(c.reason) });
+    g.onNegotiation(neg(["selection", "navigation", "control_status"]));
+    expect(g.isActive("selection")).toBe(false);
+    expect(g.state("selection")).toBe("control_inactive");
+    expect(g.accept(cmd(clock, "intent.selection"))).toBe(false);
+    g.onControlState(ctl(true, ["navigation", "selection"], "operator authorized this application"));
+    expect(g.isActive("navigation")).toBe(true);
+    expect(g.accept(nav(clock))).toBe(true);
+    g.onControlState(ctl(true, ["selection"], "authorization revoked by operator (navigation)"));
+    expect(stops).toEqual(["authorization revoked by operator (navigation)"]);
+    expect(g.isActive("selection")).toBe(true);
+    g.onControlState(ctl(false, [], "command output stopped: input stalled"));
+    expect(stops.at(-1)).toBe("command output stopped: input stalled");
+    expect(g.accept(cmd(clock, "intent.selection"))).toBe(false);
+    expect(states).toHaveLength(3);
+    // another session's notice never re-enables commands
+    g.onRuntime(runtime("streaming", "ses_bbbbbbbb"));
+    g.onControlState(ctl(true, ["selection"], "stale", "ses_aaaaaaaa"));
+    expect(g.isActive("selection")).toBe(false);
+    expect(g.controlState).toBeNull();
+  });
+
+  it("without control_status granted, navigation works like any command and notices do not gate", () => {
+    const clock = new Clock();
+    const stops: string[] = [];
+    const g = guard(clock, stops);
+    g.onNegotiation(neg(["navigation"]));
+    expect(g.accept(nav(clock))).toBe(true);
+    g.onControlState(ctl(false, [], "not asked for"));
+    expect(g.isActive("navigation")).toBe(true);
+    expect(stops).toEqual([]);
+  });
+
+  it("attachGuard feeds control.state from the stream before any command", () => {
+    const stream = new BrainOSStream({ app: { id: "a", name: "A" }, required: [], webSocket: () => ({}) as WebSocket });
+    const stops: string[] = [];
+    const g = new CommandGuard({ onStop: (r) => stops.push(r) });
+    const got: EventEnvelope[] = [];
+    attachGuard(stream, g, (e) => got.push(e));
+    const rt = { state: "streaming", device: null, session_id: "ses_aaaaaaaa", state_since_ns: 0, last_error: null, recording: null, apps: [] };
+    stream.handle(JSON.stringify({ type: "welcome", protocol: "brainos.stream/1", schema_version: "1.4", connection_id: "c", negotiation: neg(["selection", "control_status"]), runtime: rt }));
+    const now = new Clock();
+    now.wall = Date.now();
+    stream.handle(JSON.stringify({ type: "event", delivery_seq: 0, event: cmd(now, "intent.selection") }));
+    expect(got).toHaveLength(0); // no control.state yet
+    stream.handle(JSON.stringify({ type: "event", delivery_seq: 1, event: ctl(true, ["selection"], "on") }));
+    stream.handle(JSON.stringify({ type: "event", delivery_seq: 2, event: cmd(now, "intent.selection") }));
+    expect(got).toHaveLength(1);
+    stream.handle(JSON.stringify({ type: "event", delivery_seq: 3, event: ctl(false, [], "command output stopped: stopped by operator") }));
+    stream.handle(JSON.stringify({ type: "event", delivery_seq: 4, event: cmd(now, "intent.selection") }));
+    expect(got).toHaveLength(1);
+    expect(stops).toEqual(["command output stopped: stopped by operator"]);
   });
 });

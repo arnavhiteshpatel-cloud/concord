@@ -37,7 +37,7 @@ from brainos_adapter_sdk import (
 )
 from brainos_adapter_sdk.validate import version_core
 
-from brainos.adapters.base import EventDraft, PacketDecodeError
+from brainos.adapters.base import EventDraft, PacketDecodeError, frame_samples_limit
 from brainos.adapters.lsl.metadata import ChannelMeta, UnitPlan, plan_units
 from brainos.contracts.capabilities import Capability, CapabilityDescriptor, EventType
 from brainos.contracts.events import (
@@ -160,6 +160,8 @@ def plan_session(manifest: PluginManifest, info: SessionInfo) -> SessionPlan:
             model_id=f"{manifest.name}:{s.model_id}"[:128] if s.model_id else None,
             origin=origin,
             replayed=replayed,
+            # contract 1.4: a plugin's decoder output is an external system's decoder
+            model_origin="external" if kind is ProvenanceKind.DECODED_INTENT else None,
         )
     flags: list[QualityFlag] = []
     if synthetic:
@@ -272,6 +274,7 @@ def _capabilities(plan: SessionPlan) -> list[CapabilityDescriptor]:
                     "rate_hz": float(s.nominal_rate_hz),
                     "model_id": plan.provenance[s.stream_id].model_id or "",
                     "stream_id": s.stream_id,
+                    "model_origin": "external",
                 },
                 description="Output of the plugin's external decoder (decoded_intent); never a "
                 "command unless the operator enables the command router",
@@ -418,8 +421,9 @@ def _numeric(plan: SessionPlan, sp: StreamPlan, prov: Provenance, r: Received) -
         if sp.units.scales is not None and any(x != 1.0 for x in sp.units.scales):
             values = values * np.asarray(sp.units.scales)
         n = values.shape[0]
-        for start in range(0, n, MAX_FRAME_SAMPLES):
-            block = values[start : start + MAX_FRAME_SAMPLES]
+        step = frame_samples_limit(len(s.channels), MAX_FRAME_SAMPLES)
+        for start in range(0, n, step):
+            block = values[start : start + step]
             out.append(
                 EventDraft(
                     EventType.RECORDING_FRAME,
@@ -428,7 +432,7 @@ def _numeric(plan: SessionPlan, sp: StreamPlan, prov: Provenance, r: Received) -
                         "channel_count": len(s.channels),
                         "first_sample_index": first + start,
                         "unit": sp.units.unit,
-                        "samples": block.T.tolist(),
+                        "samples": block.T,  # (channels, n) array view (M5-E fast path)
                     },
                     _quality(plan, lost and start == 0),
                     prov,

@@ -8,14 +8,26 @@ raw signal, behavioral labels, simulated intents and decoded intents.
 
 from __future__ import annotations
 
+import sys
 from enum import StrEnum
 from typing import Annotated, Any, Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    SerializerFunctionWrapHandler,
+    StrictBool,
+    TypeAdapter,
+    ValidatorFunctionWrapHandler,
+    WrapSerializer,
+    WrapValidator,
+    model_validator,
+)
 
 from brainos.contracts.capabilities import Capability, EventType, capability_for
 
-SCHEMA_VERSION = "1.3"
+SCHEMA_VERSION = "1.4"
 # 1.1: features.binned, behavior.sample, intent.kinematics
 # 1.2: features.vector; recording.frame unit "arbitrary" (source did not state a known unit)
 SCHEMA_MAJOR = 1
@@ -74,6 +86,8 @@ ALLOWED_PROVENANCE: dict[EventType, frozenset[ProvenanceKind]] = {
     EventType.FEATURES_VECTOR: frozenset({ProvenanceKind.PROCESSED_FEATURE}),
     EventType.BEHAVIOR_SAMPLE: frozenset({ProvenanceKind.BEHAVIORAL_LABEL}),
     EventType.INTENT_KINEMATICS: _INTENT_KINDS,
+    EventType.INTENT_NAVIGATE: _INTENT_KINDS,
+    EventType.CONTROL_STATE: frozenset({ProvenanceKind.RUNTIME}),
 }
 
 
@@ -84,6 +98,10 @@ class Provenance(_Strict):
     model_id: str | None = Field(default=None, min_length=1, max_length=128)
     origin: str = Field(min_length=1, max_length=128)
     replayed: bool = False
+    # 1.4: who produced a decoded_intent: a model BrainOS trained/loaded ("brainos"), an
+    # external system's live decoder ("external", e.g. a device's own decoder), or the
+    # recorded outputs of a research system's original online decoder ("historical").
+    model_origin: Literal["brainos", "external", "historical"] | None = None
 
 
 def check_provenance(event_type: EventType, provenance: Provenance) -> None:
@@ -100,9 +118,49 @@ def check_provenance(event_type: EventType, provenance: Provenance) -> None:
         raise ValueError("decoded_intent requires provenance.model_id")
     if provenance.kind is not ProvenanceKind.DECODED_INTENT and provenance.model_id is not None:
         raise ValueError("model_id is only valid for decoded_intent")
+    if provenance.kind is not ProvenanceKind.DECODED_INTENT and provenance.model_origin is not None:
+        raise ValueError("model_origin is only valid for decoded_intent")
+    if provenance.model_origin == "historical" and not provenance.replayed:
+        raise ValueError("historical decoder outputs are recorded data: replayed must be true")
 
 
 # -------------------------------------------------------------------------- payloads
+
+
+def _ndarray(value: object) -> Any:
+    """``value`` if it is a numpy array, else None (numpy is never imported from here: the
+    base SDK install has no numpy, and an array can only exist if numpy is loaded)."""
+    np = sys.modules.get("numpy")
+    return value if np is not None and isinstance(value, np.ndarray) else None
+
+
+def _samples_in(value: Any, handler: ValidatorFunctionWrapHandler) -> Any:
+    """``samples`` given as a 2-D numpy array (channels x samples): an in-process fast path
+    for adapters (no per-value Python objects). The wire format and JSON Schema are those of
+    ``list[list[FiniteFloat]]``. A valid real-valued 2-D array is kept as an owned, read-only,
+    C-ordered float64 copy; anything else, including an array with a NaN/Inf, is validated
+    by the list path (``tolist()``), so accept/reject decisions and errors are identical."""
+    arr = _ndarray(value)
+    if arr is None:
+        return handler(value)
+    np = sys.modules["numpy"]
+    if arr.ndim == 2 and arr.dtype.kind in "biuf":
+        out = np.array(arr, dtype=np.float64, order="C")
+        if np.isfinite(out).all():
+            out.flags.writeable = False
+            return out
+    return handler(arr.tolist())
+
+
+def _samples_out(value: Any, handler: SerializerFunctionWrapHandler) -> Any:
+    arr = _ndarray(value)
+    return handler(value if arr is None else arr.tolist())
+
+
+# list[list[FiniteFloat]] on the wire and in the schema; may hold a float64 ndarray in-process
+FrameSamples = Annotated[
+    list[list[FiniteFloat]], WrapValidator(_samples_in), WrapSerializer(_samples_out)
+]
 
 
 class RecordingFramePayload(_Strict):
@@ -113,15 +171,25 @@ class RecordingFramePayload(_Strict):
     # "arbitrary" (1.2): the source did not state a physical unit BrainOS knows; values are
     # passed through unscaled and must not be interpreted as microvolts.
     unit: Literal["uV", "arbitrary"] = "uV"
-    samples: list[list[FiniteFloat]] = Field(description="samples[channel][sample]")
+    # samples[channel][sample]. In-process it may be a read-only float64 numpy array of shape
+    # (channels, samples) (see _samples_in); it serializes identically either way.
+    samples: FrameSamples = Field(description="samples[channel][sample]")
 
     @model_validator(mode="after")
     def _shape(self) -> Self:
-        if len(self.samples) != self.channel_count:
-            raise ValueError(
-                f"samples has {len(self.samples)} channels, channel_count={self.channel_count}"
-            )
-        lengths = {len(ch) for ch in self.samples}
+        shape = getattr(self.samples, "shape", None)
+        if shape is not None:  # numpy array: rectangular by construction
+            if shape[0] != self.channel_count:
+                raise ValueError(
+                    f"samples has {shape[0]} channels, channel_count={self.channel_count}"
+                )
+            lengths = {int(shape[1])}
+        else:
+            if len(self.samples) != self.channel_count:
+                raise ValueError(
+                    f"samples has {len(self.samples)} channels, channel_count={self.channel_count}"
+                )
+            lengths = {len(ch) for ch in self.samples}
         if len(lengths) != 1:
             raise ValueError("all channels must have the same number of samples")
         n = lengths.pop()
@@ -149,6 +217,22 @@ class SelectionIntentPayload(_Strict):
 
     action: Literal["primary", "activate", "cancel"] = "primary"
     confidence: UnitFloat
+
+
+class NavigateIntentPayload(_Strict):
+    """Discrete navigation (schema 1.4): move a highlight/focus, not a cursor."""
+
+    direction: Literal["up", "down", "left", "right", "next", "previous"]
+    confidence: UnitFloat
+
+
+class ControlStatePayload(_Strict):
+    """Runtime notice to ONE application (schema 1.4): whether decoded command output is
+    currently delivered to it. ``active: false`` = stop acting and enter a safe state."""
+
+    active: StrictBool  # a safety signal: no coercion of "no"/"0" to False
+    capabilities: list[str] = Field(default_factory=list, max_length=16)
+    reason: str = Field(max_length=256)
 
 
 class TextIntentPayload(_Strict):
@@ -211,7 +295,9 @@ class FeaturesVectorPayload(_Strict):
     E.g. log band power. The bin ends at the envelope's ``device_timestamp_ns``.
     """
 
-    feature: Literal["band_power", "log_band_power"]
+    # "spike_band_power" (1.4): mean power of the spike band (e.g. 250-5000 Hz) per bin, the
+    # intracortical feature recorded by many research systems.
+    feature: Literal["band_power", "log_band_power", "spike_band_power"]
     unit: str = Field(max_length=32, description="e.g. 'uV^2', 'log10(uV^2)', 'log10(arbitrary^2)'")
     band_hz: tuple[FiniteFloat, FiniteFloat] | None = None
     bin_ms: float = Field(gt=0, le=10_000, allow_inf_nan=False)
@@ -353,6 +439,16 @@ class KinematicIntentEvent(_EnvelopeBase):
     payload: KinematicIntentPayload
 
 
+class NavigateIntentEvent(_EnvelopeBase):
+    event_type: Literal[EventType.INTENT_NAVIGATE]
+    payload: NavigateIntentPayload
+
+
+class ControlStateEvent(_EnvelopeBase):
+    event_type: Literal[EventType.CONTROL_STATE]
+    payload: ControlStatePayload
+
+
 EventEnvelope = Annotated[
     RecordingFrameEvent
     | RecordingAnnotationEvent
@@ -364,7 +460,9 @@ EventEnvelope = Annotated[
     | FeaturesBinnedEvent
     | FeaturesVectorEvent
     | BehaviorSampleEvent
-    | KinematicIntentEvent,
+    | KinematicIntentEvent
+    | NavigateIntentEvent
+    | ControlStateEvent,
     Field(discriminator="event_type"),
 ]
 
@@ -382,6 +480,8 @@ PAYLOAD_MODELS: dict[EventType, type[BaseModel]] = {
     EventType.FEATURES_VECTOR: FeaturesVectorPayload,
     EventType.BEHAVIOR_SAMPLE: BehaviorSamplePayload,
     EventType.INTENT_KINEMATICS: KinematicIntentPayload,
+    EventType.INTENT_NAVIGATE: NavigateIntentPayload,
+    EventType.CONTROL_STATE: ControlStatePayload,
 }
 
 

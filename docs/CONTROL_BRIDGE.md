@@ -72,6 +72,8 @@ Python operator methods: `RuntimeClient.control()`, `authorize_app(app_id, caps)
 | activate | `intent.selection` | `action: "activate"`, `confidence` | idem |
 | cancel | `intent.selection` | `action: "cancel"`, `confidence` | idem |
 | text | `intent.text` (`text_intent`) | `text` (rule's text), `mode` (`character` if 1 char else `word`), `confidence` | idem |
+| navigate (1.4) | `intent.navigate` (`navigation`) | `direction` (`up`/`down`/`left`/`right`/`next`/`previous`), `confidence` | a classifier class posterior, by a discrete rule with action `navigate:<direction>` |
+| click (1.4 router feature) | `intent.selection` | `action: "primary"` (or `activate`), `confidence` | one decoder output that is a click probability or a 0/1 decision (§7) |
 
 `confidence` is the class posterior at the moment the rule fired. All carry provenance
 `decoded_intent`, the model id, and the source's `synthetic` / `replayed` flags.
@@ -256,3 +258,85 @@ and on the decoded synthetic source).
    or "Type text").
 3. Start control. Under "Authorized applications" each app that asks for commands says what it
    would receive; Authorize the one you mean. Revoke or the title-bar Stop control end it.
+
+## 7. Milestone 5 (workstream C): control.state, navigation, click
+
+Application side: [APPLICATIONS.md](APPLICATIONS.md).
+
+### control.state — the explicit safe-state signal (schema 1.4)
+
+An application that asks for `control_status` (granted whenever a device is connected)
+receives `control.state {active, capabilities, reason}` addressed to it alone:
+
+- when a session starts (`connecting to …`, then e.g. `source streaming (…)`) and when the
+  app connects during a session;
+- whenever the set of command capabilities whose events can reach it changes — granted by
+  negotiation, the source `streaming`, and for decoded commands the router on and the app id
+  authorized (the same conditions the bus applies);
+- while inactive, when the reason it stays inactive changes (e.g. connecting → suspended →
+  waiting for operator authorization).
+
+| Trigger | `reason` |
+| --- | --- |
+| operator Stop / router disabled / pipeline restarted or stopped | `command output stopped: <router stop reason>` |
+| input stall | `command output stopped: input stalled: no decoder input for N ms (limit L)` |
+| source paused | `command output stopped: source paused`, then `source paused by operator` |
+| link lost / reconnected | `command output stopped: source link lost`, `source link lost: …` / `source reconnected after N attempt(s)` |
+| switch / disconnect | `command output stopped: device disconnected (…)` / `device disconnected (…)` |
+| error / end of source | `runtime error: …` / `source ended: …` |
+| authorize / revoke | `operator authorized this application (…)` / `authorization revoked by operator (…)` |
+| router on, app authorized | `decoded command output active (…; decoder <model>, authorized)` |
+| simulated source | `command input active (…; from <device>)` |
+
+Ordering: the notice is computed and enqueued in the same synchronous step as the change,
+after decoded commands still queued for the app were withdrawn, so an app never receives a
+command after `active: false` until a later `active: true` (tested for every trigger above in
+`test_control_state.py`, over the WebSocket in `test_apps_e2e.py`). It is pinned in the
+subscriber queue: overflow drops the oldest *other* event. Negotiation messages are control
+messages (delivered ahead of queued events), so an app usually sees the negotiation change
+first; the SDK `CommandGuard` stops on whichever comes first and, when `control_status` is
+granted, requires an active `control.state` before any command is usable.
+
+### Navigation rules
+
+Discrete rules accept `action: "navigate:<direction>"`; the router then advertises
+`navigation` (`params.directions`) and emits `intent.navigate`. `selection` is advertised only
+if a select/activate/cancel rule (or a click) exists. Decoded navigation needs the operator's
+authorization (`POST /control/apps/{id}/authorize {"capabilities": ["navigation"]}`). The
+console's rule editor offers "Move to next / previous / up / down / left / right".
+
+### Click rule (cursor + click)
+
+`RouterSpec.click = {output, action="primary"|"activate", threshold=0.5, release?,
+min_confidence=0, confidence_dim?, debounce_ms=0, refractory_ms=300}` on any decoder output
+(typically next to a pointer mapping on a continuous decoder, e.g. dims `vx, vy, click`):
+fires when `output ≥ threshold` for `debounce_ms` (decoder clock), at most once per
+`refractory_ms`, then waits until `output < release` (default `threshold − 0.15`) — one click,
+one selection. At the moment it would fire, the confidence (`confidence_dim`, default the
+output, clipped to [0, 1]) must be ≥ `min_confidence`; otherwise the click is rejected and
+counted (`counters.clicks_gated`). The click output cannot also drive the pointer; a missing
+output is refused with 409 `incompatible_decoder`. The console offers "Click from" for
+continuous decoders.
+
+### Native pointer scale
+
+`pointer_scale: "native"` treats the two pointer dims as a velocity already in workspace units
+per second (no division by the training behavior std, so no `behavior_std` needed);
+`deadzone` is then in those units (set it to 0 to pass every movement). Example: a research
+system's original cursor decoder in screen heights / s with targets in a square of side
+0.92 centred at the origin, +y up → `gain = 1 / 0.92`, `invert_y: true` maps it onto the
+board's unit-square workspace (y down).
+
+### Historical and external decoder outputs
+
+The router accepts the configured model's `intent.kinematics` + `decoded_intent` whatever its
+`model_origin` and copies the provenance (incl. `model_origin` and `replayed`) to every
+command, so apps can say "historical decoder replay (original research system)". Feeding a
+*source's* recorded decoder output (rather than the pipeline's decoder) into the router is not
+wired in this workstream (LIMITATIONS.md).
+
+### Desktop control bridge
+
+`backend/examples/desktop_bridge/` maps authorized decoded pointer / selection commands to OS
+pointer events in a separate, opt-in process; see its
+[SAFETY.md](../backend/examples/desktop_bridge/SAFETY.md).

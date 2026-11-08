@@ -371,3 +371,87 @@ def test_descriptor_modality_and_integration_1_3() -> None:
     with pytest.raises(ValidationError):
         DeviceDescriptor.model_validate({**base, "integration": {"kind": "vendor"}})
     assert RejectionReason("not_authorized") is RejectionReason.NOT_AUTHORIZED
+
+
+# ------------------------------------------------------------------ schema 1.4
+
+
+def _decoded(event_type: str, payload: dict[str, Any], **prov: Any) -> dict[str, Any]:
+    ev = valid_event(event_type, payload=payload)
+    ev["provenance"] = {
+        **ev["provenance"],
+        "kind": "decoded_intent",
+        "synthetic": False,
+        "model_id": "m1",
+        **prov,
+    }
+    ev["quality"] = {"score": 1.0, "flags": []}
+    return ev
+
+
+def _nav(**prov: Any) -> dict[str, Any]:
+    ev = _decoded("intent.pointer", {"direction": "next", "confidence": 0.8}, **prov)
+    ev["event_type"], ev["capability"], ev["schema_version"] = (
+        "intent.navigate",
+        "navigation",
+        "1.4",
+    )
+    return ev
+
+
+@pytest.mark.parametrize("direction", ["up", "down", "left", "right", "next", "previous"])
+def test_navigate_directions_1_4(direction: str) -> None:
+    ev = _nav()
+    ev["payload"]["direction"] = direction
+    assert parse_envelope(ev).payload.direction == direction  # type: ignore[union-attr]
+
+
+@pytest.mark.parametrize(
+    ("change", "match"),
+    [
+        ({"payload": {"direction": "jump", "confidence": 0.5}}, "direction"),
+        ({"payload": {"direction": "up", "confidence": 1.5}}, "confidence"),
+        ({"capability": "selection"}, "capability"),
+    ],
+)
+def test_malformed_navigate_rejected(change: dict[str, Any], match: str) -> None:
+    with pytest.raises(ValidationError, match=match):
+        parse_envelope({**_nav(), **change})
+
+
+def test_model_origin_rules_1_4() -> None:
+    assert parse_envelope(_nav(model_origin="brainos")).provenance.model_origin == "brainos"
+    # recorded outputs of an original research decoder are replayed data by definition
+    with pytest.raises(ValidationError, match="replayed must be true"):
+        parse_envelope(_nav(model_origin="historical"))
+    assert parse_envelope(_nav(model_origin="historical", replayed=True)).provenance.replayed
+    with pytest.raises(ValidationError):
+        parse_envelope(_nav(model_origin="mine"))
+    raw = valid_event("recording.frame")
+    raw["provenance"]["model_origin"] = "brainos"
+    with pytest.raises(ValidationError, match="model_origin is only valid"):
+        parse_envelope(raw)
+
+
+def test_control_state_1_4() -> None:
+    ev = valid_event(
+        "intent.pointer",
+        payload={"active": False, "capabilities": ["pointer_intent"], "reason": "operator stop"},
+    )
+    ev.update(event_type="control.state", capability="control_status", schema_version="1.4")
+    ev["provenance"] = {**ev["provenance"], "kind": "runtime", "synthetic": False}
+    assert parse_envelope(ev).payload.active is False  # type: ignore[union-attr]
+    bad = {**ev, "provenance": {**ev["provenance"], "kind": "decoded_intent", "model_id": "m"}}
+    with pytest.raises(ValidationError, match="not allowed"):
+        parse_envelope(bad)
+    with pytest.raises(ValidationError):
+        parse_envelope({**ev, "payload": {"active": "no", "capabilities": [], "reason": ""}})
+
+
+def test_spike_band_power_feature_1_4() -> None:
+    ev = valid_event("features.vector")
+    ev["payload"] = {**ev["payload"], "feature": "spike_band_power", "band_hz": None}
+    assert parse_envelope(ev).payload.feature == "spike_band_power"  # type: ignore[union-attr]
+    ev["payload"]["feature"] = "spike_power"
+    with pytest.raises(ValidationError, match="feature"):
+        parse_envelope(ev)

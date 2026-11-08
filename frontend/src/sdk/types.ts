@@ -16,6 +16,9 @@ export const CAPABILITIES = [
   "neural_features",
   "behavior",
   "kinematic_intent",
+  // schema 1.4
+  "navigation",
+  "control_status",
 ] as const;
 export type Capability = (typeof CAPABILITIES)[number];
 
@@ -32,6 +35,9 @@ export const EVENT_CAPABILITY = {
   "features.vector": "neural_features", // 1.2
   "behavior.sample": "behavior",
   "intent.kinematics": "kinematic_intent",
+  // schema 1.4
+  "intent.navigate": "navigation",
+  "control.state": "control_status",
 } as const satisfies Record<string, Capability>;
 export type EventType = keyof typeof EVENT_CAPABILITY;
 
@@ -58,6 +64,8 @@ export const ALLOWED_PROVENANCE: Record<EventType, readonly ProvenanceKind[]> = 
   "features.vector": ["processed_feature"],
   "behavior.sample": ["behavioral_label"],
   "intent.kinematics": ["simulated_intent", "decoded_intent"],
+  "intent.navigate": ["simulated_intent", "decoded_intent"],
+  "control.state": ["runtime"],
 };
 
 export type QualityFlag =
@@ -80,6 +88,9 @@ export interface Provenance {
   model_id: string | null;
   origin: string;
   replayed: boolean;
+  /** 1.4: who produced a decoded_intent: a BrainOS model, an external live decoder, or the
+   * recorded outputs of a research system's original decoder ("historical"). */
+  model_origin?: "brainos" | "external" | "historical" | null;
 }
 
 export interface RecordingFramePayload {
@@ -139,7 +150,7 @@ export interface FeaturesBinnedPayload {
   counts: number[];
 }
 export interface FeaturesVectorPayload {
-  feature: "band_power" | "log_band_power";
+  feature: "band_power" | "log_band_power" | "spike_band_power";
   unit: string;
   band_hz: [number, number] | null;
   bin_ms: number;
@@ -163,6 +174,18 @@ export interface KinematicIntentPayload {
   space: string;
 }
 
+/** schema 1.4: discrete navigation (moves a highlight/focus, not a cursor). */
+export interface NavigateIntentPayload {
+  direction: "up" | "down" | "left" | "right" | "next" | "previous";
+  confidence: number;
+}
+/** schema 1.4: runtime notice to one app; active=false means stop acting (safe state). */
+export interface ControlStatePayload {
+  active: boolean;
+  capabilities: string[];
+  reason: string;
+}
+
 export interface PayloadByType {
   "recording.frame": RecordingFramePayload;
   "recording.annotation": RecordingAnnotationPayload;
@@ -175,6 +198,8 @@ export interface PayloadByType {
   "features.vector": FeaturesVectorPayload;
   "behavior.sample": BehaviorSamplePayload;
   "intent.kinematics": KinematicIntentPayload;
+  "intent.navigate": NavigateIntentPayload;
+  "control.state": ControlStatePayload;
 }
 
 interface EnvelopeBase {
@@ -200,9 +225,13 @@ export type EnvelopeOf<T extends EventType> = Extract<EventEnvelope, { event_typ
 
 // ------------------------------------------------------------------ protocol
 
+/** A flat object inside a capability parameter (schema 1.4), e.g. one feature stream. */
+export type ParamObject = Record<string, number | string | boolean | null | string[] | number[]>;
+export type ParamValue = number | string | boolean | string[] | number[] | ParamObject[];
+
 export interface CapabilityDescriptor {
   capability: Capability;
-  params: Record<string, number | string | boolean | string[]>;
+  params: Record<string, ParamValue>;
   description: string;
 }
 
@@ -297,10 +326,42 @@ export interface PlaybackStatus {
   origin: string;
 }
 
+/** M5: one electrode of a raw-signal (e.g. ECoG) source, as the file describes it. */
+export interface SourceElectrode {
+  index: number;
+  id: number;
+  label: string;
+  group: string | null;
+  group_description: string | null;
+  location: string | null;
+  x: number | null;
+  y: number | null;
+  z: number | null;
+  /** from the file's good/bad column; null = not stated */
+  bad: boolean | null;
+  filtering: string | null;
+}
+
+/** M5: raw-signal layout of an offline source. */
+export interface SourceSignal {
+  series: string;
+  sample_rate_hz: number;
+  unit: "uV" | "arbitrary";
+  declared_unit: string;
+  conversion: number | null;
+  n_samples: number;
+  start_s: number;
+  first_sample_index: number;
+  frame_samples: number;
+  line_hz: number | null;
+  bad_channels: string[];
+}
+
 export interface SourceMetadata {
   device_id: string;
   label: string;
-  source_type: "nwb_units";
+  /** nwb_units: spike times (M2); nwb_electrical_series: raw voltage, e.g. ECoG (M5) */
+  source_type: "nwb_units" | "nwb_electrical_series";
   live: false;
   dataset: {
     id: string;
@@ -345,6 +406,21 @@ export interface SourceMetadata {
     control_time_shift_r2: number | null;
   } | null;
   notes: string[];
+  // Milestone 5 (additive, optional)
+  modality?: Modality | null;
+  invasive?: boolean | null;
+  signal?: SourceSignal | null;
+  electrodes?: SourceElectrode[] | null;
+  intervals?: { table: string; description: string; rows: number; emitted_as: string }[];
+  slice?: {
+    id: string;
+    asset_path: string;
+    asset_sha256: string;
+    series: string;
+    samples: number[];
+    data_sha256: string;
+    role: string;
+  } | null;
 }
 
 export type ServerMessage =

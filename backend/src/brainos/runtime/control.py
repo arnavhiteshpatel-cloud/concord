@@ -1,7 +1,8 @@
 """Operator authorization of applications for decoded commands (Milestone 4, control bridge).
 
-Default deny: a decoded command (``intent.pointer`` / ``intent.selection`` / ``intent.text``
-with provenance ``decoded_intent``, produced only by the command router) reaches an
+Default deny: a decoded command (``intent.pointer`` / ``intent.selection`` / ``intent.text`` /
+``intent.navigate`` with provenance ``decoded_intent``, produced only by the command router)
+reaches an
 application only while the operator has authorized that application id for that capability.
 
 The store is in memory only: it is empty after every runtime start, survives source switches
@@ -26,8 +27,15 @@ from brainos.contracts.events import EventEnvelope, ProvenanceKind
 log = logging.getLogger(__name__)
 
 # Capabilities whose events an application acts on (commands). Only these need authorization.
+# navigation (schema 1.4) moves a highlight / focus: an application acts on it, so a decoded
+# navigation command is gated exactly like a decoded selection.
 COMMAND_CAPABILITIES: frozenset[Capability] = frozenset(
-    {Capability.POINTER_INTENT, Capability.SELECTION, Capability.TEXT_INTENT}
+    {
+        Capability.POINTER_INTENT,
+        Capability.SELECTION,
+        Capability.TEXT_INTENT,
+        Capability.NAVIGATION,
+    }
 )
 HISTORY = 100
 

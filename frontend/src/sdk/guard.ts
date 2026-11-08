@@ -5,18 +5,24 @@
 //   const detach = attachGuard(stream, guard, (e) => act(e));   // only fresh, usable commands
 //   guard.waitingForAuthorization   // e.g. ["selection"] until the operator authorizes the app
 //   guard.velocity                  // last fresh pointer velocity, or zero (dead-man / stopped)
+//   guard.controlState              // schema 1.4: the runtime's latest control.state, or null
+//
+// When the app asked for (and was granted) `control_status`, a command capability is usable
+// only while the runtime's latest `control.state` for this session lists it as active; an
+// `active: false` notice stops everything at once with the runtime's reason.
 //
 // It never talks to the runtime: authorization is the operator's decision.
 
 import type { BrainOSStream, ConnectionStatus } from "./client";
-import type { Capability, EventEnvelope, NegotiationResult, RuntimeSnapshot } from "./types";
+import type { Capability, EnvelopeOf, EventEnvelope, NegotiationResult, RuntimeSnapshot } from "./types";
 
-export type CommandCapability = "pointer_intent" | "selection" | "text_intent";
-export const COMMAND_CAPABILITIES: readonly CommandCapability[] = ["pointer_intent", "selection", "text_intent"];
+export type CommandCapability = "pointer_intent" | "selection" | "text_intent" | "navigation";
+export const COMMAND_CAPABILITIES: readonly CommandCapability[] = ["pointer_intent", "selection", "text_intent", "navigation"];
 const COMMAND_EVENTS: Record<string, CommandCapability> = {
   "intent.pointer": "pointer_intent",
   "intent.selection": "selection",
   "intent.text": "text_intent",
+  "intent.navigate": "navigation", // schema 1.4
 };
 
 export const DEFAULT_MAX_AGE_MS = 500;
@@ -32,6 +38,8 @@ export interface GuardOptions {
   compareWallClock?: boolean;
   onStop?: (reason: string) => void;
   onDeadman?: () => void;
+  /** schema 1.4: called for every control.state the guard receives */
+  onControlState?: (state: ControlStateInfo) => void;
   /** clocks, injectable for tests: wall clock in ms since epoch, monotonic ms */
   wallMs?: () => number;
   monoMs?: () => number;
@@ -44,6 +52,14 @@ export interface GuardStats {
   droppedLate: number;
   stops: number;
   deadman: number;
+}
+
+/** The runtime's latest control.state for this app (schema 1.4). */
+export interface ControlStateInfo {
+  session: string;
+  active: boolean;
+  capabilities: string[];
+  reason: string;
 }
 
 /** Why a capability is not usable: "" when negotiation grants it. */
@@ -62,6 +78,8 @@ export class CommandGuard {
   private lastPointerMs: number | null = null;
   private vel: [number, number] = [0, 0];
   private idle = true;
+  private controlRequired = false;
+  private control: ControlStateInfo | null = null;
   private readonly maxAgeMs: number;
   private readonly deadmanMs: number;
   private readonly compareWallClock: boolean;
@@ -87,13 +105,16 @@ export class CommandGuard {
     return [...this.activeSet];
   }
 
-  /** "active" or why not: not_authorized, unavailable, no_device, suspended, source_<state>, closed, … */
+  /** "active" or why not: not_authorized, unavailable, no_device, suspended, source_<state>, closed,
+   *  control_inactive (the runtime's control.state says so), … */
   state(c: CommandCapability): string {
     const n = this.negotiated.get(c);
     if (n === undefined) return "not_requested";
     if (this.activeSet.has(c)) return "active";
     if (this.closed) return "closed";
-    return n || `source_${this.source}`;
+    if (n) return n;
+    if (this.source !== "streaming" && this.source !== "unknown") return `source_${this.source}`;
+    return "control_inactive";
   }
 
   get waitingForAuthorization(): CommandCapability[] {
@@ -102,6 +123,12 @@ export class CommandGuard {
 
   get velocity(): [number, number] {
     return this.activeSet.has("pointer_intent") && !this.idle ? [this.vel[0], this.vel[1]] : [0, 0];
+  }
+
+  /** The runtime's latest control.state for the current session, or null. */
+  get controlState(): ControlStateInfo | null {
+    const c = this.control;
+    return c && (this.session === null || c.session === this.session) ? c : null;
   }
 
   onNegotiation(n: NegotiationResult): void {
@@ -114,6 +141,7 @@ export class CommandGuard {
         this.negotiated.set(c, r === "not_authorized" ? "not_authorized" : r === "no_device" ? "no_device" : "unavailable");
       } else this.negotiated.set(c, n.status === "no_device" ? "no_device" : "suspended");
     }
+    this.controlRequired = granted.has("control_status");
     this.update();
   }
 
@@ -135,6 +163,15 @@ export class CommandGuard {
       this.closed = true;
       this.update(status === "reconnecting" ? "connection lost" : "stream closed");
     }
+  }
+
+  /** Feed a control.state event (schema 1.4). active=false stops everything at once. */
+  onControlState(e: EnvelopeOf<"control.state">): void {
+    const { active, capabilities, reason } = e.payload;
+    if (this.session === null) this.session = e.session_id;
+    this.control = { session: e.session_id, active, capabilities: active ? [...capabilities] : [], reason };
+    this.opts.onControlState?.(this.control);
+    this.update(active ? undefined : reason || "command output inactive");
   }
 
   /** True if the app should act on this command now. Non-command events return false. */
@@ -176,9 +213,17 @@ export class CommandGuard {
     return true;
   }
 
+  private controlAllows(c: CommandCapability): boolean {
+    if (!this.controlRequired) return true;
+    const s = this.control;
+    return !!s && s.session === this.session && s.active && s.capabilities.includes(c);
+  }
+
   private update(reason?: string): void {
     const streaming = this.source === "streaming" || this.source === "unknown";
-    const next = new Set(this.capabilities.filter((c) => !this.closed && streaming && this.negotiated.get(c) === ""));
+    const next = new Set(
+      this.capabilities.filter((c) => !this.closed && streaming && this.negotiated.get(c) === "" && this.controlAllows(c)),
+    );
     const lost = [...this.activeSet].filter((c) => !next.has(c)).sort();
     this.activeSet = next;
     if (lost.length) {
@@ -203,13 +248,15 @@ export class CommandGuard {
       case "suspended":
         return "application suspended";
       default:
-        return `source ${this.source}`;
+        if (this.source !== "streaming" && this.source !== "unknown") return `source ${this.source}`;
+        return this.controlState?.reason || "command output inactive";
     }
   }
 }
 
-/** Wire a guard to a stream: negotiation/runtime/connection updates, the dead-man timer, and a
- *  callback for fresh, usable commands only. Returns a function that detaches everything. */
+/** Wire a guard to a stream: negotiation/runtime/connection updates, control.state, the dead-man
+ *  timer, and a callback for fresh, usable commands only. Returns a function that detaches
+ *  everything. */
 export function attachGuard(
   stream: BrainOSStream,
   guard: CommandGuard,
@@ -223,7 +270,8 @@ export function attachGuard(
     stream.on("runtime", (r) => guard.onRuntime(r)),
     stream.on("status", (s) => guard.onConnection(s)),
     stream.on("event", (e) => {
-      if (guard.accept(e)) onCommand(e);
+      if (e.event_type === "control.state") guard.onControlState(e);
+      else if (guard.accept(e)) onCommand(e);
     }),
   ];
   const timer = setInterval(() => guard.tick(), tickMs);

@@ -89,9 +89,10 @@ def test_schema_and_capabilities_endpoints(client: TestClient) -> None:
     assert "BrainOS EventEnvelope" in schema["title"]
     caps = {c["capability"]: c for c in client.get("/api/v1/capabilities").json()}
     assert caps["recording"]["event_types"] == ["recording.frame", "recording.annotation"]
-    assert (
-        len(caps) == 9
-    )  # schema 1.1 added neural_features, behavior, kinematic_intent (1.2: none)
+    # 1.1 added neural_features, behavior, kinematic_intent; 1.4 navigation, control_status
+    assert len(caps) == 11
+    assert caps["navigation"]["event_types"] == ["intent.navigate"]
+    assert caps["control_status"]["event_types"] == ["control.state"]
 
 
 def _recv_until(ws: Any, pred: Any, limit: int = 500) -> dict[str, Any]:

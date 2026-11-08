@@ -116,3 +116,17 @@ so stale commands never act and motion stops on revocation, disconnect or silenc
   reason (never loads them).
 - Event schema `1.3`: consumers accept the same major version; minor versions are additive.
 - Packages follow semantic versioning; `brainos` is pre-1.0 (internal preview).
+
+## M5-D: the `brainos` command, the desktop bundle, the lab acceptance test
+
+`brainos[server]` installs the `brainos` command: `start` / `stop` / `status` / `serve`,
+`doctor` (support report), `config` (an optional TOML file; environment variables override
+it), `dataset`, `reproduce`, `version`. `brainos[lab]` adds processing, NWB, LSL and Open Ephys.
+To ship the console inside the wheel, stage it before building
+(`python packaging/stage_console.py --build`); otherwise a wheel install serves the API only.
+
+The desktop bundle is built with PyInstaller (`make app`; `packaging/brainos.spec`); the same
+executable answers `brainos` commands and hosts source plugins (`-m brainos_adapter_sdk.host`).
+`make app-smoke` runs it like a user. `make lab-acceptance` (`scripts/lab_acceptance.py`)
+extends `make dist-check` with the whole researcher workflow from built wheels in fresh
+virtualenvs. CI: `package-linux`, `package-macos`, `lab-acceptance`.

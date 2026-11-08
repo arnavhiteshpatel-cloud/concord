@@ -244,12 +244,64 @@ class SourceDecoder(_Wire):
     control_time_shift_r2: float | None
 
 
+class SourceElectrode(_Wire):
+    """One electrode of a raw-signal source, exactly as the file describes it (M5)."""
+
+    index: int
+    id: int
+    label: str
+    group: str | None
+    group_description: str | None
+    location: str | None
+    x: float | None
+    y: float | None
+    z: float | None
+    bad: bool | None = Field(description="from the file's good/bad column; None = not stated")
+    filtering: str | None
+
+
+class SourceSignal(_Wire):
+    """Raw-signal layout of an offline source (M5)."""
+
+    series: str
+    sample_rate_hz: float
+    unit: Literal["uV", "arbitrary"]
+    declared_unit: str
+    conversion: float | None
+    n_samples: int
+    start_s: float = Field(description="time of the first sample, seconds since session start")
+    first_sample_index: int = Field(description="index of the first sample in the source series")
+    frame_samples: int
+    line_hz: float | None
+    bad_channels: list[str]
+
+
+class SourceIntervals(_Wire):
+    table: str
+    description: str
+    rows: int
+    emitted_as: str
+
+
+class SourceSlice(_Wire):
+    """Where a verified extract came from: a pinned slice of a larger published asset (M5)."""
+
+    id: str
+    asset_path: str
+    asset_sha256: str
+    series: str
+    samples: list[int]
+    data_sha256: str
+    role: str
+
+
 class SourceMetadata(_Wire):
     """Everything known (and explicitly not known) about an offline data source."""
 
     device_id: str
     label: str
-    source_type: Literal["nwb_units"]
+    # nwb_units: spike times (M2); nwb_electrical_series: raw voltage, e.g. ECoG (M5)
+    source_type: Literal["nwb_units", "nwb_electrical_series"]
     live: Literal[False] = False
     dataset: DatasetInfo | None
     file: SourceFile
@@ -273,6 +325,14 @@ class SourceMetadata(_Wire):
     behavior: SourceBehavior | None
     decoder: SourceDecoder | None
     notes: list[str]
+    # Milestone 5 (additive, optional): declared modality, raw-signal layout, electrode table,
+    # interval tables forwarded as annotations, and the pinned slice an extract came from.
+    modality: Modality | None = None
+    invasive: bool | None = None
+    signal: SourceSignal | None = None
+    electrodes: list[SourceElectrode] | None = None
+    intervals: list[SourceIntervals] = Field(default_factory=list)
+    slice: SourceSlice | None = None
 
 
 class RuntimeSnapshot(_Wire):

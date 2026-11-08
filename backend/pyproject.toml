@@ -24,11 +24,20 @@ server = [
     "fastapi>=0.115",
     "uvicorn[standard]>=0.30",
     "brainos-adapter-sdk>=1.0,<2",
+    # Milestone 5: decoder plugins and model files run in the isolated decoder host
+    "brainos-decoder-sdk>=1.0,<2",
+    # M5-E: encodes raw-frame sample arrays to JSON ~3x faster than pydantic on tolist()
+    # (byte-identical output; docs/PERFORMANCE.md). Optional at runtime: without it the
+    # runtime falls back to pydantic's encoder (runtime/fastjson.py).
+    "orjson>=3.9",
 ]
 # Offline neural datasets (NWB) + baseline decoder. numpy is used by both.
+# remfile (M5): HTTP range reads of pinned slices of multi-GB DANDI assets (AJILE12 ECoG,
+# 8-18 GiB per file) instead of downloading whole files; h5py comes with pynwb.
 nwb = [
     "pynwb>=2.8",
     "numpy>=1.26",
+    "remfile>=0.1.13",
 ]
 # Streaming signal processing + online decoding (causal filters, features).
 dsp = [
@@ -47,12 +56,19 @@ dev = [
     "mypy>=1.11",
     "ruff>=0.6",
 ]
+# M5-D: everything a lab needs in one extra (server, processing, datasets, LSL/Open Ephys)
+lab = ["brainos[server,dsp,nwb,live]"]
 
 [project.scripts]
 brainos-server = "brainos.server.__main__:main"
+# M5-D: start/stop/status/doctor/version/config/dataset/reproduce/serve
+brainos = "brainos.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/brainos"]
+# M5-D: the built console, copied in by packaging/stage_console.py (git-ignored), is shipped
+# in the wheel when present so `pip install` users get the console too
+artifacts = ["src/brainos/server/console/**"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "../examples/adapters/brainos-example-adapter/tests"]
@@ -71,7 +87,7 @@ packages = ["brainos"]
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["pynwb", "pynwb.*", "hdmf", "hdmf.*", "h5py", "pylsl", "pylsl.*", "scipy", "scipy.*", "brainflow", "brainflow.*"]
+module = ["pynwb", "pynwb.*", "hdmf", "hdmf.*", "h5py", "remfile", "pylsl", "pylsl.*", "scipy", "scipy.*", "brainflow", "brainflow.*"]
 ignore_missing_imports = true
 
 [tool.ruff]
@@ -85,4 +101,7 @@ ignore = ["RUF012"]
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["E501", "ASYNC109", "ASYNC110"]
 "../scripts/bench.py" = ["E501"]  # emits markdown tables
+"../scripts/bench_scale.py" = ["E501"]  # emits markdown tables (M5-E)
 "src/brainos/decoding/evaluate_falcon.py" = ["E501"]  # emits markdown tables
+"src/brainos/evaluation/run_cursorclick.py" = ["E501", "RUF001"]  # emits markdown tables
+"src/brainos/decoding/evaluate_ecog.py" = ["E501"]  # emits markdown tables
