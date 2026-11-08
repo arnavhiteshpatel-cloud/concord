@@ -1,6 +1,6 @@
-// BrainOS TypeScript SDK — stream client.
+// Concord TypeScript SDK — stream client.
 //
-//   const stream = new BrainOSStream({
+//   const stream = new ConcordStream({
 //     app: { id: "my-app", name: "My App" },
 //     required: ["selection"],
 //     optional: ["pointer_intent"],
@@ -95,7 +95,7 @@ export function defaultStreamUrl(): string {
   return `${proto}://${window.location.host}/api/v1/stream`;
 }
 
-export class BrainOSStream {
+export class ConcordStream {
   status: ConnectionStatus = "idle";
   negotiation: NegotiationResult | null = null;
   runtime: RuntimeSnapshot | null = null;

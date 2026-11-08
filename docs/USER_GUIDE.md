@@ -1,11 +1,11 @@
-# BrainOS user guide
+# Concord user guide
 
-Every part of BrainOS, in the order you meet it: the desktop app, the console (the operator's
+Every part of Concord, in the order you meet it: the desktop app, the console (the operator's
 screen in your browser), the communication board (the participant's screen), the configuration
-file and the `brainos` command. New to BrainOS? Start with
+file and the `concord` command. New to Concord? Start with
 [Getting started](GETTING_STARTED.md); terms are explained in the [glossary](GLOSSARY.md).
 
-> BrainOS is research software and only *receives* data. It has never been used with acquisition
+> Concord is research software and only *receives* data. It has never been used with acquisition
 > hardware or a participant and is not a medical device ([validation levels](VALIDATION_LEVELS.md)).
 
 **Contents**
@@ -22,23 +22,23 @@ file and the `brainos` command. New to BrainOS? Start with
 10. [Stopping safely](#stopping-safely)
 11. [Advanced sections](#advanced-sections)
 12. [Configuration file](#configuration-file)
-13. [The `brainos` command](#the-brainos-command)
+13. [The `concord` command](#the-concord-command)
 14. [Network, ports and data folders](#network-ports-and-data-folders)
 
 ---
 
 ## The desktop app
 
-Starting BrainOS (the Mac app or the Linux bundle) opens a small window titled **BrainOS**:
-**BrainOS is running**, its address (http://127.0.0.1:8000) and *Research use only · not a
+Starting Concord (the Mac app or the Linux bundle) opens a small window titled **Concord**:
+**Concord is running**, its address (http://127.0.0.1:8000) and *Research use only · not a
 medical device · read-only*, with two buttons:
 
 | Button | What it does |
 | --- | --- |
 | **Open console** | Opens the console in your default browser (it also opens by itself at start). |
-| **Stop and quit** | Performs a [safe stop](#stopping-safely), then ends BrainOS. ⌘Q, Quit in the Dock and closing the window do the same. |
+| **Stop and quit** | Performs a [safe stop](#stopping-safely), then ends Concord. ⌘Q, Quit in the Dock and closing the window do the same. |
 
-Opening BrainOS again while it runs only opens the console. If BrainOS ends unexpectedly
+Opening Concord again while it runs only opens the console. If Concord ends unexpectedly
 (crash, power loss), the next start keeps every complete part of an interrupted recording and
 marks it *incomplete* (details in [TROUBLESHOOTING.md](TROUBLESHOOTING.md)).
 
@@ -50,7 +50,7 @@ marks it *incomplete* (details in [TROUBLESHOOTING.md](TROUBLESHOOTING.md)).
 
 | Part | Contents |
 | --- | --- |
-| **Title bar** | *BrainOS*, a **Research use only** badge (hover: "Not a medical device. Read-only: BrainOS never writes to or stimulates a device."), the connected source, its state (e.g. *Streaming · Simulated data*, *Streaming · Recorded human data, offline replay*), **· Recording** while recording, and **Stop control** (turns decoded commands off at once). |
+| **Title bar** | *Concord*, a **Research use only** badge (hover: "Not a medical device. Read-only: Concord never writes to or stimulates a device."), the connected source, its state (e.g. *Streaming · Simulated data*, *Streaming · Recorded human data, offline replay*), **· Recording** while recording, and **Stop control** (turns decoded commands off at once). |
 | **Session strip** | The research session (or "No research session…"), **New session** / **Session and export…**, and **Safe stop & disconnect**. |
 | **Acquisition source** | The connected source, **Connect a source** / **Change source** / **Disconnect**, and *Options* (live sources) or *Playback* (replays). |
 | **Signal integrity** | The verdict, live traces and three measured numbers. |
@@ -67,15 +67,15 @@ example "Connect a source first." or "Start decoding with a model first.").
 ## Connecting a source
 
 **Connect a source** (or **Change source** while connected) opens a panel with every source
-BrainOS can use, grouped by kind. **Connect** next to a source starts it; while another source
-runs, the button reads **Switch** and BrainOS changes source without restarting. Applications
+Concord can use, grouped by kind. **Connect** next to a source starts it; while another source
+runs, the button reads **Switch** and Concord changes source without restarting. Applications
 keep running and are told what the new source can provide.
 
 ![The Connect a source panel](images/02-connect-a-source.png)
 
 ### Simulated profiles
 
-Synthetic data generated inside BrainOS, for demonstrations and testing. Never brain data; every
+Synthetic data generated inside Concord, for demonstrations and testing. Never brain data; every
 event they produce is labelled `simulated_intent` or synthetic.
 
 | Profile | Signal | What it provides to applications |
@@ -100,7 +100,7 @@ only on data it was *not* trained on.
 
 ### Session recordings (replay)
 
-Recordings you made with BrainOS ([Recording and replay](#recording-and-replay)). They replay
+Recordings you made with Concord ([Recording and replay](#recording-and-replay)). They replay
 through the same pipeline; every replayed event is marked `replayed`.
 
 ### Other sources
@@ -111,7 +111,7 @@ outputs, labelled *historical*.
 
 ### Live streams
 
-BrainOS only receives; nothing is sent to the acquisition system.
+Concord only receives; nothing is sent to the acquisition system.
 
 **Find LSL streams** — Lab Streaming Layer outlets on your network:
 
@@ -128,8 +128,8 @@ BrainOS only receives; nothing is sent to the acquisition system.
 | Field | Meaning |
 | --- | --- |
 | **Host** | The computer running the Open Ephys GUI (default 127.0.0.1) |
-| **Data port** | The plugin's data port (default 5556); BrainOS sends heartbeats to port + 1 |
-| **Sample unit** | **Unknown** (samples passed through, labelled *arbitrary*), or the unit configured in the GUI (µV, mV, V), which BrainOS converts to µV |
+| **Data port** | The plugin's data port (default 5556); Concord sends heartbeats to port + 1 |
+| **Sample unit** | **Unknown** (samples passed through, labelled *arbitrary*), or the unit configured in the GUI (µV, mV, V), which Concord converts to µV |
 
 **Add source** registers it; adding does not connect it. Setup in the GUI: [OPEN_EPHYS.md](OPEN_EPHYS.md).
 
@@ -137,7 +137,7 @@ BrainOS only receives; nothing is sent to the acquisition system.
 
 Sources from installed adapter packages (BCI2000 is included in the app; BrainFlow with the
 Python installation; or [your own](ADAPTER_SDK.md)). Each plugin shows its version, whether it is
-**compatible** with this BrainOS, its kind and whether it uses the network; each device it
+**compatible** with this Concord, its kind and whether it uses the network; each device it
 offers has **Connect** and, where needed, **Options**. **Search again** looks for newly installed
 plugins. Plugins are third-party code: each runs in its own process, with your user's
 permissions; "compatible" means it follows the adapter contract, not that its code was reviewed.
@@ -156,16 +156,16 @@ three numbers on the right.
 | **Gaps detected** | A loss counter increased in the last 10 s (stream gaps, estimated missing samples, missed messages, incomplete blocks, pipeline dropped inputs, dropped deliveries) |
 | **No signal** | No raw-signal or feature event arrived in the last 2 s |
 | **Paused** | The operator paused the source |
-| **Interrupted — reconnecting** | BrainOS is reconnecting to the source |
+| **Interrupted — reconnecting** | Concord is reconnecting to the source |
 
 | Number | Meaning |
 | --- | --- |
 | **Channels** | Channels in the latest data block, of the channels the source declares |
 | **Data received (%)** | Share of the data that arrived, where the source reports both sides: LSL (samples received vs estimated missing) and Open Ephys (messages received vs missed); — otherwise |
-| **Delay to this screen (ms)** | Median time from BrainOS receiving an event to this browser receiving it (last 1,000 events) |
+| **Delay to this screen (ms)** | Median time from Concord receiving an event to this browser receiving it (last 1,000 events) |
 
 Per-stream counters (received, gaps, estimated missing samples, time correction, last
-timestamp) are under **Advanced → Acquisition details**. BrainOS counts every loss and
+timestamp) are under **Advanced → Acquisition details**. Concord counts every loss and
 reconnect; it never fills gaps silently.
 
 ---
@@ -253,7 +253,7 @@ window, for a second screen facing the participant. Every rule and stop path:
 
 ## The communication board
 
-The participant-facing application included with BrainOS. It uses only the public SDK, so it
+The participant-facing application included with Concord. It uses only the public SDK, so it
 works with any source that provides the capabilities it asks for.
 
 ![The communication board](images/05-participant-screen.png)
@@ -261,7 +261,7 @@ works with any source that provides the capabilities it asks for.
 | Part | Contents |
 | --- | --- |
 | Header | *Communication board*, *Research use only*, the active input method, the connection state, **Settings** |
-| Input bar | **Input active** and where the input comes from (*simulated input · synthetic data*, *decoded by <model> (BrainOS)*, *historical decoder replay*) |
+| Input bar | **Input active** and where the input comes from (*simulated input · synthetic data*, *decoded by <model> (Concord)*, *historical decoder replay*) |
 | Message | The composed text, with a label when it is not a participant's own message: *simulated input — no participant* or *demonstration — not the participant's message* |
 | Tiles | Phrases (Yes, No, Hello, Thank you, Please, Help, Water, Wait, I'm tired, Pain, Too hot), **Letters** (keyboard page), **Delete word**, **Undo**, **Clear**, **Speak** (computer speech of the message; not neural speech decoding) |
 | History | Spoken or saved messages |
@@ -323,7 +323,7 @@ replays cannot be re-recorded. For raw archival, use your acquisition software.
 
 ## Research sessions, export and reproduction
 
-**New session** creates a session folder; while it is active, BrainOS logs source changes,
+**New session** creates a session folder; while it is active, Concord logs source changes,
 decoding and control settings, recordings and calibrations into it.
 
 | Field | Note |
@@ -341,7 +341,7 @@ operator, notes, recordings, decoder models and its log, and **Export for reprod
   and package fingerprints, sources, pipeline settings, decoder models with their calibration
   reports, and a `REPRODUCE.md`.
 
-`brainos reproduce <bundle>.zip` (in any BrainOS installation) checks that no file was changed
+`concord reproduce <bundle>.zip` (in any Concord installation) checks that no file was changed
 and re-runs the evaluation. **End session…** → **End session now** turns command output off,
 closes any recording, stops decoding, disconnects the source and closes the session.
 
@@ -358,7 +358,7 @@ closes any recording, stops decoding, disconnects the source and closes the sess
 | **Revoke** (an application) | That application stops receiving decoded commands |
 | **Pause** (source *Options* / *Playback*) | The source pauses and command output turns off; **Resume** continues |
 | **Disconnect** (source) | The source stops; decoding and command output stop and any recording closes |
-| Quitting the app / `brainos stop` | A safe stop, then BrainOS ends |
+| Quitting the app / `concord stop` | A safe stop, then Concord ends |
 
 ---
 
@@ -390,13 +390,13 @@ closes any recording, stops decoding, disconnects the source and closes the sess
 
 You stand in for the participant's intent; no neural decoding is involved. Drag the dot in the
 pad (or hold the arrow keys / W A S D) to move; **Select** (or Space) selects; with Simulated
-Profile B, type text and **Send text**. **Fault injection** tests how BrainOS and applications
+Profile B, type text and **Send text**. **Fault injection** tests how Concord and applications
 react:
 
 | Fault | What happens |
 | --- | --- |
-| **Link drop** | The link drops once; BrainOS reconnects on its own |
-| **Link failure** | The link drops and every reconnect fails; after its retries BrainOS reports an error and you reconnect manually |
+| **Link drop** | The link drops once; Concord reconnects on its own |
+| **Link failure** | The link drops and every reconnect fails; after its retries Concord reports an error and you reconnect manually |
 | **Malformed packet** | The next packet is corrupt; it is rejected and counted |
 | **Clock regression** | The next packet's device clock jumps back; the event is flagged and counted |
 
@@ -405,20 +405,20 @@ react:
 ## Configuration file
 
 Every setting has a safe default, so the file is optional. Create it with
-`brainos config init` (a commented file readable only by you), see where it is with
-`brainos config path`, and see the settings in effect with `brainos config show`. It is
+`concord config init` (a commented file readable only by you), see where it is with
+`concord config path`, and see the settings in effect with `concord config show`. It is
 refused if other users can modify it.
 
 | Section and key | Default | Meaning |
 | --- | --- | --- |
-| `[server] host` | `127.0.0.1` | Interface to listen on; keep 127.0.0.1 (BrainOS has no authentication) |
+| `[server] host` | `127.0.0.1` | Interface to listen on; keep 127.0.0.1 (Concord has no authentication) |
 | `[server] port` | `8000` | Port of the console and API |
 | `[server] allow_remote` | `false` | Required for any other host (not recommended; use an SSH tunnel) |
-| `[server] open_browser` | `true` | Open the console when BrainOS starts |
+| `[server] open_browser` | `true` | Open the console when Concord starts |
 | `[server] log_level` | `INFO` | DEBUG, INFO, WARNING or ERROR |
 | `[storage] data_dir` | see [below](#network-ports-and-data-folders) | Recordings, models, sessions, exports and logs |
 | `[storage] reports_dir` | | Test and calibration reports |
-| `[retention] recordings_days`, `sessions_days`, `exports_days`, `models_days` | `0` (keep) | Delete items older than this many days when BrainOS starts; items in use are never deleted |
+| `[retention] recordings_days`, `sessions_days`, `exports_days`, `models_days` | `0` (keep) | Delete items older than this many days when Concord starts; items in use are never deleted |
 | `[recording] max_duration_s` | `300` | A recording with raw frames stops after this many seconds (at most 86400) |
 | `[recording] max_duration_no_raw_s` | `3600` | A features-and-labels-only recording stops after this many seconds |
 | `[recording] max_size_mb` | `200` | A recording stops at this size (at most 102400 MiB) |
@@ -426,37 +426,37 @@ refused if other users can modify it.
 | `[simulation] enabled` | `true` | Offer the simulated profiles and simulator controls |
 | `[plugins] discover` | `true` | Look for installed source plugins at start |
 
-Environment variables override the file: `BRAINOS_HOST`, `BRAINOS_PORT`, `BRAINOS_ALLOW_REMOTE`,
-`BRAINOS_OPEN_BROWSER`, `BRAINOS_LOG_LEVEL`, `BRAINOS_DATA_DIR`, `BRAINOS_REPORTS_DIR`,
-`BRAINOS_ENABLE_SIM`, `BRAINOS_PLUGINS`, `BRAINOS_RECORDING_MAX_S`,
-`BRAINOS_RECORDING_MAX_NO_RAW_S`, `BRAINOS_RECORDING_MAX_MB`, `BRAINOS_RECORDING_MIN_FREE_MB`,
-and `BRAINOS_CONFIG` (which config file to read). For plugins and development:
-`BRAINOS_PLUGIN_PYTHON`, `BRAINOS_PLUGIN_PATH`, `BRAINOS_STATIC_DIR`, `BRAINOS_COMPAT_REGISTRY`.
+Environment variables override the file: `CONCORD_HOST`, `CONCORD_PORT`, `CONCORD_ALLOW_REMOTE`,
+`CONCORD_OPEN_BROWSER`, `CONCORD_LOG_LEVEL`, `CONCORD_DATA_DIR`, `CONCORD_REPORTS_DIR`,
+`CONCORD_ENABLE_SIM`, `CONCORD_PLUGINS`, `CONCORD_RECORDING_MAX_S`,
+`CONCORD_RECORDING_MAX_NO_RAW_S`, `CONCORD_RECORDING_MAX_MB`, `CONCORD_RECORDING_MIN_FREE_MB`,
+and `CONCORD_CONFIG` (which config file to read). For plugins and development:
+`CONCORD_PLUGIN_PYTHON`, `CONCORD_PLUGIN_PATH`, `CONCORD_STATIC_DIR`, `CONCORD_COMPAT_REGISTRY`.
 
 ---
 
-## The `brainos` command
+## The `concord` command
 
 Installed with the Python package; in the Mac app the same commands are run as
-`/Applications/BrainOS.app/Contents/MacOS/BrainOS <command>`.
+`/Applications/Concord.app/Contents/MacOS/Concord <command>`.
 
 | Command | What it does | Main options |
 | --- | --- | --- |
-| `brainos start` | Starts BrainOS in the background, waits until it answers, opens the console | `--port`, `--data-dir`, `--config`, `--no-browser`, `--foreground`, `--host` with `--allow-remote` |
-| `brainos stop` | Safe stop, then ends BrainOS | `--port` |
-| `brainos status` | Whether BrainOS runs, where, and what it is doing | `--json` |
-| `brainos doctor` | Checks the installation and writes a support report (no neural or personal data) | `--json FILE`, `--markdown FILE`, `--print json/markdown`, `--no-plugins` |
-| `brainos version` | Versions of BrainOS and its packages | `--json` |
-| `brainos config` | `path`, `show` (settings in effect), `init` (create the file), `template` | `--config` |
-| `brainos dataset` | Downloads and verifies a demo dataset: `falcon-h1` (default) or `ajile12` | `--all-calib` (all 13 FALCON calibration blocks), `--list`, `--data-dir` |
-| `brainos reproduce BUNDLE.zip` | Verifies a session export and re-runs its evaluation | `--json FILE` |
-| `brainos serve` | Runs BrainOS in the foreground (what `start` runs) | as `start` |
+| `concord start` | Starts Concord in the background, waits until it answers, opens the console | `--port`, `--data-dir`, `--config`, `--no-browser`, `--foreground`, `--host` with `--allow-remote` |
+| `concord stop` | Safe stop, then ends Concord | `--port` |
+| `concord status` | Whether Concord runs, where, and what it is doing | `--json` |
+| `concord doctor` | Checks the installation and writes a support report (no neural or personal data) | `--json FILE`, `--markdown FILE`, `--print json/markdown`, `--no-plugins` |
+| `concord version` | Versions of Concord and its packages | `--json` |
+| `concord config` | `path`, `show` (settings in effect), `init` (create the file), `template` | `--config` |
+| `concord dataset` | Downloads and verifies a demo dataset: `falcon-h1` (default) or `ajile12` | `--all-calib` (all 13 FALCON calibration blocks), `--list`, `--data-dir` |
+| `concord reproduce BUNDLE.zip` | Verifies a session export and re-runs its evaluation | `--json FILE` |
+| `concord serve` | Runs Concord in the foreground (what `start` runs) | as `start` |
 
 ---
 
 ## Network, ports and data folders
 
-BrainOS listens only on this computer, at http://127.0.0.1:8000, and refuses requests from
+Concord listens only on this computer, at http://127.0.0.1:8000, and refuses requests from
 other web sites and other host names. It contacts other computers only when you ask: LSL
 discovery (multicast on your local network), an Open Ephys GUI (its data port and port + 1),
 BCI2000 (UDP 20321 by default), and dataset downloads. Ports and topology for a lab:
@@ -464,10 +464,10 @@ BCI2000 (UDP 20321 by default), and dataset downloads. Ports and topology for a 
 
 | Installation | Data folder | Configuration file |
 | --- | --- | --- |
-| Mac app or Python on a Mac | `~/Library/Application Support/BrainOS/data` | `~/Library/Application Support/BrainOS/config.toml` |
-| Linux bundle or Python on Linux | `~/.local/share/brainos/data` | `~/.config/brainos/config.toml` |
+| Mac app or Python on a Mac | `~/Library/Application Support/Concord/data` | `~/Library/Application Support/Concord/config.toml` |
+| Linux bundle or Python on Linux | `~/.local/share/concord/data` | `~/.config/concord/config.toml` |
 | Source checkout | `data/` in the repository | as above for the platform |
 
 The data folder holds `datasets/`, `recordings/`, `models/`, `sessions/` (with their logs and
 exports), `logs/` and `support/`; it is readable only by your user account (folders 0700, files
-0600). Nothing is encrypted by BrainOS. What is and is not protected: [SECURITY.md](SECURITY.md).
+0600). Nothing is encrypted by Concord. What is and is not protected: [SECURITY.md](SECURITY.md).

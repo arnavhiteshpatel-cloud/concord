@@ -20,9 +20,9 @@ import { fmt } from "./ui";
 
 const FEATURE_SOURCES = [
   ["", "All feature events in the recording"],
-  ["brainos.pipeline", "Features computed by the BrainOS pipeline"],
-  ["brainos.lsl", "Features delivered by an LSL stream"],
-  ["brainos.openephys.zmq", "Spike bins from Open Ephys"],
+  ["concord.pipeline", "Features computed by the Concord pipeline"],
+  ["concord.lsl", "Features delivered by an LSL stream"],
+  ["concord.openephys.zmq", "Spike bins from Open Ephys"],
 ] as const;
 
 // Shown until /calibration/options answers (same wording as decoding/calibrate.py).

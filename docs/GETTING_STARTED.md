@@ -1,9 +1,9 @@
-# Getting started with BrainOS
+# Getting started with Concord
 
-This guide takes you from downloading BrainOS to replaying real human brain recordings, in
+This guide takes you from downloading Concord to replaying real human brain recordings, in
 about 20 minutes, **without using a terminal**. Every step shows what you should see.
 
-> **Before you start.** BrainOS is research software. It *receives* data from acquisition
+> **Before you start.** Concord is research software. It *receives* data from acquisition
 > systems and recordings and never sends anything to a device. It has been tested in software
 > and with test sources only, **never with acquisition hardware or a participant**, and it is
 > **not a medical device** ([validation levels](VALIDATION_LEVELS.md)).
@@ -24,15 +24,15 @@ about 20 minutes, **without using a terminal**. Every step shows what you should
 
 ### On a Mac (Apple Silicon, macOS 14 Sonoma or later)
 
-1. Download **[BrainOS-macos-arm64.dmg](https://github.com/arnavhiteshpatel-cloud/brainos/releases/latest/download/BrainOS-macos-arm64.dmg)**
+1. Download **[Concord-macos-arm64.dmg](https://github.com/arnavhiteshpatel-cloud/brainos/releases/latest/download/Concord-macos-arm64.dmg)**
    (from the [Releases page](https://github.com/arnavhiteshpatel-cloud/brainos/releases/latest)).
-2. Double-click the downloaded `.dmg` and drag **BrainOS** onto **Applications**.
-3. Open BrainOS from Applications. The first time, macOS blocks it because the app is not
+2. Double-click the downloaded `.dmg` and drag **Concord** onto **Applications**.
+3. Open Concord from Applications. The first time, macOS blocks it because the app is not
    signed with an Apple developer certificate:
    - **macOS 15 Sequoia or later:** click **Done**, open **System Settings → Privacy &
-     Security**, scroll down to *Security* and click **Open Anyway** next to "BrainOS was
-     blocked", confirm with your password, then open BrainOS again and click **Open**.
-   - **macOS 14 Sonoma:** in Applications, **Control-click** (or right-click) BrainOS →
+     Security**, scroll down to *Security* and click **Open Anyway** next to "Concord was
+     blocked", confirm with your password, then open Concord again and click **Open**.
+   - **macOS 14 Sonoma:** in Applications, **Control-click** (or right-click) Concord →
      **Open** → **Open**.
 
    You only do this once.
@@ -42,10 +42,10 @@ Intel Macs and macOS 13 or older: use the Python installation in
 
 ### On Linux (x86_64, e.g. Ubuntu 22.04 or later)
 
-1. Download **[BrainOS-linux-x86_64.tar.gz](https://github.com/arnavhiteshpatel-cloud/brainos/releases/latest/download/BrainOS-linux-x86_64.tar.gz)**.
+1. Download **[Concord-linux-x86_64.tar.gz](https://github.com/arnavhiteshpatel-cloud/brainos/releases/latest/download/Concord-linux-x86_64.tar.gz)**.
 2. Extract it (right-click → *Extract Here* in most file managers).
-3. Open the `BrainOS` folder and run the program named **BrainOS** (double-click it if your
-   file manager runs programs; otherwise run `./BrainOS/BrainOS` in a terminal once).
+3. Open the `Concord` folder and run the program named **Concord** (double-click it if your
+   file manager runs programs; otherwise run `./Concord/Concord` in a terminal once).
 
 ### Windows
 
@@ -55,9 +55,9 @@ Not supported yet.
 
 ## 2. First launch: the console
 
-When BrainOS starts, a small window says **"BrainOS is running at http://127.0.0.1:8000"**
+When Concord starts, a small window says **"Concord is running at http://127.0.0.1:8000"**
 and your web browser opens the **console** (if it does not, click **Open console** in that
-window). The console is the operator's screen: everything below happens there. BrainOS runs
+window). The console is the operator's screen: everything below happens there. Concord runs
 only on your computer; nothing is sent to the internet.
 
 ![The console on first launch: no source connected](images/01-console-first-launch.png)
@@ -81,8 +81,8 @@ The [user guide](USER_GUIDE.md) explains every control in depth.
 
 ## 3. Try it with a simulated device (5 minutes)
 
-Simulated devices generate synthetic data inside BrainOS. They are for learning and testing;
-they are never brain data, and BrainOS labels them as simulated everywhere.
+Simulated devices generate synthetic data inside Concord. They are for learning and testing;
+they are never brain data, and Concord labels them as simulated everywhere.
 
 1. Click **Connect a source**. A panel lists every kind of source:
 
@@ -112,7 +112,7 @@ they are never brain data, and BrainOS labels them as simulated everywhere.
    ![The communication board on the participant screen](images/05-participant-screen.png)
 
 5. Try a fault: under **Fault injection**, click **Link drop**. The title bar shows the
-   connection being restored and the session log records it. BrainOS reconnects on its own
+   connection being restored and the session log records it. Concord reconnects on its own
    and counts what was lost.
 
 6. Click **Disconnect** (in **Acquisition source**) when you are done.
@@ -121,8 +121,8 @@ they are never brain data, and BrainOS labels them as simulated everywhere.
 
 ## 4. Replay real human recordings (10 minutes)
 
-BrainOS can replay public recordings from people with implanted electrode arrays. Replays are
-always labelled **Offline Replay**: they are files, not a live implant. BrainOS checks every
+Concord can replay public recordings from people with implanted electrode arrays. Replays are
+always labelled **Offline Replay**: they are files, not a live implant. Concord checks every
 file against a pinned SHA-256 checksum and shows whether it matches.
 
 ### 4.1 Intracortical spiking: FALCON H1 (about 9 MB, no account needed)
@@ -137,17 +137,17 @@ or contact the participant, and no redistribution of the files.
    archive):
    - [sub-HumanPitt-held-in-calib_ses-19250108T110520.nwb](https://api.dandiarchive.org/api/assets/e40a2eca-883d-4c80-81e3-4203a49506b5/download/) (5.5 MB)
    - [sub-HumanPitt-held-in-calib_ses-19250108T111022.nwb](https://api.dandiarchive.org/api/assets/98f1e471-ad68-4006-b090-9a3e347852e6/download/) (3.2 MB)
-2. Put them in BrainOS's **datasets** folder (create the `datasets` folder if it does not
+2. Put them in Concord's **datasets** folder (create the `datasets` folder if it does not
    exist):
 
    | You installed | Data folder | Put the files in |
    | --- | --- | --- |
-   | Mac app | `~/Library/Application Support/BrainOS/data` | `…/data/datasets/` |
-   | Linux bundle | `~/.local/share/brainos/data` | `…/data/datasets/` |
+   | Mac app | `~/Library/Application Support/Concord/data` | `…/data/datasets/` |
+   | Linux bundle | `~/.local/share/concord/data` | `…/data/datasets/` |
    | From source (`make setup`) | `data/` in the repository | `data/datasets/` |
 
    On a Mac: in Finder choose **Go → Go to Folder…**, paste
-   `~/Library/Application Support/BrainOS/data`, press Return, create a folder named
+   `~/Library/Application Support/Concord/data`, press Return, create a folder named
    `datasets` there and move both `.nwb` files into it. The **Stored data** section of the
    console (Advanced) shows the exact data folder of your installation.
 3. Reload the console page. **Connect a source → Recorded human data (offline replay)** now
@@ -188,17 +188,17 @@ original research system's decoder outputs (Singer-Clark et al. 2025,
    Human Intracortical Data (cursor + click) — Offline Replay**. Connect the grid block to see
    the task replayed, including the original decoders' outputs (labelled *historical*).
 
-What BrainOS's own decoders achieve on these recordings is described in
+What Concord's own decoders achieve on these recordings is described in
 [CURSOR_CLICK.md](CURSOR_CLICK.md) and [NEURAL_COMMUNICATION.md](NEURAL_COMMUNICATION.md).
 
 ### 4.3 Human ECoG: AJILE12 (about 157 MB)
 
-These recordings are slices of very large files that BrainOS extracts and verifies itself, so
+These recordings are slices of very large files that Concord extracts and verifies itself, so
 they need one command (the only one in this guide). On a Mac with the app, open the Terminal
 app and run:
 
 ```bash
-/Applications/BrainOS.app/Contents/MacOS/BrainOS dataset ajile12
+/Applications/Concord.app/Contents/MacOS/Concord dataset ajile12
 ```
 
 It streams only the two pinned slices from the archive and checks each against its pinned
@@ -248,8 +248,8 @@ data**; attach it when you [report a problem](https://github.com/arnavhiteshpate
 
 ![Stored data and support report](images/12-stored-data-and-support.png)
 
-**Quitting:** quit BrainOS (⌘Q on a Mac, or close the small BrainOS window). Quitting performs
-a safe stop first, so recordings are closed properly. If BrainOS ever stops unexpectedly, the
+**Quitting:** quit Concord (⌘Q on a Mac, or close the small Concord window). Quitting performs
+a safe stop first, so recordings are closed properly. If Concord ever stops unexpectedly, the
 next start keeps every complete part of an interrupted recording and marks it *incomplete*.
 
 ---
@@ -261,7 +261,7 @@ next start keeps every complete part of an interrupted recording and marks it *i
 | Understand every control in the console | [User guide](USER_GUIDE.md) |
 | Connect your lab's acquisition system (LSL, Open Ephys, BrainFlow, BCI2000) | [Lab setup](LAB_SETUP.md), then the [lab guide](LAB_GUIDE.md) |
 | Plan the first session with real equipment | [First lab session](FIRST_LAB_SESSION.md) |
-| Verify that BrainOS receives exactly what your acquisition software records | [Hardware validation](HARDWARE_VALIDATION.md) |
+| Verify that Concord receives exactly what your acquisition software records | [Hardware validation](HARDWARE_VALIDATION.md) |
 | Know what the datasets are and how they are verified | [Datasets](DATASETS.md) |
-| Know what BrainOS has and has not been validated for | [Validation levels](VALIDATION_LEVELS.md), [limitations](../LIMITATIONS.md) |
+| Know what Concord has and has not been validated for | [Validation levels](VALIDATION_LEVELS.md), [limitations](../LIMITATIONS.md) |
 | Fix a problem | [Troubleshooting](TROUBLESHOOTING.md), [FAQ](FAQ.md) |

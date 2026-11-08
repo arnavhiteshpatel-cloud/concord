@@ -132,7 +132,7 @@ export function validateEnvelope(x: unknown): ValidationResult {
     return { ok: false, error: "decoded_intent requires model_id" };
   if (prov.model_origin != null) {
     if (prov.kind !== "decoded_intent") return { ok: false, error: "model_origin only for decoded_intent" };
-    if (!["brainos", "external", "historical"].includes(String(prov.model_origin)))
+    if (!["concord", "external", "historical"].includes(String(prov.model_origin)))
       return { ok: false, error: "bad model_origin" };
     if (prov.model_origin === "historical" && prov.replayed !== true)
       return { ok: false, error: "historical decoder outputs must be replayed" };

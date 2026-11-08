@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling>=1.21"]
+build-backend = "hatchling.build"
+
+[project]
+name = "concord-example-decoder"
+version = "0.1.0"
+description = "Example Concord decoder plugin: a hand-set motor-imagery lateralization rule (teaching example)"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary (internal preview)" }
+# A decoder plugin depends on the public decoder SDK only - never on Concord itself.
+dependencies = ["concord-decoder-sdk>=1.0,<2", "numpy>=1.26"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+# This is what makes Concord find the decoder: an entry point in the "concord.decoders" group.
+[project.entry-points."concord.decoders"]
+example-mi-lateralization = "concord_example_decoder.decoder:LateralizationDecoder"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/concord_example_decoder"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "ASYNC", "RUF", "SIM"]
+
+[tool.mypy]
+strict = true

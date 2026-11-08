@@ -8,12 +8,12 @@ from pathlib import Path
 
 import pytest
 
-from brainos.adapters.base import DeviceLinkError, EndOfStream, EventDraft
-from brainos.adapters.simulated import Fault, OperatorIntentSource
-from brainos.contracts.capabilities import Capability, EventType
-from brainos.contracts.events import SCHEMA_VERSION, Quality
-from brainos.contracts.protocol import AppStatus, ErrorCode, RejectionReason, RuntimeState
-from brainos.runtime import DeviceRegistry, Recorder, Runtime, RuntimeCommandError
+from concord.adapters.base import DeviceLinkError, EndOfStream, EventDraft
+from concord.adapters.simulated import Fault, OperatorIntentSource
+from concord.contracts.capabilities import Capability, EventType
+from concord.contracts.events import SCHEMA_VERSION, Quality
+from concord.contracts.protocol import AppStatus, ErrorCode, RejectionReason, RuntimeState
+from concord.runtime import DeviceRegistry, Recorder, Runtime, RuntimeCommandError
 
 from .conftest import FAST_BACKOFF, subscribe
 from .helpers import (
@@ -315,9 +315,9 @@ async def test_record_and_replay_preserves_provenance_and_order(
     await asyncio.sleep(0.2)
     info = rt.stop_recording()
     assert info.name == name and info.events and info.events > 3
-    lines = (rec_dir / f"{name}.brainos.jsonl").read_text().splitlines()
+    lines = (rec_dir / f"{name}.concord.jsonl").read_text().splitlines()
     header = json.loads(lines[0])
-    assert header["format"] == "brainos.recording/1" and header["synthetic"] is True
+    assert header["format"] == "concord.recording/1" and header["synthetic"] is True
     original = [json.loads(line) for line in lines[1:]]
 
     replay_id = f"replay:{name}"
@@ -384,7 +384,7 @@ async def test_recording_stops_when_reconnect_gives_up(runtime: Runtime) -> None
     await wait_for(lambda: runtime.state is RuntimeState.ERROR)
     assert runtime.recorder.active_name is None
     await runtime.connect("sim-b")
-    lines = (runtime.recorder.directory / "leak.brainos.jsonl").read_text().splitlines()
+    lines = (runtime.recorder.directory / "leak.concord.jsonl").read_text().splitlines()
     assert {json.loads(line)["device_id"] for line in lines[1:]} == {"sim-a"}
 
 
@@ -457,8 +457,8 @@ async def test_recorder_write_failure_stops_recording_not_stream(runtime: Runtim
 
 def test_control_queue_is_bounded() -> None:
     """Review #4: a client that never reads cannot grow server memory without bound."""
-    from brainos.contracts.protocol import AppInfo, AppStatus, NegotiationResult
-    from brainos.runtime.bus import MAX_CONTROL_QUEUE, Subscriber, SubscriberOverflowError
+    from concord.contracts.protocol import AppInfo, AppStatus, NegotiationResult
+    from concord.runtime.bus import MAX_CONTROL_QUEUE, Subscriber, SubscriberOverflowError
 
     sub = Subscriber(
         "c",
@@ -485,7 +485,7 @@ async def test_replay_skips_truncated_last_line(
     rt.start_recording("trunc")
     await wait_for(lambda: rt.diagnostics.totals["recording.frame"] >= 3)
     rt.stop_recording()
-    path = rec_dir / "trunc.brainos.jsonl"
+    path = rec_dir / "trunc.concord.jsonl"
     path.write_text(path.read_text() + '{"schema_version": "1.0", "seq": 9')
     await rt.switch("replay:trunc")
     await wait_for(lambda: rt.state is RuntimeState.ENDED, timeout=5)

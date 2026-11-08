@@ -1,4 +1,4 @@
-# Human ECoG in BrainOS (Milestone 5, workstream B)
+# Human ECoG in Concord (Milestone 5, workstream B)
 
 A second, genuinely different neural modality, end to end: **raw-voltage electrocorticography
 (ECoG) from a subdural grid** in a human, alongside the intracortical spike counts of FALCON H1
@@ -28,7 +28,7 @@ described in Peterson et al., bioRxiv doi:10.1101/2021.07.26.453884; Peterson et
 *Behavioral and neural variability of naturalistic arm movements*, eNeuro,
 doi:10.1523/ENEURO.0007-21.2021; and *Mining naturalistic human behaviors in long-term video
 and neural recordings*, J Neurosci Methods, doi:10.1016/j.jneumeth.2021.109199 (the DOIs DANDI
-lists as `dcite:IsDescribedBy`). BrainOS never commits or re-hosts the data (`data/` is
+lists as `dcite:IsDescribedBy`). Concord never commits or re-hosts the data (`data/` is
 git-ignored).
 
 **Participant (chosen a priori):** `sub-07` — one 64-electrode grid (group `RFGRID`, described
@@ -40,9 +40,9 @@ these very recordings).
 
 ## 2. Exactly what is read
 
-Files are 10 GB each, so BrainOS streams only pinned **slices** with HTTP range requests
+Files are 10 GB each, so Concord streams only pinned **slices** with HTTP range requests
 (`remfile` + `h5py`) from the pinned asset, then writes a local NWB extract
-(`brainos/datasets/extract.py`). Pinned in `backend/src/brainos/datasets/ajile12.json`:
+(`concord/datasets/extract.py`). Pinned in `backend/src/concord/datasets/ajile12.json`:
 
 | Asset (DANDI 000055) | asset id | size | SHA-256 (DANDI `dandi:sha2-256`) |
 | --- | --- | ---: | --- |
@@ -69,7 +69,7 @@ the densest reach windows of each day (counts of the dataset's reach annotations
 **Verification.** Before reading, the asset's DANDI metadata must still report the pinned
 SHA-256 and size (DANDI blobs are content-addressed). The slice's stored values (float32,
 little-endian, C order) must hash to the pinned `data_sha256`, the pose frames to
-`pose_sha256`. At load time BrainOS recomputes `data_sha256` from the extract and checks the
+`pose_sha256`. At load time Concord recomputes `data_sha256` from the extract and checks the
 pinned shape and start time; a changed sample or a shifted timeline makes it **unverified**
 (tested). The console shows "Extract: SHA-256 of acquisition/ElectricalSeries samples […)
 matches the slice pinned from DANDI 000055 asset …". The full 10 GB file's SHA-256 cannot be
@@ -88,12 +88,12 @@ recomputed without downloading it; it is checked through DANDI's metadata at fet
 
 Findings (all reported in the source's `notes`, never silently fixed):
 
-1. **Channel names are not stored.** BrainOS labels channels `<group>/<electrode id>`
+1. **Channel names are not stored.** Concord labels channels `<group>/<electrode id>`
    (`RFGRID/0` … `RFGRID/63`).
 2. **`location` is `unknown` for every electrode** (hard-coded by the converter); x/y/z are given
-   without a coordinate space, so BrainOS makes no anatomical claim.
+   without a coordinate space, so Concord makes no anatomical claim.
 3. **Pose unit:** the SpatialSeries declare `meters` with `conversion` NaN; the reach features
-   (`_px`) and the authors' code show they are **video pixel coordinates**. BrainOS reports
+   (`_px`) and the authors' code show they are **video pixel coordinates**. Concord reports
    `behavior.sample` unit `arbitrary`, values unscaled; NaN frames (untracked keypoints) are
    `valid: false`.
 4. **Upstream filtering:** the stored signal already shows notch dips at **60, 120, 180 Hz**
@@ -101,14 +101,14 @@ Findings (all reported in the source's `notes`, never silently fixed):
    < 0.3 / 0.5 / 0.6 and no dip at 50 Hz), i.e. 60 Hz mains (US). This is the manifest's
    `line_hz: 60`.
 5. **Data breaks:** `Blocklist (Data break)` epochs of 0.03–0.2 s recur about every 2 min.
-   The samples there are not NaN. BrainOS passes them through unchanged, flags frames that
+   The samples there are not NaN. Concord passes them through unchanged, flags frames that
    overlap them `dropped_samples` (quality 0.5), and its evaluation excludes bins within 0.5 s.
 6. `ReachEvents` timestamps equal `intervals/reaches.start_time` in every sliced session
    (checked at fetch time); the extract keeps the `reaches` table only.
 7. **Dates are shifted** (sessions start at midnight UTC of days in January 2000) for
    de-identification; ECoG, pose and intervals share t = 0 (as in the authors' example code).
 8. The authors' `high_freq_R2` / `low_freq_R2` columns are outcome information derived from
-   these recordings; BrainOS never uses them for channel selection.
+   these recordings; Concord never uses them for channel selection.
 
 ## 4. Importer (`adapters/nwb/ecog.py`)
 
@@ -157,13 +157,13 @@ control anything, so this is movement *detection*, not intention decoding.
 * **Split:** train on **day 5** (3 slices); score **days 6 and 7** — held-out *sessions*. The
   model records `training.session = "5"`; the pipeline refuses it on any day-5 stream and the
   evaluation refuses to score it on day 5 (tested).
-* **Model:** the existing BrainOS LDA (causal exponential smoothing τ 300 ms, z-score with
+* **Model:** the existing Concord LDA (causal exponential smoothing τ 300 ms, z-score with
   training statistics, Ledoit-Wolf shrinkage, priors from training labels) on the 63 good
   electrodes; the bad electrode gets zero weight (`input.excluded_channels`).
 * **Controls:** chance (balanced accuracy and AUC 0.5), majority-class rate for accuracy, and a
   time-shift null (the same model on features circularly shifted at 20 offsets).
 
-Results (`python -m brainos.decoding.evaluate_ecog`, deterministic; model
+Results (`python -m concord.decoding.evaluate_ecog`, deterministic; model
 `move-vs-rest-lda-9f85d45365`, 393 move / 4985 rest training bins):
 
 | Held-out session | Scored bins (move / rest) | Balanced accuracy | Time-shift null mean / max | AUC P(move) | AUC null mean / max | Reaches with P(move) > 0.5 | P(move) > 0.5 onsets per rest minute | All bins with P(move) > 0.5 |
@@ -217,7 +217,7 @@ AJILE12 → `ecog`). Loading a model on a stream of a **different declared modal
 even with the cross-source override** (`incompatible_decoder`). Tested on real streams: the ECoG
 LDA on FALCON spike counts, a FALCON ridge decoder on ECoG, and an EEG-declared copy of the
 ECoG model on ECoG are all refused. An undeclared modality on either side is a warning, and a
-model that uses a channel the stream marks bad gets a warning. Models calibrated from BrainOS
+model that uses a channel the stream marks bad gets a warning. Models calibrated from Concord
 recordings now declare the recorded device's modality.
 
 ## 9. Limitations
@@ -230,7 +230,7 @@ recordings now declare the recorded device's modality.
   were not attempted: ~37 training reaches are too few for direction classes, and pose is 2-D
   video pixels from one camera.
 * LMP / low-frequency features are not implemented (§5).
-* The data was notch- and low-pass-filtered upstream; BrainOS's notch was never tested on
+* The data was notch- and low-pass-filtered upstream; Concord's notch was never tested on
   un-notched real ECoG.
 * Channel names, anatomical locations and the coordinate space are not in the files.
 

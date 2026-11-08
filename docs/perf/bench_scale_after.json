@@ -109,7 +109,7 @@
    },
    {
     "channels": 64,
-    "method": "brainos.runtime.fastjson (shipped)",
+    "method": "concord.runtime.fastjson (shipped)",
     "ns_per_value": 27.41328122131866,
     "byte_identical": true
    },
@@ -145,7 +145,7 @@
    },
    {
     "channels": 1024,
-    "method": "brainos.runtime.fastjson (shipped)",
+    "method": "concord.runtime.fastjson (shipped)",
     "ns_per_value": 24.507363279487514,
     "byte_identical": true
    }

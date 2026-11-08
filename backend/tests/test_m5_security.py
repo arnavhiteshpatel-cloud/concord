@@ -9,8 +9,8 @@ from pathlib import Path
 
 import pytest
 
-from brainos.config import ConfigError, load_config, parse_config, template, write_template
-from brainos.security import (
+from concord.config import ConfigError, load_config, parse_config, template, write_template
+from concord.security import (
     BindRefused,
     RedactingFormatter,
     check_bind,
@@ -22,8 +22,8 @@ from brainos.security import (
     redact,
     redact_secrets,
 )
-from brainos.server.serve import AlreadyRunning, acquire_instance, read_instance, run
-from brainos.server.settings import Settings
+from concord.server.serve import AlreadyRunning, acquire_instance, read_instance, run
+from concord.server.settings import Settings
 
 posix = pytest.mark.skipif(os.name != "posix", reason="POSIX permissions")
 
@@ -38,8 +38,8 @@ def mode(p: Path) -> int:
 def test_default_bind_is_loopback_and_settings_defaults_are_safe(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    monkeypatch.setenv("BRAINOS_CONFIG", str(tmp_path / "absent.toml"))
-    for var in ("BRAINOS_HOST", "BRAINOS_ALLOW_REMOTE", "BRAINOS_PORT"):
+    monkeypatch.setenv("CONCORD_CONFIG", str(tmp_path / "absent.toml"))
+    for var in ("CONCORD_HOST", "CONCORD_ALLOW_REMOTE", "CONCORD_PORT"):
         monkeypatch.delenv(var, raising=False)
     s = Settings.from_env()
     assert s.host == "127.0.0.1" and s.port == 8000 and s.allow_remote is False
@@ -56,14 +56,14 @@ def test_config_file_is_read_validated_and_overridden_by_env(
         f'[storage]\ndata_dir = "{tmp_path / "d"}"\n[retention]\nrecordings_days = 30\nmodels_days = 0\n'
     )
     cfg.chmod(0o600)
-    monkeypatch.setenv("BRAINOS_CONFIG", str(cfg))
-    monkeypatch.delenv("BRAINOS_PORT", raising=False)
-    monkeypatch.delenv("BRAINOS_DATA_DIR", raising=False)
+    monkeypatch.setenv("CONCORD_CONFIG", str(cfg))
+    monkeypatch.delenv("CONCORD_PORT", raising=False)
+    monkeypatch.delenv("CONCORD_DATA_DIR", raising=False)
     s = Settings.from_env()
     assert s.port == 8123 and not s.open_browser and s.log_level == "WARNING"
     assert s.data_dir == tmp_path / "d" and s.config_path == cfg
     assert s.retention.recordings_days == 30 and s.retention.models_days is None
-    monkeypatch.setenv("BRAINOS_PORT", "8200")
+    monkeypatch.setenv("CONCORD_PORT", "8200")
     assert Settings.from_env().port == 8200  # environment beats the file
 
 
@@ -128,7 +128,7 @@ def test_server_refuses_non_local_bind_without_the_flag(
     s = Settings(host="0.0.0.0", port=1, data_dir=tmp_path / "data", static_dir=None)
     assert run(s) == 2
     assert "refusing to listen on '0.0.0.0'" in capsys.readouterr().err
-    assert not (tmp_path / "data" / "brainos.pid").exists()  # refused before anything else
+    assert not (tmp_path / "data" / "concord.pid").exists()  # refused before anything else
 
 
 @posix
@@ -156,21 +156,21 @@ def test_single_instance_lock(tmp_path: Path) -> None:
 def test_private_dirs_and_hardening(tmp_path: Path) -> None:
     root = tmp_path / "data"
     (root / "recordings").mkdir(parents=True)
-    (root / "recordings" / "a.brainos.jsonl").write_text("x")
+    (root / "recordings" / "a.concord.jsonl").write_text("x")
     (root / "datasets").mkdir()
     (root / "datasets" / "public.nwb").write_text("x")
     shared = tmp_path / "shared-models"
     shared.mkdir()
     (shared / "m.json").write_text("{}")
     (root / "models").symlink_to(shared)
-    os.chmod(root / "recordings" / "a.brainos.jsonl", 0o644)
+    os.chmod(root / "recordings" / "a.concord.jsonl", 0o644)
     os.chmod(root / "datasets" / "public.nwb", 0o644)
     os.chmod(shared / "m.json", 0o644)
     assert open_permissions(root, skip=("datasets",)) == (1, 1)  # recordings dir + file
     rep = harden_tree(root, skip=("datasets",))
     assert rep.files_fixed == 1 and str(root / "models") in rep.symlinks_skipped
     assert mode(root) == 0o700 and mode(root / "recordings") == 0o700
-    assert mode(root / "recordings" / "a.brainos.jsonl") == 0o600
+    assert mode(root / "recordings" / "a.concord.jsonl") == 0o600
     assert mode(root / "datasets" / "public.nwb") == 0o644  # public datasets left alone
     assert mode(shared / "m.json") == 0o644  # never through a symlink
     assert open_permissions(root, skip=("datasets",)) == (0, 0)
@@ -182,7 +182,7 @@ def test_private_dirs_and_hardening(tmp_path: Path) -> None:
 def test_app_startup_secures_the_data_directory(tmp_path: Path) -> None:
     from fastapi.testclient import TestClient
 
-    from brainos.server import create_app
+    from concord.server import create_app
 
     from .conftest import make_settings
 
@@ -213,7 +213,7 @@ def test_app_startup_secures_the_data_directory(tmp_path: Path) -> None:
 def test_redaction() -> None:
     home = Path.home()
     line = (
-        f"ERROR open {home}/brainos/data/recordings/p07.brainos.jsonl failed; token=abc123SECRET "
+        f"ERROR open {home}/concord/data/recordings/p07.concord.jsonl failed; token=abc123SECRET "
         'password: hunter2 {"api_key": "k-123"} Authorization: Bearer abcdefghijklmnop '
         "samples [1.5, 2.25, -3.0, 4e-3, 5, 6, 7, 8, 9] small [1, 2] "
         "from 192.168.1.20 and 127.0.0.1 mail alice@example.org /home/bob/x /Users/carol/y"
@@ -231,7 +231,7 @@ def test_redaction() -> None:
         str(home) + "/",
     ):
         assert secret not in out, secret
-    assert "~/brainos/data" in out and "[9 values redacted]" in out and "[1, 2]" in out
+    assert "~/concord/data" in out and "[9 values redacted]" in out and "[1, 2]" in out
     assert "127.0.0.1" in out
     # the log-file redaction keeps paths and addresses (local) but never secrets or arrays
     local = redact_secrets(line)
@@ -242,12 +242,12 @@ def test_redaction() -> None:
 
 @posix
 def test_logging_is_redacted_and_private(tmp_path: Path) -> None:
-    log_file = tmp_path / "logs" / "brainos.log"
+    log_file = tmp_path / "logs" / "concord.log"
     root = logging.getLogger()
     saved = (root.handlers[:], root.level)
     try:
         configure_logging("INFO", log_file)
-        logging.getLogger("brainos.test").warning(
+        logging.getLogger("concord.test").warning(
             "frame %s token=%s", [0.1 * i for i in range(64)], "s3cr3t"
         )
         for h in root.handlers:
@@ -275,7 +275,7 @@ def test_web_pages_on_other_sites_cannot_use_the_local_api(tmp_path: Path) -> No
     from fastapi.testclient import TestClient
     from starlette.websockets import WebSocketDisconnect
 
-    from brainos.server import create_app
+    from concord.server import create_app
 
     from .conftest import make_settings
 

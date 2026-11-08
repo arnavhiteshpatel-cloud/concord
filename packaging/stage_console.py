@@ -3,9 +3,9 @@
     python packaging/stage_console.py [--build]
 
 ``--build`` runs ``npm ci && npm run build`` in frontend/ first. The staged copy lives in
-backend/src/brainos/server/console/ (git-ignored); hatch ships it in the wheel
+backend/src/concord/server/console/ (git-ignored); hatch ships it in the wheel
 (``artifacts``), PyInstaller in the app. Without it, a wheel install serves the API only and
-``brainos start`` says so.
+``concord start`` says so.
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "frontend" / "dist"
-TARGET = ROOT / "backend" / "src" / "brainos" / "server" / "console"
+TARGET = ROOT / "backend" / "src" / "concord" / "server" / "console"
 
 
 def build() -> None:

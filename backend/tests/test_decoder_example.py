@@ -1,5 +1,5 @@
 """Milestone 5 (workstream A), end to end: the separately installed example decoder plugin
-(``examples/decoders/brainos-example-decoder``, depends only on brainos-decoder-sdk) runs in an
+(``examples/decoders/concord-example-decoder``, depends only on concord-decoder-sdk) runs in an
 isolated decoder host behind a real server; an SDK application receives its decoded actions
 only after the operator authorizes it. Data: the in-test, declared-SYNTHETIC motor-imagery
 source — this shows the integration path, not decoding of real EEG."""
@@ -17,7 +17,7 @@ import pytest
 
 pytest.importorskip("scipy")
 
-from brainos.server import create_app
+from concord.server import create_app
 
 from .conftest import free_port, make_settings, serve
 from .helpers import wait_for
@@ -46,14 +46,14 @@ RULES = [
 
 
 def _installed() -> bool:
-    return any(ep.name == PLUGIN for ep in metadata.entry_points(group="brainos.decoders"))
+    return any(ep.name == PLUGIN for ep in metadata.entry_points(group="concord.decoders"))
 
 
 @pytest.fixture
 def server(tmp_path: Path) -> Iterator[tuple[str, Any]]:
     assert _installed(), (
         "the example decoder plugin is not installed; `make setup` installs "
-        "examples/decoders/brainos-example-decoder"
+        "examples/decoders/concord-example-decoder"
     )
     port = free_port()
     app = create_app(make_settings(tmp_path, port=port))
@@ -73,7 +73,7 @@ class App:
         self.stream: Any = None
 
     async def run(self, base: str) -> None:
-        from brainos.sdk import EventStream, is_event
+        from concord.sdk import EventStream, is_event
 
         self.stream = await EventStream.connect(
             app_id=self.app_id, app_name=self.app_id, required=self.required, base_url=base
@@ -88,7 +88,7 @@ class App:
 
 
 async def test_example_decoder_plugin_end_to_end(server: tuple[str, Any]) -> None:
-    from brainos.sdk import BrainOSError, RuntimeClient
+    from concord.sdk import ConcordError, RuntimeClient
 
     base, _rt = server
     app = App("mi-menu", ["selection"])
@@ -110,7 +110,7 @@ async def test_example_decoder_plugin_end_to_end(server: tuple[str, Any]) -> Non
             assert info["checked_against"] == "band_power preview"
             assert info["mapping_available"] and info["compatible"] is False
             assert any("enable explicit channel mapping" in e for e in info["errors"])
-            with pytest.raises(BrainOSError) as exc:
+            with pytest.raises(ConcordError) as exc:
                 await op.start_pipeline("band_power", model_id=MODEL, **BAND)
             assert exc.value.code == "incompatible_decoder"
             assert "model expects 2 channels labelled C3, C4; source provides 8 channels" in str(
@@ -139,7 +139,7 @@ async def test_example_decoder_plugin_end_to_end(server: tuple[str, Any]) -> Non
             for e in sel:
                 p = e.provenance
                 assert p.kind.value == "decoded_intent" and p.model_id == MODEL
-                assert p.model_origin == "brainos" and p.synthetic
+                assert p.model_origin == "concord" and p.synthetic
             assert {e.payload.action for e in sel} <= {"activate", "cancel"}
             # 240 s of synthetic source time (20x real time) for the accuracy check below
             await wait_for(lambda: len(observer.of("intent.kinematics")) >= 2400, timeout=60)
@@ -167,5 +167,5 @@ async def test_example_decoder_plugin_end_to_end(server: tuple[str, Any]) -> Non
     recalls = [float(np.mean(pred[true == c] == c)) for c in range(3) if np.any(true == c)]
     assert len(pairs) > 1500 and np.mean(recalls) > 0.40, (len(pairs), recalls)
     assert all(
-        e.provenance.model_id == MODEL and e.provenance.model_origin == "brainos" for e in kin
+        e.provenance.model_id == MODEL and e.provenance.model_origin == "concord" for e in kin
     )

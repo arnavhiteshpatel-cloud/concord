@@ -1,13 +1,13 @@
 {
- "notice": "SOFTWARE CERTIFICATION ONLY - this report is not hardware certification and not human-participant validation. A pass means the plugin satisfied the BrainOS adapter SDK contract, through the real plugin host, with the data source used in this run, on this machine. It does not show that any physical device, amplifier or implant works with BrainOS, and it says nothing about safety, clinical use or decoding performance. 'hardware_tested' appears only as an operator's signed attestation, which this toolkit does not verify; 'human_participant_validated' is never set by this toolkit.",
+ "notice": "SOFTWARE CERTIFICATION ONLY - this report is not hardware certification and not human-participant validation. A pass means the plugin satisfied the Concord adapter SDK contract, through the real plugin host, with the data source used in this run, on this machine. It does not show that any physical device, amplifier or implant works with Concord, and it says nothing about safety, clinical use or decoding performance. 'hardware_tested' appears only as an operator's signed attestation, which this toolkit does not verify; 'human_participant_validated' is never set by this toolkit.",
  "report_version": "1.0",
  "tool": {
-  "name": "brainos-certify",
+  "name": "concord-certify",
   "version": "0.1.0"
  },
- "generated_at": "2026-11-07T20:56:03Z",
- "started_at": "2026-11-07T20:55:31Z",
- "elapsed_s": 32.01,
+ "generated_at": "2026-11-08T07:09:07Z",
+ "started_at": "2026-11-08T07:08:33Z",
+ "elapsed_s": 34.15,
  "environment": {
   "os": "Linux",
   "os_release": "6.18.44-fc-v310",
@@ -22,7 +22,7 @@
   "report_version": "1.0",
   "sdk_version": "1.0.0",
   "sdk_api_version": "1.0",
-  "brainos_version": "0.3.0",
+  "concord_version": "0.3.0",
   "host_python": "3.12.3",
   "host_sdk_version": "1.0.0",
   "host_api_version": "1.0"
@@ -32,11 +32,11 @@
   "entry_point": "example-mi-eeg",
   "device_key": "mi-eeg",
   "manifest": {
-   "name": "brainos-example-adapter",
+   "name": "concord-example-adapter",
    "version": "0.1.0",
    "api_version": "1.0",
    "display_name": "Example: motor-imagery EEG generator",
-   "author": "BrainOS developers",
+   "author": "Concord developers",
    "license": "Proprietary (internal preview)",
    "homepage": "",
    "ecosystem": null,
@@ -69,22 +69,22 @@
    "ref": "example-mi-eeg",
    "kind": "entry_point",
    "entry_point": {
-    "group": "brainos.sources",
+    "group": "concord.sources",
     "name": "example-mi-eeg",
     "count": 1,
-    "value": "brainos_example_adapter.plugin:MotorImageryEEGPlugin",
+    "value": "concord_example_adapter.plugin:MotorImageryEEGPlugin",
     "providers": [
-     "brainos-example-adapter"
+     "concord-example-adapter"
     ]
    },
    "distribution": {
-    "name": "brainos-example-adapter",
+    "name": "concord-example-adapter",
     "version": "0.1.0",
     "editable": true,
-    "direct_url": "file:///home/user/brainos/examples/adapters/brainos-example-adapter",
+    "direct_url": "file:///home/user/brainos/examples/adapters/concord-example-adapter",
     "requires": [
      {
-      "requirement": "brainos-adapter-sdk<2,>=1.0",
+      "requirement": "concord-adapter-sdk<2,>=1.0",
       "installed": "1.0.0"
      },
      {
@@ -98,27 +98,27 @@
      "unhashed": 1,
      "mismatched": [],
      "missing": [],
-     "sha256": "acee28b3645b2c0e47124908127d6dc3d9f49bcff606807d9abd30763d6a5657"
+     "sha256": "fd71105015feb22366d1f71b312ffee2bcfdbea16231590b9a0ad9026a635afb"
     }
    },
    "module": {
-    "name": "brainos_example_adapter.plugin",
-    "package": "brainos_example_adapter",
-    "path": "/home/user/brainos/examples/adapters/brainos-example-adapter/src/brainos_example_adapter",
+    "name": "concord_example_adapter.plugin",
+    "package": "concord_example_adapter",
+    "path": "/home/user/brainos/examples/adapters/concord-example-adapter/src/concord_example_adapter",
     "files": [
      {
       "path": "__init__.py",
-      "sha256": "85834b066347d9ee2298727fe9aaebff76164e1aee29fa6980651ed4216a9d11",
+      "sha256": "7bd16abd1fdc9e6a3eeda2321cfdba2cc13e5a1b18318951bcbb1da17969999c",
       "bytes": 110
      },
      {
       "path": "generator.py",
-      "sha256": "57697b2924d3a1576d5591ae2edaf9c3f00e00e1bd669fbdc27f4e79379659c5",
+      "sha256": "0a1c4eebfc0e3dda803aada636310a4e55afe30c6517b0b8df151a48eb3d5670",
       "bytes": 7449
      },
      {
       "path": "plugin.py",
-      "sha256": "5513bea4dd64ab8dd78770903e6c5720304283352f76e36dfd844369ecd7b253",
+      "sha256": "23c2608f632cad819b526489111be0006bcc98e1ec51843771760df347d34c9b",
       "bytes": 7640
      },
      {
@@ -128,18 +128,18 @@
      }
     ],
     "file_count": 4,
-    "tree_sha256": "e9decc29c0a4e68a2c743b411402462c61eef991c0a355267d28deaf1a9fc9b8"
+    "tree_sha256": "00e2d8391de66cdfe4fc75d23b7cccf6f037c78a2f491bd82b19898f3272ce9a"
    },
    "versions": {},
    "errors": [],
    "git": {
-    "commit": "89e11674a08cab367a543f20a2bcfe6b463c0d42",
-    "dirty": false,
-    "dirty_files": 0
+    "commit": "0d86b8aefcf455c8503f12abfbdfd26afd13913e",
+    "dirty": true,
+    "dirty_files": 4
    }
   },
   "session": {
-   "origin": "brainos-example-adapter:mi-eeg:seed=1",
+   "origin": "concord-example-adapter:mi-eeg:seed=1",
    "synthetic": true,
    "prerecorded": false,
    "primary_stream": "eeg",
@@ -283,7 +283,7 @@
     "statement": "never set by this toolkit",
     "why": "human-participant validation is out of scope for software: it requires an approved human-research protocol run by qualified investigators",
     "missing": [
-     "out of scope for software; never granted by brainos-certify"
+     "out of scope for software; never granted by concord-certify"
     ]
    }
   }
@@ -298,14 +298,14 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "plugin loaded in its own host process (pid 1353) in 0.12 s",
+   "reason": "plugin loaded in its own host process (pid 2791) in 0.13 s",
    "evidence": {
-    "pid": 1353,
-    "protocol": "brainos.plugin-ipc/1",
+    "pid": 2791,
+    "protocol": "concord.plugin-ipc/1",
     "host_sdk_version": "1.0.0",
     "host_api_version": "1.0",
     "host_python": "3.12.3",
-    "startup_s": 0.125
+    "startup_s": 0.133
    }
   },
   {
@@ -318,11 +318,11 @@
    "reason": "manifest valid (host and local validation)",
    "evidence": {
     "manifest": {
-     "name": "brainos-example-adapter",
+     "name": "concord-example-adapter",
      "version": "0.1.0",
      "api_version": "1.0",
      "display_name": "Example: motor-imagery EEG generator",
-     "author": "BrainOS developers",
+     "author": "Concord developers",
      "license": "Proprietary (internal preview)",
      "homepage": "",
      "ecosystem": null,
@@ -374,19 +374,19 @@
   {
    "id": "manifest.entry_point",
    "group": "manifest",
-   "title": "Registered as a brainos.sources entry point",
+   "title": "Registered as a concord.sources entry point",
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "entry point example-mi-eeg = brainos_example_adapter.plugin:MotorImageryEEGPlugin (brainos-example-adapter)",
+   "reason": "entry point example-mi-eeg = concord_example_adapter.plugin:MotorImageryEEGPlugin (concord-example-adapter)",
    "evidence": {
     "entry_point": {
-     "group": "brainos.sources",
+     "group": "concord.sources",
      "name": "example-mi-eeg",
      "count": 1,
-     "value": "brainos_example_adapter.plugin:MotorImageryEEGPlugin",
+     "value": "concord_example_adapter.plugin:MotorImageryEEGPlugin",
      "providers": [
-      "brainos-example-adapter"
+      "concord-example-adapter"
      ]
     }
    }
@@ -398,13 +398,13 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "brainos-example-adapter 0.1.0: 9 of 9 hashed RECORD entries verified; module tree sha256 e9decc29c0a4\u2026 (editable install: RECORD covers the .pth only; source files hashed)",
+   "reason": "concord-example-adapter 0.1.0: 9 of 9 hashed RECORD entries verified; module tree sha256 00e2d8391de6\u2026 (editable install: RECORD covers the .pth only; source files hashed)",
    "evidence": {
     "distribution": {
-     "name": "brainos-example-adapter",
+     "name": "concord-example-adapter",
      "version": "0.1.0",
      "editable": true,
-     "direct_url": "file:///home/user/brainos/examples/adapters/brainos-example-adapter"
+     "direct_url": "file:///home/user/brainos/examples/adapters/concord-example-adapter"
     },
     "record": {
      "files": 10,
@@ -412,18 +412,18 @@
      "unhashed": 1,
      "mismatched": [],
      "missing": [],
-     "sha256": "acee28b3645b2c0e47124908127d6dc3d9f49bcff606807d9abd30763d6a5657"
+     "sha256": "fd71105015feb22366d1f71b312ffee2bcfdbea16231590b9a0ad9026a635afb"
     },
     "module": {
-     "name": "brainos_example_adapter.plugin",
-     "path": "/home/user/brainos/examples/adapters/brainos-example-adapter/src/brainos_example_adapter",
+     "name": "concord_example_adapter.plugin",
+     "path": "/home/user/brainos/examples/adapters/concord-example-adapter/src/concord_example_adapter",
      "file_count": 4,
-     "tree_sha256": "e9decc29c0a4e68a2c743b411402462c61eef991c0a355267d28deaf1a9fc9b8"
+     "tree_sha256": "00e2d8391de66cdfe4fc75d23b7cccf6f037c78a2f491bd82b19898f3272ce9a"
     },
     "git": {
-     "commit": "89e11674a08cab367a543f20a2bcfe6b463c0d42",
-     "dirty": false,
-     "dirty_files": 0
+     "commit": "0d86b8aefcf455c8503f12abfbdfd26afd13913e",
+     "dirty": true,
+     "dirty_files": 4
     }
    }
   },
@@ -447,7 +447,7 @@
       }
      }
     ],
-    "discover_s": 0.001,
+    "discover_s": 0.0,
     "problems": [],
     "tested_device": "mi-eeg"
    }
@@ -461,11 +461,11 @@
    "applicable": true,
    "reason": "3 stream(s), primary 'eeg', synthetic=True prerecorded=False, opened in 0.01 s",
    "evidence": {
-    "open_s": 0.011,
+    "open_s": 0.01,
     "primary_stream": "eeg",
     "synthetic": true,
     "prerecorded": false,
-    "origin": "brainos-example-adapter:mi-eeg:seed=1",
+    "origin": "concord-example-adapter:mi-eeg:seed=1",
     "streams": [
      {
       "stream_id": "eeg",
@@ -542,7 +542,7 @@
       "declared": [
        "microvolts"
       ],
-      "brainos_unit": "uV"
+      "concord_unit": "uV"
      },
      "cue": {
       "role": "behavior",
@@ -578,13 +578,13 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "4 opens (open_1, reopen_same_host, fresh_host_after_kill, brainos_runtime): identical stream ids, labels, order, units, rates (10 channels)",
+   "reason": "4 opens (open_1, reopen_same_host, fresh_host_after_kill, concord_runtime): identical stream ids, labels, order, units, rates (10 channels)",
    "evidence": {
     "opens_compared": [
      "open_1",
      "reopen_same_host",
      "fresh_host_after_kill",
-     "brainos_runtime"
+     "concord_runtime"
     ],
     "differences": {},
     "reference": "open_1",
@@ -667,7 +667,7 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "primary timestamp residual p50/p99/max 0.0/0.0/0.0 ms; arrival interval p50/p99 100.0102/101.6239 ms",
+   "reason": "primary timestamp residual p50/p99/max 0.0/0.0/0.0 ms; arrival interval p50/p99 100.0225/103.0664 ms",
    "evidence": {
     "streams": {
      "eeg": {
@@ -691,12 +691,12 @@
       },
       "arrival_interval_ms": {
        "n": 199,
-       "min": 93.758,
-       "p50": 100.0102,
-       "p95": 100.552,
-       "p99": 101.6239,
-       "max": 106.3189,
-       "mean": 100.0013
+       "min": 83.3078,
+       "p50": 100.0225,
+       "p95": 100.7475,
+       "p99": 103.0664,
+       "max": 116.7546,
+       "mean": 99.9985
       },
       "samples_per_chunk": {
        "n": 200,
@@ -730,12 +730,12 @@
       },
       "arrival_interval_ms": {
        "n": 199,
-       "min": 93.758,
-       "p50": 100.0102,
-       "p95": 100.552,
-       "p99": 101.6239,
-       "max": 106.3189,
-       "mean": 100.0013
+       "min": 83.3078,
+       "p50": 100.0225,
+       "p95": 100.7475,
+       "p99": 103.0664,
+       "max": 116.7546,
+       "mean": 99.9985
       },
       "samples_per_chunk": {
        "n": 200,
@@ -760,12 +760,12 @@
       },
       "arrival_interval_ms": {
        "n": 4,
-       "min": 3998.2073,
-       "p50": 3999.8883,
-       "p95": 4001.5984,
-       "p99": 4001.8055,
-       "max": 4001.8573,
-       "mean": 3999.9603
+       "min": 3999.5483,
+       "p50": 4000.0735,
+       "p95": 4000.1535,
+       "p99": 4000.1589,
+       "max": 4000.1603,
+       "mean": 3999.9639
       },
       "samples_per_chunk": {
        "n": 5,
@@ -789,30 +789,30 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "source clock: offset to host monotonic 0.0056 s (origin unknown by declaration; not checkable); drift -4.1 ppm vs host monotonic",
+   "reason": "source clock: offset to host monotonic 0.0058 s (origin unknown by declaration; not checkable); drift +1.4 ppm vs host monotonic",
    "evidence": {
     "domain": "source",
     "description": "generator sample clock: monotonic time at open() + sample index / 250 Hz",
     "reference_clock": "host monotonic clock",
     "offset_newest_s": {
      "n": 200,
-     "min": 0.0052,
-     "p50": 0.0056,
-     "p95": 0.0063,
-     "p99": 0.0072,
-     "max": 0.0116,
-     "mean": 0.0057
+     "min": 0.0053,
+     "p50": 0.0058,
+     "p95": 0.0064,
+     "p99": 0.0089,
+     "max": 0.0224,
+     "mean": 0.0059
     },
     "offset_oldest_s": {
      "n": 200,
-     "min": 0.1012,
-     "p50": 0.1016,
-     "p95": 0.1023,
-     "p99": 0.1032,
-     "max": 0.1076,
-     "mean": 0.1017
+     "min": 0.1013,
+     "p50": 0.1018,
+     "p95": 0.1024,
+     "p99": 0.1049,
+     "max": 0.1184,
+     "mean": 0.1019
     },
-    "drift_ppm": -4.1,
+    "drift_ppm": 1.4,
     "drift_span_s": 19.9
    }
   },
@@ -826,7 +826,7 @@
    "reason": "200 reads over 20.0 s, 6005 samples (all streams), no errors",
    "evidence": {
     "requested_s": 20.0,
-    "ran_s": 20.001,
+    "ran_s": 20.0,
     "reads": 200,
     "empty_reads": 0,
     "samples": 6005,
@@ -938,8 +938,8 @@
      }
     },
     "primary_span": [
-     6964.159864597,
-     6984.155864597
+     1177.926273383,
+     1197.9222733830002
     ]
    }
   },
@@ -972,7 +972,7 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "closed in 0.5 ms, reopened in 0.001 s, first data 0.102 s after open; identity unchanged",
+   "reason": "closed in 0.1 ms, reopened in 0.001 s, first data 0.102 s after open; identity unchanged",
    "evidence": {
     "close_s": 0.0,
     "reopen_s": 0.001,
@@ -991,22 +991,22 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "SIGKILL after 5 reads surfaced as a link loss in 4.8 ms; fresh host: first data 0.226 s after start (0.111 s after open); identity unchanged; exit code 0",
+   "reason": "SIGKILL after 5 reads surfaced as a link loss in 2.5 ms; fresh host: first data 0.227 s after start (0.11 s after open); identity unchanged; exit code 0",
    "evidence": {
     "kill": {
-     "pid": 1353,
+     "pid": 2791,
      "signal": "SIGKILL",
      "killed": true,
      "reads_before_kill": 5,
      "detected_as": "HostDied",
      "message": "plugin host exited (code -9)",
-     "detect_s": 0.0048,
+     "detect_s": 0.0025,
      "host_exit_code": -9
     },
-    "fresh_host_start_s": 0.115,
+    "fresh_host_start_s": 0.117,
     "open_s": 0.009,
-    "first_data_after_open_s": 0.111,
-    "first_data_after_host_start_s": 0.226,
+    "first_data_after_open_s": 0.11,
+    "first_data_after_host_start_s": 0.227,
     "samples": 601,
     "failure": null,
     "identity_unchanged": true,
@@ -1021,30 +1021,30 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "primary delivered 250.001 samples/s over 20.0 s vs nominal 250 Hz (+0.000 %); 10601.6 B/s over IPC",
+   "reason": "primary delivered 249.9997 samples/s over 20.0 s vs nominal 250 Hz (-0.000 %); 10601.9 B/s over IPC",
    "evidence": {
-    "duration_s": 20.001,
+    "duration_s": 20.0,
     "tolerance_percent": 2.0,
     "streams": {
      "eeg": {
       "samples": 5000,
       "chunks": 200,
-      "samples_per_s_overall": 249.99,
+      "samples_per_s_overall": 249.998,
       "nominal_hz": 250.0,
       "arrival_span_s": 19.9,
-      "rate_hz": 250.001,
-      "rate_hz_endpoints": 249.9967,
-      "error_percent": 0.0
+      "rate_hz": 249.9997,
+      "rate_hz_endpoints": 250.0038,
+      "error_percent": -0.0
      },
      "cue": {
       "samples": 1000,
       "chunks": 200,
-      "samples_per_s_overall": 49.998,
+      "samples_per_s_overall": 50.0,
       "nominal_hz": 50.0,
       "arrival_span_s": 19.9,
-      "rate_hz": 50.0002,
-      "rate_hz_endpoints": 49.9993,
-      "error_percent": 0.0
+      "rate_hz": 49.9999,
+      "rate_hz_endpoints": 50.0008,
+      "error_percent": -0.0
      },
      "markers": {
       "samples": 5,
@@ -1054,7 +1054,7 @@
      }
     },
     "ipc_bytes_received": 212040,
-    "ipc_bytes_per_s": 10601.6
+    "ipc_bytes_per_s": 10601.9
    }
   },
   {
@@ -1074,15 +1074,15 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "host process CPU 1.2 % of one core, RSS peak 37.4 MiB (median 37.4 MiB)",
+   "reason": "host process CPU 1.2 % of one core, RSS peak 38.3 MiB (median 38.3 MiB)",
    "evidence": {
-    "pid": 1353,
-    "wall_s": 20.002,
+    "pid": 2791,
+    "wall_s": 20.001,
     "cpu_s": 0.24,
     "cpu_percent_of_one_core": 1.2,
-    "rss_mib_median": 37.4,
-    "rss_mib_max_sampled": 37.4,
-    "rss_mib_peak": 37.4,
+    "rss_mib_median": 38.3,
+    "rss_mib_max_sampled": 38.3,
+    "rss_mib_peak": 38.3,
     "rss_samples": 80,
     "clock_ticks_per_s": 100
    }
@@ -1094,7 +1094,7 @@
    "required": true,
    "status": "pass",
    "applicable": true,
-   "reason": "10601.6 B/s, 10.0 reads/s; ping round trip p50/p99 0.1853/0.499 ms",
+   "reason": "10601.9 B/s, 10.0 reads/s; ping round trip p50/p99 0.0963/0.2168 ms",
    "evidence": {
     "host_counters": {
      "samples": 6005,
@@ -1102,24 +1102,24 @@
      "reads": 200,
      "bytes": 212040
     },
-    "host_bytes_per_s": 10601.6,
+    "host_bytes_per_s": 10601.9,
     "reads_per_s": 10.0,
     "empty_read_fraction": 0.0,
     "ping_round_trip_ms": {
      "n": 30,
-     "min": 0.1077,
-     "p50": 0.1853,
-     "p95": 0.4396,
-     "p99": 0.499,
-     "max": 0.5171,
-     "mean": 0.2294
+     "min": 0.0842,
+     "p50": 0.0963,
+     "p95": 0.1989,
+     "p99": 0.2168,
+     "max": 0.2211,
+     "mean": 0.1137
     }
    }
   },
   {
    "id": "runtime.descriptor",
    "group": "runtime",
-   "title": "BrainOS device descriptor matches the declarations",
+   "title": "Concord device descriptor matches the declarations",
    "required": false,
    "status": "pass",
    "applicable": true,
@@ -1133,7 +1133,7 @@
      "invasive": false,
      "integration": {
       "kind": "plugin",
-      "package": "brainos-example-adapter",
+      "package": "concord-example-adapter",
       "version": "0.1.0",
       "api_version": "1.0",
       "isolated": true,
@@ -1145,22 +1145,22 @@
       "recording"
      ]
     },
-    "brainos": {
+    "concord": {
      "kind": "simulated",
      "synthetic": true,
      "modality": "eeg",
      "invasive": false,
      "integration": {
       "kind": "plugin",
-      "package": "brainos-example-adapter",
+      "package": "concord-example-adapter",
       "version": "0.1.0",
       "api_version": "1.0",
       "isolated": true,
       "ecosystem": null
      },
-     "adapter": "brainos-example-adapter@0.1.0"
+     "adapter": "concord-example-adapter@0.1.0"
     },
-    "brainos_capabilities": [
+    "concord_capabilities": [
      "recording",
      "behavior",
      "device_status"
@@ -1188,7 +1188,8 @@
       "granted": [
        "recording",
        "device_status",
-       "behavior"
+       "behavior",
+       "control_status"
       ],
       "rejected": [
        {
@@ -1218,6 +1219,11 @@
        },
        {
         "capability": "kinematic_intent",
+        "reason": "unsupported_by_device",
+        "required": false
+       },
+       {
+        "capability": "navigation",
         "reason": "unsupported_by_device",
         "required": false
        }
@@ -1261,22 +1267,22 @@
   {
    "id": "runtime.envelopes",
    "group": "runtime",
-   "title": "Every event validates against the BrainOS contracts",
+   "title": "Every event validates against the Concord contracts",
    "required": false,
    "status": "pass",
    "applicable": true,
-   "reason": "305 of 305 events validated against contract 1.3 (pydantic + JSON Schema); 0 invalid, 0 undeclared, 0 decode errors",
+   "reason": "299 of 299 events validated against contract 1.4 (pydantic + JSON Schema); 0 invalid, 0 undeclared, 0 decode errors",
    "evidence": {
-    "schema_version": "1.3",
+    "schema_version": "1.4",
     "event_schema_versions": {
-     "1.3": 305
+     "1.4": 299
     },
-    "events_published": 305,
-    "events_validated": 305,
+    "events_published": 299,
+    "events_validated": 299,
     "event_types": {
      "device.status": 3,
-     "recording.frame": 50,
-     "behavior.sample": 250,
+     "recording.frame": 49,
+     "behavior.sample": 245,
      "recording.annotation": 2
     },
     "invalid": [],
@@ -1304,7 +1310,7 @@
     "declared": {
      "synthetic": true,
      "prerecorded": false,
-     "origin": "brainos-example-adapter:mi-eeg:seed=1"
+     "origin": "concord-example-adapter:mi-eeg:seed=1"
     },
     "expected_provenance": {
      "recording.frame": "raw_signal",

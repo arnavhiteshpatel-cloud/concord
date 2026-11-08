@@ -1,14 +1,14 @@
-"""Milestone 5 (E): BrainOS performance at scale, measured on this machine.
+"""Milestone 5 (E): Concord performance at scale, measured on this machine.
 
 Every stream here is **benchmark-generated synthetic data** (declared ``synthetic`` in its
-LSL metadata, origin ``brainos:bench-scale-synthetic``), and every decoder is a
+LSL metadata, origin ``concord:bench-scale-synthetic``), and every decoder is a
 **benchmark-generated random-weight decoder** (not trained; its outputs are meaningless and
 no decoding quality is measured). No hardware is involved. Nothing is estimated: each number
 is printed by the run that measured it.
 
 Process layout of the live sections (the deployment shape): an LSL publisher process
 (acquisition, ``scripts/bench_scale.py _pub-*``), the runtime server process
-(``python -m brainos.server``: adapter + runtime + pipeline + decoder + router + WebSocket),
+(``python -m concord.server``: adapter + runtime + pipeline + decoder + router + WebSocket),
 and this process as the SDK application (Python SDK ``EventStream`` over the WebSocket).
 CPU and RSS are read from ``/proc`` for each process (Linux; "n/a" elsewhere).
 
@@ -51,7 +51,7 @@ from typing import Any
 
 import numpy as np
 
-ORIGIN = "brainos:bench-scale-synthetic"
+ORIGIN = "concord:bench-scale-synthetic"
 FS_RAW = 30_000.0
 WARMUP_S = 2.5  # LSL connect + 1 s RMS estimation + filter settling; excluded from stats
 SECTIONS = (
@@ -202,7 +202,7 @@ def publish_raw(channels: int, rate: float, source_id: str, chunk_ms: float) -> 
     """
     import pylsl
 
-    from brainos.testing.lsl_publishers import SyntheticEphys, _channels, _declare
+    from concord.testing.lsl_publishers import SyntheticEphys, _channels, _declare
 
     chunk = max(1, round(rate * chunk_ms / 1000))
     n_buf = chunk * max(1, round(0.25 * rate / chunk))  # ~0.25 s, whole chunks
@@ -214,7 +214,7 @@ def publish_raw(channels: int, rate: float, source_id: str, chunk_ms: float) -> 
         w = min(base_ch, channels - k)
         buf[:, k : k + w] = np.roll(base[:, :w], shift=(k // base_ch) * 997, axis=0)
     info = pylsl.StreamInfo(
-        "BrainOS bench-scale synthetic ephys",
+        "Concord bench-scale synthetic ephys",
         "EEG",
         channels,
         rate,
@@ -234,13 +234,13 @@ def publish_counts(channels: int, rate: float, source_id: str, behavior: bool) -
     """Synthetic binned spike counts (type SpikeCounts, declared synthetic), one push per bin."""
     import pylsl
 
-    from brainos.testing.lsl_publishers import _channels, _declare
+    from concord.testing.lsl_publishers import _channels, _declare
 
     rng = np.random.default_rng(1)
     n_buf = int(rate * 10)
     buf = rng.poisson(1.5, size=(n_buf, channels)).astype(np.int16)
     info = pylsl.StreamInfo(
-        "BrainOS bench-scale synthetic counts",
+        "Concord bench-scale synthetic counts",
         "SpikeCounts",
         channels,
         rate,
@@ -259,7 +259,7 @@ def publish_counts(channels: int, rate: float, source_id: str, behavior: bool) -
     beh = mk = None
     if behavior:
         b = pylsl.StreamInfo(
-            "BrainOS bench-scale behavior",
+            "Concord bench-scale behavior",
             "Behavior",
             2,
             rate,
@@ -276,7 +276,7 @@ def publish_counts(channels: int, rate: float, source_id: str, behavior: bool) -
         )
         beh = pylsl.StreamOutlet(b)
         m = pylsl.StreamInfo(
-            "BrainOS bench-scale markers",
+            "Concord bench-scale markers",
             "Markers",
             1,
             0.0,
@@ -371,16 +371,16 @@ class Server:
         (self.data / "models").mkdir(parents=True)
         env = {
             **os.environ,
-            "BRAINOS_PORT": str(self.port),
-            "BRAINOS_DATA_DIR": str(self.data),
-            "BRAINOS_REPORTS_DIR": str(self.data / "reports"),
-            "BRAINOS_STATIC_DIR": str(self.data / "no-static"),
-            "BRAINOS_PLUGINS": "0",
-            "BRAINOS_LOG_LEVEL": "ERROR",
+            "CONCORD_PORT": str(self.port),
+            "CONCORD_DATA_DIR": str(self.data),
+            "CONCORD_REPORTS_DIR": str(self.data / "reports"),
+            "CONCORD_STATIC_DIR": str(self.data / "no-static"),
+            "CONCORD_PLUGINS": "0",
+            "CONCORD_LOG_LEVEL": "ERROR",
         }
         self.log = open(self.data / "server.log", "wb")  # noqa: SIM115 - closed in stop()
         p = subprocess.Popen(
-            [sys.executable, "-m", "brainos.server"],
+            [sys.executable, "-m", "concord.server"],
             env=env,
             stdout=self.log,
             stderr=self.log,
@@ -432,7 +432,7 @@ class Server:
 
 def write_random_decoder(models_dir: Path, channels: int, *, feature: str, bin_ms: float) -> str:
     """A random-weight ridge decoder (NOT trained; outputs meaningless) for timing only."""
-    from brainos.decoding.ridge import TAU_MS, RidgeDecoder, exponential_kernel
+    from concord.decoding.ridge import TAU_MS, RidgeDecoder, exponential_kernel
 
     rng = np.random.default_rng(channels)
     w = rng.standard_normal((channels, 2)) / np.sqrt(channels)
@@ -494,7 +494,7 @@ class App:
         self.task: asyncio.Task[None] | None = None
 
     async def start(self) -> None:
-        from brainos.sdk import EventStream
+        from concord.sdk import EventStream
 
         self.stream = await EventStream.connect(
             app_id=self.app_id,
@@ -508,7 +508,7 @@ class App:
     async def _run(self) -> None:
         import pylsl
 
-        from brainos.sdk import is_event
+        from concord.sdk import is_event
 
         clock = pylsl.local_clock
         try:
@@ -711,7 +711,7 @@ async def _live_body(
 ) -> dict[str, Any]:
     import httpx
 
-    from brainos.sdk import RuntimeClient
+    from concord.sdk import RuntimeClient
 
     await srv.ready()
     if srv._watch is None:
@@ -848,7 +848,7 @@ async def _stalled_client(base: str) -> None:
     ws = await websockets.connect(url, max_size=None)
     hello = {
         "type": "hello",
-        "protocol": "brainos.stream/1",
+        "protocol": "concord.stream/1",
         "app": {"id": "bench-stalled", "name": "stalled", "kind": "sdk"},
         "capabilities": {"required": [], "optional": ["recording", "neural_features"]},
     }
@@ -874,7 +874,7 @@ def spawn_viewer(base: str, out: Path) -> tuple[Proc, Path]:
 def run_viewer(base: str, out: Path) -> None:
     """A raw-signal viewer app (own process): Python SDK client requesting ``recording``;
     counts frames and bytes after ``<out>.arm`` appears; writes counts on SIGTERM."""
-    from brainos.sdk import EventStream, is_event
+    from concord.sdk import EventStream, is_event
 
     stats: dict[str, Any] = {"frames": 0, "bytes": 0, "delivery_gaps": 0, "closed": None}
     arm = out.with_suffix(".arm")
@@ -910,8 +910,8 @@ def run_viewer(base: str, out: Path) -> None:
 
 
 def _offline_lsl_adapter(channels: int, rate: float) -> Any:
-    from brainos.adapters.lsl import LSLAdapter, LSLSourceSpec
-    from brainos.adapters.lsl.metadata import ChannelMeta, Declaration, StreamMeta
+    from concord.adapters.lsl import LSLAdapter, LSLSourceSpec
+    from concord.adapters.lsl.metadata import ChannelMeta, Declaration, StreamMeta
 
     meta = StreamMeta(
         name="bench",
@@ -933,11 +933,11 @@ def _offline_lsl_adapter(channels: int, rate: float) -> Any:
 
 
 async def _micro_one(channels: int, n: int, reps: int) -> dict[str, Any]:
-    from brainos.adapters.simulated import OperatorIntentSource
-    from brainos.contracts.capabilities import Capability
-    from brainos.contracts.protocol import AppInfo, RuntimeState
-    from brainos.runtime import DeviceRegistry, Recorder, Runtime
-    from brainos.runtime.pipeline import PipelineStartRequest
+    from concord.adapters.simulated import OperatorIntentSource
+    from concord.contracts.capabilities import Capability
+    from concord.contracts.protocol import AppInfo, RuntimeState
+    from concord.runtime import DeviceRegistry, Recorder, Runtime
+    from concord.runtime.pipeline import PipelineStartRequest
 
     adapter = _offline_lsl_adapter(channels, FS_RAW)
     rng = np.random.default_rng(0)
@@ -1114,9 +1114,9 @@ def _alt_json(ch: int, reps: int, rng: np.random.Generator) -> list[dict[str, An
         enc = msgspec.json.Encoder()
         cands["msgspec(list)"] = lambda: enc.encode(lst)
     with contextlib.suppress(ImportError):
-        from brainos.runtime.fastjson import samples_json
+        from concord.runtime.fastjson import samples_json
 
-        cands["brainos.runtime.fastjson (shipped)"] = lambda: samples_json(a).encode()
+        cands["concord.runtime.fastjson (shipped)"] = lambda: samples_json(a).encode()
     return [
         {
             "channels": ch,
@@ -1129,7 +1129,7 @@ def _alt_json(ch: int, reps: int, rng: np.random.Generator) -> list[dict[str, An
 
 
 def _alt_validate(ch: int, reps: int, rng: np.random.Generator) -> list[dict[str, Any]]:
-    from brainos.contracts.events import RecordingFramePayload
+    from concord.contracts.events import RecordingFramePayload
 
     a = (rng.standard_normal((ch, 300)) * 10).astype(np.float32).astype(np.float64)
     lst = a.tolist()
@@ -1232,8 +1232,8 @@ def _alt_sos(
 
 
 def _alt_chain_split(reps: int, rng: np.random.Generator) -> list[dict[str, Any]]:
-    from brainos.processing import ProcessingSpec, SignalChain
-    from brainos.processing.stages import common_average_reference
+    from concord.processing import ProcessingSpec, SignalChain
+    from concord.processing.stages import common_average_reference
 
     ch = 1024
     chain = SignalChain(ProcessingSpec(preset="spikeband_threshold"), FS_RAW, ch, "uV")
@@ -1299,7 +1299,7 @@ def section_alternatives(quick: bool) -> dict[str, Any]:
 
 
 def section_chain(quick: bool) -> list[dict[str, Any]]:
-    from brainos.processing import ProcessingSpec, SignalChain
+    from concord.processing import ProcessingSpec, SignalChain
 
     rng = np.random.default_rng(0)
     rows = []
@@ -1478,7 +1478,7 @@ async def section_consumers(tmp: Path, seconds: float, quick: bool) -> list[dict
 
 
 async def section_recovery(tmp: Path, quick: bool) -> list[dict[str, Any]]:
-    from brainos.sdk import RuntimeClient
+    from concord.sdk import RuntimeClient
 
     rows = []
     for ch in (256,) if quick else (256, 1024):
@@ -1592,7 +1592,7 @@ def render(res: dict[str, Any]) -> str:
     L: list[str] = []
     p = L.append
     m = res["machine"]
-    p("# BrainOS performance at scale (Milestone 5, workstream E)\n")
+    p("# Concord performance at scale (Milestone 5, workstream E)\n")
     p(
         "> Generated by `scripts/bench_scale.py` on the machine below; every number was "
         "measured by the run(s) listed. **All streams are benchmark-generated synthetic data** "
@@ -1630,7 +1630,7 @@ def render(res: dict[str, Any]) -> str:
     p("")
     p(
         "Processes in the live sections: LSL publisher (acquisition) · runtime server "
-        "(`python -m brainos.server`: adapter, runtime, pipeline, decoder, router, WebSocket) · "
+        "(`python -m concord.server`: adapter, runtime, pipeline, decoder, router, WebSocket) · "
         "SDK app (this script, Python SDK over the WebSocket). CPU = % of one core over the "
         "measurement window; RSS at the end of it. Latencies: see the script docstring "
         "(LSL clock = host monotonic clock in every process).\n"
@@ -1882,7 +1882,7 @@ def render(res: dict[str, Any]) -> str:
         p("")
     p(
         "Notes: software measurements on one shared host (other work may have been running; see "
-        "load average). They characterize BrainOS's software path only — not any amplifier, "
+        "load average). They characterize Concord's software path only — not any amplifier, "
         "implant, network or closed-loop performance."
     )
     return "\n".join(L) + "\n"
@@ -2032,7 +2032,7 @@ def assemble(runs: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def _run_sections(args: argparse.Namespace, res: dict[str, Any]) -> None:
-    tmp = Path(tempfile.mkdtemp(prefix="brainos-bench-scale-"))
+    tmp = Path(tempfile.mkdtemp(prefix="concord-bench-scale-"))
     secs = args.sections.split(",") if args.sections else list(SECTIONS)
     s = args.seconds
     try:

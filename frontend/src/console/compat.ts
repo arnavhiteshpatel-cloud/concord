@@ -1,5 +1,5 @@
 // Compatibility registry (Milestone 5, workstream F): GET /api/v1/compatibility.
-// Shapes mirror backend/src/brainos/compat/model.py, compat/live.py and server/compat_routes.py.
+// Shapes mirror backend/src/concord/compat/model.py, compat/live.py and server/compat_routes.py.
 // Levels are derived by the backend from evidence; the console only displays them.
 
 import { apiCall } from "../sdk";
@@ -70,7 +70,7 @@ export interface CompatEntry {
 export interface CompatRegistry {
   registry_version: string;
   notice: string;
-  brainos_version: string;
+  concord_version: string;
   levels: { id: CompatLevel; number: number; name: string; meaning: string }[];
   rules: string[];
   sources: { curated: string; certify_reports: string[]; validation_levels: string };
@@ -89,7 +89,7 @@ export interface CompatibilityResponse {
   available: boolean;
   source: string;
   error: string | null;
-  brainos_version: string;
+  concord_version: string;
   registry: CompatRegistry | null;
   live: Record<string, CompatLiveStatus>;
   plugin_discovery: { discovering: boolean; discovered_at_ns: number | null; error: string | null };

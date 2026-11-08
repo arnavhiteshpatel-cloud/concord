@@ -8,7 +8,7 @@ the PR description and delete it here.
 - **No hardware has ever been connected.** Milestone 3 adds live-protocol adapters (LSL,
   Open Ephys ZMQ Interface). They are **protocol-tested** with software publishers and with
   real recorded data streamed as *prerecorded*; none has been run against acquisition
-  hardware. Milestone 5's `brainos-hwval` compared BrainOS with the real LabRecorder and the
+  hardware. Milestone 5's `concord-hwval` compared Concord with the real LabRecorder and the
   real Open Ephys GUI (File Reader input), i.e. reference *software* with software sources;
   the hardware procedure (docs/HARDWARE_VALIDATION.md) has never been carried out. See
   docs/VALIDATION_LEVELS.md. Nothing implies compatibility with any company's implant; there
@@ -38,7 +38,7 @@ the PR description and delete it here.
   T15 (intracortical, speech motor cortex, cursor + click; day 468 evaluated), AJILE12 sub-07
   (ECoG, natural reaching). All results are within-participant and offline/open loop.
   See docs/DATASETS.md, docs/CURSOR_CLICK.md, docs/ECOG.md.
-- **Dataset is a DANDI draft.** 000954 has no published version; BrainOS pins every file by
+- **Dataset is a DANDI draft.** 000954 has no published version; Concord pins every file by
   SHA-256, so a changed upstream file fails verification instead of silently changing results.
 
 ## Security (local demo only)
@@ -54,7 +54,7 @@ the PR description and delete it here.
 - Recordings are written unencrypted to `data/recordings/`. With live sources they can
   contain real neural data: handle the directory under your research data policy.
 - LSL discovery uses liblsl's multicast/broadcast on the local network, and any host on that
-  network can publish a stream BrainOS will list. A stream's self-declared metadata
+  network can publish a stream Concord will list. A stream's self-declared metadata
   (including "prerecorded"/"synthetic") is trusted as declared; an undeclared stream is
   labelled "origin unverified", not "live hardware".
 - The Open Ephys heartbeat sends a small JSON message to the plugin's REP port; no other
@@ -74,7 +74,7 @@ the PR description and delete it here.
   during the first second after a connect.
 - **Recording limits**: by default 300 s or 200 MiB per recording, then a clean auto-stop
   (the file is complete and replayable); with `exclude_raw` (features + labels only) 3600 s.
-  Configurable in `[recording]` of the config file or `BRAINOS_RECORDING_MAX_S` /
+  Configurable in `[recording]` of the config file or `CONCORD_RECORDING_MAX_S` /
   `_MAX_NO_RAW_S` / `_MAX_MB` / `_MIN_FREE_MB`, up to 24 h and 100 GiB per recording; a
   recording refuses to start, or stops cleanly, below 256 MiB free disk space. There is no
   automatic segmentation into several files: one recording is one file. Recordings are JSON
@@ -88,7 +88,7 @@ the PR description and delete it here.
   numbers. The header states this (`timing`) and keeps the adapter's source metadata at the
   start of the recording (`source_metadata`: LSL uid, source_id, host, time correction;
   Open Ephys host/ports/stream); integrity counters at the end are in diagnostics, not the
-  header. Recordings with these header fields cannot be opened by BrainOS builds before
+  header. Recordings with these header fields cannot be opened by Concord builds before
   Milestone 5 (the header model forbids unknown keys).
 - **Replay** loops by default (no UI toggle). Speed is adjustable 0.1–64× via
   `/api/v1/runtime/playback` (console offers 0.5–8×). Seeking to a position is not supported.
@@ -110,9 +110,9 @@ the PR description and delete it here.
     verified by us across machines).
 - **Source plugins (M4)**: see docs/ADAPTER_SDK.md §5 for exactly what is isolated.
   - **Fault isolation, not a security sandbox.** A plugin runs in its own process but as the
-    same user with the same file, network and process permissions as BrainOS; there are no
+    same user with the same file, network and process permissions as Concord; there are no
     CPU/memory limits. `manifest.network` is a declaration, not enforced. Installing a plugin
-    means trusting its code like any Python package in BrainOS's environment.
+    means trusting its code like any Python package in Concord's environment.
   - What a plugin declares (synthetic / prerecorded, units, modality, origin, clock) is shown
     as declared, never verified. Undeclared modality is shown as "modality not declared".
   - One stream per role is delivered; additional streams of a role are listed as not
@@ -126,7 +126,7 @@ the PR description and delete it here.
     read round trip on the dev container; measured ceiling 28–72× real time for 64 ch × 30 kHz
     float32 (docs/ADAPTER_SDK.md §6). Converting frames to JSON events is the slower step.
   - Discovery runs at startup in the background and on demand ("Search again"); a package
-    installed while BrainOS runs is not seen until then. Configured plugin devices and options
+    installed while Concord runs is not seen until then. Configured plugin devices and options
     are in memory only (lost on restart).
   - If the runtime process is killed hard, a plugin blocked inside `read()` exits only when that
     call returns; processes a plugin itself starts are not tracked.
@@ -192,12 +192,12 @@ the PR description and delete it here.
   `make bench` locally for yours.
 - npm uses `legacy-peer-deps` (frontend/.npmrc) to work around an npm 10 resolver bug with
   Vitest 4's optional peer dependencies; peers we need are pinned explicitly.
-- Nothing is published to PyPI yet: wheels are built from the repo (M5-D: `brainos[lab]`,
-  the desktop bundle). `brainos[server]` depends on `brainos-adapter-sdk`, which must be
+- Nothing is published to PyPI yet: wheels are built from the repo (M5-D: `concordos[lab]`,
+  the desktop bundle). `concordos[server]` depends on `concord-adapter-sdk`, which must be
   built or installed from `packages/` first (`make setup` does).
 - Diagnostics are in-memory only and reset on restart.
 
-## Ecosystem plugins (Milestone 4, `brainos-brainflow`, `brainos-bci2000`)
+## Ecosystem plugins (Milestone 4, `concord-brainflow`, `concord-bci2000`)
 
 See docs/ECOSYSTEMS.md for details and evidence.
 
@@ -206,7 +206,7 @@ See docs/ECOSYSTEMS.md for details and evidence.
   BCI2000 only with a locally built SignalGenerator + DummySignalProcessing +
   DummyApplication from a public source fork (bci2000.org was not reachable).
 - Run through the plugin host and the runtime by `test_plugin_ecosystems.py` and by
-  `brainos-certify` (docs/COMPATIBILITY.md): BrainFlow with its synthetic board, BCI2000 with
+  `concord-certify` (docs/COMPATIBILITY.md): BrainFlow with its synthetic board, BCI2000 with
   a replayed capture of genuine BCI2000 output (not live BCI2000).
 - BrainFlow: only the DEFAULT preset is read; board configuration (`config_board`) is not
   offered (it writes to the device); BrainFlow markers cannot reach a read-only consumer
@@ -221,7 +221,7 @@ See docs/ECOSYSTEMS.md for details and evidence.
   BCI2000's source module). The live test against BCI2000 is opt-in (`BCI2000_PROG_DIR`); CI
   replays a capture recorded from that build.
 
-## Certification toolkit (Milestone 4, `brainos-certify`)
+## Certification toolkit (Milestone 4, `concord-certify`)
 
 See docs/CERTIFICATION.md §6.
 
@@ -248,8 +248,8 @@ See docs/CURSOR_CLICK.md (generated by `make cursorclick-report`) for every numb
 protocol.
 
 - **Open loop only.** All T15 results decode *recorded* closed-loop sessions. The participant
-  was correcting the original research decoder's cursor, not BrainOS's; no person has ever
-  controlled anything with a BrainOS decoder. Open-loop numbers are not communication rates.
+  was correcting the original research decoder's cursor, not Concord's; no person has ever
+  controlled anything with a Concord decoder. Open-loop numbers are not communication rates.
 - **One participant, one day.** Day 468 of participant T15 (18 blocks). Days 39 and 202
   (no click) are downloadable but not evaluated. Decoders are trained and tested within
   that day (different blocks, test always recorded later), as the original online decoders
@@ -260,11 +260,11 @@ protocol.
 - **Whole-block replay through the board drifts.** Integrating a velocity stream open loop
   accumulates error trial after trial. Even the original decoder's own recorded outputs,
   integrated by the board, select the cued word in only 65 % of trials on the 14 x 14 grid
-  (the session itself: 94 %); BrainOS's decoders through the board are near chance on fine
+  (the session itself: 94 %); Concord's decoders through the board are near chance on fine
   boards (14 x 14: 1 %, chance 0.5 %; 2 x 2: 44 %, chance 25 %). Per-trial anchoring to the
   recorded cursor position (which reproduces the session) is an offline analysis and is never
   fed to an application: recorded positions are behavioral labels, never commands.
-- **Historical outputs are not BrainOS.** The original decoders' outputs are replayed as
+- **Historical outputs are not Concord.** The original decoders' outputs are replayed as
   `decoded_intent` with `model_origin: historical` and are labelled as the original research
   system's in the board and console.
 - **Dryad access.** Downloads need a Dryad API token (free account) or browser download plus
@@ -279,7 +279,7 @@ protocol.
 See docs/ECOG.md §9 for details.
 
 - **Offline replay only.** The ECoG source is a recording (AJILE12, DANDI 000055) made during
-  clinical epilepsy monitoring; no live ECoG source has been connected to BrainOS.
+  clinical epilepsy monitoring; no live ECoG source has been connected to Concord.
 - **One participant (sub-07), 78.75 minutes from three days**, chosen as the densest windows of
   curated reach events. Results do not transfer to other participants, implants or tasks.
 - **Movement vs rest only.** The classifier detects curated arm reaches against periods with both
@@ -289,12 +289,12 @@ See docs/ECOG.md §9 for details.
 - **No low-frequency / LMP feature:** the 1.4 contract has no feature name for a signed
   low-pass amplitude; adding one needs a schema minor bump.
 - The data was already notch-filtered (60/120/180 Hz) and low-passed (250 Hz) by the dataset
-  authors; BrainOS's notch has not been exercised on un-notched real ECoG.
+  authors; Concord's notch has not been exercised on un-notched real ECoG.
 - The AJILE12 files store no channel names, no anatomical locations and no coordinate space;
-  BrainOS labels channels `<group>/<id>` and reports coordinates as stored. Pose is in video
+  Concord labels channels `<group>/<id>` and reports coordinates as stored. Pose is in video
   pixels (declared `meters` with `conversion` NaN in the file) and is reported as `arbitrary`.
 - The source files (~10 GB each) are never downloaded whole: their SHA-256 is DANDI's metadata,
-  checked at fetch time; BrainOS verifies the slices it uses by their own digests.
+  checked at fetch time; Concord verifies the slices it uses by their own digests.
 - Raw-voltage NWB files other than AJILE12 extracts are supported only in the layouts the
   synthetic fixtures cover (one regularly sampled `ElectricalSeries`, an electrodes table,
   optional Position pose and interval tables); explicit timestamps are refused.
@@ -314,10 +314,10 @@ See docs/COMPATIBILITY.md, "Registry (M5-F)".
   contains the given anchor; the anchor ties the claim to the file, it does not prove the test
   exercises that stack.
 - The BCI2000 certify report predates a change to the plugin's source (an open-error hint), so
-  it is listed and not counted until brainos-certify is re-run; BCI2000's level 2 rests on the
+  it is listed and not counted until concord-certify is re-run; BCI2000's level 2 rests on the
   opt-in live test recorded in docs/ECOSYSTEMS.md.
 - Plugins outside this repository cannot be hash-checked: their reports count for the version
-  they name. Built-in adapters carry the BrainOS package version, not a per-adapter version.
+  they name. Built-in adapters carry the Concord package version, not a per-adapter version.
 - Live status (`GET /api/v1/compatibility`) reports installed / different version /
   unavailable for this installation; for plugins it needs a completed plugin discovery.
 - The T15 cursor+click adapter is listed as not in this checkout until workstream P0's code is
@@ -337,11 +337,11 @@ See docs/APPLICATIONS.md.
   live decoder's outputs into the command router is not wired: the router takes only the
   running pipeline decoder's output. Apps already label historical / external provenance.
 - The router's click rule needs a decoder output that is a click probability or a 0/1
-  decision; BrainOS does not check that a continuous output really is one.
+  decision; Concord does not check that a continuous output really is one.
 - Board: word prediction is a fixed 200-word list (no language model); speech is the
   browser's Web Speech API (voices and availability vary; "computer speech, not neural speech
   decoding"); the audio tick needs Web Audio; settings are stored per browser; the
-  `window.__brainosBoard` snapshot is for tests and evaluation and copies up to 5000
+  `window.__concordBoard` snapshot is for tests and evaluation and copies up to 5000
   selections per read. Reproducing an original cursor trajectory on the task grid is exact
   only up to the first pointer event after a (re)start (it sets the clock) and clamping.
 - Direct selection is chosen automatically only after a source sent `activate`/`cancel`
@@ -355,9 +355,9 @@ See docs/APPLICATIONS.md.
 
 - **Not a security sandbox.** Decoder plugins and model files run in a separate process
   (fault isolation: crash, hang, garbage and invalid outputs are contained and reported). That
-  process has the same user, files and network as BrainOS. A malicious plugin, or a pickle
+  process has the same user, files and network as Concord. A malicious plugin, or a pickle
   the operator trusted, can do anything that user can.
-- Trust decisions are recorded per file (SHA-256, who, when). BrainOS has no user accounts,
+- Trust decisions are recorded per file (SHA-256, who, when). Concord has no user accounts,
   so "who" is what the operator types or "operator".
 - **TorchScript** is deprecated upstream (PyTorch 2.x). It is supported but not recommended;
   ONNX or safetensors are preferred. Torch is an optional extra and is not installed by
@@ -380,8 +380,8 @@ See docs/APPLICATIONS.md.
 - **Decoded passthrough** routes the source's decoder outputs as they are.
   - Without a declared `scale`, the pointer gain applies to raw values.
   - Only `historical` and `external` origins are accepted.
-  - BrainOS cannot verify that a source's declared model origin is true.
-- **The example decoder is hand-set** (not trained) and only shown above chance on BrainOS's
+  - Concord cannot verify that a source's declared model origin is true.
+- **The example decoder is hand-set** (not trained) and only shown above chance on Concord's
   synthetic motor-imagery generator. It is a teaching example, not an EEG decoder.
 - The decoder-host IPC round trip per step is not benchmarked here (workstream E).
 
@@ -394,11 +394,11 @@ See docs/APPLICATIONS.md.
   numpy/scipy wheels require it); Intel Macs and older macOS use the pip installation.
 - **Unsigned and not notarized** (ad-hoc signature only): Gatekeeper blocks the first launch
   until the user allows it (docs/INSTALL_MAC.md). No auto-update.
-- The app bundles BrainOS's built-in sources and the BCI2000 plugin. BrainFlow and other
+- The app bundles Concord's built-in sources and the BCI2000 plugin. BrainFlow and other
   plugins need the pip installation (a frozen app cannot install packages). Test publishers
-  (`python -m brainos.testing.publish`) are not available from the app.
+  (`python -m concord.testing.publish`) are not available from the app.
 - The status window needs Tk; where no window can be created the app runs without it (quit
-  with `BrainOS stop`). The Apple Event quit is tested on CI only if the runner permits
+  with `Concord stop`). The Apple Event quit is tested on CI only if the runner permits
   sending Apple Events; otherwise the job falls back to SIGTERM and says so.
 - **Security**: see docs/SECURITY.md. No authentication or TLS; any local process (including
   other users') can use the API; no encryption at rest; deletion is not secure erasure;
@@ -410,12 +410,12 @@ See docs/APPLICATIONS.md.
   not tamper-proof, does not identify who acted, and does not record actions while no
   session is active. Simulated pointer/select/text inputs and free-text stop reasons are not
   recorded.
-- **`brainos reproduce`** re-fits calibrated decoders from bundled recordings and recomputes
+- **`concord reproduce`** re-fits calibrated decoders from bundled recordings and recomputes
   recorded *linear* decoder output; classifier (LDA) output and command-router output are not
   recomputed, and models trained outside a session (e.g. `make model` on FALCON H1) are
   reproduced only from the dataset, not from the bundle. Identical model ids need the same
   numerical libraries; other builds may differ in the last digits (reported with tolerances).
-- Retention runs only at server start; it does not delete while BrainOS runs.
+- Retention runs only at server start; it does not delete while Concord runs.
 - The lab acceptance test (`scripts/lab_acceptance.py`) approximates an outside lab on one
   machine with software publishers and the FALCON H1 file; it is not a test with acquisition
   hardware or a participant.
@@ -444,12 +444,12 @@ See docs/PERFORMANCE.md and docs/BENCHMARKS_SCALE.md for the measurements.
   let liblsl hold several GB at 1024 channels x 30 kHz before samples are dropped.
 - Queue byte budgets are estimates (sample-array size, or 512 bytes for small events).
 - `make dev` and the test servers keep uvicorn's WebSocket permessage-deflate default; only
-  `python -m brainos.server` (`make run`, packaging) disables it.
+  `python -m concord.server` (`make run`, packaging) disables it.
 - Without orjson (an exotic platform without wheels) raw-frame JSON falls back to pydantic's
   encoder: identical output, about 2.5x slower per value.
 - The numba and C SOS-filter prototypes in the benchmark are not shipped; the DSP is scipy.
 
-## Acquisition verification toolkit (`brainos-hwval`, Milestone 5)
+## Acquisition verification toolkit (`concord-hwval`, Milestone 5)
 
 - Software-level evidence only: LabRecorderCLI 1.16.4 / liblsl 1.16.2 with a declared-synthetic
   LSL publisher, and Open Ephys GUI 1.1.0 + ZMQ Interface 1.0.0 with its File Reader. No
@@ -460,6 +460,6 @@ See docs/PERFORMANCE.md and docs/BENCHMARKS_SCALE.md for the measurements.
   packages; the GUI runs headless under Xvfb with a PulseAudio null sink). The comparison
   itself (numpy + pyxdf) runs anywhere Python 3.11+ does.
 - Thresholds (loss tolerance, value tolerance, delay) are engineering choices, not standards.
-- Without the `capture` sidecar the absolute BrainOS-vs-source latency is not reported (only
+- Without the `capture` sidecar the absolute Concord-vs-source latency is not reported (only
   delay relative to the best case); the stream is still identified by the LSL uid kept in the
   recording header.

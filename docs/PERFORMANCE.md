@@ -1,6 +1,6 @@
-# BrainOS performance at scale (Milestone 5, workstream E)
+# Concord performance at scale (Milestone 5, workstream E)
 
-What limits BrainOS as channel counts grow, which alternatives were measured, what was changed,
+What limits Concord as channel counts grow, which alternatives were measured, what was changed,
 what was deliberately not changed, and the limits on the measurement machine.
 
 Every number here comes from `scripts/bench_scale.py` (`make bench-scale`): the full report is
@@ -41,7 +41,7 @@ decoding results, and they say nothing about any implant.
 
 - **Processes** (the deployment shape): an LSL publisher (`scripts/bench_scale.py _pub-*`, a
   pre-generated looped buffer so the publisher costs only the LSL push), the runtime server
-  (`python -m brainos.server`), and the SDK application (the benchmark, Python SDK over the
+  (`python -m concord.server`), and the SDK application (the benchmark, Python SDK over the
   WebSocket); raw-signal viewers run in their own process. CPU and RSS are read per process
   from `/proc`.
 - **Latency** is measured at the SDK app after it has received and validated the event: LSL
@@ -107,7 +107,7 @@ outputs identical (or within a documented tolerance), and works without a compil
 | JSON for every envelope at ingest | 39.2 ns (+ `tolist`) for every frame, even with no consumer | serialize lazily, once, shared | 0 when no client or recorder wants raw frames (the common case: apps subscribe to features or commands) | same bytes when serialized | **adopted** |
 | JSON when a client does want raw frames | `tolist` + pydantic: 62.3 ns | orjson on the array: 21.0 ns; msgspec on a list: 38.1 ns; shipped splice (`runtime/fastjson.py`): 24.5 ns | 2.5x (shipped) vs the fallback | byte-identical to pydantic, tested incl. edge-case floats, both encoders | **adopted** (orjson in the `server` extra; pure fallback kept) |
 | spike-band SOS filter (µs per 300-sample chunk) | scipy `sosfilt`, (n, ch) C order: 2,442 µs | scipy on F order (what array frames give): 2,115; numba, channels innermost: 830; C `-O3` via ctypes: 831 | 1.15x (F order, free); 2.9x (numba / C) | numba identical; C max error 3.4e-13 µV (floating-point rounding) | F order: adopted as a side effect; **native: not adopted** (§6) |
-| WebSocket compression of raw frames | deflate: 11.5 ms per 64 x 150 frame | off for the local server | removes the cost | transport-level; clients negotiate it | **adopted** for `python -m brainos.server` |
+| WebSocket compression of raw frames | deflate: 11.5 ms per 64 x 150 frame | off for the local server | removes the cost | transport-level; clients negotiate it | **adopted** for `python -m concord.server` |
 
 A Rust/PyO3 SOS filter was not built separately: the C prototype already measures what a
 compiled, channel-vectorized loop of this recurrence achieves (numba, an independent compiler,
@@ -132,7 +132,7 @@ All changes keep the public contracts, the wire format and SDK behaviour (ARCHIT
 4. **Pump fairness** (`runtime/runtime.py`): yield after every packet.
 5. **Frame size cap** (`adapters/base.py: MAX_FRAME_VALUES`): frames split at 262,144
    channel-samples (256 samples at 1024 channels; unchanged at <= 131 channels).
-6. **No permessage-deflate** in `python -m brainos.server`.
+6. **No permessage-deflate** in `python -m concord.server`.
 
 Correctness: `backend/tests/test_perf_paths.py` (42 tests) checks the array path against the
 list path (values, JSON bytes, `model_dump`, malformed-input errors, schema), byte-identical JSON
@@ -245,7 +245,7 @@ runtime never delivered a feature before the publisher was killed.
   belong to other workstreams). It is specified as the first next step in §8.
 - **Spike-count / feature events keep the list path.** At 4096 channels and 100 Hz the runtime
   uses 13% of a core end to end; the array path would save little there.
-- **`brainos.testing.publish` and `bench_live.py` are unchanged** apart from `bench_live` taps
+- **`concord.testing.publish` and `bench_live.py` are unchanged** apart from `bench_live` taps
   declaring `json=False`, so they measure what production does.
 
 ## 7. Limits on this machine
@@ -312,4 +312,4 @@ event loop where uvloop is unavailable), and the benchmark's per-process CPU/RSS
 read Linux `/proc` (shown as "—" elsewhere). orjson is optional at runtime: without it raw-frame
 JSON uses pydantic's encoder (identical output, tested), ~2.5x slower per value. The C and numba
 prototypes are built by the benchmark only when a C compiler / numba is present and are never
-imported by BrainOS.
+imported by Concord.

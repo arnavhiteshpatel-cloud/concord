@@ -10,7 +10,7 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 
-from brainos.contracts import (
+from concord.contracts import (
     Capability,
     EventType,
     UnknownCapabilityError,
@@ -19,7 +19,7 @@ from brainos.contracts import (
     parse_envelope,
     parse_envelope_json,
 )
-from brainos.contracts.capabilities import EVENT_CAPABILITY
+from concord.contracts.capabilities import EVENT_CAPABILITY
 
 from .helpers import valid_event
 
@@ -336,7 +336,7 @@ def test_unknown_selection_actions_rejected(action: Any) -> None:
 
 
 def test_descriptor_modality_and_integration_1_3() -> None:
-    from brainos.contracts.protocol import (
+    from concord.contracts.protocol import (
         INVASIVE_MODALITIES,
         NONINVASIVE_MODALITIES,
         DeviceDescriptor,
@@ -360,7 +360,7 @@ def test_descriptor_modality_and_integration_1_3() -> None:
             **base,
             "modality": "eeg",
             "invasive": False,
-            "integration": {"kind": "plugin", "package": "brainos-brainflow", "isolated": True},
+            "integration": {"kind": "plugin", "package": "concord-brainflow", "isolated": True},
         }
     )
     assert d.modality is Modality.EEG and d.integration is not None and d.integration.isolated
@@ -420,7 +420,7 @@ def test_malformed_navigate_rejected(change: dict[str, Any], match: str) -> None
 
 
 def test_model_origin_rules_1_4() -> None:
-    assert parse_envelope(_nav(model_origin="brainos")).provenance.model_origin == "brainos"
+    assert parse_envelope(_nav(model_origin="concord")).provenance.model_origin == "concord"
     # recorded outputs of an original research decoder are replayed data by definition
     with pytest.raises(ValidationError, match="replayed must be true"):
         parse_envelope(_nav(model_origin="historical"))
@@ -428,7 +428,7 @@ def test_model_origin_rules_1_4() -> None:
     with pytest.raises(ValidationError):
         parse_envelope(_nav(model_origin="mine"))
     raw = valid_event("recording.frame")
-    raw["provenance"]["model_origin"] = "brainos"
+    raw["provenance"]["model_origin"] = "concord"
     with pytest.raises(ValidationError, match="model_origin is only valid"):
         parse_envelope(raw)
 

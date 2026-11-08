@@ -1,6 +1,6 @@
 // CommandGuard (TS SDK): authorization state, immediate stops, stale/late drops, dead-man.
 import { describe, expect, it, vi } from "vitest";
-import { BrainOSStream } from "./client";
+import { ConcordStream } from "./client";
 import { CommandGuard, attachGuard } from "./guard";
 import type { Capability, EnvelopeOf, EventEnvelope, NegotiationResult, RuntimeSnapshot } from "./types";
 
@@ -31,7 +31,7 @@ function cmd(clock: Clock, type: "intent.pointer" | "intent.selection" = "intent
     timestamp_ns: (clock.wall - ageMs) * 1e6,
     device_timestamp_ns: null,
     quality: { score: 1, flags: [] },
-    provenance: { kind: "decoded_intent" as const, adapter: "brainos.pipeline@0.4.0", synthetic: true, model_id: "m1", origin: "o", replayed: false },
+    provenance: { kind: "decoded_intent" as const, adapter: "concord.pipeline@0.4.0", synthetic: true, model_id: "m1", origin: "o", replayed: false },
   };
   return type === "intent.pointer"
     ? { ...base, event_type: "intent.pointer", capability: "pointer_intent", payload: { vx: 0.5, vy: 0.1, ...payload } }
@@ -120,13 +120,13 @@ describe("CommandGuard", () => {
 
 describe("attachGuard", () => {
   it("passes only fresh, usable commands and detaches cleanly", () => {
-    const stream = new BrainOSStream({ app: { id: "a", name: "A" }, required: ["selection"], webSocket: () => ({}) as WebSocket });
+    const stream = new ConcordStream({ app: { id: "a", name: "A" }, required: ["selection"], webSocket: () => ({}) as WebSocket });
     const stops: string[] = [];
     const g = new CommandGuard({ onStop: (r) => stops.push(r) });
     const got: EventEnvelope[] = [];
     const detach = attachGuard(stream, g, (e) => got.push(e));
     const rt = { state: "streaming", device: null, session_id: "ses_aaaaaaaa", state_since_ns: 0, last_error: null, recording: null, apps: [] };
-    stream.handle(JSON.stringify({ type: "welcome", protocol: "brainos.stream/1", schema_version: "1.3", connection_id: "c", negotiation: neg([], [["selection", "not_authorized", true]]), runtime: rt }));
+    stream.handle(JSON.stringify({ type: "welcome", protocol: "concord.stream/1", schema_version: "1.3", connection_id: "c", negotiation: neg([], [["selection", "not_authorized", true]]), runtime: rt }));
     const now = new Clock();
     now.wall = Date.now();
     const sel = cmd(now, "intent.selection");
@@ -154,7 +154,7 @@ function ctl(active: boolean, capabilities: string[], reason: string, session_id
     timestamp_ns: Date.now() * 1e6,
     device_timestamp_ns: null,
     quality: { score: 1, flags: [] },
-    provenance: { kind: "runtime", adapter: "brainos.runtime@0.1.0", synthetic: false, model_id: null, origin: "runtime", replayed: false },
+    provenance: { kind: "runtime", adapter: "concord.runtime@0.1.0", synthetic: false, model_id: null, origin: "runtime", replayed: false },
     event_type: "control.state",
     capability: "control_status",
     payload: { active, capabilities, reason },
@@ -205,13 +205,13 @@ describe("CommandGuard + control.state (schema 1.4)", () => {
   });
 
   it("attachGuard feeds control.state from the stream before any command", () => {
-    const stream = new BrainOSStream({ app: { id: "a", name: "A" }, required: [], webSocket: () => ({}) as WebSocket });
+    const stream = new ConcordStream({ app: { id: "a", name: "A" }, required: [], webSocket: () => ({}) as WebSocket });
     const stops: string[] = [];
     const g = new CommandGuard({ onStop: (r) => stops.push(r) });
     const got: EventEnvelope[] = [];
     attachGuard(stream, g, (e) => got.push(e));
     const rt = { state: "streaming", device: null, session_id: "ses_aaaaaaaa", state_since_ns: 0, last_error: null, recording: null, apps: [] };
-    stream.handle(JSON.stringify({ type: "welcome", protocol: "brainos.stream/1", schema_version: "1.4", connection_id: "c", negotiation: neg(["selection", "control_status"]), runtime: rt }));
+    stream.handle(JSON.stringify({ type: "welcome", protocol: "concord.stream/1", schema_version: "1.4", connection_id: "c", negotiation: neg(["selection", "control_status"]), runtime: rt }));
     const now = new Clock();
     now.wall = Date.now();
     stream.handle(JSON.stringify({ type: "event", delivery_seq: 0, event: cmd(now, "intent.selection") }));

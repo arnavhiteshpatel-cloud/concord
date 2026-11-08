@@ -19,8 +19,8 @@ const DEVICE_ID = "plugin:example-mi-eeg:mi-eeg";
 
 const example: PluginInfo = {
   name: "example-mi-eeg",
-  entry: "brainos_example_adapter.plugin:MotorImageryEEGPlugin",
-  package: "brainos-example-adapter",
+  entry: "concord_example_adapter.plugin:MotorImageryEEGPlugin",
+  package: "concord-example-adapter",
   package_version: "0.1.0",
   status: "compatible",
   reason: null,
@@ -28,7 +28,7 @@ const example: PluginInfo = {
   description: "Declared-synthetic EEG",
   version: "0.1.0",
   api_version: "1.0",
-  author: "BrainOS developers",
+  author: "Concord developers",
   license: "Proprietary",
   homepage: "",
   ecosystem: null,
@@ -64,7 +64,7 @@ const rejected: PluginInfo = {
   version: "3.0.0",
   display_name: "Future plugin",
   status: "rejected",
-  reason: "api_version: written for adapter SDK API 2.0; this BrainOS supports API 1.0 (major versions differ)",
+  reason: "api_version: written for adapter SDK API 2.0; this Concord supports API 1.0 (major versions differ)",
   devices: [],
 };
 
@@ -95,9 +95,9 @@ const descriptor: DeviceDescriptor = {
   device_id: DEVICE_ID,
   display_name: "Motor-imagery EEG generator",
   kind: "simulated",
-  adapter: "brainos-example-adapter@0.1.0",
+  adapter: "concord-example-adapter@0.1.0",
   description: "Provided by the plugin …",
-  native_format: "BrainOS adapter SDK 1.0 plugin",
+  native_format: "Concord adapter SDK 1.0 plugin",
   capabilities: [
     { capability: "recording", params: { channel_count: 8, sample_rate_hz: 250, unit: "uV" }, description: "" },
     { capability: "device_status", params: {}, description: "" },
@@ -105,14 +105,14 @@ const descriptor: DeviceDescriptor = {
   synthetic: true,
   modality: "eeg",
   invasive: false,
-  integration: { kind: "plugin", package: "brainos-example-adapter", version: "0.1.0", api_version: "1.0", isolated: true },
+  integration: { kind: "plugin", package: "concord-example-adapter", version: "0.1.0", api_version: "1.0", isolated: true },
 };
 
 const simA: DeviceDescriptor = {
   ...descriptor,
   device_id: "sim-a",
   display_name: "Simulated Profile A",
-  adapter: "brainos.sim.profile_a@0.1.0",
+  adapter: "concord.sim.profile_a@0.1.0",
   modality: null,
   invasive: null,
   integration: null,
@@ -133,7 +133,7 @@ describe("Plugins group in the source picker", () => {
     stubFetch({ "GET /plugins": () => status([example, rejected, broken]) });
     render(<SourcePicker devices={[simA, descriptor]} runtime={runtime(null, "idle")} onClose={vi.fn()} onSourcesChanged={vi.fn()} />);
     await screen.findByTestId("plugin-list");
-    expect(screen.getByTestId("plugin-status-example-mi-eeg").textContent).toBe("brainos-example-adapter@0.1.0 · compatible");
+    expect(screen.getByTestId("plugin-status-example-mi-eeg").textContent).toBe("concord-example-adapter@0.1.0 · compatible");
     expect(screen.getByTestId("plugin-status-future-plugin").textContent).toMatch(
       /^future-plugin@3\.0\.0 · rejected: api_version: written for adapter SDK API 2\.0/,
     );
@@ -212,7 +212,7 @@ describe("Acquisition row for a plugin source", () => {
     stubFetch({});
     render(<SourceRow runtime={runtime(descriptor)} onPick={vi.fn()} />);
     expect(screen.getByTestId("source-integration").textContent).toBe(
-      "Plugin · brainos-example-adapter@0.1.0 · isolated · EEG, noninvasive",
+      "Plugin · concord-example-adapter@0.1.0 · isolated · EEG, noninvasive",
     );
   });
 
@@ -220,7 +220,7 @@ describe("Acquisition row for a plugin source", () => {
     stubFetch({});
     render(<SourceRow runtime={runtime({ ...descriptor, modality: null, invasive: null })} onPick={vi.fn()} />);
     expect(screen.getByTestId("source-integration").textContent).toBe(
-      "Plugin · brainos-example-adapter@0.1.0 · isolated · modality not declared",
+      "Plugin · concord-example-adapter@0.1.0 · isolated · modality not declared",
     );
     cleanup();
     render(<SourceRow runtime={runtime(simA)} onPick={vi.fn()} />);

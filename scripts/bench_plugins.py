@@ -28,14 +28,14 @@ ROOT = Path(__file__).resolve().parents[1]
 PLUGINS = ROOT / "backend" / "tests" / "plugins"
 sys.path.insert(0, str(PLUGINS))
 
-from brainos_adapter_sdk import ipc  # noqa: E402
+from concord_adapter_sdk import ipc  # noqa: E402
 
-from brainos.adapters.plugin import PluginAdapter, PluginSpec  # noqa: E402
-from brainos.adapters.plugin.host_client import AsyncHostClient  # noqa: E402
+from concord.adapters.plugin import PluginAdapter, PluginSpec  # noqa: E402
+from concord.adapters.plugin.host_client import AsyncHostClient  # noqa: E402
 
 RATE = 30_000.0
 CHANNELS = 64
-REF = "bos_test_plugins:FastPlugin"
+REF = "concord_test_plugins:FastPlugin"
 
 
 def _expected_block(chunk: int) -> np.ndarray:  # type: ignore[type-arg]
@@ -77,7 +77,7 @@ async def bench_ipc(chunk: int, seconds: float) -> dict[str, float]:
 
 async def bench_adapter(chunk: int, seconds: float, normalize: bool) -> dict[str, float]:
     sys.path.insert(0, str(PLUGINS))
-    from bos_test_plugins import FastPlugin
+    from concord_test_plugins import FastPlugin
 
     spec = PluginSpec(
         device_id="plugin:bench:fast",

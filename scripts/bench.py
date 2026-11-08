@@ -1,4 +1,4 @@
-"""BrainOS benchmarks. Every number printed is measured on the machine running this script.
+"""Concord benchmarks. Every number printed is measured on the machine running this script.
 
 1. Pipeline capacity (in-process, no network): how many envelopes/s the runtime can
    stamp, validate and fan out, per event type, with N subscribers.
@@ -24,15 +24,15 @@ from pathlib import Path
 
 import uvicorn
 
-from brainos.adapters.base import EventDraft
-from brainos.adapters.simulated import OperatorIntentSource
-from brainos.adapters.simulated import profile_a as pa
-from brainos.contracts.capabilities import Capability, CapabilityDescriptor, EventType
-from brainos.contracts.events import Provenance, ProvenanceKind, Quality, QualityFlag
-from brainos.contracts.protocol import AppInfo, DeviceDescriptor, DeviceKind
-from brainos.runtime import DeviceRegistry, Recorder, Runtime
-from brainos.sdk import EventStream, RuntimeClient
-from brainos.server import Settings, create_app
+from concord.adapters.base import EventDraft
+from concord.adapters.simulated import OperatorIntentSource
+from concord.adapters.simulated import profile_a as pa
+from concord.contracts.capabilities import Capability, CapabilityDescriptor, EventType
+from concord.contracts.events import Provenance, ProvenanceKind, Quality, QualityFlag
+from concord.contracts.protocol import AppInfo, DeviceDescriptor, DeviceKind
+from concord.runtime import DeviceRegistry, Recorder, Runtime
+from concord.sdk import EventStream, RuntimeClient
+from concord.server import Settings, create_app
 
 
 def pct(values: list[float], p: float) -> float:
@@ -243,7 +243,7 @@ def main() -> None:
 
     lines: list[str] = []
     p = lines.append
-    p("# BrainOS benchmarks\n")
+    p("# Concord benchmarks\n")
     p(
         "> Every number below was measured on the machine listed in the table, by this script. "
         "Regenerate on your own hardware with `make bench` (real-data rows need `make dataset model`).\n"

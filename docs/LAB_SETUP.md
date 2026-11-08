@@ -1,21 +1,21 @@
-# Setting up BrainOS in a lab with its own acquisition system
+# Setting up Concord in a lab with its own acquisition system
 
 For a lab that already records neural data with its own amplifier and software and wants to
-add BrainOS next to it. BrainOS **receives** data from your acquisition software; it never
+add Concord next to it. Concord **receives** data from your acquisition software; it never
 sends anything to the amplifier or the acquisition software (the single, documented
 exception is the Open Ephys heartbeat message). Read
-[VALIDATION_LEVELS.md](VALIDATION_LEVELS.md) first: no part of BrainOS has been run against
+[VALIDATION_LEVELS.md](VALIDATION_LEVELS.md) first: no part of Concord has been run against
 acquisition hardware yet. Your first session with equipment is a validation session; follow
 [FIRST_LAB_SESSION.md](FIRST_LAB_SESSION.md).
 
 ## 1. Which adapter for which acquisition system
 
-| Your acquisition software / system | BrainOS adapter | Install | What BrainOS receives |
+| Your acquisition software / system | Concord adapter | Install | What Concord receives |
 | --- | --- | --- | --- |
 | Any software with an **LSL outlet** (amplifier vendors' LSL apps, OpenBCI GUI, BCI2000 or OpenViBE LSL output, your own task software) | LSL (built in) | included | the stream as published: raw signal or binned features, plus behavior and marker streams you attach |
 | **Open Ephys GUI** ≥ 0.6 with the *ZMQ Interface* plugin | Open Ephys (built in) | included | continuous data, TTL events, spikes from the plugin's ZMQ stream |
-| A board supported by **BrainFlow** | `brainos-brainflow` plugin | `pip install brainos-brainflow` (pip installation only) | BrainFlow's DEFAULT preset data |
-| **BCI2000** | `brainos-bci2000` plugin (App Connector) | included in the app; `pip install brainos-bci2000` | BCI2000's processed control signal and states (not raw signal) |
+| A board supported by **BrainFlow** | `concord-brainflow` plugin | `pip install concord-brainflow` (pip installation only) | BrainFlow's DEFAULT preset data |
+| **BCI2000** | `concord-bci2000` plugin (App Connector) | included in the app; `pip install concord-bci2000` | BCI2000's processed control signal and states (not raw signal) |
 | Recorded **NWB** files (spike-time units) | NWB (built in) | included | offline replay, labelled *Offline Replay* |
 | Anything else | write a source plugin ([ADAPTER_SDK.md](ADAPTER_SDK.md)) or publish it over LSL | | |
 
@@ -23,14 +23,14 @@ No implant vendor is supported and none should be assumed to work.
 
 ## 2. Network topology
 
-Recommended: acquisition stays on its own computer, unchanged; BrainOS runs on a second
+Recommended: acquisition stays on its own computer, unchanged; Concord runs on a second
 computer on the same lab network; the participant display (the communication board or a task)
-is a second screen of the BrainOS computer.
+is a second screen of the Concord computer.
 
 ```
  ┌──────────────────────────┐   LSL (multicast discovery + TCP)    ┌──────────────────────────────┐
- │ Acquisition computer     │   Open Ephys ZMQ (TCP 5556/5557)     │ BrainOS computer             │
- │ amplifier + vendor app / │ ───────────────────────────────────► │ BrainOS on 127.0.0.1:8000    │
+ │ Acquisition computer     │   Open Ephys ZMQ (TCP 5556/5557)     │ Concord computer             │
+ │ amplifier + vendor app / │ ───────────────────────────────────► │ Concord on 127.0.0.1:8000    │
  │ Open Ephys GUI / BCI2000 │   BCI2000 App Connector (UDP 20321)  │ console (browser, same host) │
  └──────────────────────────┘                                      │ participant screen (2nd mon.)│
                                                                    └──────────────────────────────┘
@@ -38,27 +38,27 @@ is a second screen of the BrainOS computer.
 
 | Protocol | Direction | Ports to allow | Notes |
 | --- | --- | --- | --- |
-| LSL | acquisition → BrainOS | UDP 16571 (multicast discovery), TCP/UDP 16572–16603 on the acquisition computer | Both computers on the same subnet with multicast allowed; otherwise configure liblsl's `KnownPeers` (lsl_api.cfg). Timestamps are mapped with liblsl `time_correction`. |
-| Open Ephys ZMQ Interface | BrainOS connects to the GUI computer | TCP data port (default 5556) and heartbeat port + 1 (5557) on the GUI computer | BrainOS subscribes; it sends only the plugin's heartbeat. |
-| BCI2000 App Connector | BCI2000 → BrainOS | inbound UDP 20321 (default) on the BrainOS computer | Set BCI2000's `ConnectorOutputAddress` to the BrainOS computer's address and port. |
-| BrainOS console and API | local only | none | BrainOS listens on 127.0.0.1. To use the console from another computer, use an SSH tunnel (`ssh -L 8000:127.0.0.1:8000 user@brainos-computer`), not `allow_remote` (docs/SECURITY.md). |
+| LSL | acquisition → Concord | UDP 16571 (multicast discovery), TCP/UDP 16572–16603 on the acquisition computer | Both computers on the same subnet with multicast allowed; otherwise configure liblsl's `KnownPeers` (lsl_api.cfg). Timestamps are mapped with liblsl `time_correction`. |
+| Open Ephys ZMQ Interface | Concord connects to the GUI computer | TCP data port (default 5556) and heartbeat port + 1 (5557) on the GUI computer | Concord subscribes; it sends only the plugin's heartbeat. |
+| BCI2000 App Connector | BCI2000 → Concord | inbound UDP 20321 (default) on the Concord computer | Set BCI2000's `ConnectorOutputAddress` to the Concord computer's address and port. |
+| Concord console and API | local only | none | Concord listens on 127.0.0.1. To use the console from another computer, use an SSH tunnel (`ssh -L 8000:127.0.0.1:8000 user@concord-computer`), not `allow_remote` (docs/SECURITY.md). |
 
-Clocks: keep all computers on NTP. BrainOS does not estimate offsets between computers beyond
+Clocks: keep all computers on NTP. Concord does not estimate offsets between computers beyond
 what liblsl provides; Open Ephys timestamps are sample counts in the GUI's clock.
 
-## 3. Install on the BrainOS computer
+## 3. Install on the Concord computer
 
 macOS: the desktop app or pip ([INSTALL_MAC.md](INSTALL_MAC.md)). Linux: pip from a checkout
-(`make setup && make build`, then `.venv/bin/brainos …`) or from wheels:
+(`make setup && make build`, then `.venv/bin/concord …`) or from wheels:
 
 ```bash
-pip install --find-links dist "brainos[lab]"
+pip install --find-links dist "concordos[lab]"
 ```
 
 Then check the installation and save the report with your lab records:
 
 ```bash
-brainos doctor
+concord doctor
 ```
 
 It checks Python, the packages (with build fingerprints), liblsl, pyzmq, BrainFlow, a
@@ -68,24 +68,24 @@ log problems. It contains no neural or personal data.
 Configure (optional; safe defaults otherwise):
 
 ```bash
-brainos config init
+concord config init
 ```
 
-Edit the file `brainos config path` prints: put `[storage] data_dir` on an encrypted disk,
+Edit the file `concord config path` prints: put `[storage] data_dir` on an encrypted disk,
 set `[retention]` per your data policy (applied at every start). Then:
 
 ```bash
-brainos start
+concord start
 ```
 
 ```bash
-brainos status
+concord status
 ```
 
 ## 4. Connect your source
 
 Follow [LAB_GUIDE.md](LAB_GUIDE.md) §2 (LSL), §3 (Open Ephys); plugins: **Connect a source →
-Plugins** (the plugin must be installed in the same Python environment as BrainOS; the
+Plugins** (the plugin must be installed in the same Python environment as Concord; the
 desktop app includes only the BCI2000 plugin). Check the *Signal integrity* row and
 **Advanced → Acquisition details** against your acquisition software's own display.
 
@@ -93,21 +93,21 @@ Rehearse without hardware first (pip installation; each publisher declares itsel
 or prerecorded):
 
 ```bash
-python -m brainos.testing.publish lsl-ephys --channels 32 --rate 30000
+python -m concord.testing.publish lsl-ephys --channels 32 --rate 30000
 ```
 
 ```bash
-brainos dataset
+concord dataset
 ```
 
 ```bash
-python -m brainos.testing.publish falcon <data dir>/datasets/dandi-000954/sub-HumanPitt-held-in-calib_ses-19250108T111022.nwb --loop
+python -m concord.testing.publish falcon <data dir>/datasets/dandi-000954/sub-HumanPitt-held-in-calib_ses-19250108T111022.nwb --loop
 ```
 
 ## 5. A research session, step by step
 
 1. **New session** (strip above the rows): a name (no participant identifiers), the operator,
-   notes. BrainOS creates a private session folder and logs into it from now on.
+   notes. Concord creates a private session folder and logs into it from now on.
 2. **Connect a source**, check signal integrity.
 3. **Decoder → Start decoding** (processing preset), **Decoder → Calibrate…**: record features
    and labels, train; the report gives held-out R² and controls (LAB_GUIDE.md §5).
@@ -118,7 +118,7 @@ python -m brainos.testing.publish falcon <data dir>/datasets/dandi-000954/sub-Hu
 6. **Session and export… → Create export bundle** (tick *Include the session's recordings* to
    make it reproducible): a zip with the session log, versions, sources, pipeline settings,
    models, calibration reports and `REPRODUCE.md`. Verify it anywhere with
-   `brainos reproduce <bundle>.zip`.
+   `concord reproduce <bundle>.zip`.
 7. **End session…**.
 
 ## 6. Documented commands and API used by the acceptance test
@@ -129,13 +129,13 @@ environments, using only these commands and the REST endpoints the console calls
 
 | Purpose | Command / endpoint |
 | --- | --- |
-| install, check, configure, run | `pip install "brainos[lab]"`, `brainos version`, `brainos doctor`, `brainos config init / show`, `brainos start --no-browser`, `brainos status`, `brainos stop`, `brainos dataset` |
-| external sources | `python -m brainos.testing.publish lsl-ephys …` / `… falcon …` (separate processes) |
+| install, check, configure, run | `pip install "concordos[lab]"`, `concord version`, `concord doctor`, `concord config init / show`, `concord start --no-browser`, `concord status`, `concord stop`, `concord dataset` |
+| external sources | `python -m concord.testing.publish lsl-ephys …` / `… falcon …` (separate processes) |
 | research session | `POST /sessions`, `POST /sessions/{id}/export`, `POST /safe-stop` |
 | source | `POST /sources/lsl/discover`, `POST /sources/lsl`, `POST /runtime/connect`, `POST /runtime/disconnect`, `GET /devices` |
 | pipeline, recording, calibration | `POST /pipeline/start`, `POST /pipeline/stop`, `GET /pipeline`, `POST /recordings/start`, `POST /recordings/stop`, `POST /calibration/train` |
-| applications | an SDK-only app (`brainos.sdk.EventStream`, `pip install brainos`), `GET /control`, `POST /control/apps/{id}/authorize` |
-| reproduction | `brainos reproduce <bundle>.zip` in a fresh environment (`pip install "brainos[dsp]"`) |
+| applications | an SDK-only app (`concord.sdk.EventStream`, `pip install concordos`), `GET /control`, `POST /control/apps/{id}/authorize` |
+| reproduction | `concord reproduce <bundle>.zip` in a fresh environment (`pip install "concordos[dsp]"`) |
 
 Run it yourself with `make lab-acceptance` (CI job **lab-acceptance**).
 

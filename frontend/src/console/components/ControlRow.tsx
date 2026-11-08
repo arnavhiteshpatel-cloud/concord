@@ -195,7 +195,7 @@ function AuthorizedApps({ control, onChange }: { control: ControlStatus; onChang
 }
 
 const PARTICIPANT_URL = "/board.html";
-const PARTICIPANT_WINDOW = "brainos-participant";
+const PARTICIPANT_WINDOW = "concord-participant";
 
 /** Open (or bring forward) the participant screen as its own window, sized for a second display.
  *  Falls back to the link's normal new-tab behaviour if the browser blocks the window. */

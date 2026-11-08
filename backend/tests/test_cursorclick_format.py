@@ -11,12 +11,12 @@ import pytest
 
 scipy_io = pytest.importorskip("scipy.io")
 
-from brainos.adapters.cursorclick.catalog import CursorClickCatalog  # noqa: E402
-from brainos.adapters.cursorclick.reader import T15FormatError, load  # noqa: E402
-from brainos.adapters.cursorclick.source import T15CursorClickSource  # noqa: E402
-from brainos.adapters.simulated import OperatorIntentSource  # noqa: E402
-from brainos.runtime import DeviceRegistry  # noqa: E402
-from brainos.runtime.registry import DeviceNotFoundError  # noqa: E402
+from concord.adapters.cursorclick.catalog import CursorClickCatalog  # noqa: E402
+from concord.adapters.cursorclick.reader import T15FormatError, load  # noqa: E402
+from concord.adapters.cursorclick.source import T15CursorClickSource  # noqa: E402
+from concord.adapters.simulated import OperatorIntentSource  # noqa: E402
+from concord.runtime import DeviceRegistry  # noqa: E402
+from concord.runtime.registry import DeviceNotFoundError  # noqa: E402
 
 NAME = "t15_day00468_block03_grid_evaluation_task.mat"
 
@@ -105,7 +105,7 @@ def test_catalog_lists_good_files_and_reports_bad_ones(tmp_path: Path) -> None:
 
 
 def test_origin_identity_and_block_session() -> None:
-    from brainos.adapters.cursorclick.source import block_session, source_identity
+    from concord.adapters.cursorclick.source import block_session, source_identity
 
     o = "dryad:10.5061/dryad.prr4xgxzq/t15_day00468_block03_grid_evaluation_task.mat"
     assert source_identity(o) == "dryad:10.5061/dryad.prr4xgxzq:t15"

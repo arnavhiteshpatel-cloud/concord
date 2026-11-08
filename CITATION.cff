@@ -1,16 +1,16 @@
 cff-version: 1.2.0
 message: >-
-  If you use BrainOS in your research, please cite it as below, and cite every dataset you
+  If you use Concord in your research, please cite it as below, and cite every dataset you
   use with it (listed under references).
 type: software
-title: "BrainOS: a hardware-agnostic, read-only runtime and SDK for brain-computer interfaces"
+title: "Concord: a hardware-agnostic, read-only runtime and SDK for brain-computer interfaces"
 abstract: >-
-  BrainOS receives neural data from acquisition systems and recordings, labels every event
+  Concord receives neural data from acquisition systems and recordings, labels every event
   with its provenance, runs decoders, and passes decoded commands only to applications an
   operator authorizes. Research software; validated in software and with protocol-level test
   sources only, not with acquisition hardware or participants.
 authors:
-  - name: "BrainOS contributors"
+  - name: "Concord contributors"
 version: "0.3.0"
 repository-code: "https://github.com/arnavhiteshpatel-cloud/brainos"
 keywords:

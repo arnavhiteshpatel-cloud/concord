@@ -1,18 +1,18 @@
-"""Build the BrainOS desktop bundle with PyInstaller (and the .dmg on macOS).
+"""Build the Concord desktop bundle with PyInstaller (and the .dmg on macOS).
 
     python packaging/build_app.py [--build-console] [--dmg]
 
-Prerequisites in the active Python environment: BrainOS with the lab extra, the plugin host
+Prerequisites in the active Python environment: Concord with the lab extra, the plugin host
 SDK and the BCI2000 plugin, and the pinned build tools::
 
-    pip install -e packages/brainos-adapter-sdk -e "backend[lab]" -e packages/brainos-bci2000
+    pip install -e packages/concord-adapter-sdk -e "backend[lab]" -e packages/concord-bci2000
     pip install -r packaging/requirements.txt
 
 Outputs (packaging/dist/, git-ignored):
 
-- macOS: ``BrainOS.app`` and, with ``--dmg``, ``BrainOS-<version>-macos-<arch>.dmg``
+- macOS: ``Concord.app`` and, with ``--dmg``, ``Concord-<version>-macos-<arch>.dmg``
   (the app plus an Applications shortcut). Unsigned: ad-hoc signature only, not notarized.
-- Linux: ``BrainOS/BrainOS`` (same layout; validates the packaging, not a Linux installer).
+- Linux: ``Concord/Concord`` (same layout; validates the packaging, not a Linux installer).
 
 ``packaging/smoke_test.py`` then runs the bundle headless and checks it end to end.
 """
@@ -38,7 +38,7 @@ WORK = PKG / "build"
 
 
 def version() -> str:
-    text = (ROOT / "backend" / "src" / "brainos" / "__init__.py").read_text()
+    text = (ROOT / "backend" / "src" / "concord" / "__init__.py").read_text()
     m = re.search(r'__version__ = "([^"]+)"', text)
     assert m is not None
     return m.group(1)
@@ -86,7 +86,7 @@ def make_dmg(app: Path, out: Path) -> Path:
     if hdiutil is None:
         raise SystemExit("hdiutil not found: .dmg images can only be made on macOS")
     with tempfile.TemporaryDirectory() as tmp:
-        stage = Path(tmp) / "BrainOS"
+        stage = Path(tmp) / "Concord"
         stage.mkdir()
         # symlinks=True keeps the bundle's internal links (Python.framework layout) intact
         shutil.copytree(app, stage / app.name, symlinks=True)
@@ -97,7 +97,7 @@ def make_dmg(app: Path, out: Path) -> Path:
                 hdiutil,
                 "create",
                 "-volname",
-                "BrainOS",
+                "Concord",
                 "-srcfolder",
                 str(stage),
                 "-ov",
@@ -133,14 +133,14 @@ def main(argv: list[str] | None = None) -> int:
             str(DIST),
             "--workpath",
             str(WORK),
-            str(PKG / "brainos.spec"),
+            str(PKG / "concord.spec"),
         ],
         check=True,
         cwd=ROOT,
     )
     mac = sys.platform == "darwin"
-    bundle = DIST / ("BrainOS.app" if mac else "BrainOS")
-    exe = bundle / "Contents" / "MacOS" / "BrainOS" if mac else bundle / "BrainOS"
+    bundle = DIST / ("Concord.app" if mac else "Concord")
+    exe = bundle / "Contents" / "MacOS" / "Concord" if mac else bundle / "Concord"
     if not exe.is_file():
         raise SystemExit(f"build did not produce {exe}")
     info: dict[str, object] = {
@@ -162,12 +162,12 @@ def main(argv: list[str] | None = None) -> int:
             raise SystemExit(
                 f"bundled library {info.get('macos_min_set_by')} needs macOS {required}; the app "
                 "declares 14.0 (LSMinimumSystemVersion). Exclude it on macOS or raise the minimum "
-                "in brainos.spec and docs/INSTALL_MAC.md."
+                "in concord.spec and docs/INSTALL_MAC.md."
             )
     if args.dmg:
         if not mac:
             raise SystemExit("--dmg needs macOS (hdiutil)")
-        dmg = make_dmg(bundle, DIST / f"BrainOS-{version()}-macos-{platform.machine()}.dmg")
+        dmg = make_dmg(bundle, DIST / f"Concord-{version()}-macos-{platform.machine()}.dmg")
         info.update(
             {
                 "dmg": str(dmg.relative_to(ROOT)),

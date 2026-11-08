@@ -23,16 +23,16 @@ const LEVELS: CompatRegistry["levels"] = [
 ];
 
 const entry = (over: Partial<CompatEntry>): CompatEntry => ({
-  id: "brainos.lsl",
+  id: "concord.lsl",
   display_name: "Lab Streaming Layer",
   kind: "builtin_adapter",
   ecosystem: "lsl",
   protocol: "LSL inlet",
-  package: "brainos",
+  package: "concord",
   version: "0.3.0",
-  adapter: "brainos.lsl",
+  adapter: "concord.lsl",
   entry_point: null,
-  module: "brainos.adapters.lsl",
+  module: "concord.adapters.lsl",
   in_checkout: true,
   synthetic_only: false,
   modalities_declared: [],
@@ -66,22 +66,22 @@ const entry = (over: Partial<CompatEntry>): CompatEntry => ({
 });
 
 const bci2000 = entry({
-  id: "brainos-bci2000",
+  id: "concord-bci2000",
   display_name: "BCI2000 App Connector",
   kind: "source_plugin",
   ecosystem: "bci2000",
   protocol: "App Connector",
-  package: "brainos-bci2000",
+  package: "concord-bci2000",
   version: "0.1.0",
   adapter: null,
   entry_point: "bci2000",
-  module: "brainos_bci2000",
+  module: "concord_bci2000",
   real_data_replay: false,
   evidence: [
     {
       type: "certify_report",
       path: "docs/compatibility/bci2000-app-connector.certify.json",
-      description: "brainos-certify run",
+      description: "concord-certify run",
       date: "2026-11-07",
       supports: "software_implemented",
       counted: false,
@@ -95,7 +95,7 @@ const bci2000 = entry({
     },
     {
       type: "test",
-      path: "packages/brainos-bci2000/tests/test_bci_real_bci2000.py",
+      path: "packages/concord-bci2000/tests/test_bci_real_bci2000.py",
       description: "Opt-in live test.",
       date: "2026-11-07",
       supports: "protocol_tested",
@@ -113,7 +113,7 @@ const bci2000 = entry({
 });
 
 const t15 = entry({
-  id: "brainos.cursorclick.t15",
+  id: "concord.cursorclick.t15",
   display_name: "Cursor + click recordings",
   kind: "offline_dataset",
   in_checkout: false,
@@ -126,7 +126,7 @@ const t15 = entry({
 });
 
 const sim = entry({
-  id: "brainos.sim.profile_a",
+  id: "concord.sim.profile_a",
   display_name: "Simulated Profile A",
   level: "software_implemented",
   level_number: 1,
@@ -137,7 +137,7 @@ const sim = entry({
 const registry: CompatRegistry = {
   registry_version: "1.0",
   notice: "Levels are derived from the evidence. No entry has reached hardware_verified (level 3) or human_validated (level 4).",
-  brainos_version: "0.3.0",
+  concord_version: "0.3.0",
   levels: LEVELS,
   rules: ["R1 …"],
   sources: { curated: "compat/sources.json", certify_reports: [], validation_levels: "docs/VALIDATION_LEVELS.md" },
@@ -156,13 +156,13 @@ const response = (over: Partial<CompatibilityResponse> = {}): CompatibilityRespo
   available: true,
   source: "registry.json",
   error: null,
-  brainos_version: "0.3.0",
+  concord_version: "0.3.0",
   registry,
   live: {
-    "brainos.sim.profile_a": live("installed", "Built into BrainOS 0.3.0", "0.3.0"),
-    "brainos.lsl": live("unavailable", "Needs pylsl, which is not installed", "0.3.0"),
-    "brainos.cursorclick.t15": live("not_installed", "Not part of this installation"),
-    "brainos-bci2000": live(
+    "concord.sim.profile_a": live("installed", "Built into Concord 0.3.0", "0.3.0"),
+    "concord.lsl": live("unavailable", "Needs pylsl, which is not installed", "0.3.0"),
+    "concord.cursorclick.t15": live("not_installed", "Not part of this installation"),
+    "concord-bci2000": live(
       "different_version",
       "Evidence for a different version: the evidence is for 0.1.0, 0.2.0 is installed",
       "0.2.0",
@@ -181,22 +181,22 @@ describe("CompatibilityView", () => {
     const headers = screen.getAllByRole("columnheader").map((h) => h.textContent);
     expect(headers).toEqual(["Integration", "Kind", "Level", "Evidence", "Not tested"]);
 
-    const lsl = within(screen.getByTestId("compat-brainos.lsl"));
-    expect(screen.getByTestId("compat-level-brainos.lsl").textContent).toBe("Level 2 · Protocol-tested");
+    const lsl = within(screen.getByTestId("compat-concord.lsl"));
+    expect(screen.getByTestId("compat-level-concord.lsl").textContent).toBe("Level 2 · Protocol-tested");
     expect(lsl.getByText("Real-data replay (recorded data, not live)")).toBeTruthy();
     expect(lsl.getByText("backend/tests/test_lsl.py")).toBeTruthy();
     expect(lsl.getByText("test · supports Protocol-tested · 2026-11-07")).toBeTruthy();
     expect(lsl.getByText("Third-party LSL producers.")).toBeTruthy();
     expect(lsl.getByText("Built-in adapter")).toBeTruthy();
-    expect(screen.getByTestId("compat-live-brainos.lsl").textContent).toBe(
+    expect(screen.getByTestId("compat-live-concord.lsl").textContent).toBe(
       "This installation: Needs pylsl, which is not installed",
     );
 
-    expect(screen.getByTestId("compat-level-brainos.sim.profile_a").textContent).toBe("Level 1 · Software-implemented");
-    expect(within(screen.getByTestId("compat-brainos.sim.profile_a")).getByText("Synthetic data only")).toBeTruthy();
+    expect(screen.getByTestId("compat-level-concord.sim.profile_a").textContent).toBe("Level 1 · Software-implemented");
+    expect(within(screen.getByTestId("compat-concord.sim.profile_a")).getByText("Synthetic data only")).toBeTruthy();
 
-    const t = within(screen.getByTestId("compat-brainos.cursorclick.t15"));
-    expect(screen.getByTestId("compat-level-brainos.cursorclick.t15").textContent).toBe("No level: not in this build");
+    const t = within(screen.getByTestId("compat-concord.cursorclick.t15"));
+    expect(screen.getByTestId("compat-level-concord.cursorclick.t15").textContent).toBe("No level: not in this build");
     expect(t.getByText("None in this build")).toBeTruthy();
     expect(t.getByText("Offline dataset")).toBeTruthy();
   });
@@ -204,17 +204,17 @@ describe("CompatibilityView", () => {
   it("marks evidence that was not counted and evidence for a different version", async () => {
     stubFetch({ "GET /compatibility": () => response() });
     render(<CompatibilityView />);
-    const row = within(await screen.findByTestId("compat-brainos-bci2000"));
+    const row = within(await screen.findByTestId("compat-concord-bci2000"));
     expect(row.getByText(/^Not counted: Evidence for an earlier revision of this version/)).toBeTruthy();
     expect(row.getByText("certification report · 2026-11-07")).toBeTruthy(); // not counted: supports nothing
     expect(row.getByText("test · supports Protocol-tested · not run in CI · 2026-11-07")).toBeTruthy();
-    const liveLine = screen.getByTestId("compat-live-brainos-bci2000");
+    const liveLine = screen.getByTestId("compat-live-concord-bci2000");
     expect(liveLine.textContent).toBe(
       "This installation: Evidence for a different version: the evidence is for 0.1.0, 0.2.0 is installed",
     );
     expect(liveLine.className).toBe("caution-text");
     // the level is the evidence's; the installed version does not change it
-    expect(screen.getByTestId("compat-level-brainos-bci2000").textContent).toBe("Level 2 · Protocol-tested");
+    expect(screen.getByTestId("compat-level-concord-bci2000").textContent).toBe("Level 2 · Protocol-tested");
   });
 
   it("offers no control other than Reload, which fetches again", async () => {

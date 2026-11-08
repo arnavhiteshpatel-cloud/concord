@@ -12,17 +12,17 @@ from collections import Counter
 
 import pytest
 
-from brainos.adapters.base import DeviceAdapter, DeviceLinkError, NativePacket, PacketDecodeError
-from brainos.adapters.replay import ReplayAdapter
-from brainos.adapters.simulated import (
+from concord.adapters.base import DeviceAdapter, DeviceLinkError, NativePacket, PacketDecodeError
+from concord.adapters.replay import ReplayAdapter
+from concord.adapters.simulated import (
     Fault,
     OperatorIntentSource,
     ProfileAAdapter,
     ProfileBAdapter,
 )
-from brainos.adapters.simulated import profile_a as pa
-from brainos.contracts.capabilities import EVENT_CAPABILITY, Capability, EventType
-from brainos.contracts.events import ProvenanceKind, QualityFlag
+from concord.adapters.simulated import profile_a as pa
+from concord.contracts.capabilities import EVENT_CAPABILITY, Capability, EventType
+from concord.contracts.events import ProvenanceKind, QualityFlag
 
 
 def _frame(ptype: int, payload: bytes, clock: int = 1234) -> bytes:

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://brainos.local/schemas/compat-registry.v1.json",
-  "title": "BrainOS compatibility registry 1.0",
+  "$id": "https://concord.local/schemas/compat-registry.v1.json",
+  "title": "Concord compatibility registry 1.0",
   "$defs": {
     "CertifyInfo": {
       "additionalProperties": false,
@@ -191,7 +191,7 @@
               "type": "null"
             }
           ],
-          "description": "plugin entry point (brainos.sources)",
+          "description": "plugin entry point (concord.sources)",
           "title": "Entry Point"
         },
         "module": {
@@ -573,8 +573,8 @@
       "title": "Notice",
       "type": "string"
     },
-    "brainos_version": {
-      "title": "Brainos Version",
+    "concord_version": {
+      "title": "Concord Version",
       "type": "string"
     },
     "levels": {
@@ -612,7 +612,7 @@
   "required": [
     "registry_version",
     "notice",
-    "brainos_version",
+    "concord_version",
     "levels",
     "rules",
     "sources",

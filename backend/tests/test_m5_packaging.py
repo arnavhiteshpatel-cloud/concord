@@ -27,14 +27,14 @@ def _load(name: str) -> ModuleType:
     ("argv", "kind", "args"),
     [
         (
-            ["-m", "brainos_adapter_sdk.host", "--list"],
+            ["-m", "concord_adapter_sdk.host", "--list"],
             "module",
-            ["brainos_adapter_sdk.host", "--list"],
+            ["concord_adapter_sdk.host", "--list"],
         ),
         (  # the isolated decoder host (M5-A) runs from the bundle too
-            ["-m", "brainos_decoder_sdk.host", "--model", "m.json"],
+            ["-m", "concord_decoder_sdk.host", "--model", "m.json"],
             "module",
-            ["brainos_decoder_sdk.host", "--model", "m.json"],
+            ["concord_decoder_sdk.host", "--model", "m.json"],
         ),
         (["-m", "os"], "refuse", ["os"]),  # the bundle is not a general Python interpreter
         (["-c", "print(1)"], "app", ["-c", "print(1)"]),
@@ -51,7 +51,7 @@ def test_bundle_entry_routing(argv: list[str], kind: str, args: list[str]) -> No
 
 
 def test_desktop_ignores_the_finder_process_serial_number() -> None:
-    from brainos.desktop import parse
+    from concord.desktop import parse
 
     args = parse(["-psn_0_12345", "--no-browser", "--port", "8123"])
     assert args.no_browser and args.port == 8123 and not args.headless
@@ -60,11 +60,11 @@ def test_desktop_ignores_the_finder_process_serial_number() -> None:
 def test_packaged_console_is_preferred_outside_a_checkout(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    from brainos import config
+    from concord import config
 
     console = tmp_path / "console"
     console.mkdir()
-    (console / "index.html").write_text("<title>BrainOS</title>")
+    (console / "index.html").write_text("<title>Concord</title>")
     monkeypatch.setattr(config, "source_checkout", lambda: None)
     monkeypatch.setattr(config, "packaged_console_dir", lambda: console)
     assert config.default_static_dir() == console

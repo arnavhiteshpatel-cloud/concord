@@ -21,8 +21,8 @@ from fastapi.testclient import TestClient
 
 pytest.importorskip("scipy")
 
-from brainos.reproduce import reproduce
-from brainos.server import create_app
+from concord.reproduce import reproduce
+from concord.server import create_app
 
 from .conftest import make_settings
 from .feature_source import FeatureSourceAdapter, feature_descriptor
@@ -150,20 +150,22 @@ def test_session_safe_stop_export_and_reproduce(
         f"models/{model_id}.json",
         f"models/{model_id}.manifest.json",
         f"calibration/{model_id}.json",
-        "recordings/cal-1.brainos.jsonl",
-        "recordings/dec-1.brainos.jsonl",
+        "recordings/cal-1.concord.jsonl",
+        "recordings/dec-1.concord.jsonl",
         "pipeline/01-start.json",
         "devices/test-features.json",
     ):
         assert required in names, required
     manifest = json.loads(zf.read("manifest.json"))
-    assert manifest["format"] == "brainos.session-bundle/1"
+    assert manifest["format"] == "concord.session-bundle/1"
     assert {f["path"] for f in manifest["files"]} == names - {"manifest.json"}
-    assert any(p["name"] == "brainos" and p["version"] for p in manifest["environment"]["packages"])
+    assert any(
+        p["name"] == "concordos" and p["version"] for p in manifest["environment"]["packages"]
+    )
     assert manifest["results"]["calibrations"][0]["model_id"] == model_id
     session_json = json.loads(zf.read("session.json"))
     assert session_json["operator"] is None and session_json["notes"] is None  # default: excluded
-    assert "brainos reproduce" in zf.read("REPRODUCE.md").decode()
+    assert "concord reproduce" in zf.read("REPRODUCE.md").decode()
     for name in names - {"session.json"}:
         text = zf.read(name).decode("utf-8", "replace")
         assert OPERATOR not in text and "P-07" not in text, name
@@ -178,7 +180,7 @@ def test_session_safe_stop_export_and_reproduce(
     decoded = [c for c in result["checks"] if c["check"] == "decoded_output"]
     # dec-1 is compared; the short left-open recording may hold only warm-up bins (skipped)
     by_rec = {c["recording"]: c for c in decoded}
-    assert by_rec["dec-1.brainos.jsonl"]["ok"] is True
+    assert by_rec["dec-1.concord.jsonl"]["ok"] is True
     assert all(c["ok"] is not False for c in decoded)
     assert sum(c["compared"] for c in decoded) > 200
     assert max(c["max_abs_diff"] for c in decoded) == 0.0
@@ -260,7 +262,7 @@ def test_deletion_requires_confirmation_and_refuses_items_in_use(
         client.delete(f"/api/v1/recordings/{name}", params={"confirm": "other"}).status_code == 400
     )
     rec_dir = tmp_path / "data" / "recordings"
-    assert (rec_dir / f"{name}.brainos.jsonl").exists()
+    assert (rec_dir / f"{name}.concord.jsonl").exists()
     gone = ok(client.delete(f"/api/v1/recordings/{name}", params={"confirm": name}))
     assert gone["bytes"] > 0 and not list(rec_dir.glob(f"{name}*"))
     assert client.delete("/api/v1/recordings/rec-a", params={"confirm": "rec-a"}).status_code == 404
@@ -302,7 +304,7 @@ def test_deletion_requires_confirmation_and_refuses_items_in_use(
 
 
 def test_session_left_active_by_a_crash_is_marked_interrupted(tmp_path: Path) -> None:
-    from brainos.runtime.sessions import SessionManager
+    from concord.runtime.sessions import SessionManager
 
     sm = SessionManager(tmp_path / "data" / "sessions")
     sid = sm.create("crashed").id  # never closed: as if the process died

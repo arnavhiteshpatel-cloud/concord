@@ -1,7 +1,7 @@
 # Control bridge (Milestone 4, workstream C)
 
 How decoded brain-signal output becomes a command an application may act on — and every way
-that path is closed. BrainOS is a read-only research runtime: nothing here sends anything to
+that path is closed. Concord is a read-only research runtime: nothing here sends anything to
 a device, and nothing here has been used with a participant (see LIMITATIONS.md).
 
 ```
@@ -101,7 +101,7 @@ length `tau / bin`), z-score with training statistics, linear discriminant analy
 shared covariance shrunk towards `mu·I` by the closed-form **Ledoit-Wolf** intensity (same
 estimator as scikit-learn's, tested against the formula), class priors from training
 frequencies, softmax posteriors. Streaming output equals offline output bin for bin
-(tested). numpy only; the model is JSON `brainos.model/1` with `kind: "lda"`, `input`
+(tested). numpy only; the model is JSON `concord.model/1` with `kind: "lda"`, `input`
 (event type, feature, bin, channel count and labels), `source.identity`, `training`
 (recordings + SHA-256, sessions, class counts), `evaluations` and
 `outputs: {"type": "classes", "classes": [...]}`. The same compatibility checks as for ridge
@@ -115,7 +115,7 @@ decoder-defined space", and it is not a command capability.
 ### Calibration from recordings
 
 `calibrate_classifier()` (`POST /calibration/train` with `"kind": "classifier"`, CLI
-`python -m brainos.decoding.calibrate --classes`) uses recordings whose behavior stream
+`python -m concord.decoding.calibrate --classes`) uses recordings whose behavior stream
 carries a class label per sample (e.g. `cue_class` 0/1/2). Alignment, chronological split at
 a trial marker after `train_fraction`, then `gap_bins`, then held-out scoring — exactly as
 for ridge. Labels must be small non-negative integers; class names come from the request
@@ -199,7 +199,7 @@ synthetic data. It says nothing about decoding motor imagery from a person.
 2. Feed every stream item through a guard and act only on what it returns:
 
 ```python
-from brainos.sdk import CommandGuard, EventStream
+from concord.sdk import CommandGuard, EventStream
 
 guard = CommandGuard(["selection", "text_intent"], on_stop=lambda why: print("stopped:", why))
 async with await EventStream.connect(app_id="my-menu", app_name="My menu",
@@ -217,9 +217,9 @@ async with await EventStream.connect(app_id="my-menu", app_name="My menu",
 (`async for item in ControlChannel(stream, guard)`).
 
 ```ts
-import { BrainOSStream, CommandGuard, attachGuard } from "./sdk";
+import { ConcordStream, CommandGuard, attachGuard } from "./sdk";
 
-const stream = new BrainOSStream({ app: { id: "my-cursor", name: "My cursor" }, required: ["pointer_intent"] });
+const stream = new ConcordStream({ app: { id: "my-cursor", name: "My cursor" }, required: ["pointer_intent"] });
 const guard = new CommandGuard({ capabilities: ["pointer_intent"], onStop: (why) => showStopped(why) });
 const detach = attachGuard(stream, guard, (e) => { /* fresh, usable commands only */ });
 stream.connect();

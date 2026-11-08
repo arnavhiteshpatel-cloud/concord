@@ -1,15 +1,15 @@
-# BrainOS adapter SDK (API 1.0) — source plugins
+# Concord adapter SDK (API 1.0) — source plugins
 
-The adapter SDK (`packages/brainos-adapter-sdk`, import name `brainos_adapter_sdk`) lets a third
-party connect a neural-data source to BrainOS **without changing BrainOS**: write a plugin against
-the SDK only, `pip install` it into BrainOS's Python environment, and BrainOS discovers it,
+The adapter SDK (`packages/concord-adapter-sdk`, import name `concord_adapter_sdk`) lets a third
+party connect a neural-data source to Concord **without changing Concord**: write a plugin against
+the SDK only, `pip install` it into Concord's Python environment, and Concord discovers it,
 validates it and runs it in a separate process. Plugins are **read-only**: the API has no way to
 send anything to a device, and a plugin cannot produce application commands.
 
-* Tutorial: [`examples/adapters/brainos-example-adapter/README.md`](../examples/adapters/brainos-example-adapter/README.md)
+* Tutorial: [`examples/adapters/concord-example-adapter/README.md`](../examples/adapters/concord-example-adapter/README.md)
   ("write your own adapter in 15 minutes").
-* Normative API: `brainos_adapter_sdk/api.py`. Validation: `brainos_adapter_sdk/validate.py`.
-* Runtime side: `backend/src/brainos/adapters/plugin/`, `backend/src/brainos/runtime/plugins.py`,
+* Normative API: `concord_adapter_sdk/api.py`. Validation: `concord_adapter_sdk/validate.py`.
+* Runtime side: `backend/src/concord/adapters/plugin/`, `backend/src/concord/runtime/plugins.py`,
   ARCHITECTURE.md §12.
 
 Validation level of this mechanism (docs/VALIDATION_LEVELS.md): software only. The example
@@ -20,22 +20,22 @@ plugin is a declared-synthetic generator; no plugin has been run against hardwar
 | Concept | API | Meaning |
 | --- | --- | --- |
 | Plugin | `SourcePlugin` subclass with a class attribute `manifest: PluginManifest` | One installable integration (e.g. "BrainFlow boards"). Instantiated without arguments by the plugin host. |
-| Device | `DeviceInfo` from `discover(timeout_s)` | Something the plugin can open now. `device_key` (matches `KEY_PATTERN`) becomes part of the BrainOS device id `plugin:<entry point>:<device key>`. Plugins that cannot enumerate return one configurable entry. |
-| Options | `manifest.options: {name: OptionSpec}` | Operator settings for `open()` (`str`, `int`, `float`, `bool`, `choice`). BrainOS generates the form, validates the values, fills in defaults. Range checks are the plugin's job (raise `InvalidOptions`). |
+| Device | `DeviceInfo` from `discover(timeout_s)` | Something the plugin can open now. `device_key` (matches `KEY_PATTERN`) becomes part of the Concord device id `plugin:<entry point>:<device key>`. Plugins that cannot enumerate return one configurable entry. |
+| Options | `manifest.options: {name: OptionSpec}` | Operator settings for `open()` (`str`, `int`, `float`, `bool`, `choice`). Concord generates the form, validates the values, fills in defaults. Range checks are the plugin's job (raise `InvalidOptions`). |
 | Session | `open(device_key, options) -> SourceSession` | One connection. `info: SessionInfo` must not change while open (raise `ConfigurationChanged`). |
 | Stream | `StreamSpec` | Role, channels (label, unit, type), nominal rate (0 = irregular), clock, and role-specific fields (modality / invasive, bin_ms, quantity, model_id). |
 | Chunk | `Chunk(stream_id, data[n, ch], timestamps[n], first_index)` / `MarkerChunk(stream_id, labels, timestamps)` | Data returned by `read(timeout_s)`. `first_index` counts samples per stream since `open()`; a jump = lost samples. |
 | Errors | `OpenFailed`, `InvalidOptions`, `LinkLost`, `ConfigurationChanged`, `PluginError` | Messages are shown to the operator. |
 
-**Declare what you know; leave unknowns as `None`.** BrainOS never guesses: a channel without a
+**Declare what you know; leave unknowns as `None`.** Concord never guesses: a channel without a
 unit is shown as "arbitrary", a stream without modality as "modality not declared".
 
-## 2. Lifecycle and how BrainOS uses a plugin
+## 2. Lifecycle and how Concord uses a plugin
 
 ```
-pip install my-plugin  ──▶  entry point  [project.entry-points."brainos.sources"]  name = "pkg.mod:Class"
+pip install my-plugin  ──▶  entry point  [project.entry-points."concord.sources"]  name = "pkg.mod:Class"
                                 │
-BrainOS startup / "Search again" │  python -m brainos_adapter_sdk.host --list
+Concord startup / "Search again" │  python -m concord_adapter_sdk.host --list
                                 ▼  (one host process per plugin: manifest + discover())
                         GET /api/v1/plugins  (compatible / rejected + reason / failed to load)
                                 │
@@ -47,7 +47,7 @@ operator: options form, Connect │  POST /api/v1/plugins/{name}/configure  {dev
        host: open() → read(timeout) … → close()   ══binary IPC══▶   PluginAdapter → standard events
 ```
 
-## 3. Roles → BrainOS events
+## 3. Roles → Concord events
 
 | Role | Event | Provenance | Notes |
 | --- | --- | --- | --- |
@@ -135,7 +135,7 @@ strings such as `"7"` or `"true"` are accepted, `bool` is never an `int`).
 
 What **is** isolated / guaranteed:
 
-* Plugin code (import, `discover`, `open`, `read`, `close`) never runs in the BrainOS process.
+* Plugin code (import, `discover`, `open`, `read`, `close`) never runs in the Concord process.
   Discovery runs `host --list`, which enumerates entry points from package metadata without
   importing them and probes each plugin in its **own** process; one plugin that fails to
   import, hangs or exits cannot affect the listing of the others.
@@ -159,7 +159,7 @@ What **is** isolated / guaranteed:
 
 What is **not** isolated:
 
-* Same OS user, same permissions: a plugin can read and write every file BrainOS can
+* Same OS user, same permissions: a plugin can read and write every file Concord can
   (recordings, models, datasets), open network connections, start processes and read
   environment variables. `manifest.network` is a declaration shown to the operator, not enforced.
 * No CPU / memory / disk limits; a plugin can starve the machine.
@@ -167,16 +167,16 @@ What is **not** isolated:
   re-validation still enforces the contract on what arrives, but a plugin can **lie** within it:
   `synthetic`, `prerecorded`, units, modality and origin are self-declared and are shown as
   declared ("declared synthetic", "origin unverified"), never verified.
-* Installing a plugin is installing a Python package into BrainOS's environment: it can
-  modify BrainOS's own files, and its dependencies can conflict with BrainOS's. Treat a plugin
-  like any code you run. (`BRAINOS_PLUGIN_PYTHON` runs hosts with another interpreter /
-  virtualenv that has `brainos-adapter-sdk` installed, which separates dependencies but not
+* Installing a plugin is installing a Python package into Concord's environment: it can
+  modify Concord's own files, and its dependencies can conflict with Concord's. Treat a plugin
+  like any code you run. (`CONCORD_PLUGIN_PYTHON` runs hosts with another interpreter /
+  virtualenv that has `concord-adapter-sdk` installed, which separates dependencies but not
   privileges.)
 * Child processes a plugin starts are not tracked. If the runtime itself is killed hard, a
   plugin blocked inside `read()` lives until that call returns (then its next write fails and it
   exits); hosts run in their own process group, so a terminal Ctrl-C reaches only the runtime.
 
-## 6. IPC protocol (`brainos.plugin-ipc/1`)
+## 6. IPC protocol (`concord.plugin-ipc/1`)
 
 * Transport: the host process's original stdin (runtime → host) and stdout (host → runtime).
 * Frame: 4-byte big-endian length + payload. Message: one UTF-8 JSON header frame, then one raw
@@ -208,7 +208,7 @@ The IPC is not the bottleneck; converting 30 kHz frames to JSON events is (as fo
 ## 7. Operating plugins
 
 * REST: `GET /api/v1/plugins` (each plugin: manifest fields, options, status `compatible` /
-  `rejected` / `load_error`, `reason`, `problems`, devices with their BrainOS device ids, log
+  `rejected` / `load_error`, `reason`, `problems`, devices with their Concord device ids, log
   tail), `POST /api/v1/plugins/discover`, `POST /api/v1/plugins/{name}/configure`
   `{device_key, options}` → `DeviceDescriptor` (400 invalid options, 404 unknown plugin, 409
   rejected plugin, 502 open failed). Configured devices appear in `/devices`;
@@ -217,40 +217,40 @@ The IPC is not the bottleneck; converting 30 kHz frames to JSON events is (as fo
   `discover_plugins()`, `configure_plugin(name, device_key, options)`.
 * Console: source picker → **Plugins**: each installed plugin with its status or the reason it
   was rejected, its devices, an options form generated from its option specs, Connect. The
-  Acquisition row then shows e.g. `Plugin · brainos-example-adapter@0.1.0 · isolated · EEG,
+  Acquisition row then shows e.g. `Plugin · concord-example-adapter@0.1.0 · isolated · EEG,
   noninvasive`.
-* Environment: `BRAINOS_PLUGINS=0` disables discovery at startup; `BRAINOS_PLUGIN_PYTHON`
-  (interpreter for hosts), `BRAINOS_PLUGIN_PATH` (extra `sys.path` entries for hosts, `:`
-  separated), `BRAINOS_PLUGIN_LOG_LEVEL` (host log level, default INFO).
+* Environment: `CONCORD_PLUGINS=0` disables discovery at startup; `CONCORD_PLUGIN_PYTHON`
+  (interpreter for hosts), `CONCORD_PLUGIN_PATH` (extra `sys.path` entries for hosts, `:`
+  separated), `CONCORD_PLUGIN_LOG_LEVEL` (host log level, default INFO).
 
-## 8. Step by step: create → install → see in BrainOS → test
+## 8. Step by step: create → install → see in Concord → test
 
-1. **Create** a package that depends only on `brainos-adapter-sdk` (+ your libraries). Implement
+1. **Create** a package that depends only on `concord-adapter-sdk` (+ your libraries). Implement
    `SourcePlugin` (`manifest`, `discover`, `open`) and `SourceSession` (`info`, `read`, `close`,
    optional `stats`). Register it:
    ```toml
-   [project.entry-points."brainos.sources"]
+   [project.entry-points."concord.sources"]
    my-device = "my_package.plugin:MyDevicePlugin"
    ```
-2. **Install** into BrainOS's environment: `.venv/bin/pip install -e path/to/my-plugin`.
-3. **Check** it exactly as BrainOS will run it:
-   `.venv/bin/python -m brainos_adapter_sdk.host --check my-device [--device KEY] [--option k=v]`
+2. **Install** into Concord's environment: `.venv/bin/pip install -e path/to/my-plugin`.
+3. **Check** it exactly as Concord will run it:
+   `.venv/bin/python -m concord_adapter_sdk.host --check my-device [--device KEY] [--option k=v]`
    prints the manifest problems, devices, streams, per-stream sample rates and "OK" or the first
    violation. `--list` shows what discovery sees.
-4. **See it in BrainOS**: start BrainOS (`make run`), open *Connect a source* → *Plugins* (or
-   *Search again* if BrainOS was already running), set options, *Connect*.
-5. **Test** in CI with `brainos_adapter_sdk.client.SyncHostClient` (runs your plugin through
-   a real host with BrainOS's validation; see the example's `tests/`).
-6. **Certify** with `brainos-certify my-device [--device KEY] [--option k=v]`
-   (`packages/brainos-certify`, docs/CERTIFICATION.md): 29 checks — metadata, channel identity
+4. **See it in Concord**: start Concord (`make run`), open *Connect a source* → *Plugins* (or
+   *Search again* if Concord was already running), set options, *Connect*.
+5. **Test** in CI with `concord_adapter_sdk.client.SyncHostClient` (runs your plugin through
+   a real host with Concord's validation; see the example's `tests/`).
+6. **Certify** with `concord-certify my-device [--device KEY] [--option k=v]`
+   (`packages/concord-certify`, docs/CERTIFICATION.md): 29 checks — metadata, channel identity
    across reopens, timestamps, rate, jitter, loss, a killed host, throughput, CPU/RSS and, with
-   BrainOS installed, negotiation and event-contract compliance — in a JSON + Markdown report
+   Concord installed, negotiation and event-contract compliance — in a JSON + Markdown report
    with an explicit validation level; exit code 0 only for `adapter_implementation`. A pass is
    a software result, never hardware certification.
 
 ## 9. Compatibility
 
-API versions are `major.minor`. A plugin declaring `api_version = "1.0"` runs on any BrainOS
-whose SDK API is `1.x`; a plugin for `1.2` is refused by a `1.1` host ("update BrainOS"); a
+API versions are `major.minor`. A plugin declaring `api_version = "1.0"` runs on any Concord
+whose SDK API is `1.x`; a plugin for `1.2` is refused by a `1.1` host ("update Concord"); a
 plugin for `2.0` is refused by every `1.x` host. Additive changes bump the minor version;
 anything a 1.0 plugin could observe as different bumps the major version.

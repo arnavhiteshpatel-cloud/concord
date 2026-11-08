@@ -1,16 +1,16 @@
-# Integration certification (`brainos-certify`)
+# Integration certification (`concord-certify`)
 
-Milestone 4, workstream D. `packages/brainos-certify` is an independently installable
-toolkit for people who write BrainOS source plugins (adapter SDK API 1.x). It runs a plugin
-**exactly as BrainOS runs it** — `python -m brainos_adapter_sdk.host` in a separate process,
+Milestone 4, workstream D. `packages/concord-certify` is an independently installable
+toolkit for people who write Concord source plugins (adapter SDK API 1.x). It runs a plugin
+**exactly as Concord runs it** — `python -m concord_adapter_sdk.host` in a separate process,
 binary IPC, host-side validation — checks and measures what the plugin declares and delivers,
 and writes a machine-readable JSON report plus a Markdown report with an explicit validation
-level. It works without BrainOS installed; when BrainOS is importable an optional runtime
-phase also runs the plugin through BrainOS's own `PluginAdapter` and `Runtime`.
+level. It works without Concord installed; when Concord is importable an optional runtime
+phase also runs the plugin through Concord's own `PluginAdapter` and `Runtime`.
 
 > **What a report is not.** Software checks only. A passing report is **not hardware
 > certification**, not human-participant validation, not a safety or clinical statement and not
-> a decoding-performance figure. It shows that the plugin satisfied the BrainOS adapter SDK
+> a decoding-performance figure. It shows that the plugin satisfied the Concord adapter SDK
 > contract, through the real plugin host, with the data source used in the run, on the machine
 > named in the report. Both report formats begin with this statement.
 
@@ -53,11 +53,11 @@ Every step goes through the plugin host; plugin code never runs in the certifier
    pings.
 3. **Clean close + open #2** in the same host; read `--reopen-seconds` (default 2).
 4. **Fault injection**: a reader thread reads continuously; after 0.5 s the host process is
-   killed with `SIGKILL`. The failure must surface as `HostDied` (what BrainOS's
+   killed with `SIGKILL`. The failure must surface as `HostDied` (what Concord's
    `PluginAdapter` turns into a link loss and reconnects) within `--kill-detect-limit`
    (default 2 s) — not as a hang and not as another error. **Host #2** starts, **open #3**,
    read, `close`, `shutdown` (exit code recorded).
-5. **Runtime phase** (optional, §3.7): BrainOS opens the plugin twice more (probe + connect).
+5. **Runtime phase** (optional, §3.7): Concord opens the plugin twice more (probe + connect).
 6. Checks are evaluated, levels decided, the report is validated against its own schema and
    written.
 
@@ -77,7 +77,7 @@ when the check does not apply to this plugin, e.g. no markers stream). Ids are s
 | `manifest.load` | The host starts and imports / instantiates the plugin | Import error, not a `SourcePlugin`, host does not start |
 | `manifest.valid` | `validate_manifest`, by the host and again locally | Any error (warnings → `warn`) |
 | `manifest.api_compat` | Plugin `api_version` vs the host's and the certifier's SDK API (`major` equal, `minor` ≤) | Incompatible; `warn` if the host's SDK version differs from the certifier's |
-| `manifest.entry_point` | The `brainos.sources` entry point exists once and its name is valid | Missing / duplicated / invalid name; `warn` when certifying a `module:Class` reference (entry point not verified) |
+| `manifest.entry_point` | The `concord.sources` entry point exists once and its name is valid | Missing / duplicated / invalid name; `warn` when certifying a `module:Class` reference (entry point not verified) |
 | `manifest.distribution` | Installed distribution name/version vs the manifest; **every file hash in its `RECORD`** re-computed; the plugin package's files hashed individually (`tree_sha256`); git commit and cleanliness of the source tree | `warn` on name/version mismatch, modified or missing `RECORD` files, or no installed distribution. Editable installs: `RECORD` covers only the `.pth`, so the source files' hashes identify what was tested |
 | `manifest.discover` | `discover()` returns valid devices (`validate_devices`) including the one tested | Error, hang (`discover timeout + 10 s`), invalid devices, nothing to open; `warn` if `--device` is not among the discovered |
 
@@ -86,9 +86,9 @@ when the check does not apply to this plugin, e.g. no markers stream). Ids are s
 | Id | Checks | Fails when |
 | --- | --- | --- |
 | `metadata.session_valid` | `open()` succeeds; `validate_session_info` (host + local) | `OpenFailed`, `InvalidOptions`, plugin exception, invalid session; warnings → `warn` |
-| `metadata.units` | Units per channel; signal units BrainOS converts to µV (same table as LSL) | **Never fails.** `warn` for channels without a unit (shown as "arbitrary" — correct when the source does not state units) or non-voltage signal units |
+| `metadata.units` | Units per channel; signal units Concord converts to µV (same table as LSL) | **Never fails.** `warn` for channels without a unit (shown as "arbitrary" — correct when the source does not state units) or non-voltage signal units |
 | `metadata.modality` | `modality` / `invasive` on signal and spike-count streams, and their consistency (EEG/MEG/EMG noninvasive; ECoG/sEEG/intracortical implanted) | Inconsistent declaration; `warn` when not declared |
-| `metadata.channel_identity` | Stream ids, roles, channel labels and order, units, types, nominal rates, clock domains, modality, flags and origin are **identical** on every open: #1, #2 (same host), #3 (fresh host after the kill) and BrainOS's own open | Any difference (listed field by field) |
+| `metadata.channel_identity` | Stream ids, roles, channel labels and order, units, types, nominal rates, clock domains, modality, flags and origin are **identical** on every open: #1, #2 (same host), #3 (fresh host after the kill) and Concord's own open | Any difference (listed field by field) |
 
 ### 3.3 Timestamps (main acquisition)
 
@@ -125,13 +125,13 @@ when the check does not apply to this plugin, e.g. no markers stream). Ids are s
 | `performance.host_resources` | Host process CPU (`utime + stime` from `/proc/<pid>/stat`, % of one core) and RSS (median, max sampled every 0.25 s, peak `VmHWM`) | `warn` above 80 % of one core; not applicable without `/proc` |
 | `performance.ipc` | Host byte / read / chunk counters, reads/s, empty-read fraction, ping round trip | Informational |
 
-### 3.7 BrainOS runtime phase (optional checks)
+### 3.7 Concord runtime phase (optional checks)
 
-Runs when `brainos` is importable and `--no-runtime` is not given: the plugin is registered
+Runs when `concord` is importable and `--no-runtime` is not given: the plugin is registered
 (`PluginRegistry.register`, which probes it) and connected in an in-process `Runtime` (no
 server) for `--runtime-seconds` (default 5). Expectations are derived from the plugin's own
-`SessionInfo` and manifest, not from BrainOS, so a BrainOS mapping bug would also show.
-When BrainOS is not installed the four checks are `not_run` (not applicable) and the report
+`SessionInfo` and manifest, not from Concord, so a Concord mapping bug would also show.
+When Concord is not installed the four checks are `not_run` (not applicable) and the report
 notes that contract compliance was not verified; a failing runtime check still blocks the
 level.
 
@@ -139,21 +139,21 @@ level.
 | --- | --- |
 | `runtime.descriptor` | `kind` (simulated / replay / stream from the synthetic / prerecorded flags), `synthetic`, `modality` and `invasive` (from the primary neural stream; invasiveness from the declaration, else the modality's category), `integration` (`plugin`, package, version, API version, `isolated: true`, ecosystem), capabilities = the roles' capabilities + `device_status`, no command capability |
 | `runtime.negotiation` | Three test apps: every capability optional → exactly the roles' capabilities granted, every other one rejected `unsupported_by_device`; the roles' capabilities required → `active`; `pointer_intent` required → `suspended`, nothing granted, nothing delivered |
-| `runtime.envelopes` | Every published event (up to 5000) validates with BrainOS's pydantic contract (`parse_envelope`) **and** the published JSON Schema (`envelope_json_schema`); schema version recorded; BrainOS diagnostics show 0 validation errors, 0 undeclared capabilities, 0 decode errors; runtime still `streaming`; data events were published |
+| `runtime.envelopes` | Every published event (up to 5000) validates with Concord's pydantic contract (`parse_envelope`) **and** the published JSON Schema (`envelope_json_schema`); schema version recorded; Concord diagnostics show 0 validation errors, 0 undeclared capabilities, 0 decode errors; runtime still `streaming`; data events were published |
 | `runtime.provenance` | Per event: provenance kind per role (`raw_signal`, `processed_feature`, `behavioral_label`, `decoded_intent`), `synthetic` and `replayed` as declared, origin as declared, decoder output carries `model_id = <package>:<model_id>`, quality flags `synthetic` / `replayed`; no `intent.pointer` / `intent.selection` / `intent.text` event; `warn` if a regular stream published nothing |
 
 ## 4. Reports
 
 `<out>/<name>.certify.json` and `<out>/<name>.certify.md` (`--out`, `--name`).
 
-**JSON** (schema: `brainos_certify/schemas/report.schema.json`, `brainos-certify
+**JSON** (schema: `concord_certify/schemas/report.schema.json`, `concord-certify
 --print-schema`; every report is validated against it before it is written):
 
 | Key | Content |
 | --- | --- |
 | `notice` | The "not hardware certification" statement (first key) |
-| `report_version`, `tool`, `generated_at`, `started_at`, `elapsed_s` | `"1.0"`, `brainos-certify` version, UTC times |
-| `environment` | OS, kernel, architecture, CPU model and count, memory, Python, adapter SDK version and API, BrainOS version (or `null`), the host's Python / SDK. No host or user name |
+| `report_version`, `tool`, `generated_at`, `started_at`, `elapsed_s` | `"1.0"`, `concord-certify` version, UTC times |
+| `environment` | OS, kernel, architecture, CPU model and count, memory, Python, adapter SDK version and API, Concord version (or `null`), the host's Python / SDK. No host or user name |
 | `plugin` | Reference, entry point, device key, manifest summary, identity (entry point, distribution, requirements with installed versions, `RECORD` verification, per-file SHA-256 and `tree_sha256` of the plugin package, git commit / dirty), session (origin, flags, streams) |
 | `options` | Plugin options as requested and as resolved by the host, and the run options. Values of options whose name contains `secret`, `token`, `password` or `passwd` are replaced by `<redacted>` |
 | `summary` | Status counts, highest level and its statement, exit code, blocking results |
@@ -169,12 +169,12 @@ evidence, and the environment.
 ## 5. Hardware attestation
 
 An attestation is the operator's signed statement; the toolkit records it and never
-produces one. Format (`brainos_certify/schemas/attestation.schema.json`, no extra keys):
+produces one. Format (`concord_certify/schemas/attestation.schema.json`, no extra keys):
 
 ```json
 {
   "attestation_version": "1.0",
-  "statement": "I attest that the plugin identified below was run with the physical acquisition hardware described here, and that the setup and observations recorded here are accurate. This is my own statement; the BrainOS certification toolkit does not verify it.",
+  "statement": "I attest that the plugin identified below was run with the physical acquisition hardware described here, and that the setup and observations recorded here are accurate. This is my own statement; the Concord certification toolkit does not verify it.",
   "attested_by": {"name": "…", "organization": "…", "role": "…", "email": "…"},
   "date": "2026-11-07T10:00:00Z",
   "plugin": {"name": "<manifest name>", "version": "<manifest version>", "tree_sha256": "<optional, from a report>"},
@@ -192,7 +192,7 @@ Signing (OpenSSL 3, Ed25519, detached, over the exact file bytes):
 openssl genpkey -algorithm ed25519 -out operator.key
 openssl pkey -in operator.key -pubout -out operator.pub
 openssl pkeyutl -sign -rawin -inkey operator.key -in attestation.json -out attestation.json.sig
-brainos-certify my-device --attestation attestation.json --attestation-public-key operator.pub
+concord-certify my-device --attestation attestation.json --attestation-public-key operator.pub
 ```
 
 Rejected (and `hardware_tested` not granted) when: unreadable / not JSON, schema violation

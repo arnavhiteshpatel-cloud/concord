@@ -22,8 +22,8 @@ import pytest
 
 pytest.importorskip("scipy")
 
-from brainos.server import create_app
-from brainos.testing import scripted
+from concord.server import create_app
+from concord.testing import scripted
 
 from .conftest import free_port, make_settings, serve
 from .helpers import wait_for
@@ -77,7 +77,7 @@ class Recorder:
         self.stream: Any = None
 
     async def run(self, base: str, app_id: str, optional: list[str]) -> None:
-        from brainos.sdk import EventStream, is_event
+        from concord.sdk import EventStream, is_event
 
         self.stream = await EventStream.connect(
             app_id=app_id, app_name=app_id, optional=optional, base_url=base
@@ -108,7 +108,7 @@ def _no_command_while_off(seq: list[str]) -> None:
 async def test_navigation_drives_the_menu_and_control_state_is_ordered_over_the_wire(
     server: tuple[str, str],
 ) -> None:
-    from brainos.sdk import RuntimeClient
+    from concord.sdk import RuntimeClient
 
     base, model_id = server
     menu_mod = _load("menu_app")
@@ -166,7 +166,7 @@ async def test_navigation_drives_the_menu_and_control_state_is_ordered_over_the_
 async def test_scripted_decoder_drives_the_cursor_app_until_revoked(
     server: tuple[str, str],
 ) -> None:
-    from brainos.sdk import RuntimeClient
+    from concord.sdk import RuntimeClient
 
     base, _ = server
     cursor_mod = _load("cursor_app")

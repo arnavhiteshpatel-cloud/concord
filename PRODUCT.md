@@ -1,12 +1,12 @@
-# BrainOS — Product Specification
+# Concord — Product Specification
 
-> Internal project name: **BrainOS**. Not a public brand. This document is the
+> Internal project name: **Concord**. Not a public brand. This document is the
 > source of truth for *what* we are building and *for whom*. See
 > [ARCHITECTURE.md](ARCHITECTURE.md) for *how*.
 
 ## One-line summary
 
-BrainOS is a hardware-agnostic, read-only runtime and SDK that lets software
+Concord is a hardware-agnostic, read-only runtime and SDK that lets software
 consume standardized, capability-negotiated events from implanted
 brain-computer interfaces (BCIs) without being rewritten for each manufacturer.
 
@@ -30,10 +30,10 @@ firmware → proprietary decoder → bespoke application. Consequences:
 
 ## Value proposition
 
-| For | BrainOS provides |
+| For | Concord provides |
 | --- | --- |
 | Application developers | One typed, versioned event API and SDK. Declare the capabilities you need; get them or get an explicit rejection. |
-| Implant manufacturers | One adapter contract to implement. A device that implements it immediately runs the BrainOS application ecosystem. |
+| Implant manufacturers | One adapter contract to implement. A device that implements it immediately runs the Concord application ecosystem. |
 | Research labs | Recording and replay with first-class provenance, a diagnostics surface, and a path to running offline datasets through the same pipeline as live devices. |
 
 ## Users (initial audience)
@@ -66,7 +66,7 @@ firmware → proprietary decoder → bespoke application. Consequences:
 
 - **No stimulation or any write path to a device.** v1 is read-only by
   architecture: the adapter contract has no write/stimulate operation.
-- **No medical decisions, diagnosis, or treatment.** BrainOS is not a medical
+- **No medical decisions, diagnosis, or treatment.** Concord is not a medical
   device and makes no clinical claims.
 - **No patient-facing clinical deployment.** The demo communication board is a
   demonstration application only.
@@ -83,16 +83,16 @@ The landscape (stated at the level of general public knowledge, not
 competitive intelligence):
 
 - **Vertically integrated implant companies** ship their own closed software
-  stacks. BrainOS is the neutral layer between devices and apps.
+  stacks. Concord is the neutral layer between devices and apps.
 - **Research acquisition frameworks** (e.g. general-purpose BCI/EEG research
   toolkits and streaming protocols) solve acquisition and streaming of
   time-series, but are not designed around *application-facing intent events*,
   *capability negotiation*, or *provenance as a contract*.
 - **Data standards** for neurophysiology storage target archival and sharing,
-  not real-time application APIs. BrainOS replay is designed to ingest such
+  not real-time application APIs. Concord replay is designed to ingest such
   datasets, not replace them.
 
-BrainOS differentiators:
+Concord differentiators:
 
 1. **Capability negotiation** with explicit rejection — not "best effort".
 2. **Provenance in the schema**: raw signal vs. behavioral label vs. simulated

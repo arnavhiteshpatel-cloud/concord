@@ -18,7 +18,7 @@ tk = pytest.importorskip("tkinter")
 if not os.environ.get("DISPLAY") and os.uname().sysname != "Darwin":
     pytest.skip("no display (run under xvfb-run)", allow_module_level=True)
 
-from brainos.desktop import run_window, start_server_thread  # noqa: E402
+from concord.desktop import run_window, start_server_thread  # noqa: E402
 
 from .conftest import free_port, make_settings  # noqa: E402
 
@@ -69,6 +69,6 @@ def test_every_quit_path_stops_safely(tmp_path: Path, how: str) -> None:
     assert code == 0 and not srv.alive
     assert signal.getsignal(signal.SIGTERM) is before  # the window restores the handlers
     rec = tmp_path / "data" / "recordings"
-    assert (rec / "win.brainos.jsonl").exists() and not (rec / "win.active.json").exists()
+    assert (rec / "win.concord.jsonl").exists() and not (rec / "win.active.json").exists()
     with pytest.raises(httpx.HTTPError):
         httpx.get(base + "/api/v1/health", timeout=0.5)

@@ -2,7 +2,7 @@ import { resolve } from "node:path";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
-const backend = process.env.BRAINOS_BACKEND ?? "http://127.0.0.1:8000";
+const backend = process.env.CONCORD_BACKEND ?? "http://127.0.0.1:8000";
 
 export default defineConfig({
   plugins: [react()],

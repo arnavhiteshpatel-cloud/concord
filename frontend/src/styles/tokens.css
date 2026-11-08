@@ -1,4 +1,4 @@
-/* BrainOS operator console — design tokens (single light theme).
+/* Concord operator console — design tokens (single light theme).
    Status colours are used only to show status, never as decoration. */
 :root {
   --bg: #eceeef;

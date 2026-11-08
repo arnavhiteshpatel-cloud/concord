@@ -219,7 +219,7 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-# --- BrainOS ---
+# --- Concord ---
 node_modules/
 frontend/dist/
 data/
@@ -233,7 +233,7 @@ e2e/screenshots/
 
 # --- M5-D (packaging, release) ---
 # the built console staged into the package for wheels / the desktop app (packaging/stage_console.py)
-backend/src/brainos/server/console/
+backend/src/concord/server/console/
 # PyInstaller work and output directories
 packaging/build/
 packaging/dist/

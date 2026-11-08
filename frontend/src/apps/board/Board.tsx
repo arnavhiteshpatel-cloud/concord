@@ -1,12 +1,12 @@
 // Communication Board v2 — a demonstration application for text communication.
-// Controlled ONLY through BrainOS runtime events (the participant view takes no mouse or
+// Controlled ONLY through Concord runtime events (the participant view takes no mouse or
 // keyboard input), imports ONLY from src/sdk, and contains no device-specific code. Every
 // command passes the SDK CommandGuard first: nothing acts unless the runtime grants it, the
 // source streams and the runtime's control.state says command delivery is active.
 
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import {
-  BrainOSStream,
+  ConcordStream,
   CommandGuard,
   attachGuard,
   type ConnectionStatus,
@@ -28,7 +28,7 @@ const TICK_MS = 50;
 const CONN_TEXT: Record<ConnectionStatus, string> = {
   idle: "Not connected",
   connecting: "Connecting",
-  open: "Connected to BrainOS",
+  open: "Connected to Concord",
   reconnecting: "Reconnecting",
   closed: "Disconnected",
   rejected: "Connection refused",
@@ -60,7 +60,7 @@ export function Board({ streamUrl, search }: { streamUrl?: string; search?: stri
   // ---------------------------------------------------------------- runtime connection
   useEffect(() => {
     dispatch({ type: "speechAvailable", available: speechAvailable() });
-    const stream = new BrainOSStream({
+    const stream = new ConcordStream({
       app: { id: APP_ID, name: "Communication Board" },
       // nothing is required: the board adapts to whatever input the runtime grants
       required: [],

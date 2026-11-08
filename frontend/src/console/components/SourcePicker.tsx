@@ -173,7 +173,7 @@ export function SourcePicker({
       <section className="group">
         <h3>Live streams</h3>
         <p className="explain">
-          Lab Streaming Layer or Open Ephys. BrainOS only receives; nothing is sent to the acquisition system.
+          Lab Streaming Layer or Open Ephys. Concord only receives; nothing is sent to the acquisition system.
         </p>
         {live.length > 0 && (
           <ul className="pick-list" data-testid="live-source-list">
@@ -192,7 +192,7 @@ export function SourcePicker({
         <h3>Plugins</h3>
         <p className="explain">
           Sources from installed adapter packages. Each plugin runs in its own process and only delivers data to
-          BrainOS; what it declares and sends is checked before use.
+          Concord; what it declares and sends is checked before use.
         </p>
         <PluginSources
           devices={plugins}

@@ -81,7 +81,7 @@ export interface CapabilityInfo {
 export type Fault = "link_drop" | "link_fail" | "malformed_packet" | "timestamp_regression";
 
 // ------------------------------------------------------------------ Milestone 3: live sources
-// Shapes mirror backend/src/brainos/server/live_routes.py and runtime/pipeline.py.
+// Shapes mirror backend/src/concord/server/live_routes.py and runtime/pipeline.py.
 
 export interface LSLStreamInfo {
   key: string;
@@ -119,7 +119,7 @@ export interface OpenEphysConfigInput {
 export type LiveSourceMetadata = Record<string, unknown>;
 
 // ------------------------------------------------------------------ Milestone 4: source plugins
-// Shapes mirror backend/src/brainos/server/plugin_routes.py.
+// Shapes mirror backend/src/concord/server/plugin_routes.py.
 
 export type OptionValue = string | number | boolean | null;
 
@@ -144,7 +144,7 @@ export interface PluginDeviceInfo {
   display_name: string;
   description: string;
   details: Record<string, string>;
-  /** null when no valid BrainOS device id can be formed (reason says why) */
+  /** null when no valid Concord device id can be formed (reason says why) */
   device_id: string | null;
   reason: string | null;
   configured: boolean;
@@ -275,7 +275,7 @@ export interface PipelineOutputSpec {
 }
 
 /** Milestone 5: where a decoder comes from (decoding/registry.py). */
-export type DecoderOrigin = "brainos-trained" | "imported" | "plugin" | "historical" | "external";
+export type DecoderOrigin = "concord-trained" | "imported" | "plugin" | "historical" | "external";
 
 export interface ModelTrust {
   sha256: string;
@@ -382,7 +382,7 @@ export interface RouterEvent {
 }
 
 // ------------------------------------------------------------------ control bridge (M4)
-// Shapes mirror backend/src/brainos/server/control_routes.py.
+// Shapes mirror backend/src/concord/server/control_routes.py.
 
 export type CommandCapability = "pointer_intent" | "selection" | "text_intent" | "navigation";
 

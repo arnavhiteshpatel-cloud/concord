@@ -14,7 +14,7 @@ export function sourceKind(device: DeviceDescriptor | null | undefined): { text:
   if (device.kind === "stream")
     return {
       text: "Live stream, origin unverified",
-      title: "External live stream: BrainOS cannot verify whether it comes from hardware, a file player or a simulator",
+      title: "External live stream: Concord cannot verify whether it comes from hardware, a file player or a simulator",
     };
   if (device.kind === "replay" && isLiveSource(device))
     // An external stream whose publisher declares prerecorded content: the declaration is not
@@ -51,7 +51,7 @@ export function modalityWords(device: DeviceDescriptor | null | undefined): stri
   return `${MODALITY[device.modality] ?? device.modality}, ${how ?? "invasiveness not declared"}`;
 }
 
-/** "Plugin · brainos-example-adapter@0.1.0 · isolated" for plugin sources, else null. */
+/** "Plugin · concord-example-adapter@0.1.0 · isolated" for plugin sources, else null. */
 export function integrationLine(device: DeviceDescriptor | null | undefined): string | null {
   const i = device?.integration;
   if (!i || i.kind !== "plugin") return null;
@@ -61,9 +61,9 @@ export function integrationLine(device: DeviceDescriptor | null | undefined): st
 
 /** The title-bar status line: one plain sentence and a status tone. */
 export function statusLine(conn: ConnectionStatus, runtime: RuntimeSnapshot | null): { text: string; tone: Tone } {
-  if (conn === "connecting" || conn === "idle") return { text: "Connecting to BrainOS", tone: "info" };
-  if (conn === "reconnecting") return { text: "Connection to BrainOS lost, reconnecting", tone: "caution" };
-  if (conn !== "open" || !runtime) return { text: "Not connected to BrainOS", tone: "caution" };
+  if (conn === "connecting" || conn === "idle") return { text: "Connecting to Concord", tone: "info" };
+  if (conn === "reconnecting") return { text: "Connection to Concord lost, reconnecting", tone: "caution" };
+  if (conn !== "open" || !runtime) return { text: "Not connected to Concord", tone: "caution" };
   const kind = sourceKind(runtime.device)?.text;
   switch (runtime.state) {
     case "idle":

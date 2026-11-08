@@ -1,9 +1,9 @@
-"""Smoke-test a built BrainOS desktop bundle as a user would run it (no repository code used).
+"""Smoke-test a built Concord desktop bundle as a user would run it (no repository code used).
 
-    python packaging/smoke_test.py EXECUTABLE [--app BrainOS.app] [--gui] [--dmg BrainOS.dmg]
+    python packaging/smoke_test.py EXECUTABLE [--app Concord.app] [--gui] [--dmg Concord.dmg]
                                    [--report report.json]
 
-EXECUTABLE is ``BrainOS.app/Contents/MacOS/BrainOS`` (macOS) or ``BrainOS/BrainOS`` (Linux).
+EXECUTABLE is ``Concord.app/Contents/MacOS/Concord`` (macOS) or ``Concord/Concord`` (Linux).
 Steps (each recorded in the report; any failure exits 1):
 
 1. ``--version`` and ``doctor`` from the bundle itself.
@@ -40,7 +40,7 @@ from pathlib import Path
 from typing import Any, ParamSpec
 
 P = ParamSpec("P")
-BUNDLE_ID = "org.brainos.desktop"
+BUNDLE_ID = "org.concord.desktop"
 STEPS: list[dict[str, Any]] = []
 
 
@@ -114,13 +114,13 @@ def step(name: str) -> Callable[[Callable[P, str]], Callable[P, str]]:
 
 
 def env_for(data: Path, port: int) -> dict[str, str]:
-    env = {k: v for k, v in os.environ.items() if not k.startswith("BRAINOS_")}
+    env = {k: v for k, v in os.environ.items() if not k.startswith("CONCORD_")}
     env.update(
         {
-            "BRAINOS_DATA_DIR": str(data),
-            "BRAINOS_PORT": str(port),
-            "BRAINOS_CONFIG": str(data.parent / "no-config.toml"),
-            "BRAINOS_OPEN_BROWSER": "0",
+            "CONCORD_DATA_DIR": str(data),
+            "CONCORD_PORT": str(port),
+            "CONCORD_CONFIG": str(data.parent / "no-config.toml"),
+            "CONCORD_OPEN_BROWSER": "0",
         }
     )
     return env
@@ -159,15 +159,15 @@ def check_version(exe: Path) -> str:
     assert out.returncode == 0, text
     if not text:  # a windowed bootloader may have no console streams; doctor checks the rest
         return "exit 0 (no console output from the windowed executable)"
-    assert text.startswith("BrainOS "), text
+    assert text.startswith("Concord "), text
     return text
 
 
 @step("decoder host from the bundle")
 def check_decoder_host(exe: Path) -> str:
-    """The isolated decoder host (M5-A) is started as ``<exe> -m brainos_decoder_sdk.host``."""
+    """The isolated decoder host (M5-A) is started as ``<exe> -m concord_decoder_sdk.host``."""
     out = subprocess.run(
-        [str(exe), "-m", "brainos_decoder_sdk.host", "--list"],
+        [str(exe), "-m", "concord_decoder_sdk.host", "--list"],
         capture_output=True,
         text=True,
         timeout=120,
@@ -191,20 +191,20 @@ def check_doctor(exe: Path, work: Path) -> str:
         timeout=180,
     )
     rep = json.loads(report.read_text())
-    assert rep["format"] == "brainos.support-report/1", rep.get("format")
+    assert rep["format"] == "concord.support-report/1", rep.get("format")
     checks = {c["id"]: c["status"] for c in rep["checks"]}
     for cid in ("dsp", "nwb", "lsl", "zmq"):
         assert checks.get(cid) == "ok", f"{cid}: {checks.get(cid)} (bundled dependency missing?)"
     assert rep["platform"]["frozen_app"] is True
     assert out.returncode == 0, out.stdout + out.stderr
     tk = checks.get("tk", "n/a")
-    return f"exit 0; {rep['summary']}; install={rep['brainos']['install']}; tk={tk}"
+    return f"exit 0; {rep['summary']}; install={rep['concord']['install']}; tk={tk}"
 
 
 def exercise(base: str, label: str) -> dict[str, Any]:
     """Everything a first session touches, through the REST API the console uses."""
     page = http("GET", base + "/")
-    assert isinstance(page, str) and "<title>" in page and "BrainOS" in page, "console page"
+    assert isinstance(page, str) and "<title>" in page and "Concord" in page, "console page"
     devices = {d["device_id"] for d in http("GET", base + "/api/v1/devices")}
     assert {"sim-a", "sim-b"} <= devices, devices
     presets = http("GET", base + "/api/v1/pipeline/presets")
@@ -259,13 +259,13 @@ def check_headless(exe: Path, work: Path, label: str = "headless") -> str:
             proc.kill()
     assert code == 0, f"exit code {code} after SIGTERM"
     assert healthy(base) is None, "still answering after quit"
-    rec = data / "recordings" / f"{info['recording']}.brainos.jsonl"
+    rec = data / "recordings" / f"{info['recording']}.concord.jsonl"
     assert rec.exists() and not (data / "recordings" / f"{info['recording']}.active.json").exists()
     assert mode(rec) == 0o600 and mode(data) == 0o700, "private permissions"
     s = json.loads((data / "sessions" / info["session"] / "session.json").read_text())
     assert s["status"] == "closed", s["status"]
     return (
-        f"BrainOS {h['version']} healthy; sim-a frames {info['frame_rate_hz']} Hz; plugins "
+        f"Concord {h['version']} healthy; sim-a frames {info['frame_rate_hz']} Hz; plugins "
         f"{info['plugins']}; recording closed cleanly (0600, data dir 0700); session closed"
     )
 
@@ -311,8 +311,8 @@ def check_window(exe: Path, work: Path) -> str:
         http("POST", base + "/api/v1/runtime/connect", {"device_id": "sim-a"})
         name = http("POST", base + "/api/v1/recordings/start", {"name": "window"})["name"]
         time.sleep(1.0)
-        text = (data / "logs" / "brainos.log").read_text()
-        assert "BrainOS window open" in text, "the app did not open its window"
+        text = (data / "logs" / "concord.log").read_text()
+        assert "Concord window open" in text, "the app did not open its window"
         assert "no window could be created" not in text and "no window toolkit" not in text
         proc.send_signal(signal.SIGTERM)
         code = proc.wait(60)
@@ -320,7 +320,7 @@ def check_window(exe: Path, work: Path) -> str:
         if proc.poll() is None:
             proc.kill()
     assert code == 0, f"exit code {code}"
-    rec = data / "recordings" / f"{name}.brainos.jsonl"
+    rec = data / "recordings" / f"{name}.concord.jsonl"
     assert rec.exists() and not (data / "recordings" / f"{name}.active.json").exists()
     return "window opened; quit stopped the server cleanly; recording closed"
 
@@ -357,18 +357,18 @@ def check_gui(app: Path, work: Path) -> str:
     )
     if q.returncode != 0:
         how = f"SIGTERM (Apple Event refused on this machine: {q.stderr.strip()[:120]})"
-        subprocess.run(["pkill", "-TERM", "-f", str(app / "Contents" / "MacOS" / "BrainOS")])
+        subprocess.run(["pkill", "-TERM", "-f", str(app / "Contents" / "MacOS" / "Concord")])
     wait_until(lambda: healthy(base) is None, 60, "the app to quit")
-    wait_until(lambda: not (data / "brainos.pid").exists(), 30, "the instance lock to be released")
-    rec = data / "recordings" / f"{name}.brainos.jsonl"
+    wait_until(lambda: not (data / "concord.pid").exists(), 30, "the instance lock to be released")
+    rec = data / "recordings" / f"{name}.concord.jsonl"
     assert rec.exists() and not (data / "recordings" / f"{name}.active.json").exists(), (
         "recording not closed"
     )
     window = "unknown"
-    log = data / "logs" / "brainos.log"
+    log = data / "logs" / "concord.log"
     if log.exists():
         window = "headless fallback" if "no window toolkit" in log.read_text() else "Tk window"
-    return f"BrainOS {h['version']} launched via `open`; quit by {how}; recording closed; {window}"
+    return f"Concord {h['version']} launched via `open`; quit by {how}; recording closed; {window}"
 
 
 @step("macOS: the .dmg mounts and its app runs")
@@ -381,9 +381,9 @@ def check_dmg(dmg: Path, work: Path) -> str:
         timeout=120,
     )
     try:
-        app = mnt / "BrainOS.app"
+        app = mnt / "Concord.app"
         assert app.is_dir() and (mnt / "Applications").is_symlink(), "dmg layout"
-        detail = check_headless(app / "Contents" / "MacOS" / "BrainOS", work, label="dmg")
+        detail = check_headless(app / "Contents" / "MacOS" / "Concord", work, label="dmg")
     finally:
         subprocess.run(["hdiutil", "detach", str(mnt)], timeout=120)
     return f"mounted read-only; {detail}"
@@ -407,7 +407,7 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
     if args.gui and (sys.platform != "darwin" or args.app is None):
         raise SystemExit("--gui needs macOS and --app")
-    work = Path(tempfile.mkdtemp(prefix="brainos-smoke-"))
+    work = Path(tempfile.mkdtemp(prefix="concord-smoke-"))
     exe = args.executable
     checks: list[Callable[[], str]] = [
         lambda: check_version(exe),

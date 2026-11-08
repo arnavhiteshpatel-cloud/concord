@@ -2,7 +2,7 @@
 
 * BrainFlow (official ``BoardShim`` API, synthetic board) as an installed plugin.
 * BCI2000 App Connector output, replayed from datagrams recorded from a real BCI2000 3.6
-  build (``packages/brainos-bci2000/tests/fixtures``): processed control information only.
+  build (``packages/concord-bci2000/tests/fixtures``): processed control information only.
 
 Both run in the plugin host (a separate process); neither yields an application command
 by itself.
@@ -22,15 +22,15 @@ from typing import Any
 import pytest
 
 pytest.importorskip("brainflow")
-pytest.importorskip("brainos_bci2000")
+pytest.importorskip("concord_bci2000")
 
-from brainos.contracts.events import EventEnvelope
-from brainos.sdk import EventStream, RuntimeClient, is_event
+from concord.contracts.events import EventEnvelope
+from concord.sdk import EventStream, RuntimeClient, is_event
 
 from .test_plugin_example import server  # noqa: F401  (fixture)
 
 ROOT = Path(__file__).resolve().parents[2]
-BCI_FIXTURE = ROOT / "packages/brainos-bci2000/tests/fixtures/bci2000_connector_output.json"
+BCI_FIXTURE = ROOT / "packages/concord-bci2000/tests/fixtures/bci2000_connector_output.json"
 
 
 async def _wait_plugins(c: RuntimeClient) -> dict[str, Any]:

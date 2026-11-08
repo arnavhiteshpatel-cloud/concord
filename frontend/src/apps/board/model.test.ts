@@ -20,10 +20,10 @@ import { DEMONSTRATION_LABEL, SIMULATION_LABEL, compositionLabel, inputLabel, ty
 import { DEFAULT_SETTINGS, normalizeSettings, settingsFromQuery, type BoardSettings } from "./settings";
 import { CORE_WORDS, PHRASES, parseWordList, predictions } from "./vocabulary";
 
-const SIM: InputTag = { kind: "simulated_intent", modelId: null, modelOrigin: null, replayed: false, synthetic: true, adapter: "brainos.sim@0.1.0" };
-const BRAINOS: InputTag = { kind: "decoded_intent", modelId: "m1", modelOrigin: null, replayed: false, synthetic: false, adapter: "brainos.pipeline@0.4.0" };
-const HISTORICAL: InputTag = { kind: "decoded_intent", modelId: "t15-orig", modelOrigin: "historical", replayed: true, synthetic: false, adapter: "brainos.cursorclick@0.1.0" };
-const EXTERNAL: InputTag = { kind: "decoded_intent", modelId: "bci2000", modelOrigin: "external", replayed: false, synthetic: false, adapter: "brainos.bci2000@0.1.0" };
+const SIM: InputTag = { kind: "simulated_intent", modelId: null, modelOrigin: null, replayed: false, synthetic: true, adapter: "concord.sim@0.1.0" };
+const CONCORD: InputTag = { kind: "decoded_intent", modelId: "m1", modelOrigin: null, replayed: false, synthetic: false, adapter: "concord.pipeline@0.4.0" };
+const HISTORICAL: InputTag = { kind: "decoded_intent", modelId: "t15-orig", modelOrigin: "historical", replayed: true, synthetic: false, adapter: "concord.cursorclick@0.1.0" };
+const EXTERNAL: InputTag = { kind: "decoded_intent", modelId: "bci2000", modelOrigin: "external", replayed: false, synthetic: false, adapter: "concord.bci2000@0.1.0" };
 
 let seq = 0;
 /** an event reference; `t` in ms on the device clock (null = no device timestamp) */
@@ -357,15 +357,15 @@ describe("safe stop", () => {
 describe("provenance and the scientific limitation", () => {
   it("labels where input comes from", () => {
     expect(inputLabel(SIM)).toBe("simulated input");
-    expect(inputLabel(BRAINOS)).toBe("decoded by m1 (BrainOS)");
-    expect(inputLabel({ ...BRAINOS, modelOrigin: "brainos", adapter: "x@1.0.0" })).toBe("decoded by m1 (BrainOS)");
+    expect(inputLabel(CONCORD)).toBe("decoded by m1 (Concord)");
+    expect(inputLabel({ ...CONCORD, modelOrigin: "concord", adapter: "x@1.0.0" })).toBe("decoded by m1 (Concord)");
     expect(inputLabel(HISTORICAL)).toBe("historical decoder replay (original research system)");
     expect(inputLabel(EXTERNAL)).toBe("decoded by bci2000 (external decoder)");
   });
   it("text composed from replayed recordings is never the participant's message", () => {
     expect(compositionLabel([HISTORICAL])).toBe(DEMONSTRATION_LABEL);
-    expect(compositionLabel([{ ...BRAINOS, replayed: true }])).toBe(DEMONSTRATION_LABEL);
-    expect(compositionLabel([BRAINOS, SIM])).toBeNull();
+    expect(compositionLabel([{ ...CONCORD, replayed: true }])).toBe(DEMONSTRATION_LABEL);
+    expect(compositionLabel([CONCORD, SIM])).toBeNull();
     expect(compositionLabel([SIM])).toBe(SIMULATION_LABEL);
     expect(DEMONSTRATION_LABEL).toBe("demonstration — not the participant's message");
     let [s, t] = moveTo(board(["pointer_intent", "selection"]), 3, 0);

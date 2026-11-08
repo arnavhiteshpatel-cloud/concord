@@ -2,17 +2,17 @@
 
 Three roles, each in its own new environment, none touching the repository's sources:
 
-1. **Adapter developer** — installs only ``brainos-adapter-sdk``; scaffolds a new plugin with
-   ``brainos-adapter new``; installs it; ``brainos-adapter check`` runs it through the real
+1. **Adapter developer** — installs only ``concord-adapter-sdk``; scaffolds a new plugin with
+   ``concord-adapter new``; installs it; ``concord-adapter check`` runs it through the real
    plugin host and validator; the scaffold's own test passes.
-2. **Lab running BrainOS** — installs ``brainos[server]`` + the adapter SDK + that plugin;
-   starts ``brainos-server``; the plugin is discovered as compatible; configured; connected.
-3. **Application developer** — installs only ``brainos`` (the application SDK: pydantic,
+2. **Lab running Concord** — installs ``concordos[server]`` + the adapter SDK + that plugin;
+   starts ``concord-server``; the plugin is discovered as compatible; configured; connected.
+3. **Application developer** — installs only ``concord`` (the application SDK: pydantic,
    httpx, websockets — no server, no numpy); receives the plugin's signal through the SDK.
-   ``brainos-server`` in this environment fails with an install hint, not a traceback.
-4. **Lab verifying acquisition** — installs only ``brainos-hwval`` (numpy + pyxdf, no
-   BrainOS); reads a recording that the lab's server (2) made from the plugin, including the
-   source metadata BrainOS keeps in the recording header.
+   ``concord-server`` in this environment fails with an install hint, not a traceback.
+4. **Lab verifying acquisition** — installs only ``concord-hwval`` (numpy + pyxdf, no
+   Concord); reads a recording that the lab's server (2) made from the plugin, including the
+   source metadata Concord keeps in the recording header.
 
 Usage:  python scripts/dist_check.py [--keep]
 """
@@ -33,10 +33,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 WHEELS = {
-    "sdk": ROOT / "packages" / "brainos-adapter-sdk",
-    "decoder_sdk": ROOT / "packages" / "brainos-decoder-sdk",  # brainos[server] needs it (M5)
-    "brainos": ROOT / "backend",
-    "hwval": ROOT / "packages" / "brainos-hwval",  # hardware-validation toolkit (M5)
+    "sdk": ROOT / "packages" / "concord-adapter-sdk",
+    "decoder_sdk": ROOT / "packages" / "concord-decoder-sdk",  # concordos[server] needs it (M5)
+    "concord": ROOT / "backend",
+    "hwval": ROOT / "packages" / "concord-hwval",  # hardware-validation toolkit (M5)
 }
 UV = shutil.which("uv")
 
@@ -113,7 +113,7 @@ def http_text(url: str) -> str:
 
 APP = r"""
 import asyncio, sys
-from brainos.sdk import EventStream, RuntimeClient, is_event
+from concord.sdk import EventStream, RuntimeClient, is_event
 
 async def main(base, device):
     async with RuntimeClient(base) as op:
@@ -142,7 +142,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--keep", action="store_true", help="keep the temporary directory")
     args = ap.parse_args()
-    tmp = Path(tempfile.mkdtemp(prefix="brainos-dist-"))
+    tmp = Path(tempfile.mkdtemp(prefix="concord-dist-"))
     dist = tmp / "dist"
     print(f"workdir {tmp}")
     server: subprocess.Popen[str] | None = None
@@ -152,45 +152,45 @@ def main() -> int:
 
         # 1. adapter developer: only the adapter SDK
         dev = venv(tmp / "adapter-dev")
-        install(dev, "brainos-adapter-sdk", "pytest", find_links=dist)
-        cli = dev.parent / "brainos-adapter"
+        install(dev, "concord-adapter-sdk", "pytest", find_links=dist)
+        cli = dev.parent / "concord-adapter"
         run(
             [
                 str(cli),
                 "new",
                 "acme-amp",
                 "--dir",
-                str(tmp / "brainos-acme-amp"),
+                str(tmp / "concord-acme-amp"),
                 "--display",
                 "ACME amplifier",
             ]
         )
-        install(dev, "-e", str(tmp / "brainos-acme-amp"), find_links=dist)
+        install(dev, "-e", str(tmp / "concord-acme-amp"), find_links=dist)
         out = run([str(cli), "check", "acme-amp", "--seconds", "1"]).stdout
         assert "OK" in out, out
-        run([str(dev), "-m", "pytest", "-q", str(tmp / "brainos-acme-amp" / "tests")])
+        run([str(dev), "-m", "pytest", "-q", str(tmp / "concord-acme-amp" / "tests")])
         assert (
             run(
-                [str(dev), "-c", "import importlib.util as u; print(u.find_spec('brainos'))"]
+                [str(dev), "-c", "import importlib.util as u; print(u.find_spec('concord'))"]
             ).stdout.strip()
             == "None"
         )
-        print("1. adapter developer: scaffolded, installed, checked, tested — without BrainOS")
+        print("1. adapter developer: scaffolded, installed, checked, tested — without Concord")
 
-        # 2. lab: BrainOS server + plugin, from wheels
+        # 2. lab: Concord server + plugin, from wheels
         lab = venv(tmp / "lab")
-        install(lab, "brainos[server]", "-e", str(tmp / "brainos-acme-amp"), find_links=dist)
+        install(lab, "concordos[server]", "-e", str(tmp / "concord-acme-amp"), find_links=dist)
         port = free_port()
         env = {
             **os.environ,
-            "BRAINOS_PORT": str(port),
-            "BRAINOS_DATA_DIR": str(tmp / "data"),
-            "BRAINOS_REPORTS_DIR": str(tmp / "reports"),
-            "BRAINOS_STATIC_DIR": "",
-            "BRAINOS_LOG_LEVEL": "WARNING",
+            "CONCORD_PORT": str(port),
+            "CONCORD_DATA_DIR": str(tmp / "data"),
+            "CONCORD_REPORTS_DIR": str(tmp / "reports"),
+            "CONCORD_STATIC_DIR": "",
+            "CONCORD_LOG_LEVEL": "WARNING",
         }
         server = subprocess.Popen(
-            [str(lab.parent / "brainos-server")],
+            [str(lab.parent / "concord-server")],
             env=env,
             text=True,
             stdout=subprocess.PIPE,
@@ -220,22 +220,22 @@ def main() -> int:
 
         # 3. app developer: the application SDK only
         app = venv(tmp / "app-dev")
-        install(app, "brainos", find_links=dist)
+        install(app, "concordos", find_links=dist)
         mods = run(
             [
                 str(app),
                 "-c",
                 "import importlib.util as u; print([m for m in "
-                "('fastapi','uvicorn','numpy','brainos_adapter_sdk') if u.find_spec(m)])",
+                "('fastapi','uvicorn','numpy','concord_adapter_sdk') if u.find_spec(m)])",
             ]
         ).stdout.strip()
         assert mods == "[]", f"application SDK pulled in server/numeric packages: {mods}"
         (tmp / "app.py").write_text(APP)
         out = run([str(app), str(tmp / "app.py"), base, device_id]).stdout.strip()
         print(f"3. app developer (SDK only, deps: pydantic/httpx/websockets): {out}")
-        r = subprocess.run([str(app.parent / "brainos-server")], text=True, capture_output=True)
-        assert r.returncode != 0 and "brainos[server]" in (r.stderr + r.stdout), r
-        print("   brainos-server without the server extra: clear install hint")
+        r = subprocess.run([str(app.parent / "concord-server")], text=True, capture_output=True)
+        assert r.returncode != 0 and "concordos[server]" in (r.stderr + r.stdout), r
+        print("   concord-server without the server extra: clear install hint")
 
         # 4. lab verifying acquisition: the hwval toolkit alone reads a lab-server recording
         http("POST", base + "/api/v1/runtime/connect", {"device_id": device_id})
@@ -243,27 +243,27 @@ def main() -> int:
         time.sleep(1.5)
         http("POST", base + "/api/v1/recordings/stop", {})
         http("POST", base + "/api/v1/runtime/disconnect", {})
-        recording = tmp / "data" / "recordings" / "dist-hwval.brainos.jsonl"
+        recording = tmp / "data" / "recordings" / "dist-hwval.concord.jsonl"
         hw = venv(tmp / "hwval")
-        install(hw, "brainos-hwval", find_links=dist)
+        install(hw, "concord-hwval", find_links=dist)
         mods = run(
             [
                 str(hw),
                 "-c",
-                "import importlib.util as u; print([m for m in ('brainos', 'fastapi') "
+                "import importlib.util as u; print([m for m in ('concord', 'fastapi') "
                 "if u.find_spec(m)])",
             ]
         ).stdout.strip()
-        assert mods == "[]", f"brainos-hwval pulled in BrainOS: {mods}"
-        hcli = hw.parent / "brainos-hwval"
+        assert mods == "[]", f"concord-hwval pulled in Concord: {mods}"
+        hcli = hw.parent / "concord-hwval"
         version = run([str(hcli), "--version"]).stdout.strip()
         json.loads(run([str(hcli), "equipment-template"]).stdout)
         info = json.loads(run([str(hcli), "inspect", str(recording)]).stdout)
-        assert info["file_type"] == "BrainOS recording" and info["frames"] > 0, info
+        assert info["file_type"] == "Concord recording" and info["frames"] > 0, info
         assert info["device_id"] == device_id and info["source_metadata_in_header"], info
         assert "cannot be reconstructed" in info["timing"], info
         print(
-            f"4. lab verification ({version}, without BrainOS): read {info['frames']} frames "
+            f"4. lab verification ({version}, without Concord): read {info['frames']} frames "
             f"of the server's recording; header source metadata present"
         )
         print("DIST CHECK PASSED")

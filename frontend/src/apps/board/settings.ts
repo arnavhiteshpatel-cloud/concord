@@ -2,7 +2,7 @@
 // page URL (for evaluation harnesses) over this browser's saved settings over the defaults.
 //
 // Deliberately absent: cursor gain or smoothing. Mapping decoder output to pointer velocity is
-// the command router's job (operator, BrainOS console); the board integrates what it receives.
+// the command router's job (operator, Concord console); the board integrates what it receives.
 
 import type { MethodChoice } from "./methods";
 
@@ -131,7 +131,7 @@ export function settingsFromQuery(search: string): Record<string, unknown> {
   return out;
 }
 
-const STORAGE_KEY = "brainos.board.settings.v2";
+const STORAGE_KEY = "concord.board.settings.v2";
 
 export function loadSettings(search: string): BoardSettings {
   let saved: Record<string, unknown> = {};

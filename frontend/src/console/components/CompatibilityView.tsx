@@ -115,8 +115,8 @@ export function CompatibilityView() {
             </table>
           </div>
           <p className="hint">
-            Levels as defined in <code>{reg.sources.validation_levels}</code>. Evidence for BrainOS {reg.brainos_version}
-            {data.brainos_version !== reg.brainos_version ? `; this server runs BrainOS ${data.brainos_version}` : ""}.
+            Levels as defined in <code>{reg.sources.validation_levels}</code>. Evidence for Concord {reg.concord_version}
+            {data.concord_version !== reg.concord_version ? `; this server runs Concord ${data.concord_version}` : ""}.
           </p>
         </>
       )}

@@ -3,7 +3,7 @@ scale, capability advertisement, and per-application ``control.state`` (safe-sta
 
 Sources: the in-test synthetic motor-imagery source + an LDA fitted on separate synthetic data
 (discrete actions), and the scripted decoder test source + its hand-written identity test
-decoder (brainos.testing.scripted; cursor + click). Nothing here is neural or human data.
+decoder (concord.testing.scripted; cursor + click). Nothing here is neural or human data.
 """
 
 from __future__ import annotations
@@ -19,17 +19,17 @@ pytest.importorskip("scipy")
 
 from pydantic import ValidationError
 
-from brainos.adapters.base import EventDraft
-from brainos.adapters.simulated import OperatorIntentSource
-from brainos.contracts.capabilities import Capability, EventType
-from brainos.contracts.events import Provenance, ProvenanceKind, Quality
-from brainos.contracts.protocol import AppStatus, ErrorCode
-from brainos.decoding.lda import LDAClassifier
-from brainos.runtime import DeviceRegistry, Recorder, Runtime, RuntimeCommandError
-from brainos.runtime.bus import Subscriber
-from brainos.runtime.negotiation import negotiate
-from brainos.runtime.pipeline import PipelineStartRequest
-from brainos.runtime.router import (
+from concord.adapters.base import EventDraft
+from concord.adapters.simulated import OperatorIntentSource
+from concord.contracts.capabilities import Capability, EventType
+from concord.contracts.events import Provenance, ProvenanceKind, Quality
+from concord.contracts.protocol import AppStatus, ErrorCode
+from concord.decoding.lda import LDAClassifier
+from concord.runtime import DeviceRegistry, Recorder, Runtime, RuntimeCommandError
+from concord.runtime.bus import Subscriber
+from concord.runtime.negotiation import negotiate
+from concord.runtime.pipeline import PipelineStartRequest
+from concord.runtime.router import (
     ClickRule,
     CommandProvenanceError,
     CommandRouter,
@@ -38,7 +38,7 @@ from brainos.runtime.router import (
     router_capabilities,
     validate_router,
 )
-from brainos.testing import scripted
+from concord.testing import scripted
 
 from .conftest import subscribe
 from .helpers import drain, events, scripted_descriptor, wait_for
@@ -74,7 +74,7 @@ def _draft(
         Quality(score=1.0),
         Provenance(
             kind=ProvenanceKind.DECODED_INTENT,
-            adapter="brainos.pipeline@0.4.0",
+            adapter="concord.pipeline@0.4.0",
             synthetic=True,
             model_id="m1",
             origin="test",

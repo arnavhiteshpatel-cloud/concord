@@ -1006,7 +1006,7 @@
           "anyOf": [
             {
               "enum": [
-                "brainos",
+                "concord",
                 "external",
                 "historical"
               ],
@@ -1673,7 +1673,7 @@
       "type": "object"
     }
   },
-  "$id": "https://brainos.local/schemas/event-envelope.v1.json",
+  "$id": "https://concord.local/schemas/event-envelope.v1.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "discriminator": {
     "mapping": {
@@ -1734,5 +1734,5 @@
       "$ref": "#/$defs/ControlStateEvent"
     }
   ],
-  "title": "BrainOS EventEnvelope 1.4"
+  "title": "Concord EventEnvelope 1.4"
 }

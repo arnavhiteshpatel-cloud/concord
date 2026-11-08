@@ -54,7 +54,7 @@ LSL inlet / OE SUB socket  ->  DeviceAdapter (read/normalize, unchanged contract
     (signal + markers + behavior on one clock), stall/loss detection, reconnect by `source_id`.
   - `adapters/openephys` (pyzmq): protocol-exact parsing, heartbeats, message/sample gap
     accounting, configuration-change detection.
-- **Processing (`brainos/processing`):** causal, chunk-invariant stages:
+- **Processing (`concord/processing`):** causal, chunk-invariant stages:
   - filters: Butterworth bandpass, notch, common average reference
   - threshold-crossing counts (−4.5 × RMS, refractory period)
   - log band power
@@ -77,7 +77,7 @@ LSL inlet / OE SUB socket  ->  DeviceAdapter (read/normalize, unchanged contract
     markers as LSL streams (the standard way task software integrates); the LSL adapter maps
     them onto the neural stream's clock with `time_correction`. (Chosen over an
     app → runtime label channel, which would have added a new write-like API.)
-- **Reference app:** `backend/examples/reference_app` uses only `brainos.sdk`. Tests run it against
+- **Reference app:** `backend/examples/reference_app` uses only `concord.sdk`. Tests run it against
   simulation, LSL and Open Ephys sources, plus a raw-only source.
 - **Console:**
   - discover/connect LSL and Open Ephys sources

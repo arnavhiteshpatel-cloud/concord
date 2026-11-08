@@ -15,13 +15,13 @@ from typing import Any
 
 import numpy as np
 
-from brainos.adapters.base import DeviceAdapter, EventDraft, NativePacket
-from brainos.contracts.capabilities import Capability, CapabilityDescriptor, EventType
-from brainos.contracts.events import Provenance, ProvenanceKind, Quality, QualityFlag
-from brainos.contracts.protocol import DeviceDescriptor, DeviceKind
+from concord.adapters.base import DeviceAdapter, EventDraft, NativePacket
+from concord.contracts.capabilities import Capability, CapabilityDescriptor, EventType
+from concord.contracts.events import Provenance, ProvenanceKind, Quality, QualityFlag
+from concord.contracts.protocol import DeviceDescriptor, DeviceKind
 
 ADAPTER = "test.features@0.1.0"
-ORIGIN = "brainos:test-features"
+ORIGIN = "concord:test-features"
 CHANNELS = 12
 BIN_MS = 20.0
 BINS_PER_READ = 10

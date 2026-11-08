@@ -1,5 +1,5 @@
 name: Feature request
-description: Suggest something BrainOS should do.
+description: Suggest something Concord should do.
 labels: ["enhancement"]
 body:
   - type: textarea
@@ -17,6 +17,6 @@ body:
   - type: markdown
     attributes:
       value: |
-        BrainOS is read-only by design: it will not send commands or stimulation to devices.
+        Concord is read-only by design: it will not send commands or stimulation to devices.
         Integrations with specific acquisition systems are usually best done as a
         [source plugin](https://github.com/arnavhiteshpatel-cloud/brainos/blob/main/docs/ADAPTER_SDK.md).

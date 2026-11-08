@@ -6,7 +6,7 @@ import type { EventEnvelope, Provenance } from "../../sdk";
 export interface InputTag {
   kind: Provenance["kind"];
   modelId: string | null;
-  modelOrigin: "brainos" | "external" | "historical" | null;
+  modelOrigin: "concord" | "external" | "historical" | null;
   replayed: boolean;
   synthetic: boolean;
   adapter: string;
@@ -45,14 +45,14 @@ export function refOf(e: EventEnvelope): EventRef {
   };
 }
 
-/** "simulated input", "decoded by m1 (BrainOS)", "historical decoder replay (original research system)", … */
+/** "simulated input", "decoded by m1 (Concord)", "historical decoder replay (original research system)", … */
 export function inputLabel(t: InputTag): string {
   if (t.kind === "simulated_intent") return "simulated input";
   if (t.kind === "decoded_intent") {
     if (t.modelOrigin === "historical") return "historical decoder replay (original research system)";
     if (t.modelOrigin === "external") return `decoded by ${t.modelId ?? "an external decoder"} (external decoder)`;
-    // only the BrainOS pipeline's command router emits decoded commands without an origin
-    if (t.modelOrigin === "brainos" || t.adapter.startsWith("brainos.pipeline")) return `decoded by ${t.modelId} (BrainOS)`;
+    // only the Concord pipeline's command router emits decoded commands without an origin
+    if (t.modelOrigin === "concord" || t.adapter.startsWith("concord.pipeline")) return `decoded by ${t.modelId} (Concord)`;
     return `decoded by ${t.modelId}`;
   }
   return t.kind.replace(/_/g, " ");

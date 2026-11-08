@@ -20,24 +20,24 @@ pytest.importorskip("pylsl")
 pytest.importorskip("scipy")
 pytest.importorskip("pynwb")
 
-from brainos.adapters.nwb.reader import load
-from brainos.adapters.simulated import OperatorIntentSource
-from brainos.contracts import Capability
-from brainos.contracts.protocol import AppStatus, DeviceKind, ErrorCode
-from brainos.datasets import session_of
-from brainos.datasets.fetch import DEMO_FILES
-from brainos.decoding import model as models
-from brainos.decoding.calibrate import CalibrationError, calibrate, chronological_split
-from brainos.decoding.ridge import RidgeDecoder, evaluate, fit
-from brainos.runtime import DeviceRegistry, Recorder, Runtime, RuntimeCommandError
-from brainos.runtime.pipeline import PipelineManager, PipelineStartRequest, RouterSpec
-from brainos.testing.lsl_publishers import FalconLSLPublisher, SyntheticEphysPublisher
+from concord.adapters.nwb.reader import load
+from concord.adapters.simulated import OperatorIntentSource
+from concord.contracts import Capability
+from concord.contracts.protocol import AppStatus, DeviceKind, ErrorCode
+from concord.datasets import session_of
+from concord.datasets.fetch import DEMO_FILES
+from concord.decoding import model as models
+from concord.decoding.calibrate import CalibrationError, calibrate, chronological_split
+from concord.decoding.ridge import RidgeDecoder, evaluate, fit
+from concord.runtime import DeviceRegistry, Recorder, Runtime, RuntimeCommandError
+from concord.runtime.pipeline import PipelineManager, PipelineStartRequest, RouterSpec
+from concord.testing.lsl_publishers import FalconLSLPublisher, SyntheticEphysPublisher
 
 from .conftest import subscribe
 from .helpers import drain, events, wait_for
 
 REPO = Path(__file__).resolve().parents[2]
-DATA = Path(os.environ.get("BRAINOS_TEST_DATASETS", REPO / "data" / "datasets" / "dandi-000954"))
+DATA = Path(os.environ.get("CONCORD_TEST_DATASETS", REPO / "data" / "datasets" / "dandi-000954"))
 TRAIN_FILE, EVAL_FILE = DATA / DEMO_FILES[0], DATA / DEMO_FILES[1]
 HAVE_DATA = TRAIN_FILE.exists() and EVAL_FILE.exists()
 needs_data = pytest.mark.skipif(
@@ -140,7 +140,7 @@ async def test_calibrate_from_falcon_streamed_over_lsl(
     await wait_for(lambda: rt.diagnostics.totals["behavior.sample"] >= n, timeout=10)
     info = rt.stop_recording()
     assert info.name == name
-    path = tmp_path / "rec" / f"{name}.brainos.jsonl"
+    path = tmp_path / "rec" / f"{name}.concord.jsonl"
     with path.open() as fh:
         header = json.loads(fh.readline())
     src = header["source_metadata"]  # the LSL adapter's own snapshot when recording started
@@ -198,8 +198,8 @@ def test_chronological_split_moves_to_trial_boundary() -> None:
 
 
 def test_calibration_refuses_recordings_without_labels(tmp_path: Path) -> None:
-    path = tmp_path / "x.brainos.jsonl"
-    lines: list[dict[str, Any]] = [{"format": "brainos.recording/1", "device": {}}]
+    path = tmp_path / "x.concord.jsonl"
+    lines: list[dict[str, Any]] = [{"format": "concord.recording/1", "device": {}}]
     for i in range(10):
         lines.append(
             {
@@ -280,7 +280,7 @@ async def test_falcon_over_lsl_decodes_like_offline_and_routes_only_on_request(
     assert [e["device_timestamp_ns"] for e in decoded] == [e["device_timestamp_ns"] for e in feats]
     p = decoded[0]["provenance"]
     assert p["kind"] == "decoded_intent" and p["model_id"] == held_in.model_id
-    assert p["model_origin"] == "brainos"  # contract 1.4: a model BrainOS trained, run by BrainOS
+    assert p["model_origin"] == "concord"  # contract 1.4: a model Concord trained, run by Concord
     assert p["replayed"] is True and p["origin"].startswith("dandi:000954/")
     # commands: only after the router was enabled, derived from the decoded values
     assert len(pointers) > 100
@@ -385,8 +385,8 @@ async def test_synthetic_raw_stream_full_loop(tmp_path: Path, publishers: list[A
     assert rt.diagnostics.timestamp_regressions == 0
     await rt.disconnect()
 
-    path = tmp_path / "rec" / f"{name}.brainos.jsonl"
-    model, report = calibrate([path], models_dir=models_dir, feature_source="brainos.pipeline")
+    path = tmp_path / "rec" / f"{name}.concord.jsonl"
+    model, report = calibrate([path], models_dir=models_dir, feature_source="concord.pipeline")
     assert report["synthetic_source"] is True and report["source_identity"]
     # synthetic units are cosine-tuned to the latent velocity, so this must be decodable
     assert report["r2"] > 0.3 > report["control_mean_predictor_r2"]
@@ -419,9 +419,9 @@ async def test_same_app_and_pipeline_across_open_ephys_and_lsl(
     """An unchanged app follows a switch between an Open Ephys ZMQ source and an LSL source;
     the same spike-band pipeline runs on both, and neither yields commands by itself."""
     pytest.importorskip("zmq")
-    from brainos.adapters.openephys import OpenEphysConfig
-    from brainos.adapters.openephys.publisher import OpenEphysTestPublisher
-    from brainos.testing.lsl_publishers import SyntheticEphys
+    from concord.adapters.openephys import OpenEphysConfig
+    from concord.adapters.openephys.publisher import OpenEphysTestPublisher
+    from concord.testing.lsl_publishers import SyntheticEphys
 
     from .test_openephys import free_port_pair
 
@@ -466,7 +466,7 @@ async def test_same_app_and_pipeline_across_open_ephys_and_lsl(
         feats = [
             e
             for e in events(msgs, "features.binned")
-            if e["provenance"]["adapter"].startswith("brainos.pipeline")
+            if e["provenance"]["adapter"].startswith("concord.pipeline")
         ]
         assert feats and all(e["device_id"] == did for e in feats)
         assert events(msgs, "intent.pointer") == []

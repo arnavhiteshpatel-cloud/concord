@@ -8,12 +8,12 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
-from brainos_adapter_sdk import PluginManifest
+from concord_adapter_sdk import PluginManifest
 
-from brainos.adapters.plugin import PluginSpec
+from concord.adapters.plugin import PluginSpec
 
 PLUGINS_DIR = Path(__file__).parent / "plugins"
-TEST_MODULE = "bos_test_plugins"
+TEST_MODULE = "concord_test_plugins"
 # tests may import the test plugins directly (e.g. to compute expected values); the runtime
 # under test never does - it reaches them through plugin-host subprocesses.
 if str(PLUGINS_DIR) not in sys.path:
@@ -24,14 +24,14 @@ def ref(cls_name: str) -> str:
     return f"{TEST_MODULE}:{cls_name}"
 
 
-def make_dist(site: Path, entries: Mapping[str, str], name: str = "bos-test-plugins") -> Path:
-    """A minimal installed distribution (``*.dist-info``) declaring ``brainos.sources``
+def make_dist(site: Path, entries: Mapping[str, str], name: str = "concord-test-plugins") -> Path:
+    """A minimal installed distribution (``*.dist-info``) declaring ``concord.sources``
     entry points, so discovery can be tested without installing anything."""
     site.mkdir(parents=True, exist_ok=True)
     info = site / f"{name.replace('-', '_')}-0.0.1.dist-info"
     info.mkdir(exist_ok=True)
     (info / "METADATA").write_text(f"Metadata-Version: 2.1\nName: {name}\nVersion: 0.0.1\n")
-    lines = ["[brainos.sources]", *(f"{k} = {v}" for k, v in entries.items())]
+    lines = ["[concord.sources]", *(f"{k} = {v}" for k, v in entries.items())]
     (info / "entry_points.txt").write_text("\n".join(lines) + "\n")
     return site
 

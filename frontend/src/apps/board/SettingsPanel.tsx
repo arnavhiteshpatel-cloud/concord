@@ -54,7 +54,7 @@ export function SettingsPanel({
       </div>
       <p className="settings-note">
         For the caregiver or experimenter. Cursor speed and smoothing are not set here: the operator maps decoder output to
-        commands in BrainOS.
+        commands in Concord.
       </p>
       <fieldset>
         <legend>Input method</legend>

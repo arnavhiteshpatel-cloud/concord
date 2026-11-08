@@ -1,6 +1,6 @@
 // AT-24: TS SDK validates envelopes and detects delivery gaps / ordering problems.
 import { describe, expect, it, vi } from "vitest";
-import { BrainOSStream, StreamTracker, validateEnvelope, type EventEnvelope } from ".";
+import { ConcordStream, StreamTracker, validateEnvelope, type EventEnvelope } from ".";
 
 function env(over: Record<string, unknown> = {}): Record<string, unknown> {
   return {
@@ -100,7 +100,7 @@ describe("validateEnvelope", () => {
     const nav = {
       event_type: "intent.navigate",
       capability: "navigation",
-      provenance: { ...prov, kind: "decoded_intent", synthetic: false, model_id: "m1", model_origin: "brainos" },
+      provenance: { ...prov, kind: "decoded_intent", synthetic: false, model_id: "m1", model_origin: "concord" },
       payload: { direction: "next", confidence: 0.8 },
     };
     expect(validateEnvelope(env({ ...nav, schema_version: "1.4" })).ok).toBe(true);
@@ -198,9 +198,9 @@ class FakeWS {
   }
 }
 
-describe("BrainOSStream", () => {
+describe("ConcordStream", () => {
   const make = () =>
-    new BrainOSStream({
+    new ConcordStream({
       app: { id: "t", name: "t" },
       required: ["selection"],
       optional: ["pointer_intent"],
@@ -218,11 +218,11 @@ describe("BrainOSStream", () => {
     const ws = FakeWS.last!;
     ws.onopen?.();
     const hello = JSON.parse(ws.sent[0]!);
-    expect(hello).toMatchObject({ type: "hello", protocol: "brainos.stream/1", capabilities: { required: ["selection"] } });
+    expect(hello).toMatchObject({ type: "hello", protocol: "concord.stream/1", capabilities: { required: ["selection"] } });
     s.handle(
       JSON.stringify({
         type: "welcome",
-        protocol: "brainos.stream/1",
+        protocol: "concord.stream/1",
         schema_version: "1.0",
         connection_id: "c1",
         negotiation: { device_id: "d", status: "active", granted: ["selection"], rejected: [] },

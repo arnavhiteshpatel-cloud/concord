@@ -1,6 +1,6 @@
-# BrainOS roadmap
+# Concord roadmap
 
-Where BrainOS stands and what comes next. Every item is "done" only when its verification has
+Where Concord stands and what comes next. Every item is "done" only when its verification has
 run; what has been validated, and what has not, is in
 [docs/VALIDATION_LEVELS.md](docs/VALIDATION_LEVELS.md).
 
@@ -25,7 +25,7 @@ Candidates for the next milestones. None has started.
 | Publish the Python packages (PyPI) and the TypeScript SDK (npm) | Today they install from release wheels or a checkout | Clean-room installs from the public indexes |
 | Per-application authentication | Application identities are self-declared ([docs/SECURITY.md](docs/SECURITY.md)) | Unauthenticated applications refused; tests for every route |
 | Clock synchronisation between devices and the runtime | No offset or drift estimation beyond what LSL provides | Tests with injected clock skew; offset shown in diagnostics |
-| Per-sample source timestamps and segmented recordings | Only the first sample of a frame keeps its source timestamp; one recording is one file | Round-trip tests; `brainos-hwval` timing checks on per-sample data |
+| Per-sample source timestamps and segmented recordings | Only the first sample of a frame keeps its source timestamp; one recording is one file | Round-trip tests; `concord-hwval` timing checks on per-sample data |
 | Several sources in one session | One source at a time today | Design document, then a flagged implementation with no regression |
 | Closed-loop evaluation (level 4) | Only offline, open-loop results exist | Only with a clinical research partner under an approved protocol |
 
@@ -53,12 +53,12 @@ until its gate passes in CI. Days are working days for one engineer.
 | ~~next~~ | ✅ **Done in Milestone 3:** runtime-level pipeline + decoder stage on any source's features, LSL and Open Ephys ZMQ adapters, calibration from recordings, command router, SDK-only reference app, center-out cue task | M2 | protocol tests, FALCON-over-LSL equivalence, docs/BENCHMARKS_LIVE.md |
 | **next** | **First hardware session** (level 3, docs/VALIDATION_LEVELS.md): one LSL amplifier and one Open Ephys acquisition board, cross-checked against LabRecorder / Open Ephys recordings | M3 + lab partner | integrity report: counts, values, timestamps match the reference recorder |
 | next | Cross-day evaluation on FALCON held-out sessions, raw-voltage NWB reader, adaptive threshold / recalibration | M3 | held-out-day metrics reported |
-| 8 | Adapter conformance test kit (`brainos.testing.conformance`) any vendor adapter can run | adapter contract | both simulated adapters + replay pass the kit |
+| 8 | Adapter conformance test kit (`concord.testing.conformance`) any vendor adapter can run | adapter contract | both simulated adapters + replay pass the kit |
 | 9 | Adapter SDK docs + "write your own adapter" tutorial with a third toy adapter (e.g. LSL-style stream bridge) | conformance kit | tutorial adapter passes kit, no runtime changes |
 | 10 | Timing: clock-sync model (device↔runtime offset estimation), jitter diagnostics (LSL `time_correction` is used for auxiliary streams since M3) | runtime | tests with injected clock skew; diagnostics show estimated offset |
 | 11 | Multi-device sessions (two devices concurrently) design + spike | runtime | design doc; spike behind flag; no regression |
 | 12 | Audit log (append-only, who connected what, grants) | auth | tests; log viewable in console |
-| 13 | Packaging: `pip install brainos-sdk` wheel, `npm` TS SDK package, versioning policy | SDKs | wheels build in CI; example installs from wheel |
+| 13 | Packaging: `pip install concord-sdk` wheel, `npm` TS SDK package, versioning policy | SDKs | wheels build in CI; example installs from wheel |
 | 14 | Hardening + external review: threat model doc, fuzzing of adapter decoders (Hypothesis) | all | fuzz run in CI with fixed budget; issues triaged |
 
 ## Dependency notes

@@ -12,14 +12,14 @@ import pytest
 from fastapi.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
 
-from brainos.contracts import SCHEMA_VERSION, parse_envelope
-from brainos.server import create_app
+from concord.contracts import SCHEMA_VERSION, parse_envelope
+from concord.server import create_app
 
 from .conftest import make_settings
 
 HELLO: dict[str, Any] = {
     "type": "hello",
-    "protocol": "brainos.stream/1",
+    "protocol": "concord.stream/1",
     "app": {"id": "t", "name": "test"},
     "capabilities": {"required": ["selection"], "optional": ["pointer_intent", "text_intent"]},
 }
@@ -86,7 +86,7 @@ def test_negotiate_dry_run(client: TestClient) -> None:
 
 def test_schema_and_capabilities_endpoints(client: TestClient) -> None:
     schema = client.get("/api/v1/schema/event").json()
-    assert "BrainOS EventEnvelope" in schema["title"]
+    assert "Concord EventEnvelope" in schema["title"]
     caps = {c["capability"]: c for c in client.get("/api/v1/capabilities").json()}
     assert caps["recording"]["event_types"] == ["recording.frame", "recording.annotation"]
     # 1.1 added neural_features, behavior, kinematic_intent; 1.4 navigation, control_status
@@ -145,8 +145,8 @@ def test_ws_read_only_rejects_other_messages(client: TestClient) -> None:
     [
         ({"type": "subscribe"}, "hello_required"),
         ({**HELLO, "capabilities": {"required": ["telepathy"]}}, "unknown_capability"),
-        ({**HELLO, "protocol": "brainos.stream/0"}, "unsupported_protocol"),
-        ({"type": "hello", "protocol": "brainos.stream/1"}, "protocol_error"),
+        ({**HELLO, "protocol": "concord.stream/0"}, "unsupported_protocol"),
+        ({"type": "hello", "protocol": "concord.stream/1"}, "protocol_error"),
         ("garbage", "protocol_error"),
     ],
 )
@@ -245,9 +245,9 @@ def test_corrupt_recording_files_do_not_break_listing(client: TestClient, tmp_pa
     """Review #5: unreadable files in the recordings dir are skipped, not 500s."""
     rec = tmp_path / "data" / "recordings"
     rec.mkdir(parents=True)
-    (rec / "binary.brainos.jsonl").write_bytes(b"\xff\xfe\x00garbage\n")
-    (rec / "badver.brainos.jsonl").write_text(
-        '{"format":"brainos.recording/1","schema_version":"x.0","created_at_ns":1,'
+    (rec / "binary.concord.jsonl").write_bytes(b"\xff\xfe\x00garbage\n")
+    (rec / "badver.concord.jsonl").write_text(
+        '{"format":"concord.recording/1","schema_version":"x.0","created_at_ns":1,'
         '"device":{"device_id":"sim-a","display_name":"a","kind":"simulated","adapter":"a@1.0.0",'
         '"native_format":"-","capabilities":[],"synthetic":true},"synthetic":true}\n'
     )

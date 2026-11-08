@@ -4,24 +4,24 @@ Extends ``scripts/dist_check.py`` (same helpers, same fresh-virtualenv approach)
 documented commands and the documented REST API (what the console calls) are used —
 docs/LAB_SETUP.md lists them. Steps:
 
- 1. build wheels (the console staged into the brainos wheel when it can be built);
- 2. fresh venv: ``pip install "brainos[lab]"``; ``brainos version``; ``brainos doctor``;
- 3. ``brainos config init``, set the data directory and port in the config file;
-    ``brainos start --no-browser``; ``brainos status``; the console page is served;
+ 1. build wheels (the console staged into the concord wheel when it can be built);
+ 2. fresh venv: ``pip install "concordos[lab]"``; ``concord version``; ``concord doctor``;
+ 3. ``concord config init``, set the data directory and port in the config file;
+    ``concord start --no-browser``; ``concord status``; the console page is served;
  4. a research session;
  5. an external protocol source in a separate process: the LSL synthetic ephys publisher
     (declared synthetic) -> discovery -> spike-band pipeline -> calibration recording ->
     calibrate -> decode with the model + command output on -> recording of decoder output;
- 6. an SDK-only application (its own venv with only ``brainos``) asks for pointer commands,
+ 6. an SDK-only application (its own venv with only ``concord``) asks for pointer commands,
     is authorized by the operator, and collects a result;
- 7. a known recording: FALCON H1 (DANDI 000954) fetched with ``brainos dataset`` (pinned
+ 7. a known recording: FALCON H1 (DANDI 000954) fetched with ``concord dataset`` (pinned
     SHA-256) and streamed over LSL by a separate process (declared prerecorded) ->
     passthrough -> record -> calibrate; plus the file as offline replay. Skipped, with the
     reason printed, if the network does not allow the download;
  8. safe stop & disconnect; export the session bundle (recordings included);
- 9. in another fresh venv, ``brainos reproduce <bundle>`` re-runs the evaluation and must
+ 9. in another fresh venv, ``concord reproduce <bundle>`` re-runs the evaluation and must
     reproduce it;
-10. ``brainos stop``; ``brainos status`` reports it stopped.
+10. ``concord stop``; ``concord status`` reports it stopped.
 
 Synthetic data is synthetic; FALCON H1 is real recorded human data streamed as prerecorded.
 Nothing here is hardware or human validation (docs/VALIDATION_LEVELS.md).
@@ -52,7 +52,7 @@ APP_ID = "lab-acceptance-app"
 
 APP = r"""
 import asyncio, json, math, sys
-from brainos.sdk import EventStream, NegotiationUpdate, is_event
+from concord.sdk import EventStream, NegotiationUpdate, is_event
 
 async def main(base, n):
     statuses, got = [], []
@@ -101,13 +101,13 @@ class Lab:
         self.bin = py.parent
         self.children: list[subprocess.Popen[str]] = []
 
-    def brainos(self, *args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
-        cmd = [str(self.bin / "brainos"), *args]
-        print("$ brainos", " ".join(args), flush=True)
+    def concord(self, *args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
+        cmd = [str(self.bin / "concord"), *args]
+        print("$ concord", " ".join(args), flush=True)
         r = subprocess.run(cmd, env=self.env, text=True, capture_output=True, timeout=600)
         if check and r.returncode != 0:
             print(r.stdout[-3000:], r.stderr[-3000:], sep="\n")
-            raise SystemExit(f"FAILED: brainos {' '.join(args)} (exit {r.returncode})")
+            raise SystemExit(f"FAILED: concord {' '.join(args)} (exit {r.returncode})")
         return r
 
     def api(self, method: str, path: str, body: Any = None) -> Any:
@@ -118,7 +118,7 @@ class Lab:
     def publisher(self, *args: str) -> subprocess.Popen[str]:
         log = (self.tmp / f"publisher-{len(self.children)}.log").open("w")
         p = subprocess.Popen(
-            [str(self.py), "-m", "brainos.testing.publish", *args],
+            [str(self.py), "-m", "concord.testing.publish", *args],
             env=self.env,
             text=True,
             stdout=log,
@@ -170,7 +170,7 @@ def main() -> int:
     ap.add_argument("--skip-dataset", action="store_true", help="skip the FALCON H1 part")
     ap.add_argument("--report", type=Path, default=ROOT / "reports" / "lab-acceptance.json")
     args = ap.parse_args()
-    tmp = Path(tempfile.mkdtemp(prefix="brainos-lab-"))
+    tmp = Path(tempfile.mkdtemp(prefix="concord-lab-"))
     dist = tmp / "dist"
     print(f"workdir {tmp}", flush=True)
     lab: Lab | None = None
@@ -183,18 +183,18 @@ def main() -> int:
 
         # 2. fresh lab venv ---------------------------------------------------------------
         py = dc.venv(tmp / "lab")
-        dc.install(py, "brainos[lab]", find_links=dist)
+        dc.install(py, "concordos[lab]", find_links=dist)
         port = dc.free_port()
         cfg = tmp / "config" / "config.toml"
-        env = {k: v for k, v in os.environ.items() if not k.startswith("BRAINOS_")}
-        env["BRAINOS_CONFIG"] = str(cfg)
+        env = {k: v for k, v in os.environ.items() if not k.startswith("CONCORD_")}
+        env["CONCORD_CONFIG"] = str(cfg)
         lab = Lab(tmp, py, env, port)
         step(
             "install",
-            'pip install "brainos[lab]" from wheels: ' + lab.brainos("version").stdout.strip(),
+            'pip install "concordos[lab]" from wheels: ' + lab.concord("version").stdout.strip(),
         )
         data = tmp / "lab-data"
-        r = lab.brainos("doctor", "--json", str(tmp / "doctor.json"), "--data-dir", str(data))
+        r = lab.concord("doctor", "--json", str(tmp / "doctor.json"), "--data-dir", str(data))
         rep = json.loads((tmp / "doctor.json").read_text())
         checks = {c["id"]: c["status"] for c in rep["checks"]}
         assert all(checks[c] == "ok" for c in ("dsp", "nwb", "lsl", "zmq", "server_extra")), checks
@@ -204,26 +204,26 @@ def main() -> int:
         )
 
         # 3. config + start ---------------------------------------------------------------
-        lab.brainos("config", "init")
+        lab.concord("config", "init")
         text = cfg.read_text().replace("port = 8000", f"port = {port}")
         text = text.replace("open_browser = true", "open_browser = false")
         text = re.sub(r"^# data_dir = .*$", f'data_dir = "{data}"', text, count=1, flags=re.M)
         cfg.write_text(text)
-        shown = json.loads(lab.brainos("config", "show").stdout)
+        shown = json.loads(lab.concord("config", "show").stdout)
         assert (
             shown["port"] == port
             and shown["data_dir"] == str(data)
             and shown["host"] == "127.0.0.1"
         ), shown
-        out = lab.brainos("start", "--no-browser").stdout
+        out = lab.concord("start", "--no-browser").stdout
         assert f"is running: {lab.base}" in out, out
-        st = json.loads(lab.brainos("status", "--json", check=False).stdout)
+        st = json.loads(lab.concord("status", "--json", check=False).stdout)
         assert st["running"], st
         page = dc.http_text(lab.base + "/")
         served = "console served" if "<title>" in page else "API only"
         step(
             "start",
-            f"brainos start -> {lab.base} (pid {st['pid']}); {served}; config file mode "
+            f"concord start -> {lab.base} (pid {st['pid']}); {served}; config file mode "
             f"{oct(cfg.stat().st_mode & 0o777)}; data dir mode {oct(data.stat().st_mode & 0o777)}",
         )
 
@@ -257,7 +257,7 @@ def main() -> int:
         res = lab.api(
             "POST",
             "/calibration/train",
-            {"recordings": ["lab-syn-cal"], "feature_source": "brainos.pipeline"},
+            {"recordings": ["lab-syn-cal"], "feature_source": "concord.pipeline"},
         )
         syn_model, syn_rep = res["model"]["model_id"], res["report"]
         assert syn_rep["r2"] > syn_rep["control_mean_predictor_r2"], syn_rep
@@ -285,7 +285,7 @@ def main() -> int:
         )
         lab.api("POST", "/recordings/start", {"name": "lab-syn-decode", "exclude_raw": True})
         app_py = dc.venv(tmp / "app")
-        dc.install(app_py, "brainos", find_links=dist)
+        dc.install(app_py, "concordos", find_links=dist)
         (tmp / "app.py").write_text(APP)
         app = subprocess.Popen(
             [str(app_py), str(tmp / "app.py"), lab.base, "40"],
@@ -315,7 +315,7 @@ def main() -> int:
         time.sleep(2.0)
         dec = lab.api("POST", "/recordings/stop")
         step(
-            "SDK-only app (own venv: brainos only), authorized by the operator",
+            "SDK-only app (own venv: concord only), authorized by the operator",
             f"{result['pointer_commands']} pointer commands from {result['model_id']} "
             f"({result['provenance']}, synthetic={result['synthetic']}); "
             f"before authorization it was {entry['status']} (not_authorized) while the router "
@@ -327,7 +327,7 @@ def main() -> int:
         if args.skip_dataset:
             step("known recording (FALCON H1)", "skipped: --skip-dataset", None)
         else:
-            r = lab.brainos("dataset", check=False)
+            r = lab.concord("dataset", check=False)
             if r.returncode != 0:
                 why = (r.stderr or r.stdout).strip()[-300:]
                 step("known recording (FALCON H1)", f"skipped: download not possible ({why})", None)
@@ -380,7 +380,7 @@ def main() -> int:
                 replay = "connected" if offline else "not listed"
                 step(
                     "known recording (FALCON H1, real human data, declared prerecorded)",
-                    f"`brainos dataset` verified {files} file(s) by SHA-256; streamed over LSL "
+                    f"`concord dataset` verified {files} file(s) by SHA-256; streamed over LSL "
                     f"({snap['device']['kind']}) -> {info['events']} events recorded -> model "
                     f"{res['model']['model_id']}: held-out R² {frep['r2']:.3f} (within-block "
                     f"chronological split; mean-predictor control "
@@ -403,10 +403,10 @@ def main() -> int:
 
         # 9. reproduce in a fresh venv ----------------------------------------------------
         ver = dc.venv(tmp / "verify")
-        dc.install(ver, "brainos[dsp]", find_links=dist)
+        dc.install(ver, "concordos[dsp]", find_links=dist)
         r = subprocess.run(
             [
-                str(ver.parent / "brainos"),
+                str(ver.parent / "concord"),
                 "reproduce",
                 str(tmp / exp["file"]),
                 "--json",
@@ -422,7 +422,7 @@ def main() -> int:
         cals = [c for c in rep["checks"] if c["check"] == "calibration"]
         decs = [c for c in rep["checks"] if c["check"] == "decoded_output" and c.get("ok")]
         step(
-            "reproduce (fresh venv: brainos[dsp])",
+            "reproduce (fresh venv: concordos[dsp])",
             f"{len(cals)} calibration(s) re-fitted (identical model ids: "
             f"{all(c.get('identical_model_id') for c in cals)}), "
             f"{sum(c['compared'] for c in decs)} decoded outputs recomputed exactly "
@@ -430,8 +430,8 @@ def main() -> int:
         )
 
         # 10. stop ------------------------------------------------------------------------
-        out = lab.brainos("stop").stdout
-        st = lab.brainos("status", check=False)
+        out = lab.concord("stop").stdout
+        st = lab.concord("status", check=False)
         assert st.returncode == 3, st.stdout
         step("stop", out.strip().splitlines()[-1])
         ok = True
@@ -445,10 +445,10 @@ def main() -> int:
             for c in lab.children:
                 c.terminate()
             if not ok:
-                lab.brainos("stop", check=False)
+                lab.concord("stop", check=False)
                 for log in [
                     *sorted(tmp.glob("publisher-*.log")),
-                    tmp / "lab-data" / "logs" / "brainos.log",
+                    tmp / "lab-data" / "logs" / "concord.log",
                 ]:
                     if log.exists():
                         print(

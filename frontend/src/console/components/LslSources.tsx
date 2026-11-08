@@ -1,5 +1,5 @@
 // LSL discovery and source registration. Discovery only lists streams on the network;
-// BrainOS opens read-only inlets when a registered source is connected.
+// Concord opens read-only inlets when a registered source is connected.
 
 import { useEffect, useState } from "react";
 import { labApi, type LSLDiscovery, type LSLStreamInfo } from "../api";

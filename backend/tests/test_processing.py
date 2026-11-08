@@ -9,15 +9,15 @@ pytest.importorskip("scipy")
 
 from scipy import signal as sps
 
-from brainos.processing import ProcessingSpec, SignalChain, StageConfigError
-from brainos.processing.stages import (
+from concord.processing import ProcessingSpec, SignalChain, StageConfigError
+from concord.processing.stages import (
     BandPower,
     ThresholdCrossings,
     bandpass,
     common_average_reference,
     notch,
 )
-from brainos.testing.lsl_publishers import SyntheticEphys
+from concord.testing.lsl_publishers import SyntheticEphys
 
 
 def _chunks(x: np.ndarray, seed: int = 0) -> list[np.ndarray]:

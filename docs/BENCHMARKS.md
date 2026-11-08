@@ -1,4 +1,4 @@
-# BrainOS benchmarks
+# Concord benchmarks
 
 > Every number below was measured on the machine listed in the table, by this script. Regenerate on your own hardware with `make bench` (real-data rows need `make dataset model`).
 

@@ -16,21 +16,21 @@ import pytest
 
 pytest.importorskip("pynwb")
 
-from brainos.adapters.nwb import (
+from concord.adapters.nwb import (
     NWBFormatError,
     NWBUnitsSource,
     UnsupportedModalityError,
     load,
 )
-from brainos.adapters.replay import ReplayAdapter, ReplayRecord
-from brainos.contracts.protocol import DeviceDescriptor, DeviceKind
-from brainos.decoding.ridge import (
+from concord.adapters.replay import ReplayAdapter, ReplayRecord
+from concord.contracts.protocol import DeviceDescriptor, DeviceKind
+from concord.decoding.ridge import (
     causal_filter,
     exponential_kernel,
     fit,
     r2_variance_weighted,
 )
-from brainos.runtime.catalog import NWBCatalog
+from concord.runtime.catalog import NWBCatalog
 
 from . import nwb_fixtures as fx
 
@@ -311,7 +311,7 @@ async def test_set_speed_during_loop_gap_does_not_burst() -> None:
 
 def test_evaluation_reports_shift_null_distribution() -> None:
     """Review 2 #8: the time-shift control is a 20-shift null, not a single shift."""
-    from brainos.decoding.ridge import evaluate
+    from concord.decoding.ridge import evaluate
 
     rng = np.random.default_rng(1)
     counts = rng.poisson(3.0, size=(2000, 8)).astype(float)

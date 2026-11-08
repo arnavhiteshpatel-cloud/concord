@@ -14,8 +14,8 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from brainos_adapter_sdk import Chunk, MarkerChunk, ipc
-from brainos_adapter_sdk.client import HostDied, HostError, SyncHostClient
+from concord_adapter_sdk import Chunk, MarkerChunk, ipc
+from concord_adapter_sdk.client import HostDied, HostError, SyncHostClient
 
 from .plugin_helpers import PLUGINS_DIR, make_dist, ref
 
@@ -88,7 +88,7 @@ def test_chunk_wire_roundtrip_and_malformed_headers() -> None:
 
 
 def test_manifest_and_session_wire_rejects_bad_types() -> None:
-    from brainos_adapter_sdk.ipc import manifest_from_dict, stream_from_dict
+    from concord_adapter_sdk.ipc import manifest_from_dict, stream_from_dict
 
     with pytest.raises(ipc.WireError):
         manifest_from_dict({"name": 1})
@@ -109,11 +109,11 @@ def test_manifest_and_session_wire_rejects_bad_types() -> None:
 
 
 def test_host_round_trip_values_are_bit_exact(host: SyncHostClient) -> None:
-    from bos_test_plugins import signal_values
+    from concord_test_plugins import signal_values
 
     assert host.hello["protocol"] == ipc.PROTOCOL and host.hello["loaded"]
     m = host.manifest()
-    assert m["compatible"] and m["manifest"]["name"] == "bos-test-plugins"
+    assert m["compatible"] and m["manifest"]["name"] == "concord-test-plugins"
     assert host.discover(0.5)["devices"][0]["device_key"] == "dev0"
     opened = host.open("dev0", {"unit": "millivolts"})
     assert opened["options"] == {"fail_after": 0, "unit": "millivolts"}  # defaults applied
@@ -221,10 +221,10 @@ def test_sys_exit_in_plugin_is_an_internal_error() -> None:
 @pytest.mark.parametrize(
     ("target", "fragment"),
     [
-        ("bos_test_plugins.import_error:Plugin", "not installed"),
-        ("bos_test_plugins:NotAPlugin", "not a SourcePlugin"),
-        ("bos_test_plugins:Missing", "Missing"),
-        ("no-such-entry-point", "no 'brainos.sources' entry point"),
+        ("concord_test_plugins.import_error:Plugin", "not installed"),
+        ("concord_test_plugins:NotAPlugin", "not a SourcePlugin"),
+        ("concord_test_plugins:Missing", "Missing"),
+        ("no-such-entry-point", "no 'concord.sources' entry point"),
     ],
 )
 def test_load_errors_are_reported_in_hello(target: str, fragment: str) -> None:
@@ -240,13 +240,13 @@ def test_list_probes_each_plugin_in_isolation(tmp_path: Path) -> None:
     site = make_dist(
         tmp_path / "site",
         {
-            "t-good": "bos_test_plugins:GoodPlugin",
-            "t-import-error": "bos_test_plugins.import_error:Plugin",
-            "t-api2": "bos_test_plugins:Api2Plugin",
-            "t-hang-open": "bos_test_plugins:HangPlugin",  # discover works; only read hangs
-            "t-not-plugin": "bos_test_plugins:NotAPlugin",
-            "t-hang-discover": "bos_test_plugins:HangDiscoverPlugin",
-            "Bad_Name": "bos_test_plugins:GoodPlugin",
+            "t-good": "concord_test_plugins:GoodPlugin",
+            "t-import-error": "concord_test_plugins.import_error:Plugin",
+            "t-api2": "concord_test_plugins:Api2Plugin",
+            "t-hang-open": "concord_test_plugins:HangPlugin",  # discover works; only read hangs
+            "t-not-plugin": "concord_test_plugins:NotAPlugin",
+            "t-hang-discover": "concord_test_plugins:HangDiscoverPlugin",
+            "Bad_Name": "concord_test_plugins:GoodPlugin",
         },
     )
     env = {
@@ -255,7 +255,7 @@ def test_list_probes_each_plugin_in_isolation(tmp_path: Path) -> None:
     }
     out = subprocess.run(
         [
-            *(sys.executable, "-m", "brainos_adapter_sdk.host", "--list"),
+            *(sys.executable, "-m", "concord_adapter_sdk.host", "--list"),
             *("--discover-timeout", "0.5", "--timeout", "2"),
         ],
         capture_output=True,
@@ -267,7 +267,7 @@ def test_list_probes_each_plugin_in_isolation(tmp_path: Path) -> None:
     by = {p["name"]: p for p in doc["plugins"]}
     assert by["t-good"]["status"] == "compatible"
     assert by["t-good"]["devices"][0]["device_key"] == "dev0"
-    assert by["t-good"]["dist"] == {"name": "bos-test-plugins", "version": "0.0.1"}
+    assert by["t-good"]["dist"] == {"name": "concord-test-plugins", "version": "0.0.1"}
     assert by["t-import-error"]["status"] == "load_error"
     assert "not installed" in by["t-import-error"]["error"]["message"]
     assert by["t-api2"]["status"] == "rejected"

@@ -1,13 +1,13 @@
 # Open Ephys GUI — ZMQ Interface (read-only live source)
 
-`brainos.adapters.openephys` reads the stream published by the Open Ephys GUI
-**ZMQ Interface** plugin. BrainOS only *connects outward* to the GUI and never sends
+`concord.adapters.openephys` reads the stream published by the Open Ephys GUI
+**ZMQ Interface** plugin. Concord only *connects outward* to the GUI and never sends
 data, commands or events to it. The only thing it sends is the plugin's heartbeat (application name +
 random uuid), and you can turn that off.
 
 **Validation level: protocol-tested.** The implementation has been tested against
-BrainOS's own protocol-faithful test publisher, against the plugin's official Python
-client, and (Milestone 5, `brainos-hwval`) against the real Open Ephys GUI 1.1.0 with the
+Concord's own protocol-faithful test publisher, against the plugin's official Python
+client, and (Milestone 5, `concord-hwval`) against the real Open Ephys GUI 1.1.0 with the
 ZMQ Interface 1.0.0, run headless with the GUI's File Reader, compared sample for sample with
 the GUI's own Record Node (docs/HARDWARE_VALIDATION.md). It has **not** been tested against
 acquisition hardware.
@@ -59,7 +59,7 @@ All protocol facts come from `open-ephys-plugins/zmq-interface` at commit `38513
    electrode, and provenance `processed_feature`.
    - Bins are `spike_bin_ms` long on the sample clock and are computed with exact
      rational arithmetic.
-   - Spike detection is done by Open Ephys. The binning is done by BrainOS.
+   - Spike detection is done by Open Ephys. The binning is done by Concord.
    - A bin is emitted only when the emitted frames cover its whole span. Bins that overlap a
      data gap are skipped, so `bin_index` jumps.
    - If messages were lost while a bin was open, the bin is flagged `dropped_samples`.
@@ -86,7 +86,7 @@ All protocol facts come from `open-ephys-plugins/zmq-interface` at commit `38513
    device timestamps go back, the runtime flags that frame `timestamp_regression` and counts
    it in diagnostics, the adapter counts it in `sample_clock_resets` and logs a warning.
    (Before Milestone 5 this reconnected and lost about 0.7 s of data at each loop; found by
-   `brainos-hwval` against the real GUI.)
+   `concord-hwval` against the real GUI.)
 7. **Pause.** While paused, the adapter keeps reading and discarding messages (it counts
    them). On resume it waits for the next block start, so the first frame after a pause is
    not reported as a loss.
@@ -120,7 +120,7 @@ interpreted as microvolts. If the operator states the unit configured in the GUI
    detector whose output you want.
 2. In the plugin editor, choose the **stream**, set the **Data Port** (default 5556), and
    **select the channels** to send.
-3. Start acquisition. When BrainOS heartbeats reach the plugin, BrainOS appears in the
+3. Start acquisition. When Concord heartbeats reach the plugin, Concord appears in the
    plugin's client list.
 
 When connection fails, `open()` reports which of these cases applies:
@@ -134,7 +134,7 @@ When connection fails, `open()` reports which of these cases applies:
 ## Limitations
 
 - Tested against the real GUI only with its File Reader (Linux, headless); never with
-  acquisition hardware. BrainOS cannot tell whether the GUI is reading hardware, a file or a
+  acquisition hardware. Concord cannot tell whether the GUI is reading hardware, a file or a
   simulator.
 - The plugin's sample rate and channel count must fit the contract: ≤ 100 kHz and
   ≤ 1024 channels.

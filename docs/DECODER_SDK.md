@@ -1,9 +1,9 @@
-# BrainOS decoder SDK (API 1.0): decoders, model files, compatibility, calibration
+# Concord decoder SDK (API 1.0): decoders, model files, compatibility, calibration
 
-The decoder SDK (`packages/brainos-decoder-sdk`, import name `brainos_decoder_sdk`) lets a
-third party bring a **decoder** to BrainOS without changing BrainOS. A decoder turns per-bin
+The decoder SDK (`packages/concord-decoder-sdk`, import name `concord_decoder_sdk`) lets a
+third party bring a **decoder** to Concord without changing Concord. A decoder turns per-bin
 neural *features* into decoder outputs: continuous values, class posteriors, or event
-probabilities such as a click. BrainOS checks the decoder against the source before it runs,
+probabilities such as a click. Concord checks the decoder against the source before it runs,
 runs third-party code in an isolated process, validates every output, and publishes the
 outputs as `intent.kinematics` events.
 
@@ -11,19 +11,19 @@ Decoder outputs are **never application commands** on their own. Only the operat
 router turns them into `intent.pointer` / `intent.selection` / `intent.text`, and those reach
 only applications the operator authorized (docs/CONTROL_BRIDGE.md).
 
-* Normative API: `brainos_decoder_sdk/api.py`. Rules: `brainos_decoder_sdk/manifest.py`.
-  Loaders and trust: `brainos_decoder_sdk/formats.py`.
+* Normative API: `concord_decoder_sdk/api.py`. Rules: `concord_decoder_sdk/manifest.py`.
+  Loaders and trust: `concord_decoder_sdk/formats.py`.
 * Runtime side:
-  - `backend/src/brainos/decoding/` (`families.py`, `model.py`, `registry.py`, `engine.py`,
+  - `backend/src/concord/decoding/` (`families.py`, `model.py`, `registry.py`, `engine.py`,
     `monitor.py`, `calibrate.py`, `metrics.py`);
   - `runtime/pipeline.py`;
   - `server/decoder_routes.py`.
-* Example: [`examples/decoders/brainos-example-decoder`](../examples/decoders/brainos-example-decoder/README.md).
+* Example: [`examples/decoders/concord-example-decoder`](../examples/decoders/concord-example-decoder/README.md).
 
 **Validation level** (docs/VALIDATION_LEVELS.md): software only. The decoders shipped here
 fall into three groups:
 
-- BrainOS-trained models fitted on recordings (real FALCON data, or synthetic data);
+- Concord-trained models fitted on recordings (real FALCON data, or synthetic data);
 - the lead's Kalman / click families;
 - test and example decoders.
 
@@ -33,18 +33,18 @@ None has been used for closed-loop control by a person.
 
 | Concept | Where | Meaning |
 | --- | --- | --- |
-| Manifest | `ModelManifest` (JSON: `brainos.decoder-manifest/1`) | Everything BrainOS checks before inference: modality, inputs, preprocessing, participant/sessions, calibration requirements, outputs, confidence semantics, provenance, and (for files) the artifact. |
+| Manifest | `ModelManifest` (JSON: `concord.decoder-manifest/1`) | Everything Concord checks before inference: modality, inputs, preprocessing, participant/sessions, calibration requirements, outputs, confidence semantics, provenance, and (for files) the artifact. |
 | Decoder | `Decoder` subclass | Lifecycle `load()`, `reset()`, `step(features, timestamp_s) -> DecodeOutput`, `close()`. Causal: current and earlier bins only. |
-| Family | e.g. `ridge`, `lda`, `kalman`, `click`, `onnx`, `sklearn`, `torchscript` | The kind of model. Built-in JSON families run in the BrainOS process; everything else runs in a decoder host. |
-| Origin (console) | `brainos-trained`, `imported`, `plugin`, and for passthrough `historical` / `external` | Where the decoder comes from. |
-| `provenance.model_origin` (contract 1.4) | `brainos` / `external` / `historical` | On every decoded event:<br>• `brainos`: a model BrainOS trained or loaded (built-in, file or plugin);<br>• `external`: a live external system's decoder, e.g. BCI2000 via a source plugin;<br>• `historical`: the recorded outputs of a research system's original decoder, replayed.<br>Never re-labelled. |
+| Family | e.g. `ridge`, `lda`, `kalman`, `click`, `onnx`, `sklearn`, `torchscript` | The kind of model. Built-in JSON families run in the Concord process; everything else runs in a decoder host. |
+| Origin (console) | `concord-trained`, `imported`, `plugin`, and for passthrough `historical` / `external` | Where the decoder comes from. |
+| `provenance.model_origin` (contract 1.4) | `concord` / `external` / `historical` | On every decoded event:<br>• `concord`: a model Concord trained or loaded (built-in, file or plugin);<br>• `external`: a live external system's decoder, e.g. BCI2000 via a source plugin;<br>• `historical`: the recorded outputs of a research system's original decoder, replayed.<br>Never re-labelled. |
 
 ### Ways to bring a decoder
 
 | | Decoder plugin | Model file | Built-in family |
 | --- | --- | --- | --- |
-| What | A `Decoder` subclass with a class attribute `manifest`, in the `brainos.decoders` entry-point group of an installed package | `<model id>.manifest.json` + artifact in BrainOS's models directory | A JSON model of a family registered in `decoding/families.py` |
-| Runs | Decoder host process | Decoder host process | In the BrainOS process |
+| What | A `Decoder` subclass with a class attribute `manifest`, in the `concord.decoders` entry-point group of an installed package | `<model id>.manifest.json` + artifact in Concord's models directory | A JSON model of a family registered in `decoding/families.py` |
+| Runs | Decoder host process | Decoder host process | In the Concord process |
 | Listed | `POST /models/discover` (also at server start): `host --list` probes each plugin in its own process | On every `GET /models` | On every `GET /models` |
 
 ## 2. Manifest reference
@@ -54,7 +54,7 @@ None has been used for closed-loop control by a person.
 | `model_id`, `name`, `version` (semver), `api_version` (`1.0`), `family`, `description`, `author`, `license` | Identity. `model_id` becomes `provenance.model_id` of every decoded event. | Format; API compatibility (`M.m` runs on `M.n`, `m ≤ n`) |
 | `modalities` | Non-empty set of `eeg meg emg ecog seeg intracortical other` the model may run on | The source's declared `modality`. Undeclared on the source: a warning, never a guess |
 | `inputs[]` | `event_type` (`features.binned` / `features.vector`), `feature`, `bin_ms`, `channel_count`, `channel_labels` (`null` = positional), `unit`, `band_hz`. Several inputs are joined per bin and concatenated in this order. | The pipeline's feature streams: feature, bin, unit, band, channel count, labels **and order** |
-| `preprocessing` | `preset` + `params` of the BrainOS pipeline the features were computed with, and a description of the model's internal steps | The running preset and its parameters (e.g. `threshold_k`, band edges) |
+| `preprocessing` | `preset` + `params` of the Concord pipeline the features were computed with, and a description of the model's internal steps | The running preset and its parameters (e.g. `threshold_k`, band edges) |
 | `compatibility` | `participant_specific`, `source_identity`, `sessions`, `calibration_profile` | The stream's identity (explicit cross-source override needed), session (leakage: refused), selected profile |
 | `calibration` | `required`, `task`, `label_quantity`, `label_dims`, `min_labelled_bins` | Shown to the operator |
 | `output` | `kind` (`continuous` / `classes` / `event`), `quantity`, `dims`, `unit` (`probability` for classes / events), `space`, `scale` (typical magnitude per continuous dim: the router's normalisation), `y_axis` (`up` / `down`) | Every output (shape, finite, probabilities, sums) |
@@ -66,7 +66,7 @@ None has been used for closed-loop control by a person.
 
 | Format | Loader | Code execution on load | Declared I/O checked |
 | --- | --- | --- | --- |
-| BrainOS JSON (`ridge`, `lda`, `kalman`, `click`, …) | `families.family_for(data).from_dict` | none | parameter shapes |
+| Concord JSON (`ridge`, `lda`, `kalman`, `click`, …) | `families.family_for(data).from_dict` | none | parameter shapes |
 | `onnx` | onnxruntime `InferenceSession`, CPU, 1 thread | none: standard operators only; no custom-op libraries are registered | input/output names and shapes (symbolic or -1 = wildcard); declared recurrent state carried between steps; element type float/double |
 | `skops` (scikit-learn) | `skops.io.load` | none for skops' trusted types; **untrusted types refused** unless the operator trusts this exact file | `n_features_in_`; `predict` / `predict_proba`; class labels mapped to output dims |
 | `safetensors` (PyTorch `state_dict`) | `safetensors.torch.load_file` into a built-in architecture (`linear`, `gru`) | none (tensors only) | strict `load_state_dict` |
@@ -82,8 +82,8 @@ None has been used for closed-loop control by a person.
 * **`history_bins: k`** (onnx, skops, pickle, joblib, torchscript) gives a stateless model the
   last k bins, oldest first, concatenated. It is causal temporal context without recurrent
   state.
-* **Optional dependencies.** `brainos-decoder-sdk[onnx]`, `[sklearn]` and `[torch]` must be
-  installed in BrainOS's environment, where the decoder host runs. Torch is not in
+* **Optional dependencies.** `concord-decoder-sdk[onnx]`, `[sklearn]` and `[torch]` must be
+  installed in Concord's environment, where the decoder host runs. Torch is not in
   `make setup`: the CPU wheel needs a dedicated index. Without torch, its tests skip with a
   reason.
 
@@ -91,8 +91,8 @@ None has been used for closed-loop control by a person.
 
 ```
 runtime (never imports decoder code)              decoder host (one process per running decoder)
-PipelineManager ── engine.IsolatedDecoder ─spawn─▶ python -m brainos_decoder_sdk.host <ep | --model m.json>
-   AsyncHostClient ◀═ brainos.decoder-ipc/1 ═════▶   fd 1 → stderr, fd 0 → /dev/null
+PipelineManager ── engine.IsolatedDecoder ─spawn─▶ python -m concord_decoder_sdk.host <ep | --model m.json>
+   AsyncHostClient ◀═ concord.decoder-ipc/1 ═════▶   fd 1 → stderr, fd 0 → /dev/null
    (4-byte length + JSON + raw LE float64 buffers,     manifest validated; load(); every output
     the adapter SDK's framing, bit-exact)              validated (OutputValidator) before it is sent
    every output validated AGAIN
@@ -112,10 +112,10 @@ On any failure in that table:
 - `counters.decoder_failures` and `last_error` record it.
 
 **Isolation is fault isolation, not a security sandbox.** The host runs as the same user, with
-the same files and network as BrainOS. A malicious plugin or trusted pickle can do anything
+the same files and network as Concord. A malicious plugin or trusted pickle can do anything
 that user can. Install decoders as you would any Python package.
 
-`step` latency includes one IPC round trip. On this machine `brainos-decoder check` measures
+`step` latency includes one IPC round trip. On this machine `concord-decoder check` measures
 it; it is not a benchmark (workstream E).
 
 ## 5. Compatibility rules (checked before inference)
@@ -128,7 +128,7 @@ reported at once, with both sides, for example:
 
 1. **Feature stream**: `event_type` + `feature` must exist in the pipeline output. A model with
    several inputs needs every stream.
-2. **Bin size, unit, band**: equal, or refused. BrainOS never rescales.
+2. **Bin size, unit, band**: equal, or refused. Concord never rescales.
 3. **Channels**:
    - Same labels in the same order, or both sides positional with the same count: accepted.
      If only the model declares labels, there is a warning: the order cannot be verified.
@@ -158,7 +158,7 @@ whose labels can be mapped.
   distinct output names, e.g. a Kalman velocity decoder and a click decoder),
   `allow_channel_mapping`, `allow_cross_source`, `calibration_profile`.
 * Every decoder publishes its own `intent.kinematics` with `decoded_intent`, its `model_id`
-  and `model_origin: "brainos"`.
+  and `model_origin: "concord"`.
 * Built-in families step in-process. The FALCON ridge decoder's streaming output equals its
   offline `predict_counts` bit for bit: same summation order (`filter_step`, row-wise
   products), asserted over LSL in `test_pipeline_live.py`.
@@ -177,7 +177,7 @@ whose labels can be mapped.
     replayed), or BCI2000's live control signal (`external`).
   - The source declares them in its `kinematic_intent` capability params:
     `decoders: [{model_id, dims, quantity, unit, space, model_origin, scale?, y_axis?}]`.
-  - Outputs with origin `brainos` or no origin are refused.
+  - Outputs with origin `concord` or no origin are refused.
 * Status adds per decoder:
   - family, origin, execution, state / error, pid;
   - the compatibility verdict;
@@ -259,36 +259,36 @@ Offline held-out scores on a recording do not establish closed-loop control perf
 ## 9. Write a third-party decoder, step by step
 
 ```bash
-pip install -e packages/brainos-decoder-sdk          # into BrainOS's environment
-brainos-decoder new my-decoder                       # brainos-my-decoder/ with a working plugin
-pip install -e brainos-my-decoder
-brainos-decoder check my-decoder                     # manifest + load + 200 bins, every output validated
-brainos-decoder list                                 # what BrainOS will see
+pip install -e packages/concord-decoder-sdk          # into Concord's environment
+concord-decoder new my-decoder                       # concord-my-decoder/ with a working plugin
+pip install -e concord-my-decoder
+concord-decoder check my-decoder                     # manifest + load + 200 bins, every output validated
+concord-decoder list                                 # what Concord will see
 ```
 
-1. Edit `src/brainos_my_decoder/decoder.py`: replace the placeholder weights. Declare exactly
+1. Edit `src/concord_my_decoder/decoder.py`: replace the placeholder weights. Declare exactly
    what you trained on: inputs with labels, preprocessing, modality, participant
    (`source_identity`) and sessions, outputs (`scale`, `y_axis`).
 2. `step()` must be causal and return the declared shape. Use `check_features(manifest, x)`.
 3. Ship parameters in the package. Prefer data files (numpy `.npz`, JSON, safetensors); a
-   decoder plugin is code, and BrainOS runs it as code.
-4. In BrainOS: **Start decoding → Search for decoder plugins**. The decoder is listed with its
+   decoder plugin is code, and Concord runs it as code.
+4. In Concord: **Start decoding → Search for decoder plugins**. The decoder is listed with its
    origin and the compatibility verdict for the chosen processing.
 5. For a model file instead of code:
 
    ```python
-   from brainos_decoder_sdk.formats import write_bundle
+   from concord_decoder_sdk.formats import write_bundle
 
    write_bundle(models_dir, manifest, "model.onnx", "onnx", io={...})
    ```
 
    This copies the file, hashes it and writes `<id>.manifest.json`. Then run
-   `brainos-decoder check --model <id>.manifest.json`.
+   `concord-decoder check --model <id>.manifest.json`.
 
-## 10. Registering a built-in family (BrainOS developers)
+## 10. Registering a built-in family (Concord developers)
 
 ```python
-from brainos.decoding.families import BuiltinFamily, CalibrationData, register_family
+from concord.decoding.families import BuiltinFamily, CalibrationData, register_family
 
 register_family(BuiltinFamily(
     name="kalman", kinds=frozenset({"kalman"}), output="continuous",

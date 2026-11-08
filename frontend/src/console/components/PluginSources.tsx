@@ -1,6 +1,6 @@
-// Source plugins (adapter SDK): installed packages, whether BrainOS accepts them, the devices
+// Source plugins (adapter SDK): installed packages, whether Concord accepts them, the devices
 // they found, an options form generated from each plugin's option specs, and connect.
-// Plugin code never runs in BrainOS itself: every plugin runs in its own process.
+// Plugin code never runs in Concord itself: every plugin runs in its own process.
 
 import { useEffect, useState } from "react";
 import { runtimeApi, type DeviceDescriptor } from "../../sdk";
@@ -220,7 +220,7 @@ export function PluginSources({
       )}
       {status && !plugins.length && !status.discovering && (
         <p className="value-muted" data-testid="no-plugins">
-          No plugins installed. Install an adapter package into BrainOS's Python environment, then search again.
+          No plugins installed. Install an adapter package into Concord's Python environment, then search again.
         </p>
       )}
       {plugins.length > 0 && (

@@ -21,17 +21,17 @@ from typing import Any
 import numpy as np
 from numpy.typing import NDArray
 
-from brainos.adapters.base import DeviceAdapter, DeviceLinkError, EventDraft, NativePacket
-from brainos.contracts.capabilities import Capability, CapabilityDescriptor, EventType
-from brainos.contracts.events import Provenance, ProvenanceKind, Quality, QualityFlag
-from brainos.contracts.protocol import DeviceDescriptor, DeviceKind
+from concord.adapters.base import DeviceAdapter, DeviceLinkError, EventDraft, NativePacket
+from concord.contracts.capabilities import Capability, CapabilityDescriptor, EventType
+from concord.contracts.events import Provenance, ProvenanceKind, Quality, QualityFlag
+from concord.contracts.protocol import DeviceDescriptor, DeviceKind
 
 CHANNELS = ("FC3", "C3", "CP3", "Cz", "FC4", "C4", "CP4", "Pz")
 CLASS_NAMES = ["rest", "left", "right"]
 LEFT_SIDE = {"FC3": 0.6, "C3": 1.0, "CP3": 0.6}  # attenuated by right-hand imagery
 RIGHT_SIDE = {"FC4": 0.6, "C4": 1.0, "CP4": 0.6}  # attenuated by left-hand imagery
 ADAPTER = "test.motor-imagery@0.1.0"
-ORIGIN = "brainos:test-motor-imagery"
+ORIGIN = "concord:test-motor-imagery"
 
 
 @dataclass
@@ -253,7 +253,7 @@ def offline_features(
     seconds: float, *, seed: int = 0, bin_ms: float = 200.0
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
     """Log mu-band power per bin (the pipeline's band_power preset) + the cue per bin end."""
-    from brainos.processing import ProcessingSpec, SignalChain
+    from concord.processing import ProcessingSpec, SignalChain
 
     gen = MotorImageryGenerator(seed=seed)
     chain = SignalChain(
@@ -279,7 +279,7 @@ def offline_features(
 
 def train_offline_lda(models_dir: Path, *, seconds: float = 240.0, seed: int = 11) -> Any:
     """An LDA on separately generated synthetic data, saved to ``models_dir`` (test helper)."""
-    from brainos.decoding.lda import fit_lda
+    from concord.decoding.lda import fit_lda
 
     x, y = offline_features(seconds, seed=seed)
     m = fit_lda(

@@ -2,7 +2,7 @@
 ``pynput`` for the optional pynput backend.
 
 A backend moves the OS pointer by a relative amount, clicks the primary button, and — where it
-can tell — reports the title of the focused window. Nothing here reads BrainOS: the bridge
+can tell — reports the title of the focused window. Nothing here reads Concord: the bridge
 decides what to do; a backend only does it.
 
 * :class:`DryRunBackend` — records every action, touches nothing (tests, rehearsal).

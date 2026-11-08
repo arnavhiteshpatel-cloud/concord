@@ -1,4 +1,4 @@
-# BrainOS live-acquisition benchmarks (Milestone 3)
+# Concord live-acquisition benchmarks (Milestone 3)
 
 > Measured on the machine below by `scripts/bench_live.py`. Publishers run in a separate process and speak real LSL (liblsl) or the Open Ephys ZMQ wire format; **no hardware was involved**. Synthetic signals are declared synthetic; FALCON H1 is real human data streamed as *prerecorded*. Re-run on your own machine: `make bench-live`.
 

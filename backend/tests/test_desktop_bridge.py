@@ -20,9 +20,9 @@ from typing import Any
 
 import pytest
 
-from brainos.contracts import parse_envelope
-from brainos.contracts.protocol import AppStatus, NegotiationResult, RuntimeSnapshot
-from brainos.sdk import Capability, NegotiationUpdate, RuntimeUpdate
+from concord.contracts import parse_envelope
+from concord.contracts.protocol import AppStatus, NegotiationResult, RuntimeSnapshot
+from concord.sdk import Capability, NegotiationUpdate, RuntimeUpdate
 
 from .helpers import valid_event, wait_for
 
@@ -107,7 +107,7 @@ def test_bridge_is_sdk_only_and_never_the_operator() -> None:
             elif isinstance(node, ast.ImportFrom):
                 names = [node.module or ""]
             for n in names:
-                assert n.split(".")[0] in stdlib or n in ("brainos.sdk", "backends"), (path, n)
+                assert n.split(".")[0] in stdlib or n in ("concord.sdk", "backends"), (path, n)
         for word in ("authorize_app", "set_router", "start_pipeline", "/control", "RuntimeClient"):
             assert word not in text, f"{path.name} uses operator API {word!r}"
         assert "recording.frame" not in text and "features." not in text  # never raw signals
@@ -220,7 +220,7 @@ def test_deadman_and_focus_restriction() -> None:
     clock.t += 0.05
     b.tick()
     assert be.actions == [] and b.stats.refused_focus == 2  # wrong window: no move, no click
-    be.focus = "BrainOS — Communication Board"
+    be.focus = "Concord — Communication Board"
     clock.t += 0.05
     b.tick()
     assert be.actions[-1][0] == "move"
@@ -241,8 +241,8 @@ def test_deadman_and_focus_restriction() -> None:
 @pytest.fixture
 def scripted_server(tmp_path: Path) -> Iterator[str]:
     pytest.importorskip("scipy")
-    from brainos.server import create_app
-    from brainos.testing import scripted
+    from concord.server import create_app
+    from concord.testing import scripted
 
     from .conftest import free_port, make_settings, serve
 
@@ -261,8 +261,8 @@ def scripted_server(tmp_path: Path) -> Iterator[str]:
 async def test_bridge_end_to_end_needs_authorization_and_stops_on_operator_stop(
     scripted_server: str,
 ) -> None:
-    from brainos.sdk import RuntimeClient
-    from brainos.testing import scripted
+    from concord.sdk import RuntimeClient
+    from concord.testing import scripted
 
     bridge, backends = _load()
     be = backends.DryRunBackend()

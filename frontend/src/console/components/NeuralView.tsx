@@ -19,8 +19,8 @@ function sizeCanvas(c: HTMLCanvasElement): CanvasRenderingContext2D | null {
 }
 
 /**
- * "offline": a verified dataset file replayed by BrainOS (features + recorded behavior + an
- * offline-evaluated decoder). "pipeline": features computed by the BrainOS pipeline from the
+ * "offline": a verified dataset file replayed by Concord (features + recorded behavior + an
+ * offline-evaluated decoder). "pipeline": features computed by the Concord pipeline from the
  * connected raw source, plus that source's behavior stream and the loaded decoder, if any.
  * "stream": binned features delivered by a live stream (e.g. LSL SpikeCounts), same overlays.
  */
@@ -161,7 +161,7 @@ export function NeuralView({ neural, source }: { neural: NeuralBuffer; source: "
         <p className="hint">
           {source === "stream"
             ? "Binned features delivered by the connected stream"
-            : "Binned features computed by the BrainOS pipeline from the connected source"}{" "}
+            : "Binned features computed by the Concord pipeline from the connected source"}{" "}
           (see the status line for what that source is). Solid: the source's behavior stream, if one is attached.{" "}
           {hasDecoded
             ? "Dashed: decoded_intent from the loaded model — calibrated offline, not validated for closed-loop control."

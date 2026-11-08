@@ -1,20 +1,20 @@
-# Building on BrainOS: developer setup
+# Building on Concord: developer setup
 
-Three independent roles, three independent installs. None of them requires BrainOS's
+Three independent roles, three independent installs. None of them requires Concord's
 private implementation; each flow below is run in fresh virtual environments from built
 wheels by `make dist-check` (and in CI), so these instructions are tested.
 
 > Packages are not published to PyPI yet. Build the wheels from this repository
-> (`uv build --wheel -o dist packages/brainos-adapter-sdk backend packages/brainos-certify`)
+> (`uv build --wheel -o dist packages/concord-adapter-sdk backend packages/concord-certify`)
 > and add `--find-links dist` to the `pip install` commands below.
 
 | Package | For | Depends on |
 | --- | --- | --- |
-| `brainos-adapter-sdk` | writing a source plugin (device integration); `brainos-adapter` CLI | numpy |
-| `brainos-certify` | testing a plugin and producing a compatibility report | brainos-adapter-sdk, jsonschema (+ `brainos` for the runtime phase) |
-| `brainos` | writing an application (Python SDK) | pydantic, httpx, websockets |
-| `brainos[server]` | running BrainOS (runtime server, console, plugin hosting) | + fastapi, uvicorn, brainos-adapter-sdk |
-| `brainos-brainflow`, `brainos-bci2000` | ecosystem integrations (plugins) | brainos-adapter-sdk (+ brainflow) |
+| `concord-adapter-sdk` | writing a source plugin (device integration); `concord-adapter` CLI | numpy |
+| `concord-certify` | testing a plugin and producing a compatibility report | concord-adapter-sdk, jsonschema (+ `concord` for the runtime phase) |
+| `concord` | writing an application (Python SDK) | pydantic, httpx, websockets |
+| `concordos[server]` | running Concord (runtime server, console, plugin hosting) | + fastapi, uvicorn, concord-adapter-sdk |
+| `concord-brainflow`, `concord-bci2000` | ecosystem integrations (plugins) | concord-adapter-sdk (+ brainflow) |
 
 ## 1. Integrate a device (adapter developer)
 
@@ -22,23 +22,23 @@ wheels by `make dist-check` (and in CI), so these instructions are tested.
 python -m venv .venv && . .venv/bin/activate
 ```
 ```bash
-pip install brainos-adapter-sdk
+pip install concord-adapter-sdk
 ```
 ```bash
-brainos-adapter new my-amp --display "My amplifier"
+concord-adapter new my-amp --display "My amplifier"
 ```
 ```bash
-pip install -e brainos-my-amp
+pip install -e concord-my-amp
 ```
 ```bash
-brainos-adapter check my-amp
+concord-adapter check my-amp
 ```
 
 `new` writes a complete, installable plugin package that already works (a declared-synthetic
 template signal) with `TODO` markers where your device I/O and metadata go. `check` runs it
-exactly as BrainOS will: in the plugin host, in a separate process, with every declaration
+exactly as Concord will: in the plugin host, in a separate process, with every declaration
 and every chunk validated. Read [ADAPTER_SDK.md](ADAPTER_SDK.md) for the API, the rules,
-and the isolation model; [`examples/adapters/brainos-example-adapter`](../examples/adapters/brainos-example-adapter)
+and the isolation model; [`examples/adapters/concord-example-adapter`](../examples/adapters/concord-example-adapter)
 is a fuller example (synthetic motor-imagery EEG with cues and markers).
 
 Rules that matter most: declare only what you know (unknown units/modality stay unknown),
@@ -49,10 +49,10 @@ send anything to a device and cannot emit application commands.
 ## 2. Certify it
 
 ```bash
-pip install brainos-certify
+pip install concord-certify
 ```
 ```bash
-brainos-certify my-amp --duration 20 --out reports/
+concord-certify my-amp --duration 20 --out reports/
 ```
 
 The report (JSON + Markdown) states the validation level reached. Software checks can reach
@@ -61,13 +61,13 @@ software that produced the data. **Hardware-tested** is only recorded from a sig
 attestation and is shown as such; **human-participant validated** is never granted by
 software. See [CERTIFICATION.md](CERTIFICATION.md) and [COMPATIBILITY.md](COMPATIBILITY.md).
 
-## 3. Run BrainOS with the plugin (lab)
+## 3. Run Concord with the plugin (lab)
 
 ```bash
-pip install "brainos[server]" brainos-my-amp
+pip install "concordos[server]" concord-my-amp
 ```
 ```bash
-brainos-server
+concord-server
 ```
 
 Open http://127.0.0.1:8000 → **Connect a source → Plugins**: the plugin is listed with its
@@ -80,12 +80,12 @@ installs the BrainFlow and BCI2000 integrations.)
 ## 4. Build an application (app developer)
 
 ```bash
-pip install brainos
+pip install concordos
 ```
 
 ```python
 import asyncio
-from brainos.sdk import EventStream, NegotiationUpdate, is_event
+from concord.sdk import EventStream, NegotiationUpdate, is_event
 
 async def main() -> None:
     async with await EventStream.connect(
@@ -101,7 +101,7 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
-The base `brainos` package is only the SDK and the event contracts — no server, no numpy.
+The base `concord` package is only the SDK and the event contracts — no server, no numpy.
 Apps never name a device: they declare capabilities and adapt to what is granted. Decoded
 commands (pointer, select / activate / cancel, text) reach an app only after the operator
 authorizes it; until then negotiation says `not_authorized`. Use the SDK's `CommandGuard`
@@ -111,22 +111,22 @@ so stale commands never act and motion stops on revocation, disconnect or silenc
 
 ## Versioning
 
-- Adapter SDK API `1.0`: a plugin declares the API version it was written for; BrainOS
+- Adapter SDK API `1.0`: a plugin declares the API version it was written for; Concord
   accepts the same major version with a minor version ≤ its own and rejects others with a
   reason (never loads them).
 - Event schema `1.3`: consumers accept the same major version; minor versions are additive.
-- Packages follow semantic versioning; `brainos` is pre-1.0 (internal preview).
+- Packages follow semantic versioning; `concord` is pre-1.0 (internal preview).
 
-## M5-D: the `brainos` command, the desktop bundle, the lab acceptance test
+## M5-D: the `concord` command, the desktop bundle, the lab acceptance test
 
-`brainos[server]` installs the `brainos` command: `start` / `stop` / `status` / `serve`,
+`concordos[server]` installs the `concord` command: `start` / `stop` / `status` / `serve`,
 `doctor` (support report), `config` (an optional TOML file; environment variables override
-it), `dataset`, `reproduce`, `version`. `brainos[lab]` adds processing, NWB, LSL and Open Ephys.
+it), `dataset`, `reproduce`, `version`. `concordos[lab]` adds processing, NWB, LSL and Open Ephys.
 To ship the console inside the wheel, stage it before building
 (`python packaging/stage_console.py --build`); otherwise a wheel install serves the API only.
 
-The desktop bundle is built with PyInstaller (`make app`; `packaging/brainos.spec`); the same
-executable answers `brainos` commands and hosts source plugins (`-m brainos_adapter_sdk.host`).
+The desktop bundle is built with PyInstaller (`make app`; `packaging/concord.spec`); the same
+executable answers `concord` commands and hosts source plugins (`-m concord_adapter_sdk.host`).
 `make app-smoke` runs it like a user. `make lab-acceptance` (`scripts/lab_acceptance.py`)
 extends `make dist-check` with the whole researcher workflow from built wheels in fresh
 virtualenvs. CI: `package-linux`, `package-macos`, `lab-acceptance`.

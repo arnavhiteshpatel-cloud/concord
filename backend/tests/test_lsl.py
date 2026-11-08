@@ -1,6 +1,6 @@
 """LSL adapter against the REAL liblsl network stack (pylsl outlets/inlets) — M3-AT-1..4.
 
-No mocks: every test publishes with a genuine liblsl StreamOutlet and BrainOS consumes
+No mocks: every test publishes with a genuine liblsl StreamOutlet and Concord consumes
 it through discovery + StreamInlet. Unique source_ids isolate tests from each other.
 """
 
@@ -18,17 +18,17 @@ import pytest
 
 pylsl = pytest.importorskip("pylsl")
 
-from brainos.adapters.base import DeviceLinkError  # noqa: E402
-from brainos.adapters.lsl import (  # noqa: E402
+from concord.adapters.base import DeviceLinkError  # noqa: E402
+from concord.adapters.lsl import (  # noqa: E402
     LSLAdapter,
     LSLSourceSpec,
     StreamMeta,
     discovery,
 )
-from brainos.adapters.simulated import OperatorIntentSource  # noqa: E402
-from brainos.contracts import parse_envelope  # noqa: E402
-from brainos.contracts.protocol import DeviceKind, RuntimeState  # noqa: E402
-from brainos.runtime import DeviceRegistry, Recorder, Runtime  # noqa: E402
+from concord.adapters.simulated import OperatorIntentSource  # noqa: E402
+from concord.contracts import parse_envelope  # noqa: E402
+from concord.contracts.protocol import DeviceKind, RuntimeState  # noqa: E402
+from concord.runtime import DeviceRegistry, Recorder, Runtime  # noqa: E402
 
 from .conftest import subscribe  # noqa: E402
 from .helpers import drain, events, wait_for  # noqa: E402
@@ -49,7 +49,7 @@ class Outlet:
         source_id: str | None = None,
         declare: dict[str, str] | None = None,
     ) -> None:
-        self.source_id = source_id or f"brainos-test-{uuid.uuid4().hex[:10]}"
+        self.source_id = source_id or f"concord-test-{uuid.uuid4().hex[:10]}"
         info = pylsl.StreamInfo(name, stype, channels, fs, fmt or pylsl.cf_float32, self.source_id)
         if units is not None:
             chs = info.desc().append_child("channels")
@@ -59,7 +59,7 @@ class Outlet:
                 if u is not None:
                     c.append_child_value("unit", u)
         if declare:
-            b = info.desc().append_child("brainos")
+            b = info.desc().append_child("concord")
             for k, v in declare.items():
                 b.append_child_value(k, v)
         self.info = info
@@ -250,7 +250,7 @@ def test_declared_prerecorded_and_synthetic_streams_are_labelled() -> None:
         channel_format="float32",
         created_at=0.0,
     )
-    from brainos.adapters.lsl import Declaration
+    from concord.adapters.lsl import Declaration
 
     plain = LSLAdapter(
         LSLSourceSpec(device_id="lsl:a", signal=StreamMeta(name="a", source_id="a", **base))
@@ -311,7 +311,7 @@ def test_unsupported_signal_streams_are_refused() -> None:
 
 
 async def test_malformed_spike_count_values_rejected() -> None:
-    from brainos.adapters.base import NativePacket, PacketDecodeError
+    from concord.adapters.base import NativePacket, PacketDecodeError
 
     base = dict(
         name="x",
@@ -353,7 +353,7 @@ async def test_stream_loss_reconnects_when_source_returns(
     reg = DeviceRegistry(OperatorIntentSource(), tmp_path / "rec")
     reg.live._streams.clear()
     meta = find(out.source_id)
-    from brainos.runtime.live_sources import DiscoveredStream
+    from concord.runtime.live_sources import DiscoveredStream
 
     reg.live._streams["k"] = DiscoveredStream("k", meta, True, None)
     reg.live.configure_lsl("k", None, None)
@@ -389,7 +389,7 @@ async def test_stream_loss_without_return_ends_in_error(
     p.start()
     pusher.append(p)
     reg = DeviceRegistry(OperatorIntentSource(), tmp_path / "rec")
-    from brainos.runtime.live_sources import DiscoveredStream
+    from concord.runtime.live_sources import DiscoveredStream
 
     reg.live._streams["k"] = DiscoveredStream("k", find(out.source_id), True, None)
     reg.live.configure_lsl("k", None, None)
@@ -430,7 +430,7 @@ async def test_envelopes_validate_end_to_end(tmp_path: Any, pusher: list[Pusher]
     p.start()
     pusher.append(p)
     reg = DeviceRegistry(OperatorIntentSource(), tmp_path / "rec")
-    from brainos.runtime.live_sources import DiscoveredStream
+    from concord.runtime.live_sources import DiscoveredStream
 
     reg.live._streams["k"] = DiscoveredStream("k", find(out.source_id), True, None)
     reg.live.configure_lsl("k", None, None)
@@ -454,7 +454,7 @@ async def test_envelopes_validate_end_to_end(tmp_path: Any, pusher: list[Pusher]
 
 def test_frames_split_at_gaps_inside_one_pulled_block() -> None:
     """Regression: a gap inside one liblsl pull must split the frame (frames are contiguous)."""
-    from brainos.adapters.base import NativePacket
+    from concord.adapters.base import NativePacket
 
     base = dict(
         name="x",

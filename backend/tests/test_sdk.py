@@ -6,8 +6,8 @@ import asyncio
 
 import pytest
 
-from brainos.sdk import (
-    BrainOSError,
+from concord.sdk import (
+    ConcordError,
     EventStream,
     NegotiationUpdate,
     RuntimeClient,
@@ -63,7 +63,7 @@ async def test_sdk_negotiates_receives_ordered_events_and_survives_switch(live_s
 
 
 async def test_sdk_unknown_capability_raises(live_server: str) -> None:
-    with pytest.raises(BrainOSError) as info:
+    with pytest.raises(ConcordError) as info:
         await EventStream.connect(
             app_id="x", app_name="x", required=["levitation"], base_url=live_server
         )
@@ -72,7 +72,7 @@ async def test_sdk_unknown_capability_raises(live_server: str) -> None:
 
 async def test_sdk_rest_errors_are_typed(live_server: str) -> None:
     async with RuntimeClient(live_server) as rc:
-        with pytest.raises(BrainOSError) as info:
+        with pytest.raises(ConcordError) as info:
             await rc.connect("not-a-device")
         assert info.value.code == "device_not_found" and info.value.status == 404
         neg = await rc.negotiate(["pointer_intent"], device_id="sim-b")
@@ -106,7 +106,7 @@ async def test_clients_that_leave_during_handshake_are_unregistered(live_server:
     url = live_server.replace("http://", "ws://") + "/api/v1/stream"
     hello = {
         "type": "hello",
-        "protocol": "brainos.stream/1",
+        "protocol": "concord.stream/1",
         "app": {"id": "ghost", "name": "ghost"},
         "capabilities": {"required": [], "optional": ["selection"]},
     }

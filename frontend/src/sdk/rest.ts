@@ -1,8 +1,8 @@
-// BrainOS TypeScript SDK — REST client for the runtime control surface.
+// Concord TypeScript SDK — REST client for the runtime control surface.
 
 import type { DeviceDescriptor, NegotiationResult, RuntimeSnapshot, Capability } from "./types";
 
-export class BrainOSApiError extends Error {
+export class ConcordApiError extends Error {
   constructor(
     readonly code: string,
     message: string,
@@ -27,11 +27,11 @@ export async function apiCall<T>(path: string, init?: { method?: string; body?: 
   }
   if (!resp.ok) {
     const err = (data as { error?: { code: string; message: string }; detail?: unknown } | null) ?? {};
-    if (err.error) throw new BrainOSApiError(err.error.code, err.error.message, resp.status);
+    if (err.error) throw new ConcordApiError(err.error.code, err.error.message, resp.status);
     const detail = Array.isArray(err.detail)
       ? (err.detail as { msg?: string }[]).map((d) => d.msg).join("; ")
       : text.slice(0, 200);
-    throw new BrainOSApiError("http_error", detail || resp.statusText, resp.status);
+    throw new ConcordApiError("http_error", detail || resp.statusText, resp.status);
   }
   return data as T;
 }

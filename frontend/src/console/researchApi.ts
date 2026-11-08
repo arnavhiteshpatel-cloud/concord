@@ -1,5 +1,5 @@
 // Milestone 5 (D): research sessions, export, safe stop, stored data, support report.
-// Shapes mirror backend/src/brainos/server/session_routes.py and runtime/{sessions,export,
+// Shapes mirror backend/src/concord/server/session_routes.py and runtime/{sessions,export,
 // safe_stop,retention,recorder}.py. Console-only: applications never use these.
 
 import { apiCall } from "../sdk";
@@ -13,7 +13,7 @@ export interface ResearchSession {
   closed_at_ns: number | null;
   status: "active" | "closed" | "interrupted";
   end_reason: string | null;
-  brainos_version: string;
+  concord_version: string;
   recordings: string[];
   models: string[];
   log_entries: number;

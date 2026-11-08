@@ -1,7 +1,7 @@
 {
   "registry_version": "1.0",
   "notice": "Levels are derived from the evidence listed for each entry by rules R1-R7; none is entered by hand. An entry is at the highest level whose evidence exists in this checkout, not the level it was designed for. No entry has reached hardware_verified (level 3) or human_validated (level 4).",
-  "brainos_version": "0.3.0",
+  "concord_version": "0.3.0",
   "levels": [
     {
       "id": "software_implemented",
@@ -29,8 +29,8 @@
     }
   ],
   "rules": [
-    "R1 software_implemented: at least one counted test file, or a counted brainos-certify report that achieved adapter_implementation.",
-    "R2 protocol_tested: R1, and a counted brainos-certify report that achieved protocol_tested (every consistency rule holds), or a counted test that names the real protocol stack or official reference implementation it runs against (protocol_reference) and contains the anchor text tying it to that stack.",
+    "R1 software_implemented: at least one counted test file, or a counted concord-certify report that achieved adapter_implementation.",
+    "R2 protocol_tested: R1, and a counted concord-certify report that achieved protocol_tested (every consistency rule holds), or a counted test that names the real protocol stack or official reference implementation it runs against (protocol_reference) and contains the anchor text tying it to that stack.",
     "R3 hardware_verified: R2, and a counted certify report whose hardware_tested level rests on an accepted (signature-verified) operator attestation, and a document of a comparison against an independent reference. An attestation alone is not level 3; a comparison document without an accepted attestation is refused.",
     "R4 human_validated: never derived by software. It requires an approved human-research protocol run by qualified investigators; any evidence claiming it is refused.",
     "R5 counting: a test that does not run in CI counts only with a recorded execution (a document containing the given anchor). A certify report counts only if its plugin version and plugin source files (tree_sha256) equal this checkout's; otherwise it is listed and not counted. Benchmarks and documents are context; they do not establish a level.",
@@ -55,16 +55,16 @@
   },
   "entries": [
     {
-      "id": "brainos.sim.profile_a",
+      "id": "concord.sim.profile_a",
       "display_name": "Simulated Profile A",
       "kind": "builtin_adapter",
       "ecosystem": null,
       "protocol": "In-process simulator: little-endian binary frames with CRC-32 (not a model of any commercial device)",
-      "package": "brainos",
+      "package": "concordos",
       "version": "0.3.0",
-      "adapter": "brainos.sim.profile_a",
+      "adapter": "concord.sim.profile_a",
       "entry_point": null,
-      "module": "brainos.adapters.simulated.profile_a",
+      "module": "concord.adapters.simulated.profile_a",
       "in_checkout": true,
       "synthetic_only": true,
       "modalities_declared": [],
@@ -140,16 +140,16 @@
       "requires_modules": []
     },
     {
-      "id": "brainos.sim.profile_b",
+      "id": "concord.sim.profile_b",
       "display_name": "Simulated Profile B",
       "kind": "builtin_adapter",
       "ecosystem": null,
       "protocol": "In-process simulator: newline-delimited JSON, no continuous pointer channel (not a model of any commercial device)",
-      "package": "brainos",
+      "package": "concordos",
       "version": "0.3.0",
-      "adapter": "brainos.sim.profile_b",
+      "adapter": "concord.sim.profile_b",
       "entry_point": null,
-      "module": "brainos.adapters.simulated.profile_b",
+      "module": "concord.adapters.simulated.profile_b",
       "in_checkout": true,
       "synthetic_only": true,
       "modalities_declared": [],
@@ -210,22 +210,22 @@
       "requires_modules": []
     },
     {
-      "id": "brainos.replay",
-      "display_name": "BrainOS recording replay",
+      "id": "concord.replay",
+      "display_name": "Concord recording replay",
       "kind": "builtin_adapter",
       "ecosystem": null,
-      "protocol": "BrainOS's own recording files (JSON lines), replayed with their recorded timing",
-      "package": "brainos",
+      "protocol": "Concord's own recording files (JSON lines), replayed with their recorded timing",
+      "package": "concordos",
       "version": "0.3.0",
-      "adapter": "brainos.replay",
+      "adapter": "concord.replay",
       "entry_point": null,
-      "module": "brainos.adapters.replay",
+      "module": "concord.adapters.replay",
       "in_checkout": true,
       "synthetic_only": false,
       "modalities_declared": [],
       "modality_note": "Not declared by the adapter; a replay carries whatever the recorded source declared.",
       "read_only": {
-        "statement": "Reads BrainOS recording files only; there is no device link and no write path (AT-8).",
+        "statement": "Reads Concord recording files only; there is no device link and no write path (AT-8).",
         "verified_by": [
           "backend/tests/test_adapters.py"
         ]
@@ -272,24 +272,24 @@
         }
       ],
       "not_tested": [
-        "Replays only BrainOS's own recording format; no external producer."
+        "Replays only Concord's own recording format; no external producer."
       ],
       "limitations": [
-        "Offline: replays what BrainOS recorded earlier; never live acquisition."
+        "Offline: replays what Concord recorded earlier; never live acquisition."
       ],
       "requires_modules": []
     },
     {
-      "id": "brainos.nwb.units",
+      "id": "concord.nwb.units",
       "display_name": "NWB recordings, offline replay (DANDI 000954, FALCON H1)",
       "kind": "offline_dataset",
       "ecosystem": "nwb",
       "protocol": "NWB 2 files read with pynwb; sorted-unit spike times binned offline; labelled Offline Replay",
-      "package": "brainos",
+      "package": "concordos",
       "version": "0.3.0",
-      "adapter": "brainos.nwb.units",
+      "adapter": "concord.nwb.units",
       "entry_point": null,
-      "module": "brainos.adapters.nwb",
+      "module": "concord.adapters.nwb",
       "in_checkout": true,
       "synthetic_only": false,
       "modalities_declared": [],
@@ -367,16 +367,16 @@
       ]
     },
     {
-      "id": "brainos.nwb.ecog",
+      "id": "concord.nwb.ecog",
       "display_name": "Raw-voltage NWB recordings, offline replay (DANDI 000055, AJILE12 human ECoG)",
       "kind": "offline_dataset",
       "ecosystem": "nwb",
       "protocol": "NWB 2 ElectricalSeries read with pynwb from verified slice extracts; 100 ms frames; labelled Offline Replay",
-      "package": "brainos",
+      "package": "concordos",
       "version": "0.3.0",
-      "adapter": "brainos.nwb.ecog",
+      "adapter": "concord.nwb.ecog",
       "entry_point": null,
-      "module": "brainos.adapters.nwb",
+      "module": "concord.adapters.nwb",
       "in_checkout": true,
       "synthetic_only": false,
       "modalities_declared": [
@@ -457,16 +457,16 @@
       ]
     },
     {
-      "id": "brainos.cursorclick.t15",
+      "id": "concord.cursorclick.t15",
       "display_name": "Cursor + click recordings, offline replay (Dryad doi:10.5061/dryad.prr4xgxzq, participant T15)",
       "kind": "offline_dataset",
       "ecosystem": null,
       "protocol": "MATLAB blocks (scipy.io) replayed per 10 ms bin; historical decoder outputs as model_origin historical; labelled Offline Replay",
-      "package": "brainos",
+      "package": "concordos",
       "version": "0.3.0",
-      "adapter": "brainos.cursorclick.t15",
+      "adapter": "concord.cursorclick.t15",
       "entry_point": null,
-      "module": "brainos.adapters.cursorclick",
+      "module": "concord.adapters.cursorclick",
       "in_checkout": true,
       "synthetic_only": false,
       "modalities_declared": [
@@ -539,29 +539,29 @@
         "Not live acquisition by definition: offline replay of recordings made in the past."
       ],
       "limitations": [
-        "Offline Replay only. Historical decoder outputs are what the research system decoded during the session, never attributed to BrainOS."
+        "Offline Replay only. Historical decoder outputs are what the research system decoded during the session, never attributed to Concord."
       ],
       "requires_modules": [
         "scipy"
       ]
     },
     {
-      "id": "brainos.lsl",
+      "id": "concord.lsl",
       "display_name": "Lab Streaming Layer",
       "kind": "builtin_adapter",
       "ecosystem": "lsl",
       "protocol": "LSL: discovery by resolve, liblsl StreamInlet (pylsl), stream XML metadata",
-      "package": "brainos",
+      "package": "concordos",
       "version": "0.3.0",
-      "adapter": "brainos.lsl",
+      "adapter": "concord.lsl",
       "entry_point": null,
-      "module": "brainos.adapters.lsl",
+      "module": "concord.adapters.lsl",
       "in_checkout": true,
       "synthetic_only": false,
       "modalities_declared": [],
-      "modality_note": "Not declared by the adapter (modality is null). Stream type and channel metadata are the producer's statements; BrainOS cannot verify the origin and labels it 'Live stream, origin unverified'.",
+      "modality_note": "Not declared by the adapter (modality is null). Stream type and channel metadata are the producer's statements; Concord cannot verify the origin and labels it 'Live stream, origin unverified'.",
       "read_only": {
-        "statement": "Receive-only: StreamInlet only; BrainOS never creates an outlet for, or sends to, a producer.",
+        "statement": "Receive-only: StreamInlet only; Concord never creates an outlet for, or sends to, a producer.",
         "verified_by": []
       },
       "level": "protocol_tested",
@@ -625,29 +625,29 @@
         "Acquisition hardware: level 3 needs a real amplifier's LSL app recorded at the same time by a reference recorder (LabRecorder to XDF), with counts, values and timestamps compared offline."
       ],
       "limitations": [
-        "BrainOS cannot verify whether an LSL stream comes from hardware, a file player or a simulator."
+        "Concord cannot verify whether an LSL stream comes from hardware, a file player or a simulator."
       ],
       "requires_modules": [
         "pylsl"
       ]
     },
     {
-      "id": "brainos.openephys.zmq",
+      "id": "concord.openephys.zmq",
       "display_name": "Open Ephys ZMQ Interface",
       "kind": "builtin_adapter",
       "ecosystem": "open-ephys",
       "protocol": "Open Ephys GUI ZMQ Interface plugin wire format (pyzmq SUB; heartbeat on the plugin's REP port)",
-      "package": "brainos",
+      "package": "concordos",
       "version": "0.3.0",
-      "adapter": "brainos.openephys.zmq",
+      "adapter": "concord.openephys.zmq",
       "entry_point": null,
-      "module": "brainos.adapters.openephys",
+      "module": "concord.adapters.openephys",
       "in_checkout": true,
       "synthetic_only": false,
       "modalities_declared": [],
-      "modality_note": "Not declared by the adapter (modality is null). BrainOS cannot tell whether the GUI reads hardware, a file or a simulator.",
+      "modality_note": "Not declared by the adapter (modality is null). Concord cannot tell whether the GUI reads hardware, a file or a simulator.",
       "read_only": {
-        "statement": "Receive-only (ZMQ SUB). The single documented exception is the plugin's heartbeat, a liveness message so the GUI lists BrainOS as a client (docs/OPEN_EPHYS.md).",
+        "statement": "Receive-only (ZMQ SUB). The single documented exception is the plugin's heartbeat, a liveness message so the GUI lists Concord as a client (docs/OPEN_EPHYS.md).",
         "verified_by": [
           "backend/tests/test_openephys.py"
         ]
@@ -670,7 +670,7 @@
           "supports": "protocol_tested",
           "counted": true,
           "note": null,
-          "protocol_reference": "The ZMQ Interface plugin's official Python client (plot_process_zmq.py, pinned by SHA-256, downloaded at test time) parses BrainOS's test publisher bit-exactly",
+          "protocol_reference": "The ZMQ Interface plugin's official Python client (plot_process_zmq.py, pinned by SHA-256, downloaded at test time) parses Concord's test publisher bit-exactly",
           "runs_in_ci": true,
           "record": null,
           "real_data": false,
@@ -721,16 +721,16 @@
       ]
     },
     {
-      "id": "brainos-example-adapter",
+      "id": "concord-example-adapter",
       "display_name": "Example: motor-imagery EEG generator",
       "kind": "source_plugin",
       "ecosystem": null,
       "protocol": "Adapter SDK plugin that generates synthetic motor-imagery EEG in its own process (declared synthetic)",
-      "package": "brainos-example-adapter",
+      "package": "concord-example-adapter",
       "version": "0.1.0",
       "adapter": null,
       "entry_point": "example-mi-eeg",
-      "module": "brainos_example_adapter",
+      "module": "concord_example_adapter",
       "in_checkout": true,
       "synthetic_only": false,
       "modalities_declared": [
@@ -756,8 +756,8 @@
         {
           "type": "certify_report",
           "path": "docs/compatibility/example-mi-eeg.certify.json",
-          "description": "brainos-certify 0.1.0, 20 s run of brainos-example-adapter 0.1.0 (device mi-eeg): 27 pass, 1 warn, 0 fail; adapter_implementation",
-          "date": "2026-11-07",
+          "description": "concord-certify 0.1.0, 20 s run of concord-example-adapter 0.1.0 (device mi-eeg): 27 pass, 1 warn, 0 fail; adapter_implementation",
+          "date": "2026-11-08",
           "supports": "software_implemented",
           "counted": true,
           "note": null,
@@ -768,12 +768,12 @@
           "claim": null,
           "certify": {
             "level": "adapter_implementation",
-            "tool": "brainos-certify 0.1.0",
-            "plugin": "brainos-example-adapter",
+            "tool": "concord-certify 0.1.0",
+            "plugin": "concord-example-adapter",
             "plugin_version": "0.1.0",
             "entry_point": "example-mi-eeg",
             "device_key": "mi-eeg",
-            "data_source": "brainos-example-adapter:mi-eeg:seed=1 (declared synthetic)",
+            "data_source": "concord-example-adapter:mi-eeg:seed=1 (declared synthetic)",
             "counts": {
               "pass": 27,
               "fail": 0,
@@ -782,15 +782,15 @@
             },
             "protocol_reference": null,
             "attestation_accepted": null,
-            "tree_sha256": "e9decc29c0a4e68a2c743b411402462c61eef991c0a355267d28deaf1a9fc9b8",
+            "tree_sha256": "00e2d8391de66cdfe4fc75d23b7cccf6f037c78a2f491bd82b19898f3272ce9a",
             "source_matches": true,
             "changed_files": []
           }
         },
         {
           "type": "test",
-          "path": "examples/adapters/brainos-example-adapter/tests/test_example_mi_eeg.py",
-          "description": "The plugin run exactly as BrainOS runs it (separate host process, BrainOS's validation), using only the adapter SDK.",
+          "path": "examples/adapters/concord-example-adapter/tests/test_example_mi_eeg.py",
+          "description": "The plugin run exactly as Concord runs it (separate host process, Concord's validation), using only the adapter SDK.",
           "date": "2026-11-07",
           "supports": "software_implemented",
           "counted": true,
@@ -842,16 +842,16 @@
       "requires_modules": []
     },
     {
-      "id": "brainos-brainflow",
+      "id": "concord-brainflow",
       "display_name": "BrainFlow",
       "kind": "source_plugin",
       "ecosystem": "brainflow",
       "protocol": "BrainFlow BoardShim (official library) in the plugin host: synthetic, playback-file and streaming boards; other BoardIds boards by option",
-      "package": "brainos-brainflow",
+      "package": "concord-brainflow",
       "version": "0.1.0",
       "adapter": null,
       "entry_point": "brainflow",
-      "module": "brainos_brainflow",
+      "module": "concord_brainflow",
       "in_checkout": true,
       "synthetic_only": false,
       "modalities_declared": [
@@ -877,8 +877,8 @@
         {
           "type": "certify_report",
           "path": "docs/compatibility/brainflow-synthetic.certify.json",
-          "description": "brainos-certify 0.1.0, 20 s run of brainos-brainflow 0.1.0 (device synthetic): 26 pass, 2 warn, 0 fail; protocol_tested against 'BrainFlow 5.23 BoardShim SYNTHETIC_BOARD' (operator statement)",
-          "date": "2026-11-07",
+          "description": "concord-certify 0.1.0, 20 s run of concord-brainflow 0.1.0 (device synthetic): 26 pass, 2 warn, 0 fail; protocol_tested against 'BrainFlow 5.23 BoardShim SYNTHETIC_BOARD' (operator statement)",
+          "date": "2026-11-08",
           "supports": "protocol_tested",
           "counted": true,
           "note": null,
@@ -889,8 +889,8 @@
           "claim": null,
           "certify": {
             "level": "protocol_tested",
-            "tool": "brainos-certify 0.1.0",
-            "plugin": "brainos-brainflow",
+            "tool": "concord-certify 0.1.0",
+            "plugin": "concord-brainflow",
             "plugin_version": "0.1.0",
             "entry_point": "brainflow",
             "device_key": "synthetic",
@@ -903,14 +903,14 @@
             },
             "protocol_reference": "BrainFlow 5.23 BoardShim SYNTHETIC_BOARD",
             "attestation_accepted": null,
-            "tree_sha256": "765bb9291093823be2e753b13c324fb40f09d2d034557bf547c9a92dce49a496",
+            "tree_sha256": "d86fdf6b946fbad2d18aabaf9540c3642144545bd84eea838063a627384b40c0",
             "source_matches": true,
             "changed_files": []
           }
         },
         {
           "type": "test",
-          "path": "packages/brainos-brainflow/tests/test_bf_synthetic.py",
+          "path": "packages/concord-brainflow/tests/test_bf_synthetic.py",
           "description": "Metadata equals get_board_descr; 3 s of streaming through the public API with every contract rule checked; rate and unix timestamps.",
           "date": "2026-11-07",
           "supports": "protocol_tested",
@@ -925,7 +925,7 @@
         },
         {
           "type": "test",
-          "path": "packages/brainos-brainflow/tests/test_bf_playback.py",
+          "path": "packages/concord-brainflow/tests/test_bf_playback.py",
           "description": "Every value played back equals DataFilter.read_file of the same file bit for bit; deleted samples appear as a gap; counter wrap is not loss.",
           "date": "2026-11-07",
           "supports": "protocol_tested",
@@ -940,7 +940,7 @@
         },
         {
           "type": "test",
-          "path": "packages/brainos-brainflow/tests/test_bf_streaming.py",
+          "path": "packages/concord-brainflow/tests/test_bf_streaming.py",
           "description": "Every sample received over multicast equals the producer's sample exactly; stopping the producer gives LinkLost.",
           "date": "2026-11-07",
           "supports": "protocol_tested",
@@ -955,7 +955,7 @@
         },
         {
           "type": "test",
-          "path": "packages/brainos-brainflow/tests/test_bf_options.py",
+          "path": "packages/concord-brainflow/tests/test_bf_options.py",
           "description": "Invalid options; a real BrainFlow driver (CYTON_BOARD) on a nonexistent serial port fails with OpenFailed.",
           "date": "2026-11-07",
           "supports": "software_implemented",
@@ -970,7 +970,7 @@
         },
         {
           "type": "test",
-          "path": "packages/brainos-brainflow/tests/test_bf_layout.py",
+          "path": "packages/concord-brainflow/tests/test_bf_layout.py",
           "description": "Every board description shipped with the installed BrainFlow maps cleanly; never invasive=True.",
           "date": "2026-11-07",
           "supports": "software_implemented",
@@ -1000,7 +1000,7 @@
         },
         {
           "type": "benchmark",
-          "path": "packages/brainos-brainflow/scripts/measure_brainflow.py",
+          "path": "packages/concord-brainflow/scripts/measure_brainflow.py",
           "description": "Rate and latency measurement script; results (synthetic and streaming boards, machine-dependent) in docs/ECOSYSTEMS.md.",
           "date": "2026-11-07",
           "supports": null,
@@ -1040,16 +1040,16 @@
       "requires_modules": []
     },
     {
-      "id": "brainos-bci2000",
+      "id": "concord-bci2000",
       "display_name": "BCI2000 App Connector",
       "kind": "source_plugin",
       "ecosystem": "bci2000",
       "protocol": "BCI2000 App Connector ConnectorOutput (UDP, one ASCII line per datagram): processed control information, never raw signal",
-      "package": "brainos-bci2000",
+      "package": "concord-bci2000",
       "version": "0.1.0",
       "adapter": null,
       "entry_point": "bci2000",
-      "module": "brainos_bci2000",
+      "module": "concord_bci2000",
       "in_checkout": true,
       "synthetic_only": false,
       "modalities_declared": [],
@@ -1064,7 +1064,7 @@
       "level_number": 2,
       "real_data_replay": false,
       "level_basis": [
-        "software_implemented (R1): test_bci_real_bci2000.py, test_bci_plugin.py, test_bci_protocol.py, test_plugin_ecosystems.py",
+        "software_implemented (R1): bci2000-app-connector.certify.json, test_bci_real_bci2000.py, test_bci_plugin.py, test_bci_protocol.py, test_plugin_ecosystems.py",
         "protocol_tested (R2): test_bci_real_bci2000.py",
         "hardware_verified (R3): not reached: no signed operator attestation and no independent-reference comparison",
         "human_validated (R4): never derived by software"
@@ -1073,11 +1073,11 @@
         {
           "type": "certify_report",
           "path": "docs/compatibility/bci2000-app-connector.certify.json",
-          "description": "brainos-certify 0.1.0, 20 s run of brainos-bci2000 0.1.0 (device app-connector): 26 pass, 2 warn, 0 fail; adapter_implementation",
-          "date": "2026-11-07",
+          "description": "concord-certify 0.1.0, 20 s run of concord-bci2000 0.1.0 (device app-connector): 26 pass, 2 warn, 0 fail; adapter_implementation",
+          "date": "2026-11-08",
           "supports": "software_implemented",
-          "counted": false,
-          "note": "Evidence for an earlier revision of this version: plugin source changed after this run (plugin.py); re-run brainos-certify to count it",
+          "counted": true,
+          "note": null,
           "protocol_reference": null,
           "runs_in_ci": null,
           "record": null,
@@ -1085,8 +1085,8 @@
           "claim": null,
           "certify": {
             "level": "adapter_implementation",
-            "tool": "brainos-certify 0.1.0",
-            "plugin": "brainos-bci2000",
+            "tool": "concord-certify 0.1.0",
+            "plugin": "concord-bci2000",
             "plugin_version": "0.1.0",
             "entry_point": "bci2000",
             "device_key": "app-connector",
@@ -1099,16 +1099,14 @@
             },
             "protocol_reference": null,
             "attestation_accepted": null,
-            "tree_sha256": "cc1a0ded75fc5b89f336ae251b9c1c8f19fd002bb4ad2a09cca95618cd6e5bd0",
-            "source_matches": false,
-            "changed_files": [
-              "plugin.py"
-            ]
+            "tree_sha256": "dfc0b5b9c3820ee0f3eae76aa925fa65f9ffbdbed848ddf2f8acf112b9298483",
+            "source_matches": true,
+            "changed_files": []
           }
         },
         {
           "type": "test",
-          "path": "packages/brainos-bci2000/tests/test_bci_real_bci2000.py",
+          "path": "packages/concord-bci2000/tests/test_bci_real_bci2000.py",
           "description": "Opt-in live test: the plugin receives a genuine BCI2000 build's own ConnectorOutput (131 control blocks, 0 malformed, 0 dropped, 5 state changes in order).",
           "date": "2026-11-07",
           "supports": "protocol_tested",
@@ -1123,7 +1121,7 @@
         },
         {
           "type": "test",
-          "path": "packages/brainos-bci2000/tests/test_bci_plugin.py",
+          "path": "packages/concord-bci2000/tests/test_bci_plugin.py",
           "description": "UDP replay of 2 011 datagrams captured from that build with original timing (values equal the transmitted text); options, layout changes, port handling.",
           "date": "2026-11-07",
           "supports": "software_implemented",
@@ -1138,7 +1136,7 @@
         },
         {
           "type": "test",
-          "path": "packages/brainos-bci2000/tests/test_bci_protocol.py",
+          "path": "packages/concord-bci2000/tests/test_bci_protocol.py",
           "description": "Strict line grammar, block boundaries, loss, reordering and SourceTime wrap against a byte-for-byte reproduction of ConnectorOutput.",
           "date": "2026-11-07",
           "supports": "software_implemented",
@@ -1168,7 +1166,7 @@
         },
         {
           "type": "benchmark",
-          "path": "packages/brainos-bci2000/scripts/measure_app_connector.py",
+          "path": "packages/concord-bci2000/scripts/measure_app_connector.py",
           "description": "Block rate and latency against genuine BCI2000; results (machine-dependent) in docs/ECOSYSTEMS.md.",
           "date": "2026-11-07",
           "supports": null,
