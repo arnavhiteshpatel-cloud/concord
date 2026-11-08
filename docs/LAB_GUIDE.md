@@ -1,7 +1,7 @@
-# Lab guide: connecting BrainOS to LSL and Open Ephys
+# Lab guide: connecting Concord to LSL and Open Ephys
 
-For researchers trying BrainOS with their own acquisition setup. Read
-[VALIDATION_LEVELS.md](VALIDATION_LEVELS.md) first: BrainOS has been **protocol-tested** with
+For researchers trying Concord with their own acquisition setup. Read
+[VALIDATION_LEVELS.md](VALIDATION_LEVELS.md) first: Concord has been **protocol-tested** with
 software publishers and real recorded data, **not** verified with acquisition hardware, and
 never used with a participant. It is a research tool, not a medical device; it never sends
 anything to acquisition devices.
@@ -24,11 +24,11 @@ Each publisher speaks the real protocol and declares itself synthetic or prereco
 each in its own terminal from the repository root:
 
 ```bash
-.venv/bin/python -m brainos.testing.publish lsl-ephys --channels 32 --rate 30000
+.venv/bin/python -m concord.testing.publish lsl-ephys --channels 32 --rate 30000
 ```
 
 ```bash
-.venv/bin/python -m brainos.testing.publish openephys --port 5556 --channels 32
+.venv/bin/python -m concord.testing.publish openephys --port 5556 --channels 32
 ```
 
 ```bash
@@ -36,7 +36,7 @@ make dataset
 ```
 
 ```bash
-.venv/bin/python -m brainos.testing.publish falcon data/datasets/dandi-000954/sub-HumanPitt-held-in-calib_ses-19250108T111022.nwb --speed 1 --loop
+.venv/bin/python -m concord.testing.publish falcon data/datasets/dandi-000954/sub-HumanPitt-held-in-calib_ses-19250108T111022.nwb --speed 1 --loop
 ```
 
 Then follow sections 2–5 against these instead of your hardware. The FALCON stream is real
@@ -53,7 +53,7 @@ Requirements on the outlet (all standard LSL metadata):
   is shown and recorded as `arbitrary` units, never guessed;
 - a stable `source_id` — required for automatic reconnection after the outlet restarts;
 - stream type `SpikeCounts` (or `BinnedSpikes`) if it carries binned counts rather than
-  voltages (a BrainOS convention; set `<desc><brainos><feature>spike_count`).
+  voltages (a Concord convention; set `<desc><concord><feature>spike_count`).
 
 Console: **Acquisition source** → **Connect a source** (or **Change source**) → *Live streams*
 → **Find LSL streams** → *Search the network* → **Use** the signal stream → optionally attach
@@ -68,7 +68,7 @@ Python (same endpoints the console uses):
 
 ```python
 import asyncio
-from brainos.sdk import RuntimeClient
+from concord.sdk import RuntimeClient
 
 async def main() -> None:
     async with RuntimeClient("http://127.0.0.1:8000") as op:
@@ -124,21 +124,21 @@ queue overflow) and the processing-time percentiles; on an M-series laptop 96 ch
 
 1. On the participant display machine (same network), start the cue task:
    `.venv/bin/python backend/examples/center_out_task.py --trials 40`
-   (headless: `--headless`). It publishes `brainos-center-out-behavior` (cue velocity) and
-   `brainos-center-out-markers`.
+   (headless: `--headless`). It publishes `concord-center-out-behavior` (cue velocity) and
+   `concord-center-out-markers`.
 2. Register the neural stream with those two streams attached (section 2), connect, start
    decoding without a model (section 4).
 3. **Decoder** → **Calibrate…** → *Start recording*: it records **features and labels only**
    (`exclude_raw`; raw 30 kHz frames would hit the default 200 MiB recording limit within
    seconds).
    Run all trials, then *Stop recording*.
-4. In the same panel, select that recording and **Train decoder** (`feature_source = brainos.pipeline` when features came
+4. In the same panel, select that recording and **Train decoder** (`feature_source = concord.pipeline` when features came
    from the pipeline). The report shows held-out R² per dimension and a mean-predictor
    control. Offline held-out R² does not establish closed-loop performance.
 5. **Stop decoding**, then **Start decoding** again with the new model. It is refused if the input does not match
    (feature, bin, channel count/labels) or if the source differs from the calibration source.
 
-CLI equivalent of step 4: `.venv/bin/python -m brainos.decoding.calibrate data/recordings/<name>.brainos.jsonl --feature-source brainos.pipeline`.
+CLI equivalent of step 4: `.venv/bin/python -m concord.decoding.calibrate data/recordings/<name>.concord.jsonl --feature-source concord.pipeline`.
 
 ## 6. Route commands to an application
 
@@ -149,7 +149,7 @@ With a classifier (LDA, calibrated with *A class per moment*), **Settings** inst
 action per class (select, activate, cancel or type text) with threshold, hold and pause.
 Commands then reach only the applications you **Authorize** under *Authorized applications*
 (each says what it would receive); **Revoke** withdraws it at once. Authorizations last until
-revoked or BrainOS restarts; control itself is off after any source change, pause, link loss
+revoked or Concord restarts; control itself is off after any source change, pause, link loss
 or decoder change, and stops by itself if the decoder gets no input for 1 s (at least three
 feature bins)
 (docs/CONTROL_BRIDGE.md). Run the reference app in another terminal:
@@ -180,7 +180,7 @@ stays in "Waiting"; with a simulated profile it works end to end.
 
 ## 8. (M5-D) Installation, research sessions, export and safe stop
 
-Installation without `make` (`brainos start`, the macOS app), network topology with a
+Installation without `make` (`concord start`, the macOS app), network topology with a
 separate acquisition computer, research sessions, the reproducibility export and **Safe stop &
 disconnect**: [LAB_SETUP.md](LAB_SETUP.md). The first session with real equipment:
 [FIRST_LAB_SESSION.md](FIRST_LAB_SESSION.md). Problems: [TROUBLESHOOTING.md](TROUBLESHOOTING.md).

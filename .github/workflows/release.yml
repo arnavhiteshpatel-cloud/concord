@@ -1,11 +1,11 @@
 name: Release
 
-# Builds the downloadable BrainOS release from the repository as it is and publishes it as a
+# Builds the downloadable Concord release from the repository as it is and publishes it as a
 # GitHub Release with fixed asset names, so the README can link straight to the files:
 #
-#   BrainOS-macos-arm64.dmg       desktop app, macOS 14+ on Apple Silicon (unsigned)
-#   BrainOS-linux-x86_64.tar.gz   desktop bundle for Linux x86_64 (extract, run ./BrainOS/BrainOS)
-#   *.whl                         Python packages (brainos with the console, the SDKs, brainos-hwval)
+#   Concord-macos-arm64.dmg       desktop app, macOS 14+ on Apple Silicon (unsigned)
+#   Concord-linux-x86_64.tar.gz   desktop bundle for Linux x86_64 (extract, run ./Concord/Concord)
+#   *.whl                         Python packages (concord with the console, the SDKs, concord-hwval)
 #   SHA256SUMS.txt                checksums of every file above
 #
 # Every bundle is smoke-tested on its platform (the same checks as the CI package jobs) before
@@ -44,7 +44,7 @@ jobs:
           version=$(python3 -c "import tomllib; print(tomllib.load(open('backend/pyproject.toml','rb'))['project']['version'])")
           echo "version=$version" >> "$GITHUB_OUTPUT"
           if [ "${{ github.event_name }}" != "pull_request" ] && [ "$TAG" != "v$version" ]; then
-            echo "::error::tag $TAG does not match the BrainOS version $version (expected v$version)"
+            echo "::error::tag $TAG does not match the Concord version $version (expected v$version)"
             exit 1
           fi
 
@@ -63,20 +63,20 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - name: Install the build environment
         run: |
-          python -m pip install -e packages/brainos-adapter-sdk -e packages/brainos-decoder-sdk -e "backend[lab]" -e packages/brainos-bci2000
+          python -m pip install -e packages/concord-adapter-sdk -e packages/concord-decoder-sdk -e "backend[lab]" -e packages/concord-bci2000
           python -m pip install -r packaging/requirements.txt
-      - name: Build BrainOS.app and the .dmg
+      - name: Build Concord.app and the .dmg
         run: python packaging/build_app.py --build-console --dmg
       - name: Smoke test the app and the .dmg
         run: |
           mkdir -p reports
-          python packaging/smoke_test.py packaging/dist/BrainOS.app/Contents/MacOS/BrainOS \
-            --app packaging/dist/BrainOS.app --window --gui \
-            --dmg "$(ls packaging/dist/BrainOS-*.dmg)" --report reports/smoke-macos.json
+          python packaging/smoke_test.py packaging/dist/Concord.app/Contents/MacOS/Concord \
+            --app packaging/dist/Concord.app --window --gui \
+            --dmg "$(ls packaging/dist/Concord-*.dmg)" --report reports/smoke-macos.json
       - name: Name the download
         run: |
           mkdir -p out
-          cp "$(ls packaging/dist/BrainOS-*.dmg)" out/BrainOS-macos-arm64.dmg
+          cp "$(ls packaging/dist/Concord-*.dmg)" out/Concord-macos-arm64.dmg
       - uses: actions/upload-artifact@v4
         with:
           name: release-macos
@@ -100,18 +100,18 @@ jobs:
         run: sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends libtk8.6 xvfb
       - name: Install the build environment
         run: |
-          python -m pip install -e packages/brainos-adapter-sdk -e packages/brainos-decoder-sdk -e "backend[lab]" -e packages/brainos-bci2000
+          python -m pip install -e packages/concord-adapter-sdk -e packages/concord-decoder-sdk -e "backend[lab]" -e packages/concord-bci2000
           python -m pip install -r packaging/requirements.txt
       - name: Build the bundle
         run: python packaging/build_app.py --build-console
       - name: Smoke test (headless, crash recovery, Tk window under Xvfb)
         run: |
           mkdir -p reports
-          xvfb-run -a python packaging/smoke_test.py packaging/dist/BrainOS/BrainOS --window --report reports/smoke-linux.json
+          xvfb-run -a python packaging/smoke_test.py packaging/dist/Concord/Concord --window --report reports/smoke-linux.json
       - name: Package the download
         run: |
           mkdir -p out
-          tar -czf out/BrainOS-linux-x86_64.tar.gz -C packaging/dist BrainOS
+          tar -czf out/Concord-linux-x86_64.tar.gz -C packaging/dist Concord
       - uses: actions/upload-artifact@v4
         with:
           name: release-linux
@@ -130,12 +130,12 @@ jobs:
           node-version: "22"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - name: Stage the console into the brainos package
+      - name: Stage the console into the concord package
         run: python packaging/stage_console.py --build
       - name: Build the wheels
         run: |
           python -m pip install --upgrade pip
-          for p in backend packages/brainos-adapter-sdk packages/brainos-decoder-sdk packages/brainos-hwval; do
+          for p in backend packages/concord-adapter-sdk packages/concord-decoder-sdk packages/concord-hwval; do
             python -m pip wheel --no-deps -w out "$p"
           done
           ls -l out
@@ -172,5 +172,5 @@ jobs:
           gh release create "$TAG" assets/* \
             --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
-            --title "BrainOS ${{ needs.check-version.outputs.version }} — research preview" \
+            --title "Concord ${{ needs.check-version.outputs.version }} — research preview" \
             --notes-file "$notes"

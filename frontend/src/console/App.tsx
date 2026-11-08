@@ -110,9 +110,9 @@ export function App() {
     const before = prevConn.current;
     prevConn.current = data.conn;
     if (data.conn === before) return;
-    if (data.conn === "open") add("info", before === "reconnecting" ? "Reconnected to BrainOS" : "Console connected to BrainOS");
-    else if (data.conn === "reconnecting" && before === "open") add("caution", "Connection to BrainOS lost, reconnecting");
-    else if (data.conn === "closed" || data.conn === "rejected") add("caution", "Not connected to BrainOS");
+    if (data.conn === "open") add("info", before === "reconnecting" ? "Reconnected to Concord" : "Console connected to Concord");
+    else if (data.conn === "reconnecting" && before === "open") add("caution", "Connection to Concord lost, reconnecting");
+    else if (data.conn === "closed" || data.conn === "rejected") add("caution", "Not connected to Concord");
   }, [data.conn, add]);
 
   const statusSeen = useRef(0);

@@ -16,25 +16,25 @@ import pytest
 pytest.importorskip("pynwb")
 pytest.importorskip("scipy")
 
-from brainos.adapters.nwb import (
+from concord.adapters.nwb import (
     NWBElectricalSource,
     NWBFormatError,
     UnsupportedModalityError,
     load_electrical,
 )
-from brainos.adapters.nwb.ecog import _units
-from brainos.contracts import parse_envelope
-from brainos.contracts.capabilities import Capability
-from brainos.contracts.events import ProvenanceKind, QualityFlag
-from brainos.contracts.protocol import DeviceDescriptor, DeviceKind, ErrorCode, Modality
-from brainos.datasets import manifest
-from brainos.decoding.lda import LDAClassifier
-from brainos.decoding.model import check, model_modality
-from brainos.decoding.ridge import RidgeDecoder
-from brainos.processing import ProcessingSpec, SignalChain, StageConfigError
-from brainos.processing.stages import common_average_reference
-from brainos.runtime.catalog import NWBCatalog
-from brainos.runtime.pipeline import PipelineError, _source_specific
+from concord.adapters.nwb.ecog import _units
+from concord.contracts import parse_envelope
+from concord.contracts.capabilities import Capability
+from concord.contracts.events import ProvenanceKind, QualityFlag
+from concord.contracts.protocol import DeviceDescriptor, DeviceKind, ErrorCode, Modality
+from concord.datasets import manifest
+from concord.decoding.lda import LDAClassifier
+from concord.decoding.model import check, model_modality
+from concord.decoding.ridge import RidgeDecoder
+from concord.processing import ProcessingSpec, SignalChain, StageConfigError
+from concord.processing.stages import common_average_reference
+from concord.runtime.catalog import NWBCatalog
+from concord.runtime.pipeline import PipelineError, _source_specific
 
 from . import nwb_fixtures as fx
 
@@ -168,8 +168,8 @@ def test_records_frames_behavior_annotations(tmp_path: Path) -> None:
 
 
 async def test_replay_adapter_marks_replayed_and_validates(tmp_path: Path) -> None:
-    from brainos.adapters.simulated import OperatorIntentSource
-    from brainos.runtime import DeviceRegistry, Recorder, Runtime
+    from concord.adapters.simulated import OperatorIntentSource
+    from concord.runtime import DeviceRegistry, Recorder, Runtime
 
     from .conftest import subscribe
     from .helpers import drain, events, wait_for
@@ -201,7 +201,7 @@ def test_catalog_offers_electrical_and_units_files(tmp_path: Path) -> None:
     cat = NWBCatalog(ds, tmp_path / "models")
     devs = {d.device_id: d for d in cat.list()}
     assert sorted(devs) == ["nwb:ecog", "nwb:units"] and not cat.problems
-    assert devs["nwb:ecog"].adapter.startswith("brainos.nwb.ecog@")
+    assert devs["nwb:ecog"].adapter.startswith("concord.nwb.ecog@")
     meta = cat.source(ds / "ecog.nwb").metadata()
     assert meta.source_type == "nwb_electrical_series" and meta.live is False
     assert meta.signal is not None and meta.signal.unit == "uV" and meta.signal.n_samples == 1000
@@ -211,7 +211,7 @@ def test_catalog_offers_electrical_and_units_files(tmp_path: Path) -> None:
 def test_altered_timeline_or_shape_of_a_pinned_extract_is_refused(tmp_path: Path) -> None:
     """An extract whose data digest matches a pinned slice must also keep its pinned shape and
     start time (no silent re-timing)."""
-    from brainos.datasets import Verification
+    from concord.datasets import Verification
 
     m = manifest("ajile12")
     s = m.slices[0]

@@ -1,6 +1,6 @@
-"""BrainOS reference application: a discrete menu / speller driven by selection commands.
+"""Concord reference application: a discrete menu / speller driven by selection commands.
 
-Uses ONLY the public Python SDK (``brainos.sdk``) and the standard library. Different needs
+Uses ONLY the public Python SDK (``concord.sdk``) and the standard library. Different needs
 from the cursor app: it *requires* ``selection`` (discrete actions) and optionally uses
 ``text_intent``; it never moves a pointer.
 
@@ -16,7 +16,7 @@ from the cursor app: it *requires* ``selection`` (discrete actions) and optional
 Which actions exist depends on the source and the operator's rules; the app adapts to what
 arrives and never derives actions from raw signals, features or behavior labels itself.
 Decoded actions need the operator's authorization of this app (``reference-menu``); until
-then the app says it is waiting for authorization. A :class:`~brainos.sdk.CommandGuard`
+then the app says it is waiting for authorization. A :class:`~concord.sdk.CommandGuard`
 drops commands older than 500 ms and reports immediately when commands stop (revocation,
 command output stopped, source paused / switched / disconnected, stream closed).
 
@@ -35,9 +35,9 @@ import sys
 from dataclasses import dataclass, field
 from typing import Any
 
-from brainos.sdk import (
-    BrainOSError,
+from concord.sdk import (
     CommandGuard,
+    ConcordError,
     EventStream,
     NegotiationUpdate,
     RuntimeUpdate,
@@ -220,7 +220,7 @@ async def run(app: MenuApp, base_url: str, stop: asyncio.Event) -> MenuApp:
         for t in tasks:
             t.cancel()
         for t in tasks:
-            with contextlib.suppress(asyncio.CancelledError, BrainOSError):
+            with contextlib.suppress(asyncio.CancelledError, ConcordError):
                 await t
     app.guard.on_closed()
     return app
@@ -243,8 +243,8 @@ async def _main(args: argparse.Namespace) -> int:
         stop.set()
         try:
             await runner
-        except (BrainOSError, OSError) as exc:
-            print(f"cannot reach BrainOS at {args.url}: {exc}", file=sys.stderr)
+        except (ConcordError, OSError) as exc:
+            print(f"cannot reach Concord at {args.url}: {exc}", file=sys.stderr)
             return 1
     print(json.dumps(app.summary(), indent=2))
     return 0

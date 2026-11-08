@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// AT-25 — End-to-end demo in a real browser against a real BrainOS server.
+// AT-25 — End-to-end demo in a real browser against a real Concord server.
 //
 // Performs the MVP demo sequence and records each step's outcome to
 // reports/e2e.json (shown in the console's Tests tab):
@@ -79,7 +79,7 @@ const pyEnv = {
 const children = [];
 /** Milestone 3: a hardware-free protocol publisher (declared synthetic) as a child process. */
 function publisher(args) {
-  const p = spawn(PY, ["-m", "brainos.testing.publish", ...args, "--seconds", "600"], {
+  const p = spawn(PY, ["-m", "concord.testing.publish", ...args, "--seconds", "600"], {
     env: { ...process.env, ...pyEnv },
     stdio: ["ignore", "ignore", "inherit"],
   });
@@ -92,14 +92,14 @@ async function main() {
   let base = EXTERNAL;
   if (!base) {
     const py = PY;
-    const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "brainos-e2e-"));
+    const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "concord-e2e-"));
     // Real recorded data (Milestone 2): link the verified dataset + model dirs read-only.
     for (const sub of ["datasets", "models"]) {
       const src = path.join(ROOT, "data", sub);
       if (fs.existsSync(src)) fs.symlinkSync(src, path.join(dataDir, sub), "dir");
     }
-    server = spawn(py, ["-m", "brainos.server"], {
-      env: { ...process.env, ...pyEnv, BRAINOS_PORT: String(PORT), BRAINOS_DATA_DIR: dataDir, BRAINOS_LOG_LEVEL: "WARNING" },
+    server = spawn(py, ["-m", "concord.server"], {
+      env: { ...process.env, ...pyEnv, CONCORD_PORT: String(PORT), CONCORD_DATA_DIR: dataDir, CONCORD_LOG_LEVEL: "WARNING" },
       stdio: ["ignore", "inherit", "inherit"],
     });
     base = `http://127.0.0.1:${PORT}`;
@@ -193,7 +193,7 @@ async function main() {
   let ok = false;
   try {
     await waitHealthy(base);
-    console.log(`BrainOS e2e against ${base}`);
+    console.log(`Concord e2e against ${base}`);
 
     await step("1. console loads, runtime idle, board app connected", async () => {
       await page.goto(base);
@@ -323,7 +323,7 @@ async function main() {
       // M5-C: a scanned control tile (Letters, Speak, Undo, ...) may not change the message;
       // the board's read-only snapshot counts the selection either way
       const boardFrame = page.frames().find((f) => f.url().includes("board.html"));
-      const selections = () => boardFrame.evaluate(() => window.__brainosBoard.counters.selections);
+      const selections = () => boardFrame.evaluate(() => window.__concordBoard.counters.selections);
       const n0 = await selections();
       await page.getByTestId("sim-select").click();
       const end = Date.now() + 4000;
@@ -489,7 +489,7 @@ async function main() {
     // ------------------------------------------------- Milestone 3: live acquisition (lab console)
     // Hardware-free protocol publishers stand in for acquisition systems; both declare
     // themselves synthetic, and the console must label them accordingly.
-    const SID = `brainos-e2e-${process.pid}`;
+    const SID = `concord-e2e-${process.pid}`;
     const LSL_ID = `lsl:${SID}`;
     const OE_PORT = 5600 + (process.pid % 300);
     const OE_ID = `openephys:127.0.0.1:${OE_PORT}`;
@@ -727,9 +727,9 @@ async function main() {
       await openPicker();
       const st = page.getByTestId("plugin-status-example-mi-eeg");
       await st.waitFor({ timeout: 20000 }).catch(() => {
-        throw new Error("example plugin not listed; install it with `make setup` (examples/adapters/brainos-example-adapter)");
+        throw new Error("example plugin not listed; install it with `make setup` (examples/adapters/concord-example-adapter)");
       });
-      await expectText(st, /^brainos-example-adapter@0\.1\.0 · compatible$/);
+      await expectText(st, /^concord-example-adapter@0\.1\.0 · compatible$/);
       await page.getByTestId(`plugin-options-${PLUGIN_ID}-toggle`).click();
       await page.getByTestId(`${PLUGIN_ID}-opt-montage`).selectOption("16");
       await page.getByTestId("plugin-group").scrollIntoViewIfNeeded();
@@ -740,7 +740,7 @@ async function main() {
       await expectText(status, /Simulated data/);
       const line = await expectText(
         page.getByTestId("source-integration"),
-        /^Plugin · brainos-example-adapter@0\.1\.0 · isolated · EEG, noninvasive$/,
+        /^Plugin · concord-example-adapter@0\.1\.0 · isolated · EEG, noninvasive$/,
       );
       const frames = async () =>
         ((await api("/diagnostics")).event_types.find((e) => e.event_type === "recording.frame") ?? { total: 0 }).total;
@@ -758,11 +758,11 @@ async function main() {
 
     // ------------------------------------------- Milestone 5-C: the communication board v2
     // A second server whose only source is the scripted decoder test source (declared
-    // synthetic) with its hand-written identity TEST decoder (brainos.testing.scripted): the
+    // synthetic) with its hand-written identity TEST decoder (concord.testing.scripted): the
     // real decoded-command path (features -> decoder -> command router with a click rule ->
     // operator authorization -> SDK CommandGuard + control.state) drives two participant
     // boards, one with pointer + click and one with pointer + dwell selection. The boards take
-    // no mouse input; they are read through their read-only window.__brainosBoard snapshot.
+    // no mouse input; they are read through their read-only window.__concordBoard snapshot.
     const M5C_PORT = 8767;
     const m5c = `http://127.0.0.1:${M5C_PORT}`;
     const m5cApi = async (p, method = "GET", body) => {
@@ -783,7 +783,7 @@ async function main() {
     const centre = (i) => [((i % 4) + 0.5) / 4, (Math.floor(i / 4) + 0.5) / 4];
     const TARGETS = [2, 6]; // "Hello", "Water" on the standard phrase page
     const boards = {};
-    const snap = (p) => p.evaluate(() => window.__brainosBoard);
+    const snap = (p) => p.evaluate(() => window.__concordBoard);
     const waitSnap = async (p, pred, label, timeout = 20000) => {
       const end = Date.now() + timeout;
       let s = null;
@@ -796,8 +796,8 @@ async function main() {
     };
 
     await step("M5-C-1. participant boards wait for the operator's authorization; no command acts before it", async () => {
-      const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "brainos-e2e-m5c-"));
-      const args = ["-m", "brainos.testing.scripted", "serve", "--port", String(M5C_PORT), "--data-dir", dataDir, "--start-after-s", "4", "--loop"];
+      const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "concord-e2e-m5c-"));
+      const args = ["-m", "concord.testing.scripted", "serve", "--port", String(M5C_PORT), "--data-dir", dataDir, "--start-after-s", "4", "--loop"];
       for (const i of TARGETS) args.push("--click-at", centre(i).join(","));
       children.push(spawn(PY, args, { env: { ...process.env, ...pyEnv }, stdio: ["ignore", "inherit", "inherit"] }));
       await waitHealthy(m5c);
@@ -837,7 +837,7 @@ async function main() {
         const via = name === "click" ? "click" : "dwell";
         if (!sel.every((x) => x.via === via)) throw new Error(`${name}: via ${sel.map((x) => x.via)}`);
         if (!s.text.startsWith("Hello Water")) throw new Error(`${name}: text "${s.text}"`);
-        if (s.input?.label !== "decoded by test-scripted-identity (BrainOS)") throw new Error(`${name}: input ${JSON.stringify(s.input)}`);
+        if (s.input?.label !== "decoded by test-scripted-identity (Concord)") throw new Error(`${name}: input ${JSON.stringify(s.input)}`);
         if (s.textLabel !== "simulated input — no participant") throw new Error(`${name}: text label ${s.textLabel}`);
         if (name === "click") {
           const ev = sel[0].event;
@@ -845,7 +845,7 @@ async function main() {
             throw new Error(`click provenance ${JSON.stringify(ev)}`);
         }
         await expectText(p.getByTestId("board-message"), /^Hello Water/);
-        await expectText(p.getByTestId("board-input"), /decoded by test-scripted-identity \(BrainOS\)/);
+        await expectText(p.getByTestId("board-input"), /decoded by test-scripted-identity \(Concord\)/);
         await expectText(p.getByTestId("board-text-label"), /simulated input — no participant/);
         out.push(`${name}: ${labels.join(", ")} (tiles ${sel.map((x) => x.tile).join(", ")}, via ${via}) -> "${s.text.trim()}"`);
       }

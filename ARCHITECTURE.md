@@ -1,6 +1,6 @@
-# BrainOS — Architecture
+# Concord — Architecture
 
-Status: BrainOS 0.3.0 (Milestone 5), event schema 1.4. v1 + Milestone 2 (schema 1.1: recorded
+Status: Concord 0.3.0 (Milestone 5), event schema 1.4. v1 + Milestone 2 (schema 1.1: recorded
 human data, offline decoding) + Milestone 3 (schema 1.2: live LSL / Open Ephys acquisition,
 streaming pipeline, calibration, command router; §11) + Milestone 4 (source plugins §12, control
 bridge) + Milestone 5 (ECoG, applications, decoders, installation, performance; §13–16).
@@ -12,7 +12,7 @@ non-technical introduction, see the [README](README.md) and the
 
 ```
  ┌──────────────── device side (untrusted, device-specific) ───────────────┐
- │  Simulated Profile A/B    Replay (BrainOS rec.,    LSL inlets      Open Ephys │
+ │  Simulated Profile A/B    Replay (Concord rec.,    LSL inlets      Open Ephys │
  │  (binary / JSON lines)    NWB datasets)            (liblsl)        ZMQ (SUB)  │
  └──────────┬───────────────────────┬────────────────────────┬─────────────┘
             │ NativePacket          │ NativePacket           │ NativePacket
@@ -48,27 +48,27 @@ native packet, a device-specific field, or a device-specific code path.**
 
 | Component | Path | Responsibility |
 | --- | --- | --- |
-| Contracts | `backend/src/brainos/contracts/` | Capability vocabulary, event envelope + payload models, provenance rules, stream protocol messages, error codes. No I/O. |
-| Adapter contract | `backend/src/brainos/adapters/base.py` | `DeviceAdapter` ABC, `NativePacket`, `EventDraft`, `DeviceDescriptor`, adapter errors. |
-| Simulated adapters | `backend/src/brainos/adapters/simulated/` | Two synthetic profiles with distinct native wire formats, rates and capabilities; operator-driven intent source; fault injection. |
-| Replay adapter | `backend/src/brainos/adapters/replay/` | Reads BrainOS recordings (and, later, external datasets) through the same contract. |
-| Runtime | `backend/src/brainos/runtime/` | Orchestration, negotiation, event bus, diagnostics, recorder, device registry. |
-| Server | `backend/src/brainos/server/` | FastAPI app: REST + WebSocket transport, static console hosting, test-report endpoint. |
-| Python SDK | `backend/src/brainos/sdk/` | Async client for third-party developers. |
+| Contracts | `backend/src/concord/contracts/` | Capability vocabulary, event envelope + payload models, provenance rules, stream protocol messages, error codes. No I/O. |
+| Adapter contract | `backend/src/concord/adapters/base.py` | `DeviceAdapter` ABC, `NativePacket`, `EventDraft`, `DeviceDescriptor`, adapter errors. |
+| Simulated adapters | `backend/src/concord/adapters/simulated/` | Two synthetic profiles with distinct native wire formats, rates and capabilities; operator-driven intent source; fault injection. |
+| Replay adapter | `backend/src/concord/adapters/replay/` | Reads Concord recordings (and, later, external datasets) through the same contract. |
+| Runtime | `backend/src/concord/runtime/` | Orchestration, negotiation, event bus, diagnostics, recorder, device registry. |
+| Server | `backend/src/concord/server/` | FastAPI app: REST + WebSocket transport, static console hosting, test-report endpoint. |
+| Python SDK | `backend/src/concord/sdk/` | Async client for third-party developers. |
 | TS SDK | `frontend/src/sdk/` | Browser client used by the console and the board app. |
 | Console | `frontend/src/console/` | Operator UI: devices, runtime controls, events, signals, diagnostics, apps, tests. |
 | Board app | `frontend/src/apps/board/` | Demo application. Imports **only** `src/sdk`. Enforced by a test. |
-| LSL adapter (M3) | `backend/src/brainos/adapters/lsl/` | Discovery, metadata, composite signal + behavior + marker inlets, timestamps, gap detection, reconnect. Receive-only. |
-| Open Ephys adapter (M3) | `backend/src/brainos/adapters/openephys/` | ZMQ Interface plugin wire format (data, TTL, spikes), heartbeat, block assembly, loss accounting. Receive-only. |
-| Processing (M3) | `backend/src/brainos/processing/` | Causal, chunk-invariant streaming stages and presets. |
-| Pipeline (M3) | `backend/src/brainos/runtime/pipeline.py` | Features → decoder → (optional) command router, as derived events in the device's session. |
-| Live sources (M3) | `backend/src/brainos/runtime/live_sources.py` | Operator-configured LSL / Open Ephys sources exposed as devices. |
-| Decoding (M2/M3) | `backend/src/brainos/decoding/` | Ridge decoder, model metadata + compatibility rules, calibration from recordings. |
-| Reference app (M3) | `backend/examples/reference_app/` | Cursor app using only `brainos.sdk`; test-enforced. |
-| Test publishers (M3) | `backend/src/brainos/testing/` | LSL and Open Ephys protocol publishers (synthetic or prerecorded, declared). |
-| Adapter SDK (M4) | `packages/brainos-adapter-sdk/` | Public plugin API (`api.py`), validation (`validate.py`), IPC (`ipc.py`), plugin host process (`host.py`), sync host client. No BrainOS import. §12. |
-| Plugin adapter (M4) | `backend/src/brainos/adapters/plugin/`, `runtime/plugins.py`, `server/plugin_routes.py` | Runs installed source plugins out of process; discovery, configuration, role → event mapping. §12. |
-| Example plugin (M4) | `examples/adapters/brainos-example-adapter/` | Separately installable third-party-style plugin (declared-synthetic motor-imagery EEG). |
+| LSL adapter (M3) | `backend/src/concord/adapters/lsl/` | Discovery, metadata, composite signal + behavior + marker inlets, timestamps, gap detection, reconnect. Receive-only. |
+| Open Ephys adapter (M3) | `backend/src/concord/adapters/openephys/` | ZMQ Interface plugin wire format (data, TTL, spikes), heartbeat, block assembly, loss accounting. Receive-only. |
+| Processing (M3) | `backend/src/concord/processing/` | Causal, chunk-invariant streaming stages and presets. |
+| Pipeline (M3) | `backend/src/concord/runtime/pipeline.py` | Features → decoder → (optional) command router, as derived events in the device's session. |
+| Live sources (M3) | `backend/src/concord/runtime/live_sources.py` | Operator-configured LSL / Open Ephys sources exposed as devices. |
+| Decoding (M2/M3) | `backend/src/concord/decoding/` | Ridge decoder, model metadata + compatibility rules, calibration from recordings. |
+| Reference app (M3) | `backend/examples/reference_app/` | Cursor app using only `concord.sdk`; test-enforced. |
+| Test publishers (M3) | `backend/src/concord/testing/` | LSL and Open Ephys protocol publishers (synthetic or prerecorded, declared). |
+| Adapter SDK (M4) | `packages/concord-adapter-sdk/` | Public plugin API (`api.py`), validation (`validate.py`), IPC (`ipc.py`), plugin host process (`host.py`), sync host client. No Concord import. §12. |
+| Plugin adapter (M4) | `backend/src/concord/adapters/plugin/`, `runtime/plugins.py`, `server/plugin_routes.py` | Runs installed source plugins out of process; discovery, configuration, role → event mapping. §12. |
+| Example plugin (M4) | `examples/adapters/concord-example-adapter/` | Separately installable third-party-style plugin (declared-synthetic motor-imagery EEG). |
 
 ## 3. Capability model
 
@@ -136,7 +136,7 @@ registered device.
   "quality": { "score": 0.94, "flags": ["synthetic"] },
   "provenance": {
     "kind": "simulated_intent",
-    "adapter": "brainos.sim.profile_a@0.1.0",
+    "adapter": "concord.sim.profile_a@0.1.0",
     "synthetic": true,
     "model_id": null,
     "origin": "operator",
@@ -199,10 +199,10 @@ These rules are enforced by the envelope validator. Consequences:
 - Replayed events keep their original `kind`, and set `replayed: true` plus a
   `replayed` quality flag.
 - (1.4) `provenance.model_origin` says whose decoder produced a `decoded_intent`:
-  `brainos` (a model BrainOS trained or loaded), `external` (a live external decoder, e.g.
+  `concord` (a model Concord trained or loaded), `external` (a live external decoder, e.g.
   BCI2000's or a device's own), `historical` (recorded outputs of a research system's original
   online decoder). It is rejected on any other kind, and `historical` requires
-  `replayed: true`. Historical outputs are never attributed to BrainOS.
+  `replayed: true`. Historical outputs are never attributed to Concord.
 
 ### 4.3 Ordering and timing
 
@@ -275,9 +275,9 @@ Sources:
 
 | Source | Device ids | Emits |
 | --- | --- | --- |
-| `BrainOSRecordingSource` | `replay:<name>` | the recorded envelopes (runtime status events excluded) |
+| `ConcordRecordingSource` | `replay:<name>` | the recorded envelopes (runtime status events excluded) |
 
-A BrainOS recording (`brainos.recording/1`) is a header line followed by one envelope per
+A Concord recording (`concord.recording/1`) is a header line followed by one envelope per
 line. Header: `format`, `schema_version`, `created_at_ns`, `device` (descriptor),
 `synthetic`, `note`, and since Milestone 5 (optional, additive) `source_metadata` (the
 adapter's own description of the source when recording started, e.g. LSL uid / source_id /
@@ -296,7 +296,7 @@ Intracranial Data — Offline Replay", never as a live device.
 
 ### 5.3 Decoders (M2)
 
-`brainos.decoding.ridge.RidgeDecoder` is a JSON-serialized linear model with a
+`concord.decoding.ridge.RidgeDecoder` is a JSON-serialized linear model with a
 causal streaming implementation identical to its offline prediction. The
 `NWBCatalog` attaches a model to a dataset file only if the model's
 `evaluations` include that file's SHA-256. `NWBUnitsSource` refuses (with
@@ -361,7 +361,7 @@ behavior/markers keys), `sources/openephys`, `DELETE sources/{id}`, `pipeline`,
 (`plugin_routes.py`, §12): `plugins` (GET), `plugins/discover`, `plugins/{name}/configure`;
 `DELETE sources/{id}` also removes configured plugin devices.
 
-WebSocket `/api/v1/stream`, protocol `brainos.stream/1`:
+WebSocket `/api/v1/stream`, protocol `concord.stream/1`:
 
 | Direction | Message |
 | --- | --- |
@@ -383,11 +383,11 @@ send data toward devices.
 | Device → runtime | Native packets are untrusted. Binary frames are length/CRC checked; every draft is schema-validated; undeclared capabilities are dropped. |
 | App → runtime | Apps are untrusted. Hello is validated; unknown capabilities rejected; apps receive only granted capabilities; no write path exists. |
 | Network exposure | Server binds `127.0.0.1` by default. **No authentication in v1** — local single-user demo only. Do not expose to a network. |
-| Simulation endpoints | `/api/v1/sim/*` exist only for simulated devices and are disabled by `BRAINOS_ENABLE_SIM=0`. They are an operator tool, not an app API. |
+| Simulation endpoints | `/api/v1/sim/*` exist only for simulated devices and are disabled by `CONCORD_ENABLE_SIM=0`. They are an operator tool, not an app API. |
 | Data at rest | Recordings are written to `data/recordings/` (gitignored). With M3 live sources they may contain real neural data: treat the directory as research data under your protocol. No encryption. Size and duration are bounded (`[recording]`, default 300 s / 200 MiB with raw frames, at most 24 h / 100 GiB) and a recording stops cleanly below 256 MiB free disk. |
-| Acquisition networks (M3) | LSL inlets and the Open Ephys SUB socket only *receive*. The Open Ephys heartbeat REQ sends only `{application, uuid, type: "heartbeat"}` (the plugin's event-injection request is not implemented). BrainOS opens no listening socket other than its HTTP server (default `127.0.0.1`). LSL discovery uses liblsl's multicast/broadcast on the local network. |
+| Acquisition networks (M3) | LSL inlets and the Open Ephys SUB socket only *receive*. The Open Ephys heartbeat REQ sends only `{application, uuid, type: "heartbeat"}` (the plugin's event-injection request is not implemented). Concord opens no listening socket other than its HTTP server (default `127.0.0.1`). LSL discovery uses liblsl's multicast/broadcast on the local network. |
 | Decoded commands → apps (M4) | Default deny: an app id receives decoded `intent.pointer` / `intent.selection` / `intent.text` only while the operator has authorized it for that capability (`/api/v1/control`); enforced in negotiation (`not_authorized`) and again on the bus. App ids are self-declared (no authentication). docs/CONTROL_BRIDGE.md. |
-| Source plugins (M4) | Third-party plugin code runs in a separate process (fault isolation) and everything it sends is validated twice; it is **not sandboxed** — same user, files and network as BrainOS (§12, docs/ADAPTER_SDK.md §5). |
+| Source plugins (M4) | Third-party plugin code runs in a separate process (fault isolation) and everything it sends is validated twice; it is **not sandboxed** — same user, files and network as Concord (§12, docs/ADAPTER_SDK.md §5). |
 
 Planned (not implemented): per-app auth tokens (so an authorization cannot be claimed by
 another local process), signed adapters, audit log, TLS.
@@ -395,14 +395,14 @@ another local process), signed adapters, audit log, TLS.
 ## 9. Extension points
 
 1. **New device**: preferably a **source plugin** against the public adapter SDK (§12):
-   `pip install` it and BrainOS discovers, validates and runs it out of process — no change
-   to BrainOS. Built-in alternative: implement `DeviceAdapter`, register a factory in
+   `pip install` it and Concord discovers, validates and runs it out of process — no change
+   to Concord. Built-in alternative: implement `DeviceAdapter`, register a factory in
    `runtime/registry.py`.
 2. **New dataset format**: implement `ReplaySource` (see `NWBUnitsSource`), and
-   pin verified files in a `brainos/datasets/*.json` manifest.
+   pin verified files in a `concord/datasets/*.json` manifest.
 3. **Decoder**: the M3 pipeline (§11) runs a model on `features.*` from any device whose
    features match the model's declared input. New model types implement the same
-   `streaming()` / `predict_counts()` behaviour and metadata (`brainos.model/1`).
+   `streaming()` / `predict_counts()` behaviour and metadata (`concord.model/1`).
 4. **New capability**: requires a schema minor version bump, a payload model,
    provenance rules, and SDK type updates — deliberately not a plugin.
 
@@ -431,7 +431,7 @@ All values are measured in-process; nothing is estimated.
 
 An external stream cannot prove where it comes from. LSL / Open Ephys sources are
 `kind = stream` ("live stream · origin unverified") unless the stream itself declares
-otherwise in BrainOS metadata (`<desc><brainos><prerecorded>` / `<synthetic>`): a declared
+otherwise in Concord metadata (`<desc><concord><prerecorded>` / `<synthetic>`): a declared
 prerecorded stream is `kind = replay` and its events carry `replayed: true` (e.g. FALCON H1
 streamed over LSL); a declared synthetic one is `kind = simulated`, `synthetic: true`. The
 declaration travels with the data into recordings, decoders and calibration reports.
@@ -439,7 +439,7 @@ declaration travels with the data into recordings, decoders and calibration repo
 ### 11.2 LSL adapter (`adapters/lsl/`)
 
 - Discovery (`resolve_streams`) lists every outlet with its metadata. Usable signal
-  streams: numeric, regular-rate; types ending in `SpikeCounts`/`BinnedSpikes` (BrainOS
+  streams: numeric, regular-rate; types ending in `SpikeCounts`/`BinnedSpikes` (Concord
   convention) map to `features.binned`, others to `recording.frame`. String or irregular
   streams can only be attached as markers.
 - Units are taken from `<channels><channel><unit>`: converted exactly to µV if **every**
@@ -467,7 +467,7 @@ clock), not wall clock.
 - The pipeline taps the bus for its input event type in the current session into a bounded
   queue (4096; overflow drops the oldest and counts `dropped_inputs`) and runs in its own
   asyncio task. Derived events are re-ingested and validated like any adapter event, with
-  `adapter = brainos.pipeline@…`, the source's `origin`, `synthetic` and `replayed`.
+  `adapter = concord.pipeline@…`, the source's `origin`, `synthetic` and `replayed`.
 - Presets (`processing/chain.py`): `spikeband_threshold` (≥ 10 kHz: 250–5000 Hz band-pass,
   optional CAR, −4.5 × RMS threshold crossings, 1 ms refractory → `features.binned`),
   `ecog_high_gamma` / `band_power` (notch + band-pass → log band power →
@@ -507,7 +507,7 @@ clock), not wall clock.
 
 ### 11.5 Calibration (`decoding/calibrate.py`)
 
-Input: closed BrainOS recordings with neural features and `behavior.sample` labels (e.g. a
+Input: closed Concord recordings with neural features and `behavior.sample` labels (e.g. a
 cue task's LSL Behavior stream, or a dataset's kinematics). Each feature bin is labelled
 with the behavior sample nearest its end within half a bin (labels only; features are never
 shifted). Chronological split at a trial marker after `train_fraction`, then `gap_bins`,
@@ -518,17 +518,17 @@ markdown report is written to `reports/calibration/`.
 
 ## 12. Source plugins (Milestone 4)
 
-A third party integrates a source by writing a plugin against `brainos_adapter_sdk` only
-(`SourcePlugin` / `SourceSession`, API 1.0, read-only), exposing it in the `brainos.sources`
-entry-point group and installing it into BrainOS's environment. Guide: docs/ADAPTER_SDK.md.
+A third party integrates a source by writing a plugin against `concord_adapter_sdk` only
+(`SourcePlugin` / `SourceSession`, API 1.0, read-only), exposing it in the `concord.sources`
+entry-point group and installing it into Concord's environment. Guide: docs/ADAPTER_SDK.md.
 
 ```
  runtime process (never imports plugin code)            plugin host process (one per plugin connection)
  ┌───────────────────────────────────────────┐          ┌──────────────────────────────────────────┐
  │ PluginRegistry ── host --list ────────────┼─spawn──▶ │ entry points (metadata only) → one probe │
  │                                           │          │ process per plugin: manifest, discover() │
- │ PluginAdapter.open() ── spawn ────────────┼─────────▶│ python -m brainos_adapter_sdk.host <ep>  │
- │   AsyncHostClient  ◀═ brainos.plugin-ipc/1 ═════════▶│   fd 1 → stderr, fd 0 → /dev/null        │
+ │ PluginAdapter.open() ── spawn ────────────┼─────────▶│ python -m concord_adapter_sdk.host <ep>  │
+ │   AsyncHostClient  ◀═ concord.plugin-ipc/1 ═════════▶│   fd 1 → stderr, fd 0 → /dev/null        │
  │   re-validate (validate.py)               │  frames: │   validate.py: manifest, options,        │
  │   mapping.normalize → EventDraft          │  4-byte  │   session, every chunk                   │
  │   → runtime ingest (§6.2)                 │  len +   │   plugin.open() / session.read()         │
@@ -539,7 +539,7 @@ entry-point group and installing it into BrainOS's environment. Guide: docs/ADAP
 ### 12.1 Discovery, configuration, device ids
 
 * Discovery (startup, in the background, and `POST /plugins/discover`) runs
-  `python -m brainos_adapter_sdk.host --list`, which reads entry points from package metadata
+  `python -m concord_adapter_sdk.host --list`, which reads entry points from package metadata
   and probes each plugin in its own process (manifest + `discover()`). The runtime re-validates
   every manifest and device list. Each plugin is listed as `compatible`, `rejected` (with the
   validation problems, e.g. API version) or `load_error` (import / instantiation failure).
@@ -583,7 +583,7 @@ Normative additions; details and evidence in docs/ECOG.md.
 
 ### 13.1 Sliced datasets and verified extracts
 
-A dataset manifest (`brainos/datasets/*.json`) may declare `modality` (a contract `Modality`
+A dataset manifest (`concord/datasets/*.json`) may declare `modality` (a contract `Modality`
 value), `line_hz` (mains of the recording site) and `slices`: exact `[start, stop)` sample
 ranges of one series of one pinned asset, with `data_sha256` = SHA-256 of the stored values
 (file dtype, little-endian, C order) and optionally `pose_sha256`. `datasets/extract.py` reads a
@@ -627,11 +627,11 @@ parameter `line_hz` **only from a verified manifest**. Recording parameters also
 
 ## Compatibility registry (Milestone 5, workstream F)
 
-`backend/src/brainos/compat/`: `model.py` (pydantic, `extra="forbid"`: the curated
+`backend/src/concord/compat/`: `model.py` (pydantic, `extra="forbid"`: the curated
 `compat/sources.json` and the generated `compat/registry.json`, whose JSON Schema
 `compat/registry.schema.json` is exported from these models), `rules.py` (pure: what each
 evidence item supports and the level derivation, levels exactly as docs/VALIDATION_LEVELS.md),
-`build.py` (`python -m brainos.compat.build [--check]`: reads the sources and every
+`build.py` (`python -m concord.compat.build [--check]`: reads the sources and every
 `docs/compatibility/*.certify.json`, verifies paths, anchors, certify-report schema and
 consistency, plugin versions and source hashes against the checkout, writes the registry, its
 schema and the generated section of docs/COMPATIBILITY.md; `--check` fails CI when any is
@@ -640,10 +640,10 @@ stale), `live.py` (loads the registry; per entry: installed / different version 
 
 **Normative:** a level is never typed in; the sources schema has no level field. Live status
 never changes a level. `GET /api/v1/compatibility` (`server/compat_routes.py`, read-only)
-returns `{available, source, error, brainos_version, registry, live, plugin_discovery}`; a
+returns `{available, source, error, concord_version, registry, live, plugin_discovery}`; a
 missing or invalid registry file is `available: false` with the reason (also recorded in
 diagnostics as `compatibility_registry`), never a partial registry. The file is
-`Settings.compat_registry` (`BRAINOS_COMPAT_REGISTRY`, default `compat/registry.json`). The
+`Settings.compat_registry` (`CONCORD_COMPAT_REGISTRY`, default `compat/registry.json`). The
 console shows it under Advanced → Compatibility (`components/CompatibilityView.tsx`).
 
 ## 14. Application layer (Milestone 5, workstream C)
@@ -674,23 +674,23 @@ Guide: docs/DECODER_SDK.md. This section is normative for the runtime side.
  features (pipeline or source) ─▶ check_manifest ─▶ PipelineDecoder ─▶ intent.kinematics ─▶ CommandRouter(s)
                                    (model.py)         (engine.py)        decoded_intent,       one per decoder,
                                                        ├ in-process:      model_id,             operator mapping
-                                                       │  built-in JSON   model_origin=brainos  + authorization
+                                                       │  built-in JSON   model_origin=concord  + authorization
                                                        │  families
-                                                       └ isolated: decoder host (brainos_decoder_sdk.host),
+                                                       └ isolated: decoder host (concord_decoder_sdk.host),
                                                           plugins + model files, outputs validated twice
  source decoder outputs (historical / external) ─ decoded_passthrough ─────────────────────────▶ CommandRouter(s)
 ```
 
 * **One interface.** `decoding/engine.py: PipelineDecoder` (`start`, `step(x[n, width]) ->
   values[n, dims] (+ confidence)`, `reset`, `close`). `InProcessDecoder` steps a built-in
-  family's `streaming()`. `IsolatedDecoder` speaks `brainos.decoder-ipc/1` (the adapter SDK's
-  framing) to `python -m brainos_decoder_sdk.host` through the generalized
+  family's `streaming()`. `IsolatedDecoder` speaks `concord.decoder-ipc/1` (the adapter SDK's
+  framing) to `python -m concord_decoder_sdk.host` through the generalized
   `AsyncHostClient`. A decoder failure (exit, hang > 5 s per step, protocol error, invalid
   output, exception) marks it `failed`, stops the command router and is reported; features
   continue.
-* **Registry** (`decoding/registry.py`): BrainOS-trained JSON models (`*.json`), imported
+* **Registry** (`decoding/registry.py`): Concord-trained JSON models (`*.json`), imported
   model files (`*.manifest.json` + artifact, SHA-256 checked) and decoder plugins
-  (`brainos.decoders` entry points, probed by `host --list`, manifests re-validated). Trust
+  (`concord.decoders` entry points, probed by `host --list`, manifests re-validated). Trust
   decisions for unsafe formats live in `<models_dir>/_trust.json` (model id, SHA-256, who,
   when).
 * **Families** (`decoding/families.py`): built-in JSON families dispatched on the file's
@@ -710,7 +710,7 @@ Guide: docs/DECODER_SDK.md. This section is normative for the runtime side.
   - `decoded_passthrough` forwards a source's `historical` / `external` decoder outputs to
     the router, keeping their model id and origin;
   - a declared `y_axis: up` must be mapped with `invert_y`.
-  `provenance.model_origin` is `brainos` for every decoder BrainOS runs, and `external` for
+  `provenance.model_origin` is `concord` for every decoder Concord runs, and `external` for
   source-plugin decoder outputs (`adapters/plugin/mapping.py`).
 * **Calibration** (`decoding/calibrate.py: calibrate_capability`, REST `calibration/options`,
   `calibration/check`, `calibration/train`): capability → label check → family fit →
@@ -731,29 +731,29 @@ Additive; no event-contract change (schema stays 1.4). `RecordingInfo` gains `co
 
 ### M5-D.1 Processes and configuration
 
-`brainos serve` (= `brainos-server`, `python -m brainos.server`) is the only server entry: it
+`concord serve` (= `concord-server`, `python -m concord.server`) is the only server entry: it
 checks the bind address (non-loopback refused without `allow_remote`), sets umask 077,
-installs redacting log handlers (stderr + `<data>/logs/brainos.log`) and takes an exclusive
-lock on `<data>/brainos.pid`. `brainos start` runs it detached and waits for `/health`;
-`brainos stop` calls `POST /safe-stop`, then SIGTERM (graceful shutdown closes recordings and
-the active session), SIGKILL only after a timeout. The desktop app (`brainos/desktop.py`) runs
+installs redacting log handlers (stderr + `<data>/logs/concord.log`) and takes an exclusive
+lock on `<data>/concord.pid`. `concord start` runs it detached and waits for `/health`;
+`concord stop` calls `POST /safe-stop`, then SIGTERM (graceful shutdown closes recordings and
+the active session), SIGKILL only after a timeout. The desktop app (`concord/desktop.py`) runs
 the same server in a thread and a Tk window in the main thread. Settings: environment >
-config file (`brainos/config.py`, TOML, validated, refused if writable by others) > defaults.
+config file (`concord/config.py`, TOML, validated, refused if writable by others) > defaults.
 A source checkout keeps `data/` and `frontend/dist`; an installed copy uses the per-user
 directory and the console staged into the package.
 
 ### M5-D.2 Storage layout (all 0700 directories / 0600 files)
 
 ```
-<data>/recordings/<name>.brainos.jsonl     recording (format unchanged)
+<data>/recordings/<name>.concord.jsonl     recording (format unchanged)
                   <name>.active.json       while written (OS-locked by the writer)
                   <name>.recovery.json     after recovery: status, counts, hashes
                   <name>.discarded.bin     bytes after the last complete event (if any)
 <data>/models/<model_id>.json
-<data>/sessions/<id>/session.json          brainos.session/1: name, operator, notes, times, recordings, models
+<data>/sessions/<id>/session.json          concord.session/1: name, operator, notes, times, recordings, models
 <data>/sessions/<id>/log.jsonl             session log (no personal data)
-<data>/sessions/<id>/exports/*.zip         brainos.session-bundle/1
-<data>/logs/  <data>/support/  <data>/brainos.pid
+<data>/sessions/<id>/exports/*.zip         concord.session-bundle/1
+<data>/logs/  <data>/support/  <data>/concord.pid
 ```
 
 ### M5-D.3 REST (operator endpoints, `/api/v1`)
@@ -782,7 +782,7 @@ computed (source, pipeline, router, recording, calibration, authorization).
 
 At startup: tighten permissions, `Recorder.recover()` (markers not held by a live process, and
 legacy files not ending in a newline), mark sessions left active as `interrupted`, apply the
-retention policy. `brainos reproduce` verifies every file against the bundle manifest,
+retention policy. `concord reproduce` verifies every file against the bundle manifest,
 re-fits calibrated decoders from bundled recordings with the logged request, and recomputes
 recorded linear-decoder output bin by bin (after `len(kernel)` warm-up bins per
 discontinuity), within a 1e-6 relative tolerance.
@@ -824,7 +824,7 @@ as count; oldest-first drops are counted as before. Adapters split raw frames at
 backlog returns from `read()` without suspending, which previously starved the pipeline task,
 WebSocket senders and REST under overload.
 
-**Transport.** `python -m brainos.server` disables WebSocket permessage-deflate: the server is
+**Transport.** `python -m concord.server` disables WebSocket permessage-deflate: the server is
 local, and compressing JSON sample frames was the single largest cost of serving a raw-signal
 viewer. Other uvicorn launches (`make dev`, tests) keep uvicorn's default.
 

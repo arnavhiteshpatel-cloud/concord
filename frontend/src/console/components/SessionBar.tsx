@@ -63,8 +63,8 @@ export function SessionBar({
       .storage()
       .then((s) => {
         for (const name of s.recovered_recordings)
-          log("caution", `Recording ${name} was interrupted when BrainOS stopped; its complete part was kept and marked incomplete`);
-        for (const id of s.interrupted_sessions) log("caution", `Research session ${id} was interrupted when BrainOS stopped`);
+          log("caution", `Recording ${name} was interrupted when Concord stopped; its complete part was kept and marked incomplete`);
+        for (const id of s.interrupted_sessions) log("caution", `Research session ${id} was interrupted when Concord stopped`);
       })
       .catch(() => {});
   }, [log]);
@@ -173,7 +173,7 @@ function NewSessionSheet({ onClose, onCreated }: { onClose: () => void; onCreate
     <Sheet title="New research session" onClose={onClose} testId="new-session-sheet">
       <form onSubmit={submit}>
         <p className="explain">
-          Creates a session folder in the data directory. While the session is active, BrainOS logs source changes,
+          Creates a session folder in the data directory. While the session is active, Concord logs source changes,
           decoding and control settings, recordings and calibrations into it.
         </p>
         <div className="form-grid">
@@ -326,7 +326,7 @@ function SessionSheet({
         <h3>Export for reproduction</h3>
         <p className="explain">
           A zip with the session log, versions and package fingerprints, sources, pipeline settings, decoder models with
-          their calibration reports, and a REPRODUCE.md. <code>brainos reproduce &lt;file&gt;</code> verifies it and re-runs
+          their calibration reports, and a REPRODUCE.md. <code>concord reproduce &lt;file&gt;</code> verifies it and re-runs
           the evaluation.
         </p>
         <label className="check">

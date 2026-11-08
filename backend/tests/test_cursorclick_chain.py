@@ -1,12 +1,12 @@
 """M5 P0: the neural-to-command chain on GENUINE T15 data, through the unchanged runtime.
 
-replayed T15 block -> pipeline (historical passthrough, or BrainOS Kalman + click on the two
+replayed T15 block -> pipeline (historical passthrough, or Concord Kalman + click on the two
 feature streams) -> operator-enabled command router -> authorized app. Checks that what reaches
 the app is exactly what the offline evaluation computes (docs/CURSOR_CLICK.md), with the right
 provenance, and that leakage / frame errors are refused.
 
-Needs the T15 demo subset (``python -m brainos.datasets.dryad``); skipped loudly without it
-unless BRAINOS_REQUIRE_T15=1.
+Needs the T15 demo subset (``python -m concord.datasets.dryad``); skipped loudly without it
+unless CONCORD_REQUIRE_T15=1.
 """
 
 from __future__ import annotations
@@ -22,31 +22,31 @@ import pytest
 
 pytest.importorskip("scipy")
 
-from brainos.adapters.cursorclick.reader import load
-from brainos.adapters.cursorclick.source import neural_streams
-from brainos.adapters.simulated import OperatorIntentSource
-from brainos.contracts import Capability
-from brainos.datasets.dryad import manifest
-from brainos.decoding import click as clickdec
-from brainos.decoding import kalman
-from brainos.evaluation.cursorclick import intention_labels
-from brainos.evaluation.run_cursorclick import click_labels
-from brainos.runtime import DeviceRegistry, Recorder, Runtime, RuntimeCommandError
-from brainos.runtime.pipeline import ClickRule, PipelineStartRequest, RouterSpec
+from concord.adapters.cursorclick.reader import load
+from concord.adapters.cursorclick.source import neural_streams
+from concord.adapters.simulated import OperatorIntentSource
+from concord.contracts import Capability
+from concord.datasets.dryad import manifest
+from concord.decoding import click as clickdec
+from concord.decoding import kalman
+from concord.evaluation.cursorclick import intention_labels
+from concord.evaluation.run_cursorclick import click_labels
+from concord.runtime import DeviceRegistry, Recorder, Runtime, RuntimeCommandError
+from concord.runtime.pipeline import ClickRule, PipelineStartRequest, RouterSpec
 
 from .conftest import subscribe
 from .helpers import drain, events, wait_for
 
 REPO = Path(__file__).resolve().parents[2]
-DATA = Path(os.environ.get("BRAINOS_TEST_T15", REPO / "data" / "datasets" / "dryad-prr4xgxzq"))
+DATA = Path(os.environ.get("CONCORD_TEST_T15", REPO / "data" / "datasets" / "dryad-prr4xgxzq"))
 NAMES = [f.filename for f in manifest("t15-cursor-click").blocks(468) if f.block in (0, 1, 2, 3)]
 FILES = [DATA / n for n in NAMES]
 PRESENT = all(f.exists() for f in FILES)
-if not PRESENT and os.environ.get("BRAINOS_REQUIRE_T15") == "1":
-    raise RuntimeError(f"BRAINOS_REQUIRE_T15=1 but the T15 demo files are missing in {DATA}")
+if not PRESENT and os.environ.get("CONCORD_REQUIRE_T15") == "1":
+    raise RuntimeError(f"CONCORD_REQUIRE_T15=1 but the T15 demo files are missing in {DATA}")
 pytestmark = pytest.mark.skipif(
     not PRESENT,
-    reason=f"T15 cursor+click files not found in {DATA}; run `python -m brainos.datasets.dryad`",
+    reason=f"T15 cursor+click files not found in {DATA}; run `python -m concord.datasets.dryad`",
 )
 
 GRID_ID = "t15:day00468-block03-grid-evaluation"
@@ -188,11 +188,11 @@ async def test_historical_outputs_reach_the_app_labelled_historical(rt: Runtime)
         assert p["model_id"] in ("t15-historical-velocity", "t15-historical-click")
 
 
-async def test_brainos_decoders_through_the_chain_equal_the_offline_evaluation(
+async def test_concord_decoders_through_the_chain_equal_the_offline_evaluation(
     rt: Runtime, models: tuple[Path, Any, Any]
 ) -> None:
-    """BrainOS Kalman + click on the two joined feature streams of a held-out block: decoded
-    values equal offline prediction, clicks equal the offline click rule, provenance brainos."""
+    """Concord Kalman + click on the two joined feature streams of a held-out block: decoded
+    values equal offline prediction, clicks equal the offline click rule, provenance concord."""
     _, kal, clk = models
     await rt.connect(GRID_ID)
     rt.authorize_app("test", [Capability.POINTER_INTENT, Capability.SELECTION])
@@ -227,7 +227,7 @@ async def test_brainos_decoders_through_the_chain_equal_the_offline_evaluation(
     assert np.allclose([vel[i] for i in range(n)], off_v[:n], atol=1e-9)
     assert np.allclose([prob[i] for i in range(n)], off_p[:n], atol=1e-12)
     ptr = events(msgs, "intent.pointer")
-    assert all(e["provenance"]["model_origin"] == "brainos" for e in ptr)
+    assert all(e["provenance"]["model_origin"] == "concord" for e in ptr)
     sel = [_bin(e) for e in events(msgs, "intent.selection") if _bin(e) < n]
     offline = clickdec.decision_events(off_p[:n], 0.7, 10, 100).tolist()
     assert sel == offline
@@ -236,7 +236,7 @@ async def test_brainos_decoders_through_the_chain_equal_the_offline_evaluation(
     )
 
 
-async def test_brainos_models_refused_on_their_training_block(
+async def test_concord_models_refused_on_their_training_block(
     rt: Runtime, models: tuple[Path, Any, Any]
 ) -> None:
     _, kal, _ = models

@@ -1,5 +1,5 @@
-// BrainOS TypeScript SDK — command-safety helper for applications that act on commands.
-// Same behaviour as the Python SDK's CommandGuard (backend/src/brainos/sdk/guard.py):
+// Concord TypeScript SDK — command-safety helper for applications that act on commands.
+// Same behaviour as the Python SDK's CommandGuard (backend/src/concord/sdk/guard.py):
 //
 //   const guard = new CommandGuard({ onStop: (why) => showStopped(why) });
 //   const detach = attachGuard(stream, guard, (e) => act(e));   // only fresh, usable commands
@@ -13,7 +13,7 @@
 //
 // It never talks to the runtime: authorization is the operator's decision.
 
-import type { BrainOSStream, ConnectionStatus } from "./client";
+import type { ConcordStream, ConnectionStatus } from "./client";
 import type { Capability, EnvelopeOf, EventEnvelope, NegotiationResult, RuntimeSnapshot } from "./types";
 
 export type CommandCapability = "pointer_intent" | "selection" | "text_intent" | "navigation";
@@ -258,7 +258,7 @@ export class CommandGuard {
  *  timer, and a callback for fresh, usable commands only. Returns a function that detaches
  *  everything. */
 export function attachGuard(
-  stream: BrainOSStream,
+  stream: ConcordStream,
   guard: CommandGuard,
   onCommand: (e: EventEnvelope) => void,
   tickMs = 20,

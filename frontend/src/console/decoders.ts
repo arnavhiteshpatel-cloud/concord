@@ -3,11 +3,11 @@
 
 import type { ModelSummary, PipelineStatus } from "./api";
 
-/** "BrainOS-trained" / "Plugin" / "Imported model file" / "External decoder" / historical replay. */
+/** "Concord-trained" / "Plugin" / "Imported model file" / "External decoder" / historical replay. */
 export function originLabel(origin: string | null | undefined): string {
   switch (origin) {
-    case "brainos-trained":
-      return "BrainOS-trained";
+    case "concord-trained":
+      return "Concord-trained";
     case "imported":
       return "Imported model file";
     case "plugin":
@@ -34,9 +34,9 @@ const FAMILY: Record<string, string> = {
 
 export const familyLabel = (f: string | null | undefined): string => (f ? (FAMILY[f] ?? f) : "—");
 
-/** "BrainOS-trained · ridge regression · in BrainOS" / "Decoder plugin · … · isolated process". */
+/** "Concord-trained · ridge regression · in Concord" / "Decoder plugin · … · isolated process". */
 export function decoderLine(d: Pick<ModelSummary, "origin" | "family" | "execution">): string {
-  const where = d.execution === "isolated" ? "isolated process" : d.execution === "in_process" ? "in BrainOS" : null;
+  const where = d.execution === "isolated" ? "isolated process" : d.execution === "in_process" ? "in Concord" : null;
   return [originLabel(d.origin), familyLabel(d.family), where].filter(Boolean).join(" · ");
 }
 

@@ -1,15 +1,15 @@
 # Ecosystem integrations: BrainFlow and BCI2000
 
 Milestone 4, workstream B. Two source plugins built on the public adapter SDK
-(`brainos_adapter_sdk.api`, API 1.0). They import only `brainos_adapter_sdk` (never
-`brainos`), run in the plugin host, and are **receive-only**.
+(`concord_adapter_sdk.api`, API 1.0). They import only `concord_adapter_sdk` (never
+`concord`), run in the plugin host, and are **receive-only**.
 
-| | `brainos-brainflow` | `brainos-bci2000` |
+| | `concord-brainflow` | `concord-bci2000` |
 | --- | --- | --- |
-| Entry point (`brainos.sources`) | `brainflow` | `bci2000` |
+| Entry point (`concord.sources`) | `brainflow` | `bci2000` |
 | External interface | BrainFlow's official acquisition API (`brainflow.board_shim.BoardShim`), BrainFlow 5.23.0 | BCI2000 App Connector protocol (`ConnectorOutput` filter, UDP), BCI2000 3.6 source |
-| What BrainOS receives | Samples of noninvasive research/consumer biosensing boards (EEG/EMG/ECG/EOG and auxiliary sensors) | **Processed control information**: BCI2000's control signal and state values — not raw signal |
-| BrainOS roles | `SIGNAL` | `DECODER_OUTPUT`, `BEHAVIOR`, `MARKERS` |
+| What Concord receives | Samples of noninvasive research/consumer biosensing boards (EEG/EMG/ECG/EOG and auxiliary sensors) | **Processed control information**: BCI2000's control signal and state values — not raw signal |
+| Concord roles | `SIGNAL` | `DECODER_OUTPUT`, `BEHAVIOR`, `MARKERS` |
 | Tested against | The official BrainFlow library: synthetic, playback-file and streaming boards; a real board driver's failure path | A genuine BCI2000 build (SignalGenerator + DummySignalProcessing + DummyApplication) sending through its own ConnectorOutput; a recorded capture of it; a byte-for-byte reproduction sender for edge cases |
 | Validation level (docs/VALIDATION_LEVELS.md) | **2 — protocol-tested** (official software, no hardware) | **2 — protocol-tested** (genuine BCI2000 software, signal generator, no hardware) |
 
@@ -17,7 +17,7 @@ Neither plugin has been run with acquisition hardware or a person. Nothing here 
 
 ---
 
-## 1. BrainFlow (`packages/brainos-brainflow`)
+## 1. BrainFlow (`packages/concord-brainflow`)
 
 ### What it uses
 
@@ -84,8 +84,8 @@ per-board tables except the documented unit exception below.
   gForceDual "returns ADC values instead uV" → `None`. BrainFlow documents no unit for any
   other channel type → `None` ("arbitrary"). "Wherever possible" is BrainFlow's own hedge;
   a board BrainFlow does not convert may be mislabelled — not verifiable without hardware.
-* **Invasiveness.** BrainFlow boards are noninvasive research/consumer devices; BrainOS
-  never presents them as implants. `invasive=False` only where the modality is one BrainOS
+* **Invasiveness.** BrainFlow boards are noninvasive research/consumer devices; Concord
+  never presents them as implants. `invasive=False` only where the modality is one Concord
   treats as noninvasive (EEG, surface EMG); otherwise `None`.
 * **No MARKERS stream.** BrainFlow's `Board::push_package` (`board.cpp`) overwrites the
   marker row of every sample with the next value queued by `insert_marker` *on the same
@@ -131,7 +131,7 @@ released. `get_board_data(_count)` errors → `LinkLost`. No sample for `stall_t
 board idles at end of file rather than reporting it). `close()` stops and releases the
 session, is idempotent and never raises; a released board can be opened again.
 
-### What was tested (official library, no mocks) — `pytest packages/brainos-brainflow/tests`: 41 tests
+### What was tested (official library, no mocks) — `pytest packages/concord-brainflow/tests`: 41 tests
 
 * `test_bf_synthetic.py` (5): manifest/discover rules; metadata equals
   `get_board_descr` (rate, `eeg_names`, ambiguous types, units, aux types); 3 s of streaming
@@ -161,7 +161,7 @@ session, is idempotent and never raises; a released board can be opened again.
   Muse 2 (EEG-only → EEG/noninvasive), ANT Neuro EE-411 (`EEG|RESISTANCE` → unit None),
   gForcePro (EMG, ADC → unit None); package counter wrap/gap/repeat/out-of-range/off.
 
-### Measurements (`packages/brainos-brainflow/scripts/measure_brainflow.py --seconds 10`)
+### Measurements (`packages/concord-brainflow/scripts/measure_brainflow.py --seconds 10`)
 
 This container (x86_64 Linux, Python 3.12.3, BrainFlow 5.23.0), 2026-11-07. Latency = wall
 time when `read()` returned minus the sample's BrainFlow timestamp (same machine, same
@@ -190,8 +190,8 @@ higher latency.
 
 ### Researcher setup
 
-1. `pip install brainos-brainflow` (pulls `brainflow` and `brainos-adapter-sdk`).
-2. In the BrainOS console, open the BrainFlow plugin, choose `board` and set the
+1. `pip install concord-brainflow` (pulls `brainflow` and `concord-adapter-sdk`).
+2. In the Concord console, open the BrainFlow plugin, choose `board` and set the
    connection options BrainFlow's "Supported Boards" page lists for your board (e.g.
    `serial_port=/dev/ttyUSB0` for a Cyton). Try `synthetic` first.
 3. To replay a recording: device `playback`, `file=<BrainFlow file>`,
@@ -204,7 +204,7 @@ higher latency.
 
 ---
 
-## 2. BCI2000 (`packages/brainos-bci2000`)
+## 2. BCI2000 (`packages/concord-bci2000`)
 
 ### BCI2000's external interfaces
 
@@ -212,14 +212,14 @@ Determined from BCI2000's own source and documentation (sparse clone of a BCI200
 fork, `github.com/Personator01/bci2000` @ `40a2067`, BCI2000 3.6; bci2000.org was not
 reachable from the build container).
 
-| Interface | What it exposes | Direction | BrainOS uses it? |
+| Interface | What it exposes | Direction | Concord uses it? |
 | --- | --- | --- | --- |
 | **App Connector — ConnectorOutput** (`src/shared/modules/application/ConnectorFilters.cpp`; `Technical_Reference:App_Connector`) | Per data block: every state value and every element of the signal reaching the end of the application module, i.e. the **control signal** from signal processing (FeedbackTask/StimulusTask pass their input through: `FeedbackTask.cpp` lines 100, 279; `StimulusTask.cpp` lines 188, 497). UDP, one ASCII line per datagram. | BCI2000 → client | **Yes** (this plugin) |
 | App Connector — ConnectorInput (same file, lines 115-162) | Lets a client *set* states and control-signal elements | client → BCI2000 | No — write path |
 | Operator scripting `ADD WATCH <expr...> AT ip:port` (`User_Reference:Operator_Module_Scripting`) | On every change of the watched states/expressions: one UDP datagram, one tab-separated line ending in CRLF, first field a timestamp in the SourceTime time base. The App Connector page names it the successor of ConnectorOutput. | BCI2000 → client, but the watch is created by an Operator command | No (not implemented). Usable read-only if the researcher's own BCI2000 script adds the watch; a candidate for a future plugin mode |
-| Operator telnet / BCI2000Remote (C++ class, `BCI2000RemoteLib` C API, `OperatorLib`; `Technical_Reference:BCI2000Remote_Library`) | Full control of a BCI2000 instance: start/stop modules, set parameters, `SetStateVariable`, `GetStateVariable`, `GetControlSignal` (polling) | bidirectional control | No — controlling BCI2000 is outside BrainOS's read-only stance |
+| Operator telnet / BCI2000Remote (C++ class, `BCI2000RemoteLib` C API, `OperatorLib`; `Technical_Reference:BCI2000Remote_Library`) | Full control of a BCI2000 instance: start/stop modules, set parameters, `SetStateVariable`, `GetStateVariable`, `GetControlSignal` (polling) | bidirectional control | No — controlling BCI2000 is outside Concord's read-only stance |
 | FieldTripBuffer filter (`Contributions:FieldTripBuffer`, `src/contrib/SignalProcessing/FieldTripBuffer`) | Hosts a FieldTrip realtime buffer (TCP) and writes the filter's *input* into it — raw signal when placed first in signal processing, processed signal later — plus selected states as buffer events; can also read events back into states/output | BCI2000 → buffer ← client (bidirectional) | No. This is **the route for raw signal** out of BCI2000; a client would only read. Not built or tested |
-| BCI2000 data files (`.dat`) | Raw signal + all states, offline | file | No (offline; BrainOS's offline path is NWB) |
+| BCI2000 data files (`.dat`) | Raw signal + all states, offline | file | No (offline; Concord's offline path is NWB) |
 
 ### App Connector protocol (what the plugin implements)
 
@@ -260,7 +260,7 @@ consecutive blocks carrying the same smaller set of elements → `ConfigurationC
 
 | Stream | Role | Content |
 | --- | --- | --- |
-| `control_signal` (primary) | DECODER_OUTPUT, `quantity="control_signal"`, `model_id="bci2000-control-signal"` | one sample per block; channels `Signal(ch,el)`; unit `None` (App Connector carries no units). Becomes `intent.kinematics` with `decoded_intent` provenance in BrainOS and reaches apps as a command **only** if the operator enables the command router |
+| `control_signal` (primary) | DECODER_OUTPUT, `quantity="control_signal"`, `model_id="bci2000-control-signal"` | one sample per block; channels `Signal(ch,el)`; unit `None` (App Connector carries no units). Becomes `intent.kinematics` with `decoded_intent` provenance in Concord and reaches apps as a command **only** if the operator enables the command router |
 | `states` | BEHAVIOR, `quantity="bci2000_state"` | selected states (option `behavior_states`; `auto` = whichever of `TargetCode, ResultCode, Feedback` (FeedbackTask.cpp) and `StimulusCode, StimulusType` (StimulusTask.cpp) BCI2000 sends) |
 | `state_changes` | MARKERS | transitions of selected states (`marker_states`, same default), e.g. `TargetCode 0->2` |
 
@@ -268,7 +268,7 @@ Element semantics depend on BCI2000's signal processing (e.g. cursor X/Y/Z per c
 cursor task; elements may be time samples or spectral bins), so they are labelled by index,
 not interpreted. With DummySignalProcessing the "control signal" is the source signal passed
 through; it is still labelled as control information, because that is what the interface
-carries. Non-finite control values are not forwarded (BrainOS events require finite values;
+carries. Non-finite control values are not forwarded (Concord events require finite values;
 counted as `nonfinite_blocks`). The manifest, the device entry and `SessionInfo.origin`
 (`bci2000:<host>:<port> (processed control information, not raw signal)`) say this is
 processed control information. App Connector does not reveal BCI2000's source module, so
@@ -310,9 +310,9 @@ after a **1 s gap with nothing listening, BCI2000 sent nothing more** (0 datagra
 next 5 s) for the rest of the run. In BCI2000's source, `ConnectorOutput` opens its sending
 sockets only in `StartRun` (`ConnectorFilters.cpp` lines 198–210) and the send loop ignores
 write failures (lines 243–264), so a destination that becomes unreachable is not retried
-until the next run. Consequences: start the BrainOS source **before** starting the BCI2000
-run; after BrainOS reconnects (plugin host restart, BrainOS restart), stop and start the
-BCI2000 run. The plugin's open error says this. It is also why `brainos-certify`'s
+until the next run. Consequences: start the Concord source **before** starting the BCI2000
+run; after Concord reconnects (plugin host restart, Concord restart), stop and start the
+BCI2000 run. The plugin's open error says this. It is also why `concord-certify`'s
 `reconnect.host_killed` phase cannot pass against a live BCI2000 run (the certifier kills
 the receiver mid-run on purpose); see docs/COMPATIBILITY.md.
 
@@ -358,7 +358,7 @@ shrunk layout, close/port release, no data → `OpenFailed` with setup hint, por
 `OpenFailed`, unknown selected state → `InvalidOptions`, 10 invalid-option cases, unknown
 device key.
 
-Totals: `pytest packages/brainos-bci2000/tests`: 38 passed, 1 skipped (the opt-in live test;
+Totals: `pytest packages/concord-bci2000/tests`: 38 passed, 1 skipped (the opt-in live test;
 it passes with `BCI2000_PROG_DIR` set).
 
 ### Measurements (`scripts/measure_app_connector.py --prog-dir <BCI2000/prog> --seconds 10`)
@@ -388,12 +388,12 @@ sequence (a 62 ms step followed by ~0 ms).
 
 ### Researcher setup
 
-1. `pip install brainos-bci2000`.
+1. `pip install concord-bci2000`.
 2. In BCI2000 (Operator → Config → Connector, or a batch script):
-   `Set parameter ConnectorOutputAddress localhost:20321` (or `<BrainOS machine>:20321` with
+   `Set parameter ConnectorOutputAddress localhost:20321` (or `<Concord machine>:20321` with
    the plugin's `address` set to that machine's address). Leave `ConnectorInputAddress`
-   empty: BrainOS never sends.
-3. In BrainOS, open the BCI2000 App Connector device (address/port as above). Optionally
+   empty: Concord never sends.
+3. In Concord, open the BCI2000 App Connector device (address/port as above). Optionally
    enter BCI2000's `SamplingRate` and `SampleBlockSize` for a nominal rate, choose
    `behavior_states`/`marker_states` (comma-separated BCI2000 state names), and tick
    `declare_synthetic`/`declare_prerecorded` if BCI2000 runs SignalGenerator or FilePlayback.

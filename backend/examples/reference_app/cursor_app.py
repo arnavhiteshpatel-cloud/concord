@@ -1,6 +1,6 @@
-"""BrainOS reference application: a center-out cursor task driven by pointer commands.
+"""Concord reference application: a center-out cursor task driven by pointer commands.
 
-Uses ONLY the public Python SDK (``brainos.sdk``) and the standard library. It knows nothing
+Uses ONLY the public Python SDK (``concord.sdk``) and the standard library. It knows nothing
 about devices, adapters, decoders or datasets: it declares that it *requires*
 ``pointer_intent`` and reacts to whatever the runtime grants.
 
@@ -10,14 +10,14 @@ about devices, adapters, decoders or datasets: it declares that it *requires*
 * Decoded commands additionally need the operator's authorization of this app
   (``reference-cursor``) in the console: until then the runtime withholds them
   (negotiation reason ``not_authorized``) and the app says it is waiting for that.
-* A :class:`~brainos.sdk.CommandGuard` decides which commands to act on: none while the app
+* A :class:`~concord.sdk.CommandGuard` decides which commands to act on: none while the app
   is not authorized / the source is not streaming / the stream is closed; none older than
   500 ms; and the cursor stops (zero velocity) after 500 ms without a pointer command.
 * When commands arrive, it shows where they come from (provenance): simulated intent from a
   simulator, or decoded intent from a named model, and whether the underlying data is
   prerecorded or synthetic.
 
-Run against a running BrainOS (``make run``)::
+Run against a running Concord (``make run``)::
 
     python backend/examples/reference_app/cursor_app.py --url http://127.0.0.1:8000 --seconds 30
 
@@ -35,9 +35,9 @@ import sys
 from dataclasses import dataclass, field
 from typing import Any
 
-from brainos.sdk import (
-    BrainOSError,
+from concord.sdk import (
     CommandGuard,
+    ConcordError,
     EventStream,
     NegotiationUpdate,
     RuntimeUpdate,
@@ -225,7 +225,7 @@ async def run(app: CursorApp, base_url: str, stop: asyncio.Event) -> CursorApp:
         for t in tasks:
             t.cancel()
         for t in tasks:
-            with contextlib.suppress(asyncio.CancelledError, BrainOSError):
+            with contextlib.suppress(asyncio.CancelledError, ConcordError):
                 await t
     app.guard.on_closed()
     return app
@@ -244,8 +244,8 @@ async def _main(args: argparse.Namespace) -> int:
         stop.set()
         try:
             await runner
-        except (BrainOSError, OSError) as exc:
-            print(f"cannot reach BrainOS at {args.url}: {exc}", file=sys.stderr)
+        except (ConcordError, OSError) as exc:
+            print(f"cannot reach Concord at {args.url}: {exc}", file=sys.stderr)
             return 1
     print(json.dumps(app.summary(), indent=2))
     return 0

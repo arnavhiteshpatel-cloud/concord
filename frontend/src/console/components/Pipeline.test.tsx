@@ -74,7 +74,7 @@ const model: ModelInfo = {
     model_id: "ridge-abc",
     dims: ["vx", "vy"],
     input: { event_type: "features.binned", feature: "threshold_crossing_count", bin_ms: 20, channel_count: 16 },
-    trained_on: "syn-cal.brainos.jsonl",
+    trained_on: "syn-cal.concord.jsonl",
     held_out_r2: 0.612,
     held_out_samples: 200,
     control_mean_predictor_r2: -0.01,
@@ -132,7 +132,7 @@ const lslDevice = {
   device_id: "lsl:ephys",
   display_name: "LSL ephys",
   kind: "stream" as const,
-  adapter: "brainos.lsl@0.1.0",
+  adapter: "concord.lsl@0.1.0",
   description: "",
   native_format: "",
   capabilities: [
@@ -305,7 +305,7 @@ describe("Command output row", () => {
     expect(link.textContent).toBe("Open participant screen");
     expect(link.getAttribute("href")).toBe("/board.html");
     fireEvent.click(link);
-    expect(open).toHaveBeenCalledWith("/board.html", "brainos-participant", expect.stringContaining("popup"));
+    expect(open).toHaveBeenCalledWith("/board.html", "concord-participant", expect.stringContaining("popup"));
     open.mockRestore();
   });
 
@@ -350,8 +350,8 @@ const result: CalibrationResult = {
   model: { model_id: "ridge-new", dims: ["vx", "vy"] },
   report: {
     model_id: "ridge-new",
-    recordings: ["syn-cal.brainos.jsonl"],
-    source_identity: "lsl:brainos-synthetic-ephys",
+    recordings: ["syn-cal.concord.jsonl"],
+    source_identity: "lsl:concord-synthetic-ephys",
     prerecorded_source: false,
     synthetic_source: true,
     bins_total: 1000,
@@ -376,7 +376,7 @@ describe("CalibrationPanel", () => {
     expect(screen.queryByTestId("cal-rec-live-now")).toBeNull(); // still being written
     expect((screen.getByTestId("cal-train") as HTMLButtonElement).disabled).toBe(true);
     fireEvent.click(screen.getByTestId("cal-rec-syn-cal"));
-    fireEvent.change(screen.getByTestId("cal-source"), { target: { value: "brainos.pipeline" } });
+    fireEvent.change(screen.getByTestId("cal-source"), { target: { value: "concord.pipeline" } });
     fireEvent.change(screen.getByTestId("cal-fraction"), { target: { value: "0.7" } });
     fireEvent.click(screen.getByTestId("cal-train"));
     await screen.findByTestId("cal-report");
@@ -384,7 +384,7 @@ describe("CalibrationPanel", () => {
       recordings: ["syn-cal"],
       train_fraction: 0.7,
       gap_bins: 12,
-      feature_source: "brainos.pipeline",
+      feature_source: "concord.pipeline",
     });
     expect(onTrained).toHaveBeenCalledWith(result);
     expect(screen.getByTestId("cal-model-id").textContent).toBe("ridge-new");

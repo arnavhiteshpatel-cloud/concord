@@ -9,15 +9,15 @@ from typing import Any
 
 import pytest
 
-from brainos.adapters.replay import BrainOSRecordingSource
-from brainos.adapters.simulated import OperatorIntentSource, profile_a
-from brainos.config import ConfigError, parse_config
-from brainos.contracts import parse_envelope
-from brainos.runtime import DeviceRegistry, Recorder, Runtime
-from brainos.runtime import recorder as recorder_mod
-from brainos.runtime.recorder import RecorderError
-from brainos.server.app import create_app
-from brainos.server.settings import Settings
+from concord.adapters.replay import ConcordRecordingSource
+from concord.adapters.simulated import OperatorIntentSource, profile_a
+from concord.config import ConfigError, parse_config
+from concord.contracts import parse_envelope
+from concord.runtime import DeviceRegistry, Recorder, Runtime
+from concord.runtime import recorder as recorder_mod
+from concord.runtime.recorder import RecorderError
+from concord.server.app import create_app
+from concord.server.settings import Settings
 
 from .helpers import valid_event
 
@@ -67,9 +67,9 @@ def test_a_configured_duration_beyond_300_s_is_honoured_and_stops_cleanly(tmp_pa
     _write(rec, 1, start=6)
     assert rec.active_name is None and rec.stop_reason == "max duration reached"
     assert rec.list()[0].complete
-    path = tmp_path / "long.brainos.jsonl"
+    path = tmp_path / "long.concord.jsonl"
     assert _strict_header(path)["limits"] == {"max_duration_s": 1800.0, "max_bytes": 200 * MIB}
-    assert sum(1 for _ in BrainOSRecordingSource(path).records()) == 7  # nothing half-written
+    assert sum(1 for _ in ConcordRecordingSource(path).records()) == 7  # nothing half-written
 
 
 def test_size_limit_stops_after_a_whole_event(tmp_path: Path) -> None:
@@ -77,12 +77,12 @@ def test_size_limit_stops_after_a_whole_event(tmp_path: Path) -> None:
     rec.start(profile_a.descriptor(), "small")
     _write(rec, 200)
     assert rec.active_name is None and rec.stop_reason == "max size reached"
-    path = tmp_path / "small.brainos.jsonl"
+    path = tmp_path / "small.concord.jsonl"
     lines = path.read_bytes().split(b"\n")
     assert lines[-1] == b""  # ends on a complete line
     n = len(lines) - 2
     assert 0 < n < 200 and rec.list()[0].complete
-    assert sum(1 for _ in BrainOSRecordingSource(path).records()) == n
+    assert sum(1 for _ in ConcordRecordingSource(path).records()) == n
 
 
 def test_low_disk_space_refuses_to_start_and_stops_a_running_recording_cleanly(
@@ -93,7 +93,7 @@ def test_low_disk_space_refuses_to_start_and_stops_a_running_recording_cleanly(
     rec = Recorder(tmp_path, min_free_bytes=64 * MIB)
     with pytest.raises(RecorderError, match="10 MiB free"):
         rec.start(profile_a.descriptor(), "nospace")
-    assert not (tmp_path / "nospace.brainos.jsonl").exists()
+    assert not (tmp_path / "nospace.concord.jsonl").exists()
 
     free["bytes"] = 10 * 1024 * MIB
     rec.start(profile_a.descriptor(), "fills")
@@ -104,8 +104,8 @@ def test_low_disk_space_refuses_to_start_and_stops_a_running_recording_cleanly(
     _write(rec, 1, start=5)
     assert rec.active_name is None and rec.stop_reason == "disk space low (32 MiB free)"
     assert rec.list()[0].complete
-    path = tmp_path / "fills.brainos.jsonl"
-    assert sum(1 for _ in BrainOSRecordingSource(path).records()) == 6
+    path = tmp_path / "fills.concord.jsonl"
+    assert sum(1 for _ in ConcordRecordingSource(path).records()) == 6
 
 
 def test_header_keeps_a_plain_json_source_metadata_snapshot(tmp_path: Path) -> None:
@@ -119,7 +119,7 @@ def test_header_keeps_a_plain_json_source_metadata_snapshot(tmp_path: Path) -> N
     rec.start(profile_a.descriptor(), "meta", source_metadata=meta)
     meta["protocol"] = "changed after start"  # the header is a snapshot
     rec.stop()
-    path = tmp_path / "meta.brainos.jsonl"
+    path = tmp_path / "meta.concord.jsonl"
     header = _strict_header(path)  # strict JSON: NaN / Infinity became null
     assert header["source_metadata"] == {
         "protocol": "lsl",
@@ -129,7 +129,7 @@ def test_header_keeps_a_plain_json_source_metadata_snapshot(tmp_path: Path) -> N
     }
     assert "first + i / sample_rate_hz" in header["timing"]
     assert "cannot be reconstructed" in header["timing"]
-    src = BrainOSRecordingSource(path)  # validated by RecordingHeader
+    src = ConcordRecordingSource(path)  # validated by RecordingHeader
     assert src.header().source_metadata == header["source_metadata"]
 
 
@@ -142,7 +142,7 @@ def test_unrepresentable_metadata_never_blocks_a_recording(tmp_path: Path) -> No
     rec = Recorder(tmp_path)
     rec.start(profile_a.descriptor(), "deep", source_metadata=deep)
     rec.stop()
-    assert "source_metadata" not in _strict_header(tmp_path / "deep.brainos.jsonl")
+    assert "source_metadata" not in _strict_header(tmp_path / "deep.concord.jsonl")
 
 
 def test_recordings_with_the_earlier_header_still_replay(tmp_path: Path) -> None:
@@ -150,13 +150,13 @@ def test_recordings_with_the_earlier_header_still_replay(tmp_path: Path) -> None
     rec.start(profile_a.descriptor(), "old")
     _write(rec, 4)
     rec.stop()
-    path = tmp_path / "old.brainos.jsonl"
+    path = tmp_path / "old.concord.jsonl"
     lines = path.read_text().splitlines(keepends=True)
     header = json.loads(lines[0])
     for key in ("source_metadata", "timing", "limits"):
         header.pop(key, None)
     path.write_text(json.dumps(header) + "\n" + "".join(lines[1:]))
-    src = BrainOSRecordingSource(path)
+    src = ConcordRecordingSource(path)
     assert src.header().timing is None and src.header().source_metadata is None
     assert sum(1 for _ in src.records()) == 4
 
@@ -167,14 +167,14 @@ async def test_runtime_records_the_adapter_source_metadata(tmp_path: Path) -> No
     await rt.connect("sim-a")
     name = rt.start_recording("no-meta")  # simulated adapters describe no external source
     rt.stop_recording()
-    assert "source_metadata" not in _strict_header(rec_dir / f"{name}.brainos.jsonl")
+    assert "source_metadata" not in _strict_header(rec_dir / f"{name}.concord.jsonl")
 
     adapter = rt.adapter
     assert adapter is not None
     adapter.source_metadata = lambda: {"protocol": "test", "uid": "abc"}  # type: ignore[attr-defined]
     name = rt.start_recording("with-meta")
     rt.stop_recording()
-    header = _strict_header(rec_dir / f"{name}.brainos.jsonl")
+    header = _strict_header(rec_dir / f"{name}.concord.jsonl")
     assert header["source_metadata"] == {"protocol": "test", "uid": "abc"}
 
     def broken() -> dict[str, Any]:
@@ -183,7 +183,7 @@ async def test_runtime_records_the_adapter_source_metadata(tmp_path: Path) -> No
     adapter.source_metadata = broken  # type: ignore[attr-defined]
     name = rt.start_recording("meta-failed")  # still records; the failure is visible
     rt.stop_recording()
-    assert "source_metadata" not in _strict_header(rec_dir / f"{name}.brainos.jsonl")
+    assert "source_metadata" not in _strict_header(rec_dir / f"{name}.concord.jsonl")
     errors = rt.diagnostics.snapshot([]).recent_errors
     assert any(e.kind == "source_metadata" and "source went away" in e.message for e in errors)
     await rt.shutdown()
@@ -193,13 +193,13 @@ def test_recording_limits_from_config_file_and_environment(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     for var in (
-        "BRAINOS_RECORDING_MAX_S",
-        "BRAINOS_RECORDING_MAX_NO_RAW_S",
-        "BRAINOS_RECORDING_MAX_MB",
-        "BRAINOS_RECORDING_MIN_FREE_MB",
+        "CONCORD_RECORDING_MAX_S",
+        "CONCORD_RECORDING_MAX_NO_RAW_S",
+        "CONCORD_RECORDING_MAX_MB",
+        "CONCORD_RECORDING_MIN_FREE_MB",
     ):
         monkeypatch.delenv(var, raising=False)
-    monkeypatch.setenv("BRAINOS_CONFIG", str(tmp_path / "absent.toml"))
+    monkeypatch.setenv("CONCORD_CONFIG", str(tmp_path / "absent.toml"))
     s = Settings.from_env()
     assert (s.recording_max_duration_s, s.recording_max_bytes) == (300.0, 200 * MIB)
     assert s.recording_min_free_bytes == 256 * MIB
@@ -207,12 +207,12 @@ def test_recording_limits_from_config_file_and_environment(
     cfg = tmp_path / "config.toml"
     cfg.write_text("[recording]\nmax_duration_s = 1800\nmax_size_mb = 4096\nmin_free_mb = 0\n")
     cfg.chmod(0o600)
-    monkeypatch.setenv("BRAINOS_CONFIG", str(cfg))
+    monkeypatch.setenv("CONCORD_CONFIG", str(cfg))
     s = Settings.from_env()
     assert s.recording_max_duration_s == 1800.0 and s.recording_max_bytes == 4096 * MIB
     assert s.recording_max_duration_no_raw_s == 3600.0 and s.recording_min_free_bytes == 0
-    monkeypatch.setenv("BRAINOS_RECORDING_MAX_S", "7200")  # environment beats the file
-    monkeypatch.setenv("BRAINOS_DATA_DIR", str(tmp_path / "data"))
+    monkeypatch.setenv("CONCORD_RECORDING_MAX_S", "7200")  # environment beats the file
+    monkeypatch.setenv("CONCORD_DATA_DIR", str(tmp_path / "data"))
     s = Settings.from_env()
     assert s.recording_max_duration_s == 7200.0
 
@@ -222,7 +222,7 @@ def test_recording_limits_from_config_file_and_environment(
     assert recorder.min_free_bytes == 0
 
     for value, match in (("abc", "not a number"), ("0", r"\(0, 86400\]"), ("1e9", "86400")):
-        monkeypatch.setenv("BRAINOS_RECORDING_MAX_S", value)
+        monkeypatch.setenv("CONCORD_RECORDING_MAX_S", value)
         with pytest.raises(ConfigError, match=match):
             Settings.from_env()
 

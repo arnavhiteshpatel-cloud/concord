@@ -11,11 +11,11 @@ import httpx
 import pytest
 import uvicorn
 
-from brainos.adapters.simulated import OperatorIntentSource
-from brainos.contracts.capabilities import Capability
-from brainos.contracts.protocol import AppInfo
-from brainos.runtime import DeviceRegistry, Recorder, Runtime, Subscriber
-from brainos.server import Settings, create_app
+from concord.adapters.simulated import OperatorIntentSource
+from concord.contracts.capabilities import Capability
+from concord.contracts.protocol import AppInfo
+from concord.runtime import DeviceRegistry, Recorder, Runtime, Subscriber
+from concord.server import Settings, create_app
 
 FAST_BACKOFF = (0.01, 0.02, 0.03)
 

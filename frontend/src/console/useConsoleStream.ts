@@ -1,9 +1,9 @@
-// The console is itself a BrainOS stream client (kind "console") requesting every
+// The console is itself a Concord stream client (kind "console") requesting every
 // capability. High-rate data lives in refs; React re-renders on a 10 Hz tick.
 
 import { useEffect, useRef, useState } from "react";
 import {
-  BrainOSStream,
+  ConcordStream,
   CAPABILITIES,
   type ConnectionStatus,
   type EnvelopeOf,
@@ -33,7 +33,7 @@ export interface ConsoleStreamData {
   lastData: { at: number; session: string; channels: number } | null;
   /** device.status events (kept apart from the ring above so none is missed); total = ever received */
   statusEvents: { list: EnvelopeOf<"device.status">[]; total: number };
-  stats: BrainOSStream["stats"];
+  stats: ConcordStream["stats"];
   tick: number;
 }
 
@@ -49,10 +49,10 @@ export function useConsoleStream(): ConsoleStreamData {
   const latency = useRef<number[]>([]);
   const lastData = useRef<ConsoleStreamData["lastData"]>(null);
   const statusEvents = useRef<ConsoleStreamData["statusEvents"]>({ list: [], total: 0 });
-  const streamRef = useRef<BrainOSStream | null>(null);
+  const streamRef = useRef<ConcordStream | null>(null);
 
   useEffect(() => {
-    const stream = new BrainOSStream({
+    const stream = new ConcordStream({
       app: { id: "operator-console", name: "Operator Console", kind: "console" },
       required: [],
       optional: [...CAPABILITIES],

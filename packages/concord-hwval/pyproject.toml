@@ -1,0 +1,57 @@
+[build-system]
+requires = ["hatchling>=1.21"]
+build-backend = "hatchling.build"
+
+[project]
+name = "concord-hwval"
+version = "0.1.0"
+description = "Acquisition-integrity verification for Concord against independent reference recordings (LabRecorder XDF, Open Ephys Binary). Compares recordings; never certifies hardware by itself."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary (internal preview)" }
+# The comparison tools run WITHOUT Concord installed: a lab needs only the two recordings.
+# pyxdf is the reference XDF reader of the XDF project (sccn/xdf); it parses LabRecorder files.
+dependencies = [
+    "numpy>=1.26",
+    "pyxdf>=1.17",
+]
+
+[project.optional-dependencies]
+# `concord-hwval capture` records through Concord's own runtime (unchanged LSL / Open Ephys
+# adapters and recorder). Concord is installed from the repository (backend/[live]).
+capture = ["concordos>=0.3"]
+# Cross-check of the Binary-format parser against the official Open Ephys reader.
+openephys = ["open-ephys-python-tools>=1.0"]
+dev = ["pytest>=8", "mypy>=1.10", "ruff>=0.5", "jsonschema>=4.18", "types-jsonschema>=4.18"]
+
+[project.scripts]
+concord-hwval = "concord_hwval.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/concord_hwval"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "reference_software: runs external reference software (LabRecorder, Open Ephys GUI)",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "ASYNC", "RUF", "SIM"]
+
+[tool.mypy]
+strict = true
+files = ["src/concord_hwval", "tests"]
+
+[[tool.mypy.overrides]]
+# Concord (optional [capture]) ships no py.typed marker; analyse it anyway.
+module = ["concord", "concord.*"]
+follow_untyped_imports = true
+
+[[tool.mypy.overrides]]
+module = ["pyxdf", "pyxdf.*", "pylsl", "pylsl.*", "open_ephys", "open_ephys.*"]
+ignore_missing_imports = true

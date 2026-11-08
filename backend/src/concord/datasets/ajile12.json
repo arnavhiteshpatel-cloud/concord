@@ -1,0 +1,166 @@
+{
+  "id": "ajile12",
+  "title": "AJILE12: Long-term naturalistic human intracranial neural recordings and pose",
+  "dandiset": "000055",
+  "version": "0.220127.0436",
+  "url": "https://dandiarchive.org/dandiset/000055/0.220127.0436",
+  "api": "https://api.dandiarchive.org/api",
+  "license": "CC-BY-4.0",
+  "access": "Open access on DANDI (dandi:OpenAccess, CC-BY-4.0; cite the dataset and the data descriptor). Concord streams only pinned slices and never commits or re-hosts them.",
+  "citation": "Peterson, Steven M.; Singh, Satpreet H.; Dichter, Benjamin; Scheid, Micheal; Rao, Rajesh P. N.; Brunton, Bingni W. (2022) AJILE12: Long-term naturalistic human intracranial neural recordings and pose (Version 0.220127.0436) [Data set]. DANDI archive. https://doi.org/10.48324/dandi.000055/0.220127.0436",
+  "species": "Homo sapiens",
+  "recording_type": "electrocorticography (subdural ECoG grid; clinical epilepsy monitoring), 500 Hz, stored in microvolts; upper-body pose from video at 30 Hz (pixel coordinates)",
+  "verified_at": "2026-11-07",
+  "modality": "ecog",
+  "line_hz": 60,
+  "notes": [
+    "Participant sub-07: one 64-electrode grid (group RFGRID; 63 marked good in the file's 'good' column). Chosen a priori: smallest channel count with >= 190 curated reach events on three recording days.",
+    "Mains frequency 60 Hz: the stored signal already shows notch dips at 60, 120 and 180 Hz (upstream filtering by the dataset authors), consistent with a US recording site.",
+    "Electrode 'location' is 'unknown' for every electrode in the file (hard-coded by the authors' converter); x/y/z are given without a stated coordinate space.",
+    "Pose SpatialSeries declare unit 'meters' with conversion NaN; the authors' converter and reach features ('_px') show they are video pixel coordinates. Concord reports them as unit 'arbitrary'.",
+    "The electrodes table's low_freq_R2 / high_freq_R2 columns come from the authors' prior regression analysis of these recordings; Concord never uses them for channel selection (it would leak outcome information).",
+    "'Blocklist (Data break)' epochs of 0.03-0.2 s recur about every 2 minutes; samples there are not NaN and are passed through unchanged, but frames overlapping them are flagged dropped_samples and Concord's evaluation excludes bins near them."
+  ],
+  "assets": [
+    {
+      "path": "sub-07/sub-07_ses-5_behavior+ecephys.nwb",
+      "asset_id": "b33fadbb-a6b1-45aa-8dce-7179a4968fef",
+      "size_bytes": 10409046599,
+      "sha256": "dd7f25f8d8f458a65d85dd0c0bf4f0006c44ff7ceffab842a9b34f6bd728b81d"
+    },
+    {
+      "path": "sub-07/sub-07_ses-6_behavior+ecephys.nwb",
+      "asset_id": "9cbcf6f1-1bb2-4054-bd7f-efe76e78caaf",
+      "size_bytes": 10431086594,
+      "sha256": "08c9c121728e94e3a132f75a165665ba475bbc42af2f0a8a5878e3e22080f53b"
+    },
+    {
+      "path": "sub-07/sub-07_ses-7_behavior+ecephys.nwb",
+      "asset_id": "fbb5c167-42a3-4de1-b89b-54f944998d8c",
+      "size_bytes": 10389089705,
+      "sha256": "5caca10d6206eb984f6fe34d2727d8ab8450d788afa30066b8646bc4a50df70e"
+    }
+  ],
+  "slices": [
+    {
+      "id": "s07-d5-052650",
+      "asset_path": "sub-07/sub-07_ses-5_behavior+ecephys.nwb",
+      "filename": "sub-07_ses-5_behavior+ecephys_slice-052650s.nwb",
+      "role": "train",
+      "demo": true,
+      "series": "acquisition/ElectricalSeries",
+      "samples": [
+        26325000,
+        26662500
+      ],
+      "pose_frames": [
+        1579500,
+        1599750
+      ],
+      "channels": 64,
+      "data_sha256": "17c17f2702498c2006fa80c7e789e7c5a19c6da10938af557c303dd649217658",
+      "pose_sha256": "342670105c1429c3f0d06af6f446f05c25f66bb1174955bb98f0b8e3d7774b51",
+      "note": "day 5, 52650-53325 s (chunks 312-315 of the source dataset)"
+    },
+    {
+      "id": "s07-d5-056193",
+      "asset_path": "sub-07/sub-07_ses-5_behavior+ecephys.nwb",
+      "filename": "sub-07_ses-5_behavior+ecephys_slice-056193s.nwb",
+      "role": "train",
+      "demo": false,
+      "series": "acquisition/ElectricalSeries",
+      "samples": [
+        28096875,
+        28434375
+      ],
+      "pose_frames": [
+        1685813,
+        1706063
+      ],
+      "channels": 64,
+      "data_sha256": "4170be851930f7b5ace997344f623c98ffd98327c21ff1159fbdec82cc495080",
+      "pose_sha256": "fec813fdfb99f8ed946be0546e7ad734aaa1700d7a0b9b01bd794c6f7b0b3de2",
+      "note": "day 5, 56193.75-56868.75 s (chunks 333-336)"
+    },
+    {
+      "id": "s07-d5-065643",
+      "asset_path": "sub-07/sub-07_ses-5_behavior+ecephys.nwb",
+      "filename": "sub-07_ses-5_behavior+ecephys_slice-065643s.nwb",
+      "role": "train",
+      "demo": false,
+      "series": "acquisition/ElectricalSeries",
+      "samples": [
+        32821875,
+        33159375
+      ],
+      "pose_frames": [
+        1969313,
+        1989563
+      ],
+      "channels": 64,
+      "data_sha256": "d2781144a2d37460891c1f9b5892ec46f18c0f4766b8644e39f5e2664d14ad5a",
+      "pose_sha256": "eeb303aa213c9a473396c5bb51690ebc20e2d58c8599c652d0f1f81ddb38a818",
+      "note": "day 5, 65643.75-66318.75 s (chunks 389-392)"
+    },
+    {
+      "id": "s07-d6-047925",
+      "asset_path": "sub-07/sub-07_ses-6_behavior+ecephys.nwb",
+      "filename": "sub-07_ses-6_behavior+ecephys_slice-047925s.nwb",
+      "role": "test",
+      "demo": true,
+      "series": "acquisition/ElectricalSeries",
+      "samples": [
+        23962500,
+        24300000
+      ],
+      "pose_frames": [
+        1437750,
+        1458000
+      ],
+      "channels": 64,
+      "data_sha256": "6619c8ca0aef0dbc2aaa8b971600b3691d9aa0c642d06ced7660038c471a1f63",
+      "pose_sha256": "d11102093e9af95297f5ded5fb7c0371816ff425aa5f4da8610112a846dc72b0",
+      "note": "day 6 (held-out session), 47925-48600 s (chunks 284-287)"
+    },
+    {
+      "id": "s07-d6-065643",
+      "asset_path": "sub-07/sub-07_ses-6_behavior+ecephys.nwb",
+      "filename": "sub-07_ses-6_behavior+ecephys_slice-065643s.nwb",
+      "role": "test",
+      "demo": false,
+      "series": "acquisition/ElectricalSeries",
+      "samples": [
+        32821875,
+        33159375
+      ],
+      "pose_frames": [
+        1969313,
+        1989563
+      ],
+      "channels": 64,
+      "data_sha256": "631a8f0e5d137b731897afe8da1acec8b7d05e5ba58629c2bedea39c6a24329b",
+      "pose_sha256": "32254d08d734c529eb976db47b834a3474bb8f45da6fb42141d5c63263a84456",
+      "note": "day 6 (held-out session), 65643.75-66318.75 s (chunks 389-392)"
+    },
+    {
+      "id": "s07-d7-066825",
+      "asset_path": "sub-07/sub-07_ses-7_behavior+ecephys.nwb",
+      "filename": "sub-07_ses-7_behavior+ecephys_slice-066825s.nwb",
+      "role": "test",
+      "demo": false,
+      "series": "acquisition/ElectricalSeries",
+      "samples": [
+        33412500,
+        34087500
+      ],
+      "pose_frames": [
+        2004750,
+        2045250
+      ],
+      "channels": 64,
+      "data_sha256": "6f0512799f0c8d0703bf807dbc2421a67da1e3c0f4c04863588f22897a82587b",
+      "pose_sha256": "81c391e3b90c9fe6d494f85affb76c1d3f1b07d8ab72b944cd2c6a4729d65b38",
+      "note": "day 7 (second held-out session), 66825-68175 s (chunks 396-403)"
+    }
+  ]
+}

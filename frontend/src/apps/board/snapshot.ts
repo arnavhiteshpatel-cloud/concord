@@ -1,6 +1,6 @@
 // Communication board — read-only state snapshot for tests and evaluation harnesses.
 //
-// `window.__brainosBoard` returns a fresh plain-object copy of the board state on every read.
+// `window.__concordBoard` returns a fresh plain-object copy of the board state on every read.
 // It is NOT a control path: nothing written to it reaches the board, and the board is driven
 // only by runtime events. Field names are stable (version 1) and documented in
 // docs/APPLICATIONS.md ("Evaluation snapshot").
@@ -100,14 +100,14 @@ export function snapshot(
 
 declare global {
   interface Window {
-    __brainosBoard?: BoardSnapshot;
+    __concordBoard?: BoardSnapshot;
   }
 }
 
 /** Install the read-only getter; returns a function that removes it. */
 export function exposeSnapshot(read: () => BoardSnapshot): () => void {
-  Object.defineProperty(window, "__brainosBoard", { get: read, configurable: true, enumerable: false });
+  Object.defineProperty(window, "__concordBoard", { get: read, configurable: true, enumerable: false });
   return () => {
-    delete (window as { __brainosBoard?: BoardSnapshot }).__brainosBoard;
+    delete (window as { __concordBoard?: BoardSnapshot }).__concordBoard;
   };
 }

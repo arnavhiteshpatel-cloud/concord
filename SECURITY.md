@@ -1,6 +1,6 @@
 # Security policy
 
-BrainOS is research software, not a medical device. What it protects, and what it does not,
+Concord is research software, not a medical device. What it protects, and what it does not,
 is described in [docs/SECURITY.md](docs/SECURITY.md). In short:
 
 - it listens only on this computer (127.0.0.1) and has no user accounts, so anyone who can
@@ -17,7 +17,7 @@ Security fixes go into the latest release only.
 
 Please do **not** open a public issue for a security problem. Use GitHub's private reporting:
 the repository's **Security** tab → **Report a vulnerability**. Include what you found, how to
-reproduce it, and the version (`brainos version`, or the support report from
+reproduce it, and the version (`concord version`, or the support report from
 **Advanced → Support report**, which contains no neural or personal data).
 
 Never include neural recordings, participant information or credentials in a report.

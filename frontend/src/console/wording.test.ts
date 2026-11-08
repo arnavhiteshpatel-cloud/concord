@@ -78,8 +78,8 @@ describe("statusLine", () => {
     expect(statusLine("open", rt("error")).tone).toBe("alarm");
   });
   it("never shows a runtime state while the server connection is down", () => {
-    expect(statusLine("reconnecting", rt("streaming")).text).toBe("Connection to BrainOS lost, reconnecting");
-    expect(statusLine("closed", null).text).toBe("Not connected to BrainOS");
+    expect(statusLine("reconnecting", rt("streaming")).text).toBe("Connection to Concord lost, reconnecting");
+    expect(statusLine("closed", null).text).toBe("Not connected to Concord");
   });
 });
 

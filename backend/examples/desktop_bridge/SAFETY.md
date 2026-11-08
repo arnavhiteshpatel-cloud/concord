@@ -1,14 +1,14 @@
 # Desktop control bridge — safety model
 
-`bridge.py` turns **authorized, decoded** BrainOS pointer and selection commands into
+`bridge.py` turns **authorized, decoded** Concord pointer and selection commands into
 operating-system pointer events: relative pointer moves and a primary-button click. Anything
 that moves a real pointer on a real desktop can click the wrong thing, so the bridge is
-**opt-in, off by default, and separate** from everything else in BrainOS. It is research
+**opt-in, off by default, and separate** from everything else in Concord. It is research
 software. It has not been used with any participant and is not an accessibility product.
 
 ## What it will never do
 
-- Start on its own. Nothing in BrainOS launches it; it refuses to run without `--enable`
+- Start on its own. Nothing in Concord launches it; it refuses to run without `--enable`
   (exit code 2, before any network or pointer access).
 - Accept raw signals, features, behavior labels or simulated intents. It asks the runtime only
   for `pointer_intent`, `selection` and `control_status`, and it acts only on `intent.pointer`
@@ -16,7 +16,7 @@ software. It has not been used with any participant and is not an accessibility 
   are not gated by operator authorization, so the bridge refuses them (counted as
   `refused_provenance`).
 - Authorize itself. Decoded commands reach the app id `desktop-bridge` only after the operator
-  authorized it in the BrainOS console (Command output → Authorized applications) and started
+  authorized it in the Concord console (Command output → Authorized applications) and started
   command output. Until then it prints that it is waiting.
 - Type text, press keys, scroll, drag or hold a button down. `cancel` has no OS meaning and
   is ignored. A click is a press and release in one backend call.

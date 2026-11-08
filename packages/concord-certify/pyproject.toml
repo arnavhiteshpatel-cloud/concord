@@ -1,0 +1,54 @@
+[build-system]
+requires = ["hatchling>=1.21"]
+build-backend = "hatchling.build"
+
+[project]
+name = "concord-certify"
+version = "0.1.0"
+description = "Integration certification toolkit for Concord source plugins (software checks only; never hardware or human validation)"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary (internal preview)" }
+# Runs a plugin exactly as Concord does (the adapter SDK's plugin host) WITHOUT Concord
+# installed. jsonschema validates the reports it writes (and, with [runtime], Concord events).
+dependencies = [
+    "concord-adapter-sdk>=1.0,<2",
+    "numpy>=1.26",
+    "jsonschema>=4.18",
+]
+
+[project.optional-dependencies]
+# The runtime phase (capability negotiation + event-contract compliance) runs the plugin
+# through Concord's own PluginAdapter and Runtime, in process. Concord is installed from
+# the repository (backend/), see the README.
+runtime = ["concordos>=0.3"]
+dev = ["pytest>=8", "mypy>=1.10", "ruff>=0.5", "types-jsonschema>=4.18"]
+
+[project.scripts]
+concord-certify = "concord_certify.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/concord_certify"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "ASYNC", "RUF", "SIM"]
+
+[tool.mypy]
+strict = true
+files = ["src/concord_certify", "scripts", "tests"]
+
+[[tool.mypy.overrides]]
+# Concord (optional [runtime] phase) ships no py.typed marker; analyse it anyway.
+module = ["concord", "concord.*"]
+follow_untyped_imports = true
+
+[[tool.mypy.overrides]]
+module = ["pylsl", "pylsl.*"]
+ignore_missing_imports = true

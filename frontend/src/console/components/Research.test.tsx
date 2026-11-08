@@ -27,7 +27,7 @@ const session: ResearchSession = {
   closed_at_ns: null,
   status: "active",
   end_reason: null,
-  brainos_version: "0.3.0",
+  concord_version: "0.3.0",
   recordings: ["cal-1"],
   models: ["m-1"],
   log_entries: 3,
@@ -42,7 +42,7 @@ const recording: RecordingInfo = {
   events: null,
   active: false,
   complete: false,
-  recovery: { status: "incomplete", reason: "BrainOS stopped", valid_events: 120, discarded_bytes: 17 },
+  recovery: { status: "incomplete", reason: "Concord stopped", valid_events: 120, discarded_bytes: 17 },
 };
 const streaming = { state: "streaming", device: { device_id: "sim-a" }, recording: "r", session_id: "s" } as unknown as RuntimeSnapshot;
 const stopReport: SafeStopReport = {
@@ -135,7 +135,7 @@ describe("research session strip", () => {
   it("exports with the chosen options, links the bundle, and ends the session after confirmation", async () => {
     const exportInfo = {
       session_id: session.id,
-      file: `brainos-session-${session.id}-20261107-103000.zip`,
+      file: `concord-session-${session.id}-20261107-103000.zip`,
       size_bytes: 4096,
       sha256: "a".repeat(64),
       created_at_ns: 2,
@@ -250,7 +250,7 @@ describe("support report", () => {
   it("creates the report on the server and offers it for download", async () => {
     const calls = stubFetch({
       "GET /system/doctor": () => ({
-        format: "brainos.support-report/1",
+        format: "concord.support-report/1",
         generated_at: "now",
         summary: { ok: 10, info: 2, warn: 1, fail: 0 },
         checks: [{ id: "disk", title: "Disk space", status: "warn", detail: "1.2 GiB free", hint: "free space" }],

@@ -13,15 +13,15 @@ from typing import Any
 import numpy as np
 import pytest
 
-from brainos.decoding import model as models
-from brainos.decoding.calibrate import CalibrationError, calibrate_classifier, class_layout
-from brainos.decoding.lda import (
+from concord.decoding import model as models
+from concord.decoding.calibrate import CalibrationError, calibrate_classifier, class_layout
+from concord.decoding.lda import (
     LDAClassifier,
     evaluate_lda,
     fit_lda,
     ledoit_wolf_shrinkage,
 )
-from brainos.decoding.ridge import RidgeDecoder
+from concord.decoding.ridge import RidgeDecoder
 
 INPUT = {
     "event_type": "features.vector",
@@ -96,7 +96,7 @@ def test_model_file_round_trip_and_registry_dispatch(tmp_path: Path) -> None:
     m = _fit(x, y)
     p = m.save(tmp_path / f"{m.model_id}.json")
     data = json.loads(p.read_text())
-    assert data["schema"] == "brainos.model/1" and data["kind"] == "lda"
+    assert data["schema"] == "concord.model/1" and data["kind"] == "lda"
     assert data["input"] == INPUT and data["source"]["identity"] == "test"
     loaded = models.load_model(p)
     assert isinstance(loaded, LDAClassifier)
@@ -187,7 +187,7 @@ def test_class_layout_names() -> None:
 
 
 def _recording(path: Path, rows: list[tuple[list[float], float]], dims: list[str]) -> None:
-    lines: list[dict[str, Any]] = [{"format": "brainos.recording/1", "device": {}}]
+    lines: list[dict[str, Any]] = [{"format": "concord.recording/1", "device": {}}]
     for i, (feat, label) in enumerate(rows):
         ts = (i + 1) * 200_000_000
         lines.append(
@@ -216,7 +216,7 @@ def _recording(path: Path, rows: list[tuple[list[float], float]], dims: list[str
 
 def test_classifier_calibration_refusals(tmp_path: Path) -> None:
     x, y = _blobs(300)
-    p = tmp_path / "a.brainos.jsonl"
+    p = tmp_path / "a.concord.jsonl"
     _recording(p, [(list(r), float(c)) for r, c in zip(x, y, strict=True)], ["a", "b"])
     with pytest.raises(CalibrationError, match="choose the class label with label_dim"):
         calibrate_classifier([p])
@@ -225,7 +225,7 @@ def test_classifier_calibration_refusals(tmp_path: Path) -> None:
     model, report = calibrate_classifier([p], label_dim="a", gap_bins=5, tau_ms=0)
     assert report["classes"] == ["class_0", "class_1", "class_2"]
     assert report["train_bins"] + report["gap_bins"] + report["test_bins"] == 300
-    short = tmp_path / "b.brainos.jsonl"
+    short = tmp_path / "b.concord.jsonl"
     _recording(short, [(list(r), float(c)) for r, c in zip(x[:60], y[:60], strict=True)], ["c"])
     with pytest.raises(CalibrationError, match="only 60 labelled bins"):
         calibrate_classifier([short])

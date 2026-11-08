@@ -35,7 +35,7 @@ def _load_app() -> ModuleType:
 
 
 def test_reference_app_imports_only_the_public_sdk() -> None:
-    allowed_prefix = "brainos.sdk"
+    allowed_prefix = "concord.sdk"
     stdlib = set(sys.stdlib_module_names) | {"__future__"}
     for path in APP_DIR.glob("*.py"):
         for node in ast.walk(ast.parse(path.read_text())):
@@ -46,7 +46,7 @@ def test_reference_app_imports_only_the_public_sdk() -> None:
                 names = [node.module or ""]
             for n in names:
                 ok = n.split(".")[0] in stdlib or n == allowed_prefix
-                assert ok, f"{path.name} imports {n}; reference apps may use only brainos.sdk"
+                assert ok, f"{path.name} imports {n}; reference apps may use only concord.sdk"
         text = path.read_text()
         for word in ("sim-a", "sim-b", "lsl:", "openephys", "nwb:", "falcon"):
             assert word not in text.lower(), f"{path.name} mentions device/source {word!r}"
@@ -54,8 +54,8 @@ def test_reference_app_imports_only_the_public_sdk() -> None:
 
 def test_app_state_machine_ignores_events_when_not_granted() -> None:
     app_mod = _load_app()
-    from brainos.contracts.protocol import AppStatus, NegotiationResult
-    from brainos.sdk import NegotiationUpdate
+    from concord.contracts.protocol import AppStatus, NegotiationResult
+    from concord.sdk import NegotiationUpdate
 
     from .helpers import valid_event
 
@@ -65,7 +65,7 @@ def test_app_state_machine_ignores_events_when_not_granted() -> None:
             NegotiationResult(device_id=None, status=AppStatus.SUSPENDED, granted=[], rejected=[])
         )
     )
-    from brainos.contracts import parse_envelope
+    from concord.contracts import parse_envelope
 
     env = parse_envelope(valid_event("intent.pointer"))
     app.handle(env)
@@ -78,8 +78,8 @@ async def test_same_app_unchanged_across_sources(
     pytest.importorskip("pylsl")
     pytest.importorskip("scipy")
     pytest.importorskip("zmq")
-    from brainos.sdk import BrainOSError, RuntimeClient
-    from brainos.testing.lsl_publishers import FalconLSLPublisher
+    from concord.sdk import ConcordError, RuntimeClient
+    from concord.testing.lsl_publishers import FalconLSLPublisher
 
     from .test_pipeline_live import EVAL_FILE, HAVE_DATA, TRAIN_FILE, _train
 
@@ -129,12 +129,12 @@ async def test_same_app_unchanged_across_sources(
         await wait_for(lambda: app.status == "active" and app.commands >= n0 + 50, timeout=15)
 
         # an incompatible request is refused with a reason, through the SDK
-        with pytest.raises(BrainOSError) as exc:
+        with pytest.raises(ConcordError) as exc:
             await op.start_pipeline("spikeband_threshold")
         assert exc.value.code == "capability_unsupported"
 
         # 4) Open Ephys ZMQ (synthetic test publisher): raw signal only -> suspended again
-        from brainos.adapters.openephys.publisher import OpenEphysTestPublisher
+        from concord.adapters.openephys.publisher import OpenEphysTestPublisher
 
         from .test_openephys import free_port_pair
 
@@ -192,14 +192,14 @@ def _load_named(name: str) -> ModuleType:
 def test_menu_app_state_machine() -> None:
     import time
 
-    from brainos.contracts import parse_envelope
-    from brainos.contracts.protocol import (
+    from concord.contracts import parse_envelope
+    from concord.contracts.protocol import (
         AppStatus,
         CapabilityRejection,
         NegotiationResult,
         RejectionReason,
     )
-    from brainos.sdk import Capability, NegotiationUpdate
+    from concord.sdk import Capability, NegotiationUpdate
 
     from .helpers import valid_event
 
@@ -249,10 +249,10 @@ def test_menu_app_navigation_and_control_state() -> None:
     with control_status granted it acts only while the runtime says delivery is active."""
     import time
 
-    from brainos.contracts import parse_envelope
-    from brainos.contracts.protocol import AppStatus, NegotiationResult
-    from brainos.sdk import Capability, NegotiationUpdate, RuntimeUpdate
-    from brainos.sdk.client import RuntimeSnapshot
+    from concord.contracts import parse_envelope
+    from concord.contracts.protocol import AppStatus, NegotiationResult
+    from concord.sdk import Capability, NegotiationUpdate, RuntimeUpdate
+    from concord.sdk.client import RuntimeSnapshot
 
     from .helpers import valid_event
 

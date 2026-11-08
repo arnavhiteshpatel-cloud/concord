@@ -1,8 +1,8 @@
-# BrainOS SDK guide
+# Concord SDK guide
 
-Two SDKs speak the same protocol (`brainos.stream/1`) and the same envelope (schema `1.0`):
+Two SDKs speak the same protocol (`concord.stream/1`) and the same envelope (schema `1.0`):
 
-- **Python** — `brainos.sdk` (async; `httpx` + `websockets`). Installed by `make setup`.
+- **Python** — `concord.sdk` (async; `httpx` + `websockets`). Installed by `make setup`.
 - **TypeScript** — `frontend/src/sdk` (browser `WebSocket` + `fetch`, zero dependencies).
 
 Both validate every incoming envelope against the contract (including provenance rules)
@@ -31,7 +31,7 @@ and never hand an application an event that violates it.
 
 ```python
 import asyncio
-from brainos.sdk import (
+from concord.sdk import (
     EventStream, RuntimeClient, NegotiationUpdate, RuntimeUpdate, ServerNotice, is_event,
 )
 
@@ -64,7 +64,7 @@ asyncio.run(main())
 `delivery_seq` skipped), and `out_of_order` (envelope `seq` not increasing within a
 session; should always be 0).
 
-Errors from the REST client raise `BrainOSError(code, message, status)`; codes are
+Errors from the REST client raise `ConcordError(code, message, status)`; codes are
 stable strings (`device_not_found`, `invalid_state`, `capability_unsupported`, …).
 
 Runnable example: `python backend/examples/print_events.py --connect sim-a`.
@@ -72,9 +72,9 @@ Runnable example: `python backend/examples/print_events.py --connect sim-a`.
 ## TypeScript
 
 ```ts
-import { BrainOSStream } from "./sdk";
+import { ConcordStream } from "./sdk";
 
-const stream = new BrainOSStream({
+const stream = new ConcordStream({
   app: { id: "my-app", name: "My App" },
   required: ["selection"],
   optional: ["pointer_intent"],
@@ -142,12 +142,12 @@ notes), `GET/POST /api/v1/runtime/playback` (position, duration, speed).
 - New event type `features.vector` (`neural_features` capability): real-valued per-channel
   features, e.g. `log_band_power` with `band_hz`. `recording.frame.unit` may be `arbitrary`
   when the source did not declare convertible units — do not treat those values as µV.
-- Device kind `stream`: an external LSL / Open Ephys stream whose origin BrainOS cannot
+- Device kind `stream`: an external LSL / Open Ephys stream whose origin Concord cannot
   verify. A stream that declares prerecorded content is `replay`; synthetic is `simulated`.
 - `intent.pointer` with `decoded_intent` comes **only** from the operator-enabled command
   router, with the decoder's `model_id`. Apps that require `pointer_intent` are suspended
   while the router is off — raw or decoded neural data never becomes a command by itself.
-- Reference app: `backend/examples/reference_app/cursor_app.py` (only `brainos.sdk` + stdlib;
+- Reference app: `backend/examples/reference_app/cursor_app.py` (only `concord.sdk` + stdlib;
   a test enforces it). It runs unchanged against the simulator, LSL and Open Ephys sources.
 
 ## Milestone 4: authorized commands and the command guard (schema 1.3)
@@ -159,7 +159,7 @@ notes), `GET/POST /api/v1/runtime/playback` (position, duration, speed).
   authorize yourself. Simulated profiles' `simulated_intent` is not gated.
 - `intent.selection.action` is `primary` (select), `activate` or `cancel`; `intent.text`
   carries the rule's text. Discrete actions come only from a classifier via operator rules.
-- Use the **command guard** (Python `brainos.sdk.CommandGuard` / `ControlChannel`, TS
+- Use the **command guard** (Python `concord.sdk.CommandGuard` / `ControlChannel`, TS
   `CommandGuard` / `attachGuard` in `frontend/src/sdk/guard.ts`): it tells you which command
   capabilities are usable now (`is_active`, `waiting_for_authorization`), drops commands
   older than 500 ms (wall clock and relative delivery delay), reports zero pointer velocity
@@ -188,7 +188,7 @@ These configure acquisition and processing; applications should not need them.
 | `control()` / `authorize_app(app_id, caps)` / `revoke_app(app_id, caps=None)` / `stop_control(reason=None)` | `GET /control`, `POST /control/apps/{id}/authorize`, `…/revoke`, `POST /control/stop` |
 | `negotiate(required, optional, app_id=…)` | `POST /negotiate` dry run as an app id |
 
-Errors raise `BrainOSError(code, message, status)`; e.g. `incompatible_decoder` (409) with the
+Errors raise `ConcordError(code, message, status)`; e.g. `incompatible_decoder` (409) with the
 reasons (channel count, bin, feature, training session, source).
 
 
@@ -204,16 +204,16 @@ reasons (channel count, bin, feature, training session, source).
   otherwise), and `on_stop` fires with the runtime's reason on `active: false`. TS:
   `onControlState`, `guard.controlState`; Python: `guard.control_state`; control.state events
   pass through `handle()` / `ControlChannel` / `attachGuard` (TS feeds them to the guard).
-- Decoded commands may carry `provenance.model_origin` (`brainos` / `external` /
+- Decoded commands may carry `provenance.model_origin` (`concord` / `external` /
   `historical`); show it (historical = recorded outputs of a research system's original
   decoder, always replayed).
 - Operator API additions: discrete rule actions `navigate:<direction>`, `click` and
   `pointer_scale` in `set_router(...)` / `start_pipeline(router=...)`; `/control` apps carry
   `control_active` / `control_reason`; authorize/revoke accept up to four command capabilities.
 - Applications, input methods, safe-state rules, the board's evaluation snapshot
-  (`window.__brainosBoard`): [APPLICATIONS.md](APPLICATIONS.md). The opt-in desktop control
+  (`window.__concordBoard`): [APPLICATIONS.md](APPLICATIONS.md). The opt-in desktop control
   bridge: `backend/examples/desktop_bridge/`
   ([SAFETY.md](../backend/examples/desktop_bridge/SAFETY.md)).
-- Test helper: `brainos.testing.scripted` — a declared-synthetic scripted feature source and a
+- Test helper: `concord.testing.scripted` — a declared-synthetic scripted feature source and a
   hand-written identity *test* decoder for deterministic decoded cursor + click tests
-  (`python -m brainos.testing.scripted serve --port P --data-dir D --click-at X,Y ...`).
+  (`python -m concord.testing.scripted serve --port P --data-dir D --click-at X,Y ...`).

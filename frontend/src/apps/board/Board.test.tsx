@@ -27,9 +27,9 @@ class MockSocket {
 
 type Prov = { kind: string; adapter: string; synthetic: boolean; model_id: string | null; origin: string; replayed: boolean; model_origin?: string | null };
 const SIM: Prov = { kind: "simulated_intent", adapter: "x.sim@1.0.0", synthetic: true, model_id: null, origin: "t", replayed: false };
-const DECODED: Prov = { kind: "decoded_intent", adapter: "brainos.pipeline@0.4.0", synthetic: false, model_id: "m1", origin: "t", replayed: false };
+const DECODED: Prov = { kind: "decoded_intent", adapter: "concord.pipeline@0.4.0", synthetic: false, model_id: "m1", origin: "t", replayed: false };
 const HISTORICAL: Prov = { ...DECODED, adapter: "x.cursorclick@0.1.0", model_id: "t15-original", model_origin: "historical", replayed: true };
-const RUNTIME: Prov = { kind: "runtime", adapter: "brainos.runtime@0.1.0", synthetic: false, model_id: null, origin: "runtime", replayed: false };
+const RUNTIME: Prov = { kind: "runtime", adapter: "concord.runtime@0.1.0", synthetic: false, model_id: null, origin: "runtime", replayed: false };
 
 let seq = 0;
 let deviceMs = 10_000;
@@ -58,7 +58,7 @@ const control = (active: boolean, capabilities: string[], reason: string) =>
 const runtime = { state: "streaming", device: null, session_id: "ses_abcdef12", state_since_ns: 0, last_error: null, recording: null, apps: [] };
 const welcome = (granted: string[]) => ({
   type: "welcome",
-  protocol: "brainos.stream/1",
+  protocol: "concord.stream/1",
   schema_version: "1.4",
   connection_id: "c",
   negotiation: { device_id: "dev-1", status: "active", granted, rejected: [] },
@@ -147,7 +147,7 @@ describe("<Board /> v2", () => {
     });
     expect(screen.getByTestId("board-cursor").style.left).toBe(left);
     expect(text("board-message")).toBe("Message appears here…");
-    expect(window.__brainosBoard?.counters.selections).toBe(0);
+    expect(window.__concordBoard?.counters.selections).toBe(0);
   });
 
   it("labels decoded and historical input; replayed text is a demonstration, not the participant's message", async () => {
@@ -157,14 +157,14 @@ describe("<Board /> v2", () => {
       ws.push(control(true, ["pointer_intent", "selection"], "on"));
       ws.push(event("intent.pointer", "pointer_intent", { vx: 0, vy: 0 }, DECODED));
     });
-    expect(text("board-input")).toBe("Input: decoded by m1 (BrainOS)");
+    expect(text("board-input")).toBe("Input: decoded by m1 (Concord)");
     act(() => {
       ws.push(event("intent.pointer", "pointer_intent", { vx: 0, vy: 0 }, HISTORICAL));
       ws.push(event("intent.selection", "selection", { action: "primary", confidence: 0.9 }, HISTORICAL));
     });
     expect(text("board-input")).toBe("Input: historical decoder replay (original research system) · recorded data replay");
     expect(text("board-text-label")).toBe(DEMONSTRATION_LABEL);
-    const snap = window.__brainosBoard!;
+    const snap = window.__concordBoard!;
     expect(snap.textLabel).toBe(DEMONSTRATION_LABEL);
     expect(snap.selections[0]).toMatchObject({ tile: 10, via: "click", page: "phrases" }); // centre of 4 x 4
     expect(snap.selections[0]!.event!.input.modelOrigin).toBe("historical");
@@ -211,7 +211,7 @@ describe("<Board /> v2", () => {
       ws.push(welcome(["pointer_intent", "selection", "control_status"]));
       ws.push(control(true, ["pointer_intent", "selection"], "on"));
     });
-    const a = window.__brainosBoard!;
+    const a = window.__concordBoard!;
     expect(a.version).toBe(1);
     expect(a.layout).toMatchObject({ kind: "grid", page: "grid", cols: 14, rows: 14 });
     expect(a.layout.tiles).toHaveLength(196);
@@ -219,7 +219,7 @@ describe("<Board /> v2", () => {
     expect(a.highlighted).toBe(7 * 14 + 7);
     a.cursor.x = 0;
     a.text = "injected";
-    const b = window.__brainosBoard!;
+    const b = window.__concordBoard!;
     expect(b.cursor.x).toBe(0.5);
     expect(b.text).toBe("");
     expect(screen.getByTestId("board-grid").dataset.cols).toBe("14");

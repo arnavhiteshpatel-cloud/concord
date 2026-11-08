@@ -1,6 +1,6 @@
 # Applications (Milestone 5, workstream C)
 
-How applications use BrainOS: the capability contract they program against (schema 1.4), the
+How applications use Concord: the capability contract they program against (schema 1.4), the
 input methods of the communication board and when each is available, the safe-state rules,
 and how to write an application. Research software: nothing here has been used with a
 participant (LIMITATIONS.md, docs/VALIDATION_LEVELS.md).
@@ -13,7 +13,7 @@ participant (LIMITATIONS.md, docs/VALIDATION_LEVELS.md).
 | Reference menu | discrete menu / speller | `backend/examples/reference_app/menu_app.py` | requires `selection`; optional `text_intent`, `navigation`, `control_status` |
 | Communication board | text communication | `frontend/src/apps/board/` (`/board.html`) | nothing required; optional `pointer_intent`, `selection`, `navigation`, `text_intent`, `control_status` |
 
-All three import only the public SDK (Python `brainos.sdk` + stdlib; TS `frontend/src/sdk`),
+All three import only the public SDK (Python `concord.sdk` + stdlib; TS `frontend/src/sdk`),
 contain no device ids, never call the operator API, and act on commands only through the SDK
 `CommandGuard` — enforced by `backend/tests/test_reference_app.py` and
 `frontend/src/apps/board/boundary.test.ts`. The opt-in desktop control bridge
@@ -34,10 +34,10 @@ is a separate process, not one of these apps.
   router and reach an app only after the operator authorized that app id for that capability
   (default deny; [CONTROL_BRIDGE.md](CONTROL_BRIDGE.md)). `simulated_intent` from Simulated
   Profiles is not gated. Raw signals, features and behavior labels never become commands.
-- **`provenance.model_origin`** (1.4) on decoded commands: `brainos` (a model BrainOS trained
+- **`provenance.model_origin`** (1.4) on decoded commands: `concord` (a model Concord trained
   or loaded), `external` (a live external decoder), `historical` (recorded outputs of a
   research system's original decoder; always `replayed`). The router copies it from the
-  decoder output to every command. Pipeline decoder output without an origin is BrainOS's.
+  decoder output to every command. Pipeline decoder output without an origin is Concord's.
 - **`control_status`** is provided by the runtime whenever a device is connected (granted in
   negotiation like any capability). See §4.
 
@@ -107,7 +107,7 @@ Not offered, on purpose: cursor gain or smoothing (the router's job).
 - Feedback: the chosen tile flashes (static in reduced motion), an `aria-live` announcement,
   optional audio tick, dwell progress bar, a dashed outline for a selection awaiting
   confirmation. High contrast (`prefers-contrast: more`) and reduced motion are respected.
-- Input provenance is shown plainly: "simulated input", "decoded by <model> (BrainOS)",
+- Input provenance is shown plainly: "simulated input", "decoded by <model> (Concord)",
   "decoded by <model> (external decoder)", "historical decoder replay (original research
   system)", plus "recorded data replay" / "synthetic data".
 - **Scientific limitation in the UI:** text composed from replayed recordings (`replayed`, or
@@ -115,7 +115,7 @@ Not offered, on purpose: cursor gain or smoothing (the router's job).
   the person recorded did a different task (e.g. a cursor task), so the text is never theirs.
   Simulated or synthetic input is labelled "simulated input — no participant".
 
-### 3.5 Evaluation snapshot (`window.__brainosBoard`, version 1)
+### 3.5 Evaluation snapshot (`window.__concordBoard`, version 1)
 
 A read-only getter returning a fresh copy of the board state on every read; writing to it
 changes nothing (tested). It is not a control path: the board is driven only by runtime
@@ -161,9 +161,9 @@ texts), `guard` (SDK guard stats), `settings`. The last 5000 selections are kept
 ## 5. Writing an application
 
 ```ts
-import { BrainOSStream, CommandGuard, attachGuard } from "../../sdk";
+import { ConcordStream, CommandGuard, attachGuard } from "../../sdk";
 
-const stream = new BrainOSStream({
+const stream = new ConcordStream({
   app: { id: "my-app", name: "My app" },
   required: [],
   optional: ["pointer_intent", "selection", "navigation", "control_status"],
@@ -181,7 +181,7 @@ stream.connect();
 ```
 
 ```python
-from brainos.sdk import CommandGuard, ControlChannel, EventStream, is_event
+from concord.sdk import CommandGuard, ControlChannel, EventStream, is_event
 
 guard = CommandGuard(["selection", "navigation"], on_stop=lambda why: safe_state(why))
 async with await EventStream.connect(app_id="my-menu", app_name="My menu",
@@ -212,5 +212,5 @@ nothing), show provenance (§3.4), and keep device ids out of the code.
 - Browser (Playwright, `make e2e`, section M5-C): a second server with the scripted decoder
   test source + identity test decoder; two participant boards (click, dwell) select "Hello"
   then "Water" from authorized decoded commands only, compose "Hello Water", show "decoded by
-  test-scripted-identity (BrainOS)" and "simulated input — no participant"; operator Stop,
+  test-scripted-identity (Concord)" and "simulated input — no participant"; operator Stop,
   re-enable and revoke behave as in §4.

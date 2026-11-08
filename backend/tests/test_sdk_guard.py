@@ -1,4 +1,4 @@
-"""Milestone 4: SDK command-safety helper (brainos.sdk.CommandGuard / ControlChannel)."""
+"""Milestone 4: SDK command-safety helper (concord.sdk.CommandGuard / ControlChannel)."""
 
 from __future__ import annotations
 
@@ -9,8 +9,8 @@ from typing import Any
 
 import pytest
 
-from brainos.contracts import parse_envelope
-from brainos.contracts.protocol import (
+from concord.contracts import parse_envelope
+from concord.contracts.protocol import (
     AppStatus,
     CapabilityRejection,
     NegotiationResult,
@@ -18,7 +18,7 @@ from brainos.contracts.protocol import (
     RuntimeSnapshot,
     RuntimeState,
 )
-from brainos.sdk import CommandGuard, ControlChannel, NegotiationUpdate, RuntimeUpdate
+from concord.sdk import CommandGuard, ControlChannel, NegotiationUpdate, RuntimeUpdate
 
 from .helpers import valid_event
 

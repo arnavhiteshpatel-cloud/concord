@@ -57,7 +57,7 @@ describe("application boundary", () => {
     expect(apps.length).toBeGreaterThan(0);
     for (const f of apps) {
       const t = readFileSync(f, "utf8");
-      if (/BrainOSStream/.test(t)) expect(t, f).toMatch(/attachGuard|CommandGuard/);
+      if (/ConcordStream/.test(t)) expect(t, f).toMatch(/attachGuard|CommandGuard/);
     }
   });
 });

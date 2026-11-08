@@ -25,8 +25,8 @@ export function TitleBar({
   return (
     <header className="titlebar">
       <div className="titlebar-left">
-        <span className="wordmark">BrainOS</span>
-        <span className="tag" title="Not a medical device. Read-only: BrainOS never writes to or stimulates a device.">
+        <span className="wordmark">Concord</span>
+        <span className="tag" title="Not a medical device. Read-only: Concord never writes to or stimulates a device.">
           Research use only
         </span>
         {device && (

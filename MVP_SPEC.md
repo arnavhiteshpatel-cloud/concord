@@ -1,4 +1,4 @@
-# BrainOS — MVP Specification
+# Concord — MVP Specification
 
 Scope: the first vertical slice. Every requirement has an acceptance test ID;
 `AT-*` IDs appear in test docstrings so coverage is greppable

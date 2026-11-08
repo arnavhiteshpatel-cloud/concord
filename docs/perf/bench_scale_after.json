@@ -1,6 +1,6 @@
 {
  "started": "2026-11-07 23:23 UTC",
- "command": "python scripts/bench_scale.py --soak 600 --soak-channels 256,1024 --label m5-perf --json /tmp/claude-0/-home-user-brainos/7ce20f48-aafa-5e96-a03e-bf24076b106d/scratchpad/after.json --write /tmp/claude-0/-home-user-brainos/7ce20f48-aafa-5e96-a03e-bf24076b106d/scratchpad/after.md",
+ "command": "python scripts/bench_scale.py --soak 600 --soak-channels 256,1024 --label m5-perf --json /tmp/claude-0/-home-user-concord/7ce20f48-aafa-5e96-a03e-bf24076b106d/scratchpad/after.json --write /tmp/claude-0/-home-user-concord/7ce20f48-aafa-5e96-a03e-bf24076b106d/scratchpad/after.md",
  "label": "m5-perf",
  "machine": {
   "machine": "x86_64",
@@ -109,7 +109,7 @@
    },
    {
     "channels": 64,
-    "method": "brainos.runtime.fastjson (shipped)",
+    "method": "concord.runtime.fastjson (shipped)",
     "ns_per_value": 27.41328122131866,
     "byte_identical": true
    },
@@ -145,7 +145,7 @@
    },
    {
     "channels": 1024,
-    "method": "brainos.runtime.fastjson (shipped)",
+    "method": "concord.runtime.fastjson (shipped)",
     "ns_per_value": 24.507363279487514,
     "byte_identical": true
    }
@@ -3531,7 +3531,7 @@
  "runs": [
   {
    "started": "2026-11-07 23:23 UTC",
-   "command": "python scripts/bench_scale.py --soak 600 --soak-channels 256,1024 --label m5-perf --json /tmp/claude-0/-home-user-brainos/7ce20f48-aafa-5e96-a03e-bf24076b106d/scratchpad/after.json --write /tmp/claude-0/-home-user-brainos/7ce20f48-aafa-5e96-a03e-bf24076b106d/scratchpad/after.md",
+   "command": "python scripts/bench_scale.py --soak 600 --soak-channels 256,1024 --label m5-perf --json /tmp/claude-0/-home-user-concord/7ce20f48-aafa-5e96-a03e-bf24076b106d/scratchpad/after.json --write /tmp/claude-0/-home-user-concord/7ce20f48-aafa-5e96-a03e-bf24076b106d/scratchpad/after.md",
    "load_start": "4.98 5.23 8.30",
    "load_end": "1.12 1.16 2.84",
    "sections": [
@@ -3547,7 +3547,7 @@
   },
   {
    "started": "2026-11-08 00:08 UTC",
-   "command": "python scripts/bench_scale.py --sections micro --label m5-perf --json /tmp/claude-0/-home-user-brainos/7ce20f48-aafa-5e96-a03e-bf24076b106d/scratchpad/micro_after.json",
+   "command": "python scripts/bench_scale.py --sections micro --label m5-perf --json /tmp/claude-0/-home-user-concord/7ce20f48-aafa-5e96-a03e-bf24076b106d/scratchpad/micro_after.json",
    "load_start": "3.94 3.06 2.68",
    "load_end": "4.02 3.09 2.70",
    "sections": [
@@ -3556,7 +3556,7 @@
   },
   {
    "started": "2026-11-08 00:08 UTC",
-   "command": "python scripts/bench_scale.py --sections alternatives --label m5-perf --json /tmp/claude-0/-home-user-brainos/7ce20f48-aafa-5e96-a03e-bf24076b106d/scratchpad/alt_after.json",
+   "command": "python scripts/bench_scale.py --sections alternatives --label m5-perf --json /tmp/claude-0/-home-user-concord/7ce20f48-aafa-5e96-a03e-bf24076b106d/scratchpad/alt_after.json",
    "load_start": "3.80 3.07 2.69",
    "load_end": "3.90 3.10 2.71",
    "sections": [

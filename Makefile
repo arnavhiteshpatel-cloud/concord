@@ -1,17 +1,17 @@
-# BrainOS developer commands. See CLAUDE.md.
+# Concord developer commands. See CLAUDE.md.
 SHELL := /bin/bash
 VENV  := .venv
 PY    := $(VENV)/bin/python
 NPM   := npm --prefix frontend
 # the public adapter SDK, the backend, and the example third-party source plugin (editable)
-PY_PKGS := -e packages/brainos-adapter-sdk -e "backend[server,dev,nwb,dsp,live]" \
-           -e examples/adapters/brainos-example-adapter \
-           -e packages/brainos-brainflow -e packages/brainos-bci2000 \
-           -e "packages/brainos-certify[dev]"
-PLUGIN_SRC := ../packages/brainos-adapter-sdk ../examples/adapters/brainos-example-adapter \
-              ../packages/brainos-brainflow ../packages/brainos-bci2000 ../packages/brainos-certify
-PACKAGE_TESTS := packages/brainos-brainflow packages/brainos-bci2000 examples/adapters/brainos-example-adapter \
-                 packages/brainos-certify
+PY_PKGS := -e packages/concord-adapter-sdk -e "backend[server,dev,nwb,dsp,live]" \
+           -e examples/adapters/concord-example-adapter \
+           -e packages/concord-brainflow -e packages/concord-bci2000 \
+           -e "packages/concord-certify[dev]"
+PLUGIN_SRC := ../packages/concord-adapter-sdk ../examples/adapters/concord-example-adapter \
+              ../packages/concord-brainflow ../packages/concord-bci2000 ../packages/concord-certify
+PACKAGE_TESTS := packages/concord-brainflow packages/concord-bci2000 examples/adapters/concord-example-adapter \
+                 packages/concord-certify
 
 .PHONY: setup dev run build test test-backend test-frontend lint e2e e2e-setup bench bench-live dist-check schema clean \
         dataset dataset-all model decoding-report dataset-t15 dataset-t15-day cursorclick-report e2e-communication
@@ -26,11 +26,11 @@ build:  ## build the console + board app into frontend/dist
 	$(NPM) run build
 
 run: build  ## serve API + console + board from http://127.0.0.1:8000
-	$(PY) -m brainos.server
+	$(PY) -m concord.server
 
 dev:  ## backend with reload on :8000 + Vite dev server on :5173
 	@trap 'kill 0' EXIT; \
-	BRAINOS_STATIC_DIR=/nonexistent $(VENV)/bin/uvicorn --factory brainos.server.app:create_app --reload --reload-dir backend/src --port 8000 & \
+	CONCORD_STATIC_DIR=/nonexistent $(VENV)/bin/uvicorn --factory concord.server.app:create_app --reload --reload-dir backend/src --port 8000 & \
 	$(NPM) run dev
 
 test: test-backend test-frontend  ## all unit/integration tests; writes reports/ for the console Tests tab
@@ -48,11 +48,11 @@ lint:  ## ruff + mypy (strict) + tsc
 	cd backend && ../$(VENV)/bin/ruff check src tests examples ../scripts && ../$(VENV)/bin/ruff format --check src tests examples ../scripts
 	cd backend && ../$(VENV)/bin/ruff check $(PLUGIN_SRC) && ../$(VENV)/bin/ruff format --check $(PLUGIN_SRC)
 	cd backend && ../$(VENV)/bin/mypy && ../$(VENV)/bin/mypy --strict examples/reference_app examples/center_out_task.py
-	$(VENV)/bin/mypy --strict packages/brainos-adapter-sdk/src/brainos_adapter_sdk \
-	  examples/adapters/brainos-example-adapter/src/brainos_example_adapter
-	cd packages/brainos-brainflow && ../../$(VENV)/bin/mypy --strict src/brainos_brainflow
-	cd packages/brainos-bci2000 && ../../$(VENV)/bin/mypy --strict src/brainos_bci2000
-	cd packages/brainos-certify && ../../$(VENV)/bin/mypy
+	$(VENV)/bin/mypy --strict packages/concord-adapter-sdk/src/concord_adapter_sdk \
+	  examples/adapters/concord-example-adapter/src/concord_example_adapter
+	cd packages/concord-brainflow && ../../$(VENV)/bin/mypy --strict src/concord_brainflow
+	cd packages/concord-bci2000 && ../../$(VENV)/bin/mypy --strict src/concord_bci2000
+	cd packages/concord-certify && ../../$(VENV)/bin/mypy
 	$(NPM) run typecheck
 	# M5-C: the opt-in desktop control bridge (SDK-only, separate process)
 	cd backend && ../$(VENV)/bin/mypy --strict examples/desktop_bridge
@@ -74,27 +74,27 @@ bench-live:  ## LSL / Open Ephys -> pipeline -> decoder, measured here -> docs/B
 	$(PY) scripts/bench_live.py --write docs/BENCHMARKS_LIVE.md
 
 dataset:  ## download the verified demo recordings (2 FALCON H1 blocks, ~8.7 MiB) to data/datasets/
-	$(PY) -m brainos.datasets.fetch
+	$(PY) -m concord.datasets.fetch
 
 dataset-all:  ## all 13 FALCON H1 held-in calibration blocks (~66 MiB) for the decoding report
-	$(PY) -m brainos.datasets.fetch --all-calib
+	$(PY) -m concord.datasets.fetch --all-calib
 
 model:  ## train + evaluate the baseline decoder on downloaded blocks -> data/models/, reports/decoding.json
-	$(PY) -m brainos.decoding.evaluate_falcon
+	$(PY) -m concord.decoding.evaluate_falcon
 
 decoding-report: dataset-all  ## regenerate docs/DECODING.md from all 13 blocks
-	$(PY) -m brainos.decoding.evaluate_falcon --write docs/DECODING.md
+	$(PY) -m concord.decoding.evaluate_falcon --write docs/DECODING.md
 
 # ---- Milestone 5 (P0): cursor + click dataset (Singer-Clark et al., Dryad, CC0). Dryad needs an
 # API token for downloads: export DRYAD_TOKEN=... (or DRYAD_CLIENT_ID + DRYAD_CLIENT_SECRET).
 dataset-t15:  ## T15 cursor+click demo subset (day 468 blocks 0-3, ~90 MiB) -> data/datasets/dryad-prr4xgxzq
-	$(PY) -m brainos.datasets.dryad
+	$(PY) -m concord.datasets.dryad
 
 dataset-t15-day:  ## all 18 blocks of T15 day 468 (~472 MiB) for the cursor+click report
-	$(PY) -m brainos.datasets.dryad --subset day468
+	$(PY) -m concord.datasets.dryad --subset day468
 
 cursorclick-report: dataset-t15-day  ## decoders + click + word selection -> docs/CURSOR_CLICK.md, demo models
-	$(PY) -m brainos.evaluation.run_cursorclick --write docs/CURSOR_CLICK.md
+	$(PY) -m concord.evaluation.run_cursorclick --write docs/CURSOR_CLICK.md
 
 e2e-communication: build  ## real board selects words from replayed T15 data (needs dataset-t15) -> reports/communication_e2e.json
 	node e2e/communication.cjs
@@ -109,38 +109,38 @@ clean:
 .PHONY: dataset-ecog dataset-ecog-all ecog-report
 
 dataset-ecog:  ## stream the 2 pinned demo ECoG slices (~157 MiB) to data/datasets/dandi-000055/
-	$(PY) -m brainos.datasets.fetch ajile12
+	$(PY) -m concord.datasets.fetch ajile12
 
 dataset-ecog-all:  ## all 6 pinned ECoG slices (78.75 min, ~550 MiB)
-	$(PY) -m brainos.datasets.fetch ajile12 --all
+	$(PY) -m concord.datasets.fetch ajile12 --all
 
 ecog-report: dataset-ecog-all  ## ECoG move-vs-rest model -> data/models/, docs/ECOG_DECODING.md
-	$(PY) -m brainos.decoding.evaluate_ecog --write docs/ECOG_DECODING.md
+	$(PY) -m concord.decoding.evaluate_ecog --write docs/ECOG_DECODING.md
 
 # ---------------------------------------------------------------- Workstream F (M5): compatibility registry
 .PHONY: compat compat-check
 
 compat:  ## derive compat/registry.json (+ schema, docs/COMPATIBILITY.md section) from the evidence
-	$(PY) -m brainos.compat.build
+	$(PY) -m concord.compat.build
 
 compat-check:  ## fail if the committed compatibility registry is stale (run in CI)
-	$(PY) -m brainos.compat.build --check
+	$(PY) -m concord.compat.build --check
 
 # ---------------------------------------------------------------- Milestone 5, workstream A
 # Decoder SDK (decoder plugins + model files in an isolated host) and the example decoder
-# plugin. torch is an optional extra (brainos-decoder-sdk[torch]); its tests skip without it.
-PY_PKGS += -e "packages/brainos-decoder-sdk[onnx,sklearn,dev]" -e examples/decoders/brainos-example-decoder
-PLUGIN_SRC += ../packages/brainos-decoder-sdk ../examples/decoders/brainos-example-decoder
-PACKAGE_TESTS += packages/brainos-decoder-sdk examples/decoders/brainos-example-decoder
+# plugin. torch is an optional extra (concord-decoder-sdk[torch]); its tests skip without it.
+PY_PKGS += -e "packages/concord-decoder-sdk[onnx,sklearn,dev]" -e examples/decoders/concord-example-decoder
+PLUGIN_SRC += ../packages/concord-decoder-sdk ../examples/decoders/concord-example-decoder
+PACKAGE_TESTS += packages/concord-decoder-sdk examples/decoders/concord-example-decoder
 
 # ---------------------------------------------------------------- Milestone 5: hardware validation
-# brainos-hwval compares BrainOS recordings with independent reference recordings (LabRecorder
+# concord-hwval compares Concord recordings with independent reference recordings (LabRecorder
 # XDF, Open Ephys Binary); docs/HARDWARE_VALIDATION.md. `make test` runs its synthetic-defect
 # and CLI tests; `make test-hwval` also runs the real LabRecorderCLI and Open Ephys GUI
 # (downloaded on first use, pinned by SHA-256, never vendored; Linux x86_64 with
 # libpugixml1v5, xvfb and pulseaudio installed), as the CI workflow hwval.yml does.
-PY_PKGS += -e "packages/brainos-hwval[dev,openephys,capture]"
-HWVAL := packages/brainos-hwval
+PY_PKGS += -e "packages/concord-hwval[dev,openephys,capture]"
+HWVAL := packages/concord-hwval
 .PHONY: lint-hwval test-hwval
 lint: lint-hwval
 lint-hwval:  ## ruff + mypy --strict: hardware-validation toolkit (src + tests)
@@ -155,21 +155,21 @@ test-hwval:  ## all hwval tests incl. real LabRecorder + Open Ephys GUI; none ma
 .PHONY: lint-decoders
 lint: lint-decoders
 lint-decoders:  ## mypy --strict: decoder SDK + example decoder plugin
-	cd packages/brainos-decoder-sdk && ../../$(VENV)/bin/mypy src/brainos_decoder_sdk
-	cd examples/decoders/brainos-example-decoder && ../../../$(VENV)/bin/mypy --strict src/brainos_example_decoder
+	cd packages/concord-decoder-sdk && ../../$(VENV)/bin/mypy src/concord_decoder_sdk
+	cd examples/decoders/concord-example-decoder && ../../../$(VENV)/bin/mypy --strict src/concord_example_decoder
 
 # ------------------------------------------------------------------------ M5-D
 # Release workstream D: installation, desktop bundle, lab acceptance. Ordinary use needs none
-# of these: `brainos start` (pip install) or BrainOS.app (docs/INSTALL_MAC.md).
+# of these: `concord start` (pip install) or Concord.app (docs/INSTALL_MAC.md).
 .PHONY: console-stage app app-smoke lab-acceptance lint-packaging
-APP_EXE := $(if $(filter Darwin,$(shell uname -s)),packaging/dist/BrainOS.app/Contents/MacOS/BrainOS,packaging/dist/BrainOS/BrainOS)
+APP_EXE := $(if $(filter Darwin,$(shell uname -s)),packaging/dist/Concord.app/Contents/MacOS/Concord,packaging/dist/Concord/Concord)
 
 console-stage:  ## copy the built console into the Python package (wheels and the app ship it)
 	$(PY) packaging/stage_console.py --build
 
-app:  ## desktop bundle (PyInstaller): BrainOS.app + .dmg on macOS, BrainOS/ on Linux -> packaging/dist/
-	@if command -v uv >/dev/null; then uv pip install --python $(PY) -e packages/brainos-bci2000 -r packaging/requirements.txt; \
-	  else $(PY) -m pip install -e packages/brainos-bci2000 -r packaging/requirements.txt; fi
+app:  ## desktop bundle (PyInstaller): Concord.app + .dmg on macOS, Concord/ on Linux -> packaging/dist/
+	@if command -v uv >/dev/null; then uv pip install --python $(PY) -e packages/concord-bci2000 -r packaging/requirements.txt; \
+	  else $(PY) -m pip install -e packages/concord-bci2000 -r packaging/requirements.txt; fi
 	$(PY) packaging/build_app.py --build-console $(if $(filter Darwin,$(shell uname -s)),--dmg,)
 
 app-smoke:  ## run the built bundle like a user (headless, crash recovery); add ARGS=--window for the window

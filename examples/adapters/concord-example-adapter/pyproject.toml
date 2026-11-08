@@ -1,0 +1,34 @@
+[build-system]
+requires = ["hatchling>=1.21"]
+build-backend = "hatchling.build"
+
+[project]
+name = "concord-example-adapter"
+version = "0.1.0"
+description = "Example Concord source plugin: a declared-synthetic motor-imagery EEG generator"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary (internal preview)" }
+# A plugin depends on the public adapter SDK only - never on Concord itself.
+dependencies = ["concord-adapter-sdk>=1.0,<2", "numpy>=1.26"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+# This is what makes Concord find the plugin: an entry point in the "concord.sources" group.
+# The name (left) becomes part of Concord device ids: plugin:example-mi-eeg:<device key>.
+[project.entry-points."concord.sources"]
+example-mi-eeg = "concord_example_adapter.plugin:MotorImageryEEGPlugin"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/concord_example_adapter"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "ASYNC", "RUF", "SIM"]
+
+[tool.mypy]
+strict = true

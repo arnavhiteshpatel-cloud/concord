@@ -8,17 +8,17 @@ import time
 from collections.abc import Callable, Sequence
 from typing import Any
 
-from brainos.adapters.base import (
+from concord.adapters.base import (
     DeviceAdapter,
     DeviceLinkError,
     EventDraft,
     NativePacket,
     PacketDecodeError,
 )
-from brainos.contracts.capabilities import Capability, CapabilityDescriptor, EventType
-from brainos.contracts.events import Provenance, ProvenanceKind, Quality, QualityFlag
-from brainos.contracts.protocol import DeviceDescriptor, DeviceKind
-from brainos.runtime.bus import Subscriber
+from concord.contracts.capabilities import Capability, CapabilityDescriptor, EventType
+from concord.contracts.events import Provenance, ProvenanceKind, Quality, QualityFlag
+from concord.contracts.protocol import DeviceDescriptor, DeviceKind
+from concord.runtime.bus import Subscriber
 
 SIM_PROV = Provenance(
     kind=ProvenanceKind.SIMULATED_INTENT,
@@ -164,7 +164,7 @@ def valid_event(event_type: str = "intent.pointer", **overrides: Any) -> dict[st
         "quality": {"score": 0.9, "flags": ["synthetic"]},
         "provenance": {
             "kind": kind,
-            "adapter": "brainos.sim.profile_a@0.1.0",
+            "adapter": "concord.sim.profile_a@0.1.0",
             "synthetic": True,
             "model_id": None,
             "origin": "test",

@@ -1,4 +1,4 @@
-// Milestone 5 (D), Advanced → Support report: the same report as `brainos doctor`, made by the
+// Milestone 5 (D), Advanced → Support report: the same report as `concord doctor`, made by the
 // running server. It contains no neural data and no personal data (its last section lists
 // exactly what is left out).
 
@@ -23,7 +23,7 @@ export function SupportReport() {
     <div data-testid="support-report">
       <p className="hint">
         For whoever supports this installation: versions, optional components, ports, data-directory permissions, disk space
-        and recent log problems (redacted). Same as <code>brainos doctor</code> in a terminal.
+        and recent log problems (redacted). Same as <code>concord doctor</code> in a terminal.
       </p>
       <div className="btn-row">
         <button type="button" className="btn" disabled={action.busy} onClick={create} data-testid="support-create">
@@ -48,12 +48,12 @@ export function SupportReport() {
           )}
           <p>
             {jsonUrl && (
-              <a href={jsonUrl} download="brainos-support.json" data-testid="support-json">
+              <a href={jsonUrl} download="concord-support.json" data-testid="support-json">
                 Download JSON
               </a>
             )}{" "}
             ·{" "}
-            <a href={researchApi.doctorMarkdownUrl} download="brainos-support.md" data-testid="support-md">
+            <a href={researchApi.doctorMarkdownUrl} download="concord-support.md" data-testid="support-md">
               Download Markdown
             </a>
           </p>

@@ -64,7 +64,7 @@ const device = (caps: string[]) => ({
   device_id: "t15:block",
   display_name: "T15",
   kind: "replay" as const,
-  adapter: "brainos.cursorclick@0.1.0",
+  adapter: "concord.cursorclick@0.1.0",
   description: "",
   native_format: "",
   capabilities: caps.map((c) => ({ capability: c as "neural_features", params: {}, description: "" })),
@@ -276,7 +276,7 @@ describe("decoder wording", () => {
   it("never relabels external or historical outputs", () => {
     expect(originLabel("historical")).toBe("Historical decoder replay (original research system)");
     expect(originLabel("external")).toBe("External decoder");
-    expect(originLabel("brainos-trained")).toBe("BrainOS-trained");
+    expect(originLabel("concord-trained")).toBe("Concord-trained");
     expect(driftLine(null)).toBeNull();
   });
 

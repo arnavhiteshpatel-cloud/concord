@@ -1,7 +1,7 @@
 """Milestone 5 / workstream B against GENUINE human ECoG (AJILE12, DANDI 000055, sub-07).
 
 These need the pinned demo slices (~157 MiB, streamed from DANDI with HTTP range requests):
-    python -m brainos.datasets.fetch ajile12
+    python -m concord.datasets.fetch ajile12
 They are skipped — loudly — if the extracts are absent. CI fetches them first.
 
 Nothing here is hardware or human-in-the-loop validation: it is offline replay of a recording
@@ -26,20 +26,20 @@ import pytest
 pytest.importorskip("pynwb")
 pytest.importorskip("scipy")
 
-from brainos.adapters.nwb import NWBElectricalSource, device_id_for, verify_electrical
-from brainos.adapters.nwb.source import DecoderLeakageError
-from brainos.contracts import parse_envelope
-from brainos.contracts.protocol import ErrorCode, Modality
-from brainos.datasets import manifest
-from brainos.decoding import evaluate_ecog as ev
-from brainos.decoding.lda import LDAClassifier
+from concord.adapters.nwb import NWBElectricalSource, device_id_for, verify_electrical
+from concord.adapters.nwb.source import DecoderLeakageError
+from concord.contracts import parse_envelope
+from concord.contracts.protocol import ErrorCode, Modality
+from concord.datasets import manifest
+from concord.decoding import evaluate_ecog as ev
+from concord.decoding.lda import LDAClassifier
 
 from .conftest import free_port, make_settings, serve, subscribe
 from .helpers import drain, events, wait_for
 
 REPO = Path(__file__).resolve().parents[2]
-DATA = Path(os.environ.get("BRAINOS_TEST_ECOG", REPO / "data" / "datasets" / "dandi-000055"))
-FALCON = Path(os.environ.get("BRAINOS_TEST_DATASETS", REPO / "data" / "datasets" / "dandi-000954"))
+DATA = Path(os.environ.get("CONCORD_TEST_ECOG", REPO / "data" / "datasets" / "dandi-000055"))
+FALCON = Path(os.environ.get("CONCORD_TEST_DATASETS", REPO / "data" / "datasets" / "dandi-000954"))
 M = manifest("ajile12")
 TRAIN_SLICE = next(s for s in M.slices if s.demo and s.role == "train")
 TEST_SLICE = next(s for s in M.slices if s.demo and s.role == "test")
@@ -50,7 +50,7 @@ APP_DIR = Path(__file__).resolve().parents[1] / "examples" / "reference_app"
 pytestmark = pytest.mark.skipif(
     not (TRAIN_FILE.exists() and TEST_FILE.exists()),
     reason=f"real AJILE12 ECoG extracts not found in {DATA}; run "
-    "`python -m brainos.datasets.fetch ajile12`",
+    "`python -m concord.datasets.fetch ajile12`",
 )
 
 
@@ -85,8 +85,8 @@ def data_root(tmp_path: Path, demo_model: tuple[LDAClassifier, dict[str, Any], P
 
 @pytest.fixture
 async def rt(data_root: Path) -> AsyncIterator[Any]:
-    from brainos.adapters.simulated import OperatorIntentSource
-    from brainos.runtime import DeviceRegistry, Recorder, Runtime
+    from concord.adapters.simulated import OperatorIntentSource
+    from concord.runtime import DeviceRegistry, Recorder, Runtime
 
     reg = DeviceRegistry(OperatorIntentSource(), data_root / "recordings", seed=1)
     runtime = Runtime(reg, Recorder(data_root / "recordings"))
@@ -195,7 +195,7 @@ async def test_pipeline_features_equal_the_offline_analysis(
 ) -> None:
     """Train/deploy parity: the live pipeline computes exactly the features the evaluation
     used (same chain, source-declared 60 Hz mains, CAR without the bad electrode)."""
-    from brainos.runtime.pipeline import PipelineStartRequest
+    from concord.runtime.pipeline import PipelineStartRequest
 
     sub = subscribe(rt)
     await rt.connect(TEST_ID)
@@ -225,7 +225,7 @@ async def test_decoder_online_equals_offline_and_beats_controls(
     )
     assert res["balanced_accuracy"] > res["control_time_shift_max_balanced_accuracy"]
     assert res["auc"] > res["control_time_shift_max_auc"]
-    from brainos.runtime.pipeline import PipelineStartRequest
+    from concord.runtime.pipeline import PipelineStartRequest
 
     sub = subscribe(rt)
     await rt.connect(TEST_ID)
@@ -252,8 +252,8 @@ async def test_decoder_online_equals_offline_and_beats_controls(
 async def test_model_is_refused_on_its_training_session(
     rt: Any, demo_model: tuple[LDAClassifier, dict[str, Any], Path], slices: Any
 ) -> None:
-    from brainos.runtime import RuntimeCommandError
-    from brainos.runtime.pipeline import PipelineError, PipelineStartRequest
+    from concord.runtime import RuntimeCommandError
+    from concord.runtime.pipeline import PipelineError, PipelineStartRequest
 
     model = demo_model[0]
     with pytest.raises(DecoderLeakageError):
@@ -276,10 +276,10 @@ async def test_modality_guards_on_real_streams(
 ) -> None:
     """ECoG model refused on intracortical spike counts; intracortical model refused on ECoG;
     an EEG-declared model refused on ECoG — even with the cross-source override."""
-    from brainos.adapters.simulated import OperatorIntentSource
-    from brainos.decoding.ridge import RidgeDecoder
-    from brainos.runtime import DeviceRegistry, Recorder, Runtime, RuntimeCommandError
-    from brainos.runtime.pipeline import PipelineError, PipelineStartRequest
+    from concord.adapters.simulated import OperatorIntentSource
+    from concord.decoding.ridge import RidgeDecoder
+    from concord.runtime import DeviceRegistry, Recorder, Runtime, RuntimeCommandError
+    from concord.runtime.pipeline import PipelineError, PipelineStartRequest
 
     model = demo_model[0]
     models = data_root / "models"
@@ -292,7 +292,7 @@ async def test_modality_guards_on_real_streams(
     falcon_file = FALCON / "sub-HumanPitt-held-in-calib_ses-19250108T110520.nwb"
     if not falcon_file.exists():
         pytest.skip(
-            f"FALCON H1 demo files not found in {FALCON}; run `python -m brainos.datasets.fetch`"
+            f"FALCON H1 demo files not found in {FALCON}; run `python -m concord.datasets.fetch`"
         )
     # A FALCON-shaped ridge model (weights are irrelevant: the guard refuses before decoding).
     # It declares no modality itself; it inherits "intracortical" from the FALCON manifest.
@@ -360,7 +360,7 @@ def _load_app(name: str) -> ModuleType:
 
 @pytest.fixture
 def ecog_server(tmp_path: Path, data_root: Path) -> Iterator[str]:
-    from brainos.server import create_app
+    from concord.server import create_app
 
     port = free_port()
     yield from serve(create_app(make_settings(tmp_path, port=port, data_dir=data_root)), port)
@@ -375,7 +375,7 @@ async def test_unchanged_menu_app_gets_decoded_commands_from_ecog_after_authoriz
     authorizes it, with decoded_intent provenance and the model id; nothing after disconnect."""
     import httpx
 
-    from brainos.sdk import BrainOSError, RuntimeClient
+    from concord.sdk import ConcordError, RuntimeClient
 
     model = demo_model[0]
     menu_mod = _load_app("menu_app")
@@ -397,7 +397,7 @@ async def test_unchanged_menu_app_gets_decoded_commands_from_ecog_after_authoriz
             await op.connect(TEST_ID)
             await wait_for(lambda: menu.status == "suspended", timeout=10)
             # a classifier cannot drive a pointer (refused, as on every other source)
-            with pytest.raises(BrainOSError) as exc:
+            with pytest.raises(ConcordError) as exc:
                 await op.start_pipeline(
                     "ecog_high_gamma",
                     model_id=model.model_id,

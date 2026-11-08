@@ -28,7 +28,7 @@ const device = {
   device_id: "sim-a",
   display_name: "Simulated Profile A",
   kind: "simulated",
-  adapter: "brainos.sim.profile_a@0.1.0",
+  adapter: "concord.sim.profile_a@0.1.0",
   description: "",
   native_format: "",
   capabilities: [{ capability: "recording", params: { channel_count: 2, sample_rate_hz: 1000 }, description: "" }],
@@ -164,7 +164,7 @@ function open(runtime: unknown = streaming) {
   act(() => {
     socket.push({
       type: "welcome",
-      protocol: "brainos.stream/1",
+      protocol: "concord.stream/1",
       schema_version: "1.2",
       connection_id: "con_1",
       negotiation,
@@ -318,13 +318,13 @@ describe("console when the server connection is lost", () => {
     serverUp = false;
     act(() => socket.onclose?.());
 
-    expect(screen.getByTestId("status-line").textContent).toBe("Connection to BrainOS lost, reconnecting");
+    expect(screen.getByTestId("status-line").textContent).toBe("Connection to Concord lost, reconnecting");
     expect(screen.getByTestId("status-line").getAttribute("data-state")).toBe("unknown");
     expect(screen.queryByTestId("runtime-device")).toBeNull();
     expect(screen.queryByTestId("source-name")).toBeNull();
     await waitFor(() => expect(screen.queryByText("600 µs")).toBeNull(), { timeout: 2500 });
     expect(screen.queryByText(/Failed to fetch/)).toBeNull(); // the outage itself is not an error message
-    expect(screen.getByTestId("session-log").textContent).toContain("Connection to BrainOS lost");
+    expect(screen.getByTestId("session-log").textContent).toContain("Connection to Concord lost");
   });
 });
 
@@ -375,7 +375,7 @@ describe("EventStream summary", () => {
   };
   const prov = (kind: "decoded_intent" | "simulated_intent", model_id: string | null) => ({
     kind,
-    adapter: "brainos.pipeline@0.3.0",
+    adapter: "concord.pipeline@0.3.0",
     synthetic: false,
     model_id,
     origin: "o",

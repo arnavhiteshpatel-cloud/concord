@@ -1,5 +1,5 @@
 // Configure and start/stop the real-time processing pipeline (features -> optional decoder).
-// Milestone 5: decoders of every origin (BrainOS-trained, imported file, plugin), a
+// Milestone 5: decoders of every origin (Concord-trained, imported file, plugin), a
 // compatibility preview for the chosen processing, the explicit channel mapping by label
 // (offered only when it applies), trust for unsafe model files, and decoded passthrough.
 
@@ -81,7 +81,7 @@ function TrustAction({ m, onChanged }: { m: ModelInfo; onChanged: () => void }) 
       ) : (
         <>
           <p>
-            A {s.format} file runs code from the file when it is loaded, so BrainOS refuses it. Mark it trusted only if you
+            A {s.format} file runs code from the file when it is loaded, so Concord refuses it. Mark it trusted only if you
             created this exact file or trust its author; the decision is recorded with the file&apos;s SHA-256.
           </p>
           <button type="button" className="btn" disabled={action.busy} onClick={() => set(true)} data-testid="model-trust-btn">
@@ -329,7 +329,7 @@ export function PipelineControl({
       )}
       {selected?.mapping_available && allowMapping && (
         <p className="caution-box" data-testid="pl-mapping-warning">
-          BrainOS will feed the model the source channels that carry the model&apos;s labels, in the model&apos;s order. Use
+          Concord will feed the model the source channels that carry the model&apos;s labels, in the model&apos;s order. Use
           this only if the labels name the same electrodes. The mapping is logged and shown while decoding.
         </p>
       )}

@@ -1,9 +1,9 @@
-// BrainOS TypeScript SDK — wire types.
-// Mirrors contracts/event-envelope.v1.schema.json and backend/src/brainos/contracts/*.py.
+// Concord TypeScript SDK — wire types.
+// Mirrors contracts/event-envelope.v1.schema.json and backend/src/concord/contracts/*.py.
 // Keep in sync when the schema changes (see CLAUDE.md "Changing contracts").
 
 export const SCHEMA_MAJOR = 1;
-export const STREAM_PROTOCOL = "brainos.stream/1";
+export const STREAM_PROTOCOL = "concord.stream/1";
 
 export const CAPABILITIES = [
   "recording",
@@ -88,9 +88,9 @@ export interface Provenance {
   model_id: string | null;
   origin: string;
   replayed: boolean;
-  /** 1.4: who produced a decoded_intent: a BrainOS model, an external live decoder, or the
+  /** 1.4: who produced a decoded_intent: a Concord model, an external live decoder, or the
    * recorded outputs of a research system's original decoder ("historical"). */
-  model_origin?: "brainos" | "external" | "historical" | null;
+  model_origin?: "concord" | "external" | "historical" | null;
 }
 
 export interface RecordingFramePayload {

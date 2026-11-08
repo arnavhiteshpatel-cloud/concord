@@ -48,11 +48,11 @@ async def test_cues_label_a_neural_stream_and_unrelated_signal_is_not_decodable(
     to these cues, so calibration must report no meaningful decoding (no fabricated skill)."""
     pytest.importorskip("pylsl")
     pytest.importorskip("scipy")
-    from brainos.adapters.simulated import OperatorIntentSource
-    from brainos.decoding.calibrate import calibrate
-    from brainos.runtime import DeviceRegistry, Recorder, Runtime
-    from brainos.runtime.pipeline import PipelineStartRequest
-    from brainos.testing.lsl_publishers import SyntheticEphysPublisher
+    from concord.adapters.simulated import OperatorIntentSource
+    from concord.decoding.calibrate import calibrate
+    from concord.runtime import DeviceRegistry, Recorder, Runtime
+    from concord.runtime.pipeline import PipelineStartRequest
+    from concord.testing.lsl_publishers import SyntheticEphysPublisher
 
     m = _load()
     sid = f"cot-{os.getpid()}"
@@ -77,7 +77,7 @@ async def test_cues_label_a_neural_stream_and_unrelated_signal_is_not_decodable(
     await rt.shutdown()
     assert rt.diagnostics.timestamp_regressions == 0
 
-    path = tmp_path / "rec" / f"{name}.brainos.jsonl"
+    path = tmp_path / "rec" / f"{name}.concord.jsonl"
     import json
 
     evs = [json.loads(line) for line in path.read_text().splitlines()[1:]]
@@ -85,6 +85,6 @@ async def test_cues_label_a_neural_stream_and_unrelated_signal_is_not_decodable(
     assert "Raw signal frames excluded" in json.loads(path.read_text().splitlines()[0])["note"]
     marks = [e["payload"]["label"] for e in evs if e["event_type"] == "recording.annotation"]
     assert marks == task.markers
-    model, report = calibrate([path], feature_source="brainos.pipeline", gap_bins=5)
+    model, report = calibrate([path], feature_source="concord.pipeline", gap_bins=5)
     assert model.dims == ["cue_vx", "cue_vy"] and report["labelled_bins"] >= 450
     assert report["r2"] < 0.2  # unrelated synthetic signal: nothing to decode

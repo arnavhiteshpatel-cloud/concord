@@ -3,14 +3,14 @@ requires = ["hatchling>=1.24"]
 build-backend = "hatchling.build"
 
 [project]
-name = "brainos"
+name = "concordos"
 version = "0.3.0"
-description = "BrainOS: hardware-agnostic, read-only runtime and SDK for implanted brain-computer interfaces (MVP)."
+description = "Concord: hardware-agnostic, read-only runtime and SDK for implanted brain-computer interfaces (MVP)."
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "Proprietary" }
 # The base install is the application SDK + event contracts only (what an app developer
-# needs): `pip install brainos`. The runtime server and plugin hosting are the `server` extra.
+# needs): `pip install concordos`. The runtime server and plugin hosting are the `server` extra.
 dependencies = [
     "pydantic>=2.8",
     "httpx>=0.27",       # SDK REST client
@@ -19,13 +19,13 @@ dependencies = [
 
 [project.optional-dependencies]
 # The runtime server (REST + WebSocket + console hosting) and source-plugin hosting through
-# the public adapter SDK (packages/brainos-adapter-sdk; brings numpy).
+# the public adapter SDK (packages/concord-adapter-sdk; brings numpy).
 server = [
     "fastapi>=0.115",
     "uvicorn[standard]>=0.30",
-    "brainos-adapter-sdk>=1.0,<2",
+    "concord-adapter-sdk>=1.0,<2",
     # Milestone 5: decoder plugins and model files run in the isolated decoder host
-    "brainos-decoder-sdk>=1.0,<2",
+    "concord-decoder-sdk>=1.0,<2",
     # M5-E: encodes raw-frame sample arrays to JSON ~3x faster than pydantic on tolist()
     # (byte-identical output; docs/PERFORMANCE.md). Optional at runtime: without it the
     # runtime falls back to pydantic's encoder (runtime/fastjson.py).
@@ -57,21 +57,21 @@ dev = [
     "ruff>=0.6",
 ]
 # M5-D: everything a lab needs in one extra (server, processing, datasets, LSL/Open Ephys)
-lab = ["brainos[server,dsp,nwb,live]"]
+lab = ["concordos[server,dsp,nwb,live]"]
 
 [project.scripts]
-brainos-server = "brainos.server.__main__:main"
+concord-server = "concord.server.__main__:main"
 # M5-D: start/stop/status/doctor/version/config/dataset/reproduce/serve
-brainos = "brainos.cli:main"
+concord = "concord.cli:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/brainos"]
+packages = ["src/concord"]
 # M5-D: the built console, copied in by packaging/stage_console.py (git-ignored), is shipped
 # in the wheel when present so `pip install` users get the console too
-artifacts = ["src/brainos/server/console/**"]
+artifacts = ["src/concord/server/console/**"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests", "../examples/adapters/brainos-example-adapter/tests"]
+testpaths = ["tests", "../examples/adapters/concord-example-adapter/tests"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 filterwarnings = [
@@ -83,7 +83,7 @@ filterwarnings = [
 python_version = "3.12"
 strict = true
 mypy_path = "src"
-packages = ["brainos"]
+packages = ["concord"]
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
@@ -102,6 +102,6 @@ ignore = ["RUF012"]
 "tests/**" = ["E501", "ASYNC109", "ASYNC110"]
 "../scripts/bench.py" = ["E501"]  # emits markdown tables
 "../scripts/bench_scale.py" = ["E501"]  # emits markdown tables (M5-E)
-"src/brainos/decoding/evaluate_falcon.py" = ["E501"]  # emits markdown tables
-"src/brainos/evaluation/run_cursorclick.py" = ["E501", "RUF001"]  # emits markdown tables
-"src/brainos/decoding/evaluate_ecog.py" = ["E501"]  # emits markdown tables
+"src/concord/decoding/evaluate_falcon.py" = ["E501"]  # emits markdown tables
+"src/concord/evaluation/run_cursorclick.py" = ["E501", "RUF001"]  # emits markdown tables
+"src/concord/decoding/evaluate_ecog.py" = ["E501"]  # emits markdown tables

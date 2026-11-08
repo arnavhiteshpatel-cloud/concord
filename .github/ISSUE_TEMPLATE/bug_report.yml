@@ -1,5 +1,5 @@
 name: Bug report
-description: Something in BrainOS does not work as documented.
+description: Something in Concord does not work as documented.
 labels: ["bug"]
 body:
   - type: markdown
@@ -13,7 +13,7 @@ body:
       label: What happened
       description: What you did, what you expected, and what happened instead.
       placeholder: |
-        1. Opened BrainOS, chose Connect a source → Simulated Profile A
+        1. Opened Concord, chose Connect a source → Simulated Profile A
         2. …
         Expected: …
         Instead: …
@@ -22,7 +22,7 @@ body:
   - type: dropdown
     id: install
     attributes:
-      label: How you run BrainOS
+      label: How you run Concord
       options:
         - macOS app (.dmg from a release)
         - Linux bundle (from a release)
@@ -34,8 +34,8 @@ body:
   - type: input
     id: version
     attributes:
-      label: BrainOS version
-      description: "Shown in the support report, or run `brainos version`."
+      label: Concord version
+      description: "Shown in the support report, or run `concord version`."
       placeholder: "0.3.0"
     validations:
       required: true
@@ -62,7 +62,7 @@ body:
     id: support
     attributes:
       label: Support report
-      description: "In the console: Advanced → Support report → Create support report → Download Markdown, then attach the file here (or run `brainos doctor`). It contains no neural or personal data."
+      description: "In the console: Advanced → Support report → Create support report → Download Markdown, then attach the file here (or run `concord doctor`). It contains no neural or personal data."
   - type: textarea
     id: log
     attributes:

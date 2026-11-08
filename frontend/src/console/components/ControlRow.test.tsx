@@ -214,8 +214,8 @@ describe("CalibrationPanel (classifier)", () => {
     const report = {
       kind: "classifier",
       model_id: "classes-cue-lda-1",
-      recordings: ["mi.brainos.jsonl"],
-      source_identity: "brainos:test",
+      recordings: ["mi.concord.jsonl"],
+      source_identity: "concord:test",
       prerecorded_source: false,
       synthetic_source: true,
       classes: ["rest", "left", "right"],

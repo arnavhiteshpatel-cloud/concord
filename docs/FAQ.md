@@ -1,18 +1,18 @@
 # Frequently asked questions
 
-**About BrainOS**
+**About Concord**
 
-- [What is BrainOS?](#what-is-brainos)
-- [Is BrainOS a medical device? Has anyone used it?](#is-brainos-a-medical-device-has-anyone-used-it)
+- [What is Concord?](#what-is-concord)
+- [Is Concord a medical device? Has anyone used it?](#is-concord-a-medical-device-has-anyone-used-it)
 - [Does it work with my implant or my company's device?](#does-it-work-with-my-implant-or-my-companys-device)
-- [Does BrainOS send anything to my amplifier or device?](#does-brainos-send-anything-to-my-amplifier-or-device)
+- [Does Concord send anything to my amplifier or device?](#does-concord-send-anything-to-my-amplifier-or-device)
 - [What do "validation levels" and "protocol-tested" mean?](#what-do-validation-levels-and-protocol-tested-mean)
 
 **Installing and running**
 
 - [Do I need to use the terminal?](#do-i-need-to-use-the-terminal)
 - [macOS says the app cannot be opened or verified. Is it safe?](#macos-says-the-app-cannot-be-opened-or-verified-is-it-safe)
-- [Does BrainOS run on Windows or on an Intel Mac?](#does-brainos-run-on-windows-or-on-an-intel-mac)
+- [Does Concord run on Windows or on an Intel Mac?](#does-concord-run-on-windows-or-on-an-intel-mac)
 - [Can I use the console from another computer?](#can-i-use-the-console-from-another-computer)
 - [How do I uninstall it?](#how-do-i-uninstall-it)
 
@@ -33,13 +33,13 @@
 **Getting help**
 
 - [How do I report a problem?](#how-do-i-report-a-problem)
-- [How do I cite BrainOS?](#how-do-i-cite-brainos)
+- [How do I cite Concord?](#how-do-i-cite-concord)
 
 ---
 
-## About BrainOS
+## About Concord
 
-### What is BrainOS?
+### What is Concord?
 
 Software that sits between neural acquisition (an amplifier's software, a recording file, a
 simulator) and the applications that use the data. It receives the data, labels every event
@@ -48,9 +48,9 @@ signal processing and decoders, and forwards decoded commands only to applicatio
 has authorized. Applications are written once, against a standard set of capabilities, and do
 not need to change when the source changes. See [PRODUCT.md](../PRODUCT.md).
 
-### Is BrainOS a medical device? Has anyone used it?
+### Is Concord a medical device? Has anyone used it?
 
-No, and no. BrainOS is research software. It has been tested in software and with
+No, and no. Concord is research software. It has been tested in software and with
 protocol-level test sources (software that speaks the same protocols as real acquisition
 systems). It has **never been used with acquisition hardware or with a participant**, and
 nobody has controlled anything or communicated through it. Decoding results in this repository
@@ -58,15 +58,15 @@ are offline analyses of public recordings. See [VALIDATION_LEVELS.md](VALIDATION
 
 ### Does it work with my implant or my company's device?
 
-No implant manufacturer's device is supported, and none should be assumed to work. BrainOS
+No implant manufacturer's device is supported, and none should be assumed to work. Concord
 connects to acquisition *software*: anything that publishes a Lab Streaming Layer stream, the
 Open Ephys GUI, boards supported by BrainFlow, and BCI2000. Other systems can be connected with
 a source plugin ([ADAPTER_SDK.md](ADAPTER_SDK.md)). Before relying on any connection, verify it
 with the [hardware validation protocol](HARDWARE_VALIDATION.md).
 
-### Does BrainOS send anything to my amplifier or device?
+### Does Concord send anything to my amplifier or device?
 
-No. BrainOS only receives. It has no way to send commands, configuration or stimulation to a
+No. Concord only receives. It has no way to send commands, configuration or stimulation to a
 device; this is by design and enforced in the code. The single exception is a small "heartbeat"
 message to the Open Ephys GUI's ZMQ Interface plugin so the plugin knows a client is listening
 ([OPEN_EPHYS.md](OPEN_EPHYS.md)).
@@ -92,7 +92,7 @@ Every component's level and evidence: [VALIDATION_LEVELS.md](VALIDATION_LEVELS.m
 
 Not to install, use the console, replay the FALCON and T15 recordings, run research sessions or
 export them: see [GETTING_STARTED.md](GETTING_STARTED.md). A terminal is needed for: the ECoG
-demo download, the `brainos` command (status, configuration file, reproduction of an export),
+demo download, the `concord` command (status, configuration file, reproduction of an export),
 connecting test publishers, and anything from a source installation (training the demo
 decoders, tests, benchmarks).
 
@@ -106,7 +106,7 @@ its checksum. Then allow it once:
 **System Settings → Privacy & Security → Open Anyway** (macOS 15+) or Control-click →
 **Open** (macOS 14). [INSTALL_MAC.md](INSTALL_MAC.md) has the details.
 
-### Does BrainOS run on Windows or on an Intel Mac?
+### Does Concord run on Windows or on an Intel Mac?
 
 Not as a desktop app. The Mac app needs Apple Silicon and macOS 14 or later. On an Intel Mac or
 older macOS, install with Python ([INSTALL_MAC.md](INSTALL_MAC.md#b-with-python-pip)). Windows is
@@ -114,14 +114,14 @@ not supported.
 
 ### Can I use the console from another computer?
 
-BrainOS listens only on the computer it runs on (127.0.0.1) because it has no user accounts or
+Concord listens only on the computer it runs on (127.0.0.1) because it has no user accounts or
 encryption. To see the console from another computer, use an SSH tunnel
-(`ssh -L 8000:127.0.0.1:8000 user@brainos-computer`) rather than opening it to the network.
+(`ssh -L 8000:127.0.0.1:8000 user@concord-computer`) rather than opening it to the network.
 [SECURITY.md](SECURITY.md) explains why.
 
 ### How do I uninstall it?
 
-Quit BrainOS and move it from Applications to the Bin (on Linux, delete the extracted folder).
+Quit Concord and move it from Applications to the Bin (on Linux, delete the extracted folder).
 Your data is kept: delete the data folder yourself if you no longer need it (it may contain
 neural recordings; see [SECURITY.md](SECURITY.md) on deletion).
 
@@ -133,11 +133,11 @@ On your computer only, in a folder readable only by your user account:
 
 | Installation | Data folder |
 | --- | --- |
-| Mac app or Python install on a Mac | `~/Library/Application Support/BrainOS/data` |
-| Linux bundle or Python install on Linux | `~/.local/share/brainos/data` |
+| Mac app or Python install on a Mac | `~/Library/Application Support/Concord/data` |
+| Linux bundle or Python install on Linux | `~/.local/share/concord/data` |
 | Source checkout | `data/` in the repository |
 
-**Advanced → Stored data** in the console shows the exact folder. BrainOS sends nothing to the
+**Advanced → Stored data** in the console shows the exact folder. Concord sends nothing to the
 internet on its own. It contacts other computers only when you ask: downloading a public
 dataset, discovering LSL streams on your local network, or connecting to an Open Ephys GUI.
 Recordings are not encrypted; put the data folder on an encrypted disk if your protocol
@@ -153,7 +153,7 @@ repository: the archives' terms apply.
 
 ### How do I know a dataset file is genuine?
 
-BrainOS computes the SHA-256 checksum of every dataset file and compares it with the checksum
+Concord computes the SHA-256 checksum of every dataset file and compares it with the checksum
 pinned from the archive. **Advanced → Acquisition details** shows "SHA-256 matches DANDI …" only
 on an exact match; any other file is still playable but labelled **unverified**.
 
@@ -185,7 +185,7 @@ board directly (as simulated input) so you can try the board without a decoder.
 
 Yes: as a model file (ONNX, scikit-learn via skops, TorchScript / safetensors) or as a decoder
 plugin, run in a separate process and checked against the source before it starts
-([DECODER_SDK.md](DECODER_SDK.md)). BrainOS can also calibrate its own decoders from your
+([DECODER_SDK.md](DECODER_SDK.md)). Concord can also calibrate its own decoders from your
 recordings (**Decoder → Calibrate…**).
 
 ### How good are the decoders?
@@ -205,7 +205,7 @@ neural or personal data) and attach it to a
 [bug report](https://github.com/arnavhiteshpatel-cloud/brainos/issues/new/choose). Security
 problems: see [SECURITY.md](../SECURITY.md) and do not open a public issue.
 
-### How do I cite BrainOS?
+### How do I cite Concord?
 
 Use **Cite this repository** on the GitHub page (from [CITATION.cff](../CITATION.cff)), and cite
 each dataset you use; the console shows each dataset's citation under **Advanced → Acquisition

@@ -22,15 +22,15 @@ import httpx
 import numpy as np
 import pytest
 import uvicorn
-from brainos_example_adapter.generator import (
+from concord_example_adapter.generator import (
     BLOCK,
     GeneratorConfig,
     MotorImageryGenerator,
 )
 
-from brainos.contracts.events import EventEnvelope
-from brainos.sdk import BrainOSError, EventStream, RuntimeClient, is_event
-from brainos.server import create_app
+from concord.contracts.events import EventEnvelope
+from concord.sdk import ConcordError, EventStream, RuntimeClient, is_event
+from concord.server import create_app
 
 from .conftest import free_port as _free_port
 from .conftest import make_settings
@@ -123,7 +123,7 @@ async def test_example_adapter_end_to_end(server: str, tmp_path: Path) -> None:
         st = await c.discover_plugins(0.5)
         plugin = next(p for p in st["plugins"] if p["name"] == PLUGIN)
         assert plugin["status"] == "compatible" and plugin["reason"] is None
-        assert plugin["package"] == "brainos-example-adapter" and plugin["version"] == "0.1.0"
+        assert plugin["package"] == "concord-example-adapter" and plugin["version"] == "0.1.0"
         assert plugin["roles"] == ["behavior", "markers", "signal"]
         assert {o["name"] for o in plugin["options"]} == {
             "seed",
@@ -135,10 +135,10 @@ async def test_example_adapter_end_to_end(server: str, tmp_path: Path) -> None:
             plugin["devices"][0]["device_id"] == DEVICE and not plugin["devices"][0]["configured"]
         )
 
-        with pytest.raises(BrainOSError) as e:
+        with pytest.raises(ConcordError) as e:
             await c.configure_plugin(PLUGIN, "mi-eeg", {"montage": "32"})
         assert e.value.status == 400 and "montage" in e.value.message
-        with pytest.raises(BrainOSError) as e:
+        with pytest.raises(ConcordError) as e:
             await c.configure_plugin(PLUGIN, "mi-eeg", {"effect_size": 3})
         assert e.value.status == 502 and "effect_size" in e.value.message  # plugin's own check
 
@@ -148,7 +148,7 @@ async def test_example_adapter_end_to_end(server: str, tmp_path: Path) -> None:
         integ = desc.integration
         assert integ is not None and integ.kind == "plugin" and integ.isolated
         assert (integ.package, integ.version, integ.api_version) == (
-            "brainos-example-adapter",
+            "concord-example-adapter",
             "0.1.0",
             "1.0",
         )
@@ -161,7 +161,7 @@ async def test_example_adapter_end_to_end(server: str, tmp_path: Path) -> None:
         }
         assert DEVICE in {d.device_id for d in await c.devices()}
         idle_meta = await c._call("GET", f"/devices/{DEVICE}/source")
-        assert idle_meta["plugin"]["package"] == "brainos-example-adapter"
+        assert idle_meta["plugin"]["package"] == "concord-example-adapter"
 
         # --- connect and stream through the runtime -> WebSocket -> SDK (validated envelopes)
         stream = await EventStream.connect(
@@ -177,7 +177,7 @@ async def test_example_adapter_end_to_end(server: str, tmp_path: Path) -> None:
         n_frames = check_bit_exact(evs, cfg)
         assert n_frames >= 15
         assert all(
-            e.provenance.adapter == "brainos-example-adapter@0.1.0"
+            e.provenance.adapter == "concord-example-adapter@0.1.0"
             for e in evs
             if e.event_type != "device.status"
         )
@@ -238,13 +238,13 @@ async def test_example_adapter_end_to_end(server: str, tmp_path: Path) -> None:
 async def test_rest_errors(server: str) -> None:
     async with RuntimeClient(server) as c:
         await c.discover_plugins(0.2)
-        with pytest.raises(BrainOSError) as e:
+        with pytest.raises(ConcordError) as e:
             await c.configure_plugin("no-such-plugin", "x")
         assert e.value.status == 404
-        with pytest.raises(BrainOSError) as e:
+        with pytest.raises(ConcordError) as e:
             await c.configure_plugin(PLUGIN, "mi-eeg", {"unknown": 1})
         assert e.value.status == 400 and "unknown option" in e.value.message
-        with pytest.raises(BrainOSError) as e:
+        with pytest.raises(ConcordError) as e:
             await c.connect("plugin:example-mi-eeg:not-configured")
         assert e.value.status == 404
 

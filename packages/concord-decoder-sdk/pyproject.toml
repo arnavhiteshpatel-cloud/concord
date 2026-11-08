@@ -1,0 +1,44 @@
+[build-system]
+requires = ["hatchling>=1.21"]
+build-backend = "hatchling.build"
+
+[project]
+name = "concord-decoder-sdk"
+version = "1.0.0"
+description = "Public SDK for bringing neural decoders (plugins and model files) to Concord, run isolated and validated"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary (internal preview)" }
+# numpy + the adapter SDK (whose binary IPC framing and validation Problems this reuses)
+dependencies = ["numpy>=1.26", "concord-adapter-sdk>=1.0,<2"]
+
+[project.optional-dependencies]
+# model-file formats (installed into Concord's environment, where the decoder host runs)
+onnx = ["onnxruntime>=1.17"]
+sklearn = ["skops>=0.10", "scikit-learn>=1.3"]
+torch = ["torch>=2.2", "safetensors>=0.4"]
+# tests build real model files with these
+dev = ["pytest>=8", "mypy>=1.10", "ruff>=0.5", "onnx>=1.15"]
+
+[project.scripts]
+concord-decoder = "concord_decoder_sdk.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/concord_decoder_sdk"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "ASYNC", "RUF", "SIM"]
+
+[tool.mypy]
+strict = true
+
+[[tool.mypy.overrides]]
+module = ["onnxruntime", "onnxruntime.*", "onnx", "onnx.*", "skops", "skops.*", "sklearn", "sklearn.*", "joblib", "torch", "torch.*", "safetensors", "safetensors.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

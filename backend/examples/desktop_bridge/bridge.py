@@ -1,14 +1,14 @@
-"""BrainOS desktop control bridge — OPT-IN, OFF BY DEFAULT. Read SAFETY.md first.
+"""Concord desktop control bridge — OPT-IN, OFF BY DEFAULT. Read SAFETY.md first.
 
 A separate process that maps **authorized, decoded** pointer and selection commands from
-BrainOS to operating-system pointer events (relative moves and a primary-button click)
+Concord to operating-system pointer events (relative moves and a primary-button click)
 through a pluggable backend (``dry-run``, ``xdotool``, ``pynput``). It is not one of the
-reference applications and nothing else in BrainOS starts it.
+reference applications and nothing else in Concord starts it.
 
-It uses only the public Python SDK (``brainos.sdk``), the standard library and its backends.
+It uses only the public Python SDK (``concord.sdk``), the standard library and its backends.
 It never accepts raw signals, features, behavior labels or simulated intents: it acts only on
 ``intent.pointer`` / ``intent.selection`` events with provenance ``decoded_intent``, which
-reach an application only after the operator authorized it in BrainOS (app id
+reach an application only after the operator authorized it in Concord (app id
 ``desktop-bridge``) and started command output.
 
 Safety behaviour (details and limits in SAFETY.md):
@@ -46,9 +46,9 @@ from typing import Any
 
 from backends import BackendError, PointerBackend, make_backend
 
-from brainos.sdk import (
-    BrainOSError,
+from concord.sdk import (
     CommandGuard,
+    ConcordError,
     EventStream,
     NegotiationUpdate,
     RuntimeUpdate,
@@ -255,7 +255,7 @@ async def run(bridge: Bridge, base_url: str, stop: asyncio.Event) -> Bridge:
             try:
                 async for item in stream:
                     bridge.handle(item)
-            except BrainOSError as exc:
+            except ConcordError as exc:
                 bridge.stop(f"stream closed: {exc.message}")
                 raise
             bridge.stop("stream closed")
@@ -274,7 +274,7 @@ async def run(bridge: Bridge, base_url: str, stop: asyncio.Event) -> Bridge:
         for t in (*tasks, waiter):
             t.cancel()
         for t in (*tasks, waiter):
-            with contextlib.suppress(asyncio.CancelledError, BrainOSError):
+            with contextlib.suppress(asyncio.CancelledError, ConcordError):
                 await t
     bridge.guard.on_closed()
     return bridge
@@ -310,14 +310,14 @@ async def _main(args: argparse.Namespace) -> int:
     loop.call_later(args.seconds, stop.set)
     print(
         f"desktop bridge on ({backend.name}); waiting for the operator to authorize "
-        f"'{APP_ID}' in BrainOS. Stop: Ctrl-C"
+        f"'{APP_ID}' in Concord. Stop: Ctrl-C"
         + (" or Ctrl+Alt+B" if backend.has_hotkey and backend.name == "pynput" else ""),
         flush=True,
     )
     try:
         await run(bridge, args.url, stop)
-    except (BrainOSError, OSError) as exc:
-        print(f"cannot reach BrainOS at {args.url}: {exc}", file=sys.stderr)
+    except (ConcordError, OSError) as exc:
+        print(f"cannot reach Concord at {args.url}: {exc}", file=sys.stderr)
         return 1
     finally:
         backend.close()

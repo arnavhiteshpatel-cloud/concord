@@ -1,6 +1,6 @@
 {
  "started": "2026-11-08 00:00 UTC",
- "command": "python scripts/bench_scale.py --sections micro,raw,ecog,counts,consumers,recovery --label baseline 6b82e05 --json /tmp/claude-0/-home-user-brainos/7ce20f48-aafa-5e96-a03e-bf24076b106d/scratchpad/before.json --write /tmp/claude-0/-home-user-brainos/7ce20f48-aafa-5e96-a03e-bf24076b106d/scratchpad/before.md",
+ "command": "python scripts/bench_scale.py --sections micro,raw,ecog,counts,consumers,recovery --label baseline 6b82e05 --json /tmp/claude-0/-home-user-concord/7ce20f48-aafa-5e96-a03e-bf24076b106d/scratchpad/before.json --write /tmp/claude-0/-home-user-concord/7ce20f48-aafa-5e96-a03e-bf24076b106d/scratchpad/before.md",
  "label": "baseline 6b82e05",
  "machine": {
   "machine": "x86_64",

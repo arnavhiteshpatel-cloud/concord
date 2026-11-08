@@ -161,7 +161,7 @@ export function StoredData({ onChanged }: { onChanged: () => void }) {
 
       <h3 className="minor stored-head">Decoder models</h3>
       <p className="hint" data-testid="model-trust">
-        Models are loaded by BrainOS&apos;s decoders. Load only models from sources you trust; a model trained on another
+        Models are loaded by Concord&apos;s decoders. Load only models from sources you trust; a model trained on another
         source is refused unless you override it, and the override is shown.
       </p>
       {models.length ? (

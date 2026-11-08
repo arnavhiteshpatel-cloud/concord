@@ -19,15 +19,15 @@ from typing import Any
 import numpy as np
 import pytest
 
-from brainos.adapters.simulated import OperatorIntentSource
-from brainos.contracts import Capability
-from brainos.contracts.protocol import ErrorCode
-from brainos.decoding.calibrate import CalibrationError, calibrate_capability
-from brainos.decoding.lda import fit_lda
-from brainos.decoding.ridge import RidgeDecoder, fit
-from brainos.runtime import DeviceRegistry, Recorder, Runtime, RuntimeCommandError
-from brainos.runtime.pipeline import DECODED_PASSTHROUGH, PipelineStartRequest, RouterSpec
-from brainos.runtime.router import DiscreteRule
+from concord.adapters.simulated import OperatorIntentSource
+from concord.contracts import Capability
+from concord.contracts.protocol import ErrorCode
+from concord.decoding.calibrate import CalibrationError, calibrate_capability
+from concord.decoding.lda import fit_lda
+from concord.decoding.ridge import RidgeDecoder, fit
+from concord.runtime import DeviceRegistry, Recorder, Runtime, RuntimeCommandError
+from concord.runtime.pipeline import DECODED_PASSTHROUGH, PipelineStartRequest, RouterSpec
+from concord.runtime.router import DiscreteRule
 
 from .conftest import subscribe
 from .decoder_helpers import (
@@ -137,13 +137,13 @@ async def test_builtin_decoder_output_equals_offline_bit_for_bit(
     sub = subscribe(rt)
     st = rt.start_pipeline(PipelineStartRequest(processing=PASS, model_id=m.model_id))
     assert st.decoder is not None and st.decoder["family"] == "ridge"
-    assert st.decoder["origin"] == "brainos-trained" and st.decoder["execution"] == "in_process"
+    assert st.decoder["origin"] == "concord-trained" and st.decoder["execution"] == "in_process"
     msgs = await _run(rt, src, sub, lambda: rt.pipeline.counters["decoded_out"] >= 100)
     got = _decoded(msgs, m.model_id)
     assert np.array_equal(got, m.predict_counts(counts[200:]))  # bit for bit
     p = events(msgs, "intent.kinematics")[0]["provenance"]
-    assert p["model_origin"] == "brainos" and p["kind"] == "decoded_intent"
-    assert p["adapter"].startswith("brainos.pipeline@")
+    assert p["model_origin"] == "concord" and p["kind"] == "decoded_intent"
+    assert p["adapter"].startswith("concord.pipeline@")
 
 
 # ----------------------------------------------------------------------------- model files
@@ -152,7 +152,7 @@ onnx = pytest.importorskip("onnx", reason="onnx builds the test ONNX model (deco
 
 
 def _onnx_bundle(models_dir: Path, w: np.ndarray, b: np.ndarray, tmp: Path) -> str:
-    from brainos_decoder_sdk import (
+    from concord_decoder_sdk import (
         API_VERSION,
         InputSpec,
         Modality,
@@ -161,7 +161,7 @@ def _onnx_bundle(models_dir: Path, w: np.ndarray, b: np.ndarray, tmp: Path) -> s
         OutputSpec,
         ParticipantCompat,
     )
-    from brainos_decoder_sdk.formats import write_bundle
+    from concord_decoder_sdk.formats import write_bundle
     from onnx import TensorProto, helper, numpy_helper
 
     g = helper.make_graph(
@@ -220,7 +220,7 @@ async def test_pickle_is_refused_until_the_operator_trusts_the_file(
     make_rt: Any, models_dir: Path, tmp_path: Path
 ) -> None:
     sklearn = pytest.importorskip("sklearn", reason="scikit-learn (decoder SDK sklearn extra)")
-    from brainos_decoder_sdk import (
+    from concord_decoder_sdk import (
         API_VERSION,
         InputSpec,
         Modality,
@@ -229,7 +229,7 @@ async def test_pickle_is_refused_until_the_operator_trusts_the_file(
         OutputSpec,
         ParticipantCompat,
     )
-    from brainos_decoder_sdk.formats import write_bundle
+    from concord_decoder_sdk.formats import write_bundle
 
     counts, vel = tuned_data(200, 4, seed=4)
     est = sklearn.linear_model.Ridge().fit(counts, vel)
@@ -279,12 +279,12 @@ async def plugins(tmp_path: Path) -> list[str]:
     site = make_decoder_dist(
         tmp_path / "site",
         {
-            "test-linear": "bos_backend_decoders:LabelledLinear",
-            "test-crash": "bos_backend_decoders:CrashAfter",
-            "test-hang": "bos_backend_decoders:HangAfter",
-            "test-nan": "bos_backend_decoders:NaNAfter",
-            "test-eeg": "bos_backend_decoders:EEGOnly",
-            "test-variance": "bos_backend_decoders:WithVariance",
+            "test-linear": "concord_backend_decoders:LabelledLinear",
+            "test-crash": "concord_backend_decoders:CrashAfter",
+            "test-hang": "concord_backend_decoders:HangAfter",
+            "test-nan": "concord_backend_decoders:NaNAfter",
+            "test-eeg": "concord_backend_decoders:EEGOnly",
+            "test-variance": "concord_backend_decoders:WithVariance",
         },
     )
     return plugin_env(site)
@@ -349,7 +349,7 @@ async def test_modality_mismatch_is_refused(make_rt: Any, plugins: list[str]) ->
 async def test_failing_plugin_is_stopped_and_stops_commands(
     make_rt: Any, plugins: list[str], model_id: str, reason: str, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    from brainos.decoding import engine
+    from concord.decoding import engine
 
     monkeypatch.setattr(engine, "STEP_TIMEOUT_S", 1.0)
     counts, _ = tuned_data(60, 4, seed=6)
@@ -481,7 +481,7 @@ async def test_velocity_and_click_decoders_routed_together(make_rt: Any, models_
     ptr, sel = events(msgs, "intent.pointer"), events(msgs, "intent.selection")
     assert len(ptr) == 200 and all(e["provenance"]["model_id"] == ridge.model_id for e in ptr)
     assert sel and all(e["provenance"]["model_id"] == lda.model_id for e in sel)
-    assert all(e["provenance"]["model_origin"] == "brainos" for e in ptr + sel)
+    assert all(e["provenance"]["model_origin"] == "concord" for e in ptr + sel)
     other = _ridge(counts[:250], vel[:250], models_dir, input_spec=spec6)  # also outputs vx, vy
     with pytest.raises(RuntimeCommandError, match="distinct output names"):
         rt.start_pipeline(
@@ -533,14 +533,14 @@ async def test_decoded_passthrough_keeps_model_id_and_historical_origin(make_rt:
     msgs = await _run(rt, src, sub, lambda: rt.pipeline.counters["decoded_in"] >= 400)
     kin = events(msgs, "intent.kinematics")
     assert len(kin) == 400 and all(
-        not e["provenance"]["adapter"].startswith("brainos.pipeline") for e in kin
+        not e["provenance"]["adapter"].startswith("concord.pipeline") for e in kin
     )
     ptr, sel = events(msgs, "intent.pointer"), events(msgs, "intent.selection")
     assert len(ptr) == 200 and len(sel) == 3
     for e in ptr + sel:
         p = e["provenance"]
         assert p["model_origin"] == "historical" and p["replayed"] is True
-        assert p["adapter"].startswith("brainos.pipeline@")
+        assert p["adapter"].startswith("concord.pipeline@")
     assert {e["provenance"]["model_id"] for e in ptr} == {"hist-velocity"}
     assert {e["provenance"]["model_id"] for e in sel} == {"hist-click"}
     vel = src.decoders[0].values
@@ -549,14 +549,14 @@ async def test_decoded_passthrough_keeps_model_id_and_historical_origin(make_rt:
         for v in vel
     ]
     assert [(e["payload"]["vx"], e["payload"]["vy"]) for e in ptr] == exp
-    assert rt.pipeline.counters["decoded_out"] == 0  # nothing re-labelled as brainos output
+    assert rt.pipeline.counters["decoded_out"] == 0  # nothing re-labelled as concord output
 
 
-async def test_decoded_passthrough_refuses_brainos_or_unlabelled_outputs(make_rt: Any) -> None:
+async def test_decoded_passthrough_refuses_concord_or_unlabelled_outputs(make_rt: Any) -> None:
     rng = np.random.default_rng(12)
     src = FeatureSource(
         decoders=[
-            SourceDecoder("own", ["vx", "vy"], rng.standard_normal((5, 2)), model_origin="brainos")
+            SourceDecoder("own", ["vx", "vy"], rng.standard_normal((5, 2)), model_origin="concord")
         ]
     )
     rt = await make_rt(src)
@@ -619,7 +619,7 @@ async def _record(make_rt: Any, src: FeatureSource) -> Path:
     await wait_for(lambda: rt.diagnostics.totals["behavior.sample"] >= src.n, timeout=30)
     await asyncio.sleep(0.05)
     rt.stop_recording()
-    path = rt.recorder.directory / f"{name}.brainos.jsonl"
+    path = rt.recorder.directory / f"{name}.concord.jsonl"
     await rt.shutdown()
     return path
 
@@ -691,7 +691,7 @@ async def test_click_and_class_calibration_and_label_checks(make_rt: Any, models
         [path], "classes", label_dim="click", class_names=["idle", "press"], tau_ms=20.0
     )
     assert m2.classes == ["idle", "press"] and r2["balanced_accuracy"] > 0.6
-    from brainos.decoding.calibrate import check_recordings
+    from concord.decoding.calibrate import check_recordings
 
     chk = check_recordings([path], "continuous")
     assert chk.ok and chk.label_dims == ["vx", "vy", "click"]

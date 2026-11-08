@@ -137,7 +137,7 @@ const liveDev = (id: string): DeviceDescriptor => ({
   device_id: id,
   display_name: id,
   kind: "stream",
-  adapter: "brainos.lsl@0.1.0",
+  adapter: "concord.lsl@0.1.0",
   description: "",
   native_format: "",
   capabilities: [],

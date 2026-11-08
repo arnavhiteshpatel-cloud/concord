@@ -27,21 +27,21 @@ import httpx
 import numpy as np
 import pytest
 
-from brainos.adapters.base import DeviceLinkError, EventDraft, NativePacket, PacketDecodeError
-from brainos.adapters.openephys import (
+from concord.adapters.base import DeviceLinkError, EventDraft, NativePacket, PacketDecodeError
+from concord.adapters.openephys import (
     ADAPTER,
     ConfigurationChangedError,
     OpenEphysAdapter,
     OpenEphysConfig,
 )
-from brainos.adapters.openephys.assembly import (
+from concord.adapters.openephys.assembly import (
     BinSpec,
     BlockAssembler,
     Counters,
     FrameChunk,
     StreamLayout,
 )
-from brainos.adapters.openephys.protocol import (
+from concord.adapters.openephys.protocol import (
     BAD_JSON_REPLY,
     ENVELOPE_DATA,
     ENVELOPE_EVENT,
@@ -58,10 +58,10 @@ from brainos.adapters.openephys.protocol import (
     juce_json,
     parse_message,
 )
-from brainos.adapters.openephys.publisher import OpenEphysTestPublisher, ramp_signal
-from brainos.contracts.capabilities import Capability, capability_for
-from brainos.contracts.events import SCHEMA_VERSION, parse_envelope
-from brainos.contracts.protocol import DeviceKind
+from concord.adapters.openephys.publisher import OpenEphysTestPublisher, ramp_signal
+from concord.contracts.capabilities import Capability, capability_for
+from concord.contracts.events import SCHEMA_VERSION, parse_envelope
+from concord.contracts.protocol import DeviceKind
 
 RATE = 30_000.0
 BLOCK = 300  # 10 ms blocks keep the tests fast
@@ -701,7 +701,7 @@ async def test_open_timeout_plugin_reachable_but_not_acquiring(port: int) -> Non
         pub.stop()
 
 
-async def test_heartbeat_registers_brainos_with_the_plugin(
+async def test_heartbeat_registers_concord_with_the_plugin(
     adapter: OpenEphysAdapter, publisher: OpenEphysTestPublisher
 ) -> None:
     deadline = time.monotonic() + 3
@@ -709,9 +709,9 @@ async def test_heartbeat_registers_brainos_with_the_plugin(
         assert time.monotonic() < deadline
         await asyncio.sleep(0.02)
     rec = publisher.clients[adapter.client_uuid]
-    assert rec.application == "BrainOS" and rec.heartbeats >= 1
+    assert rec.application == "Concord" and rec.heartbeats >= 1
     req = json.loads(publisher.requests[0])
-    assert req == {"application": "BrainOS", "uuid": adapter.client_uuid, "type": "heartbeat"}
+    assert req == {"application": "Concord", "uuid": adapter.client_uuid, "type": "heartbeat"}
     while adapter.counters.heartbeat_replies < 1:
         assert time.monotonic() < deadline
         await asyncio.sleep(0.02)
@@ -988,9 +988,9 @@ async def test_runtime_flags_the_reset_and_keeps_streaming(
 ) -> None:
     """Through the unchanged runtime: no reconnect (no 'reconnecting' status, state stays
     streaming), and the first frame after the reset carries timestamp_regression."""
-    from brainos.adapters.simulated import OperatorIntentSource
-    from brainos.contracts.protocol import RuntimeState
-    from brainos.runtime import DeviceRegistry, Recorder, Runtime
+    from concord.adapters.simulated import OperatorIntentSource
+    from concord.contracts.protocol import RuntimeState
+    from concord.runtime import DeviceRegistry, Recorder, Runtime
 
     from .conftest import subscribe
     from .helpers import drain, events, wait_for

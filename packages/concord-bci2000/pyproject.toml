@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling>=1.21"]
+build-backend = "hatchling.build"
+
+[project]
+name = "concord-bci2000"
+version = "0.1.0"
+description = "Concord source plugin for BCI2000's App Connector protocol (processed control information; receive-only)"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary (internal preview)" }
+dependencies = [
+    "concord-adapter-sdk>=1.0,<2",
+    "numpy>=1.26",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.entry-points."concord.sources"]
+bci2000 = "concord_bci2000.plugin:BCI2000AppConnectorPlugin"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/concord_bci2000"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

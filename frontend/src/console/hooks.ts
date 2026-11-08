@@ -2,10 +2,10 @@
 // server's refusal message inline, and a cancellable interval poller.
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BrainOSApiError } from "../sdk";
+import { ConcordApiError } from "../sdk";
 
 export function errorText(e: unknown): string {
-  if (e instanceof BrainOSApiError) return `${e.code}: ${e.message}`;
+  if (e instanceof ConcordApiError) return `${e.code}: ${e.message}`;
   return e instanceof Error ? e.message : String(e);
 }
 

@@ -15,8 +15,8 @@ import pytest
 
 pytest.importorskip("scipy")
 
-from brainos.decoding import click as clickdec
-from brainos.decoding import kalman
+from concord.decoding import click as clickdec
+from concord.decoding import kalman
 
 INPUTS = [
     {"event_type": "features.binned", "feature": "threshold_crossing_count", "bin_ms": 10.0,
@@ -151,7 +151,7 @@ def test_click_probability_separates_states_and_streams_identically() -> None:
 
 def test_offline_click_rule_equals_the_command_router() -> None:
     """The evaluation's click rule is the router's: same clicks on the same probabilities."""
-    from brainos.runtime.router import ClickRule, _RuleState, _step
+    from concord.runtime.router import ClickRule, _RuleState, _step
 
     rng = np.random.default_rng(3)
     t = np.arange(3000)

@@ -17,12 +17,12 @@ from typing import Any
 import httpx
 import pytest
 
-from brainos.adapters.replay import BrainOSRecordingSource
-from brainos.adapters.simulated import profile_a
-from brainos.config import Retention
-from brainos.runtime import Recorder
-from brainos.runtime.retention import enforce
-from brainos.runtime.sessions import SessionManager
+from concord.adapters.replay import ConcordRecordingSource
+from concord.adapters.simulated import profile_a
+from concord.config import Retention
+from concord.runtime import Recorder
+from concord.runtime.retention import enforce
+from concord.runtime.sessions import SessionManager
 
 from .conftest import free_port
 from .helpers import valid_event
@@ -31,7 +31,7 @@ posix = pytest.mark.skipif(os.name != "posix", reason="POSIX locks and signals")
 
 
 def _write_events(rec: Recorder, n: int) -> None:
-    from brainos.contracts import parse_envelope
+    from concord.contracts import parse_envelope
 
     for i in range(n):
         env = parse_envelope(valid_event("telemetry.sample", seq=i, device_id="sim-a"))
@@ -42,7 +42,7 @@ def _write_events(rec: Recorder, n: int) -> None:
 def test_recording_files_are_private_and_marked_while_written(tmp_path: Path) -> None:
     rec = Recorder(tmp_path / "rec")
     name = rec.start(profile_a.descriptor(), "r1")
-    path = tmp_path / "rec" / "r1.brainos.jsonl"
+    path = tmp_path / "rec" / "r1.concord.jsonl"
     marker = tmp_path / "rec" / "r1.active.json"
     assert stat.S_IMODE(path.stat().st_mode) == 0o600
     assert stat.S_IMODE((tmp_path / "rec").stat().st_mode) == 0o700
@@ -62,7 +62,7 @@ def test_interrupted_recording_keeps_its_valid_prefix(tmp_path: Path) -> None:
     _write_events(rec, 20)
     assert rec._fh is not None
     rec._fh.flush()
-    path = tmp_path / "rec" / "crash-1.brainos.jsonl"
+    path = tmp_path / "rec" / "crash-1.concord.jsonl"
     whole = path.read_bytes()
     partial = b'{"schema_version":"1.0","session_id":"ses_x","seq":20,"timest'
     with path.open("ab") as fh:
@@ -86,7 +86,7 @@ def test_interrupted_recording_keeps_its_valid_prefix(tmp_path: Path) -> None:
     assert not (tmp_path / "rec" / "crash-1.active.json").exists()
     listed = fresh.list()[0]
     assert not listed.complete and listed.recovery is not None and listed.events == 20
-    assert sum(1 for _ in BrainOSRecordingSource(path).records()) == 20  # replayable
+    assert sum(1 for _ in ConcordRecordingSource(path).records()) == 20  # replayable
     assert fresh.recover() == []  # idempotent
     freed = fresh.delete("crash-1")  # sidecars go with it
     assert freed > 0 and list((tmp_path / "rec").iterdir()) == []
@@ -97,7 +97,7 @@ def test_old_recording_without_marker_cut_mid_line_is_recovered(tmp_path: Path) 
     rec.start(profile_a.descriptor(), "legacy")
     _write_events(rec, 3)
     rec.stop()
-    path = tmp_path / "rec" / "legacy.brainos.jsonl"
+    path = tmp_path / "rec" / "legacy.concord.jsonl"
     with path.open("ab") as fh:
         fh.write(b'{"partial":')
     out = Recorder(tmp_path / "rec").recover()
@@ -107,11 +107,11 @@ def test_old_recording_without_marker_cut_mid_line_is_recovered(tmp_path: Path) 
 def test_unreadable_header_is_reported_not_touched(tmp_path: Path) -> None:
     d = tmp_path / "rec"
     d.mkdir()
-    (d / "bad.brainos.jsonl").write_bytes(b"not json")
+    (d / "bad.concord.jsonl").write_bytes(b"not json")
     (d / "bad.active.json").write_text('{"pid": 999999}')
     out = Recorder(d).recover()
     assert out[0][1].status == "unreadable"
-    assert (d / "bad.brainos.jsonl").read_bytes() == b"not json"
+    assert (d / "bad.concord.jsonl").read_bytes() == b"not json"
 
 
 def test_retention_policy(tmp_path: Path) -> None:
@@ -129,13 +129,13 @@ def test_retention_policy(tmp_path: Path) -> None:
     (models / "old-model.json").write_text('{"created_at": "2020-01-01T00:00:00Z"}')
     (models / "running-model.json").write_text('{"created_at": "2020-01-01T00:00:00Z"}')
     (models / "new-model.json").write_text('{"created_at": "2999-01-01T00:00:00Z"}')
-    old_header = json.loads((tmp_path / "rec" / "old.brainos.jsonl").read_text().splitlines()[0])
+    old_header = json.loads((tmp_path / "rec" / "old.concord.jsonl").read_text().splitlines()[0])
     now = old_header["created_at_ns"] + 40 * 86_400 * 10**9
     # make "new" 1 day old relative to `now`
-    lines = (tmp_path / "rec" / "new.brainos.jsonl").read_text().splitlines()
+    lines = (tmp_path / "rec" / "new.concord.jsonl").read_text().splitlines()
     h = json.loads(lines[0])
     h["created_at_ns"] = now - 86_400 * 10**9
-    (tmp_path / "rec" / "new.brainos.jsonl").write_text(json.dumps(h) + "\n")
+    (tmp_path / "rec" / "new.concord.jsonl").write_text(json.dumps(h) + "\n")
     result = enforce(
         Retention(recordings_days=30, sessions_days=30, models_days=30),
         recorder=rec,
@@ -151,7 +151,7 @@ def test_retention_policy(tmp_path: Path) -> None:
     assert any("active" in k for k in result.kept_in_use)  # the recording being written
     assert any("running-model" in k for k in result.kept_in_use)
     assert (models / "running-model.json").exists() and (
-        tmp_path / "rec" / "active.brainos.jsonl"
+        tmp_path / "rec" / "active.concord.jsonl"
     ).exists()
     assert not result.errors
     rec.stop()
@@ -163,15 +163,15 @@ def test_retention_policy(tmp_path: Path) -> None:
 def _server(tmp_path: Path, port: int) -> subprocess.Popen[bytes]:
     env = {
         **os.environ,
-        "BRAINOS_PORT": str(port),
-        "BRAINOS_DATA_DIR": str(tmp_path / "data"),
-        "BRAINOS_CONFIG": str(tmp_path / "absent.toml"),
-        "BRAINOS_STATIC_DIR": str(tmp_path / "no-console"),
-        "BRAINOS_PLUGINS": "0",
-        "BRAINOS_LOG_LEVEL": "INFO",
+        "CONCORD_PORT": str(port),
+        "CONCORD_DATA_DIR": str(tmp_path / "data"),
+        "CONCORD_CONFIG": str(tmp_path / "absent.toml"),
+        "CONCORD_STATIC_DIR": str(tmp_path / "no-console"),
+        "CONCORD_PLUGINS": "0",
+        "CONCORD_LOG_LEVEL": "INFO",
     }
     return subprocess.Popen(
-        [sys.executable, "-m", "brainos.server"],  # brainos-server (= brainos serve)
+        [sys.executable, "-m", "concord.server"],  # concord-server (= concord serve)
         env=env,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
@@ -233,12 +233,12 @@ def test_server_killed_mid_recording(tmp_path: Path, sig: int) -> None:
         else:
             assert r["complete"] is True and r["recovery"] is None
         assert not (rec_dir / f"{name}.active.json").exists()
-        assert stat.S_IMODE((rec_dir / f"{name}.brainos.jsonl").stat().st_mode) == 0o600
+        assert stat.S_IMODE((rec_dir / f"{name}.concord.jsonl").stat().st_mode) == 0o600
         # the recording is usable as a replay source
         snap = httpx.post(base + "/api/v1/runtime/connect", json={"device_id": f"replay:{name}"})
         assert snap.status_code == 200 and snap.json()["state"] == "streaming"
         httpx.post(base + "/api/v1/runtime/disconnect")
-        log_text = (tmp_path / "data" / "logs" / "brainos.log").read_text()
+        log_text = (tmp_path / "data" / "logs" / "concord.log").read_text()
         if sig == signal.SIGKILL:
             assert "was interrupted" in log_text
     finally:

@@ -1,8 +1,9 @@
-# CLAUDE.md — Instructions for agents working on BrainOS
+# CLAUDE.md — Instructions for agents working on Concord
 
-BrainOS (internal name) is a hardware-agnostic, **read-only** runtime + SDK for
-implanted brain-computer interfaces. Read these first; they are the source of
-truth, in this order:
+Concord is a hardware-agnostic, **read-only** runtime + SDK for
+implanted brain-computer interfaces. The import package and command are `concord`; the
+main Python distribution is `concordos` (`concord` is taken on PyPI); companion packages
+are `concord-*`. Read these first; they are the source of truth, in this order:
 
 1. `PRODUCT.md` — what and for whom, explicit non-goals.
 2. `ARCHITECTURE.md` — contracts (normative).
@@ -18,7 +19,7 @@ truth, in this order:
 - **Never fabricate neural decoding or benchmark numbers.** Simulated-device intents are
   `simulated_intent`. Decoding results must come from `make model` /
   `make decoding-report` on real files; performance numbers from `make bench`.
-- **Real data rules.** Datasets are pinned by SHA-256 in `brainos/datasets/*.json` and
+- **Real data rules.** Datasets are pinned by SHA-256 in `concord/datasets/*.json` and
   downloaded, never committed (`data/` is git-ignored; DANDI terms forbid
   redistribution). Recorded neural activity is `processed_feature`/`raw_signal`, never an
   intent. Offline sources are labelled "Offline Replay", never live.
@@ -45,7 +46,7 @@ truth, in this order:
 ## Layout
 
 ```
-backend/src/brainos/
+backend/src/concord/
   contracts/   capability vocabulary, envelope, provenance, stream protocol (no I/O)
   adapters/    base.py (contract), simulated/ (profiles A/B), replay/, nwb/ (real recordings),
                lsl/ (LSL inlets), openephys/ (ZMQ Interface plugin protocol) — receive-only
@@ -84,7 +85,7 @@ make schema       # regenerate contracts JSON Schema after changing models
 make dataset      # download + verify demo recordings (DANDI 000954) -> data/datasets/
 make model        # baseline decoder on downloaded blocks -> data/models/, reports/decoding.json
 make decoding-report  # all 13 blocks -> docs/DECODING.md
-make test-hwval   # brainos-hwval incl. real LabRecorder + Open Ephys GUI (docs/HARDWARE_VALIDATION.md)
+make test-hwval   # concord-hwval incl. real LabRecorder + Open Ephys GUI (docs/HARDWARE_VALIDATION.md)
 ```
 
 Backend only: `cd backend && ../.venv/bin/pytest -q`.

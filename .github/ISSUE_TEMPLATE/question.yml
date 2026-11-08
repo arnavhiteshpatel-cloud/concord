@@ -1,5 +1,5 @@
 name: Question or help with setup
-description: Ask how to do something with BrainOS.
+description: Ask how to do something with Concord.
 labels: ["question"]
 body:
   - type: markdown
@@ -19,4 +19,4 @@ body:
     id: setup
     attributes:
       label: Your setup
-      description: BrainOS version, operating system, and the acquisition system or dataset involved (if any).
+      description: Concord version, operating system, and the acquisition system or dataset involved (if any).

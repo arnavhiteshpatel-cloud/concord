@@ -17,10 +17,10 @@ from typing import Any
 
 import numpy as np
 
-from brainos.adapters.base import DeviceAdapter, EndOfStream, EventDraft, NativePacket
-from brainos.contracts.capabilities import Capability, CapabilityDescriptor, EventType
-from brainos.contracts.events import Provenance, ProvenanceKind, Quality, QualityFlag
-from brainos.contracts.protocol import DeviceDescriptor, DeviceKind, Modality
+from concord.adapters.base import DeviceAdapter, EndOfStream, EventDraft, NativePacket
+from concord.contracts.capabilities import Capability, CapabilityDescriptor, EventType
+from concord.contracts.events import Provenance, ProvenanceKind, Quality, QualityFlag
+from concord.contracts.protocol import DeviceDescriptor, DeviceKind, Modality
 
 DECODERS_DIR = Path(__file__).parent / "decoders"
 ADAPTER = "test.features@0.1.0"
@@ -267,11 +267,13 @@ def plugin_env(site: Path) -> list[str]:
     return [str(site), str(DECODERS_DIR)]
 
 
-def make_decoder_dist(site: Path, entries: dict[str, str], name: str = "bos-test-decoders") -> Path:
+def make_decoder_dist(
+    site: Path, entries: dict[str, str], name: str = "concord-test-decoders"
+) -> Path:
     info = site / f"{name.replace('-', '_')}-0.0.1.dist-info"
     info.mkdir(parents=True, exist_ok=True)
     (info / "METADATA").write_text(f"Metadata-Version: 2.1\nName: {name}\nVersion: 0.0.1\n")
-    lines = ["[brainos.decoders]", *(f"{k} = {v}" for k, v in entries.items())]
+    lines = ["[concord.decoders]", *(f"{k} = {v}" for k, v in entries.items())]
     (info / "entry_points.txt").write_text("\n".join(lines) + "\n")
     return site
 

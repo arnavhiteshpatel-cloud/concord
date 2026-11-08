@@ -47,7 +47,7 @@ export interface HistoryEntry {
   n: number;
   text: string;
   atMs: number;
-  /** e.g. "decoded by m1 (BrainOS)" */
+  /** e.g. "decoded by m1 (Concord)" */
   input: string | null;
   /** "demonstration — not the participant's message" etc., or null */
   label: string | null;

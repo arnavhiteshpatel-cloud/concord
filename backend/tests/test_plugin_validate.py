@@ -1,4 +1,4 @@
-"""Adapter SDK validation (brainos_adapter_sdk.validate): one malformed-input test per rule.
+"""Adapter SDK validation (concord_adapter_sdk.validate): one malformed-input test per rule.
 
 Each test asserts the exact problem code, so a rule that stops firing fails loudly.
 """
@@ -10,7 +10,7 @@ from typing import Any
 
 import numpy as np
 import pytest
-from brainos_adapter_sdk import (
+from concord_adapter_sdk import (
     Channel,
     Chunk,
     ClockInfo,
@@ -23,7 +23,7 @@ from brainos_adapter_sdk import (
     StreamRole,
     StreamSpec,
 )
-from brainos_adapter_sdk import validate as v
+from concord_adapter_sdk import validate as v
 
 CLOCK = ClockInfo("source")
 

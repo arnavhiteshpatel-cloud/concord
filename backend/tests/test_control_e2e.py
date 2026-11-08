@@ -21,7 +21,7 @@ import pytest
 
 pytest.importorskip("scipy")
 
-from brainos.server import create_app
+from concord.server import create_app
 
 from .conftest import free_port, make_settings, serve
 from .helpers import wait_for
@@ -76,7 +76,7 @@ class Watcher:
         self.stream: Any = None
 
     async def run(self, base: str, app_id: str, required: list[str]) -> None:
-        from brainos.sdk import EventStream, is_event
+        from concord.sdk import EventStream, is_event
 
         self.stream = await EventStream.connect(
             app_id=app_id, app_name=app_id, required=required, base_url=base
@@ -100,7 +100,7 @@ async def _still(app: Any, seconds: float = 1.0) -> None:
 async def test_authorization_gates_decoded_actions_and_every_stop_reaches_the_app(
     control_server: tuple[str, str],
 ) -> None:
-    from brainos.sdk import BrainOSError, RuntimeClient
+    from concord.sdk import ConcordError, RuntimeClient
 
     base, model_id = control_server
     menu_mod, cursor_mod = load_app("menu_app"), load_app("cursor_app")
@@ -191,12 +191,12 @@ async def test_authorization_gates_decoded_actions_and_every_stop_reaches_the_ap
         # raw signal only: features, no decoder -> nothing to route, apps stay suspended
         await op.connect("test-mi-raw")
         await op.start_pipeline("band_power", **BAND)
-        with pytest.raises(BrainOSError) as exc:
+        with pytest.raises(ConcordError) as exc:
             await op.set_router(enabled=True, discrete=RULES)
         assert exc.value.code == "protocol_error" and exc.value.status == 400
         # behavior labels only: no pipeline at all, labels are never commands
         await op.switch("test-mi-labels")
-        with pytest.raises(BrainOSError) as exc:
+        with pytest.raises(ConcordError) as exc:
             await op.start_pipeline("band_power", **BAND)
         assert exc.value.code == "capability_unsupported" and exc.value.status == 409
         await _still(menu, 1.0)
@@ -269,7 +269,7 @@ async def test_same_unchanged_menu_app_on_simulated_profiles(
 ) -> None:
     """Simulated profiles emit simulated_intent natively: no decoder, no router, no operator
     authorization (documented); the unchanged menu app follows them and the MI source."""
-    from brainos.sdk import RuntimeClient
+    from concord.sdk import RuntimeClient
 
     base, model_id = control_server
     menu_mod = load_app("menu_app")

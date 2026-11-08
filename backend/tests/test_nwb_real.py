@@ -1,6 +1,6 @@
 """Milestone 2 tests against GENUINE human intracortical recordings (DANDI 000954).
 
-These need the real files: `python -m brainos.datasets.fetch` (demo set, ~8.7 MiB).
+These need the real files: `python -m concord.datasets.fetch` (demo set, ~8.7 MiB).
 They are skipped — loudly — if the files are absent. CI downloads them first.
 """
 
@@ -20,31 +20,31 @@ from fastapi.testclient import TestClient
 
 pytest.importorskip("pynwb")
 
-from brainos.adapters.nwb import (
+from concord.adapters.nwb import (
     DecoderLeakageError,
     NWBUnitsSource,
     device_id_for,
     load,
 )
-from brainos.adapters.simulated import OperatorIntentSource
-from brainos.contracts import Capability, parse_envelope
-from brainos.contracts.protocol import AppStatus, ErrorCode, RuntimeState
-from brainos.datasets import manifest, verify_file
-from brainos.datasets.fetch import DEMO_FILES
-from brainos.decoding.ridge import RidgeDecoder, evaluate, fit
-from brainos.runtime import DeviceRegistry, Recorder, Runtime, RuntimeCommandError
-from brainos.server import create_app
+from concord.adapters.simulated import OperatorIntentSource
+from concord.contracts import Capability, parse_envelope
+from concord.contracts.protocol import AppStatus, ErrorCode, RuntimeState
+from concord.datasets import manifest, verify_file
+from concord.datasets.fetch import DEMO_FILES
+from concord.decoding.ridge import RidgeDecoder, evaluate, fit
+from concord.runtime import DeviceRegistry, Recorder, Runtime, RuntimeCommandError
+from concord.server import create_app
 
 from .conftest import make_settings, subscribe
 from .helpers import drain, events, wait_for
 
 REPO = Path(__file__).resolve().parents[2]
-DATA = Path(os.environ.get("BRAINOS_TEST_DATASETS", REPO / "data" / "datasets" / "dandi-000954"))
+DATA = Path(os.environ.get("CONCORD_TEST_DATASETS", REPO / "data" / "datasets" / "dandi-000954"))
 TRAIN_FILE, EVAL_FILE = DATA / DEMO_FILES[0], DATA / DEMO_FILES[1]
 
 pytestmark = pytest.mark.skipif(
     not (TRAIN_FILE.exists() and EVAL_FILE.exists()),
-    reason=f"real FALCON H1 files not found in {DATA}; run `python -m brainos.datasets.fetch`",
+    reason=f"real FALCON H1 files not found in {DATA}; run `python -m concord.datasets.fetch`",
 )
 TRAIN_ID, EVAL_ID = device_id_for(TRAIN_FILE), device_id_for(EVAL_FILE)
 DIMS = ["tx", "ty", "tz", "rx", "g1", "g2", "g3"]
@@ -299,7 +299,7 @@ async def test_python_sdk_receives_real_data(data_root: Path, tmp_path: Path) ->
 
     import uvicorn
 
-    from brainos.sdk import EventStream, RuntimeClient, is_event
+    from concord.sdk import EventStream, RuntimeClient, is_event
 
     with socket.socket() as s:
         s.bind(("127.0.0.1", 0))

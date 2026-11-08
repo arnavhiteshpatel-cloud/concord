@@ -1,4 +1,4 @@
-"""Minimal BrainOS SDK example: negotiate capabilities and print standardized events.
+"""Minimal Concord SDK example: negotiate capabilities and print standardized events.
 
     python backend/examples/print_events.py --connect sim-a
 
@@ -11,8 +11,8 @@ from __future__ import annotations
 import argparse
 import asyncio
 
-from brainos.sdk import (
-    BrainOSError,
+from concord.sdk import (
+    ConcordError,
     EventStream,
     NegotiationUpdate,
     RuntimeClient,
@@ -30,7 +30,7 @@ async def main(base_url: str, connect: str | None, limit: int) -> None:
         if connect:
             try:
                 await rc.connect(connect)
-            except BrainOSError as exc:
+            except ConcordError as exc:
                 print(f"connect: {exc.code} ({exc.message})")
 
     async with await EventStream.connect(

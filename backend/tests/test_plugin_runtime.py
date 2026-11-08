@@ -12,12 +12,12 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from brainos_adapter_sdk import ipc
+from concord_adapter_sdk import ipc
 
-from brainos.adapters.plugin import PluginAdapter
-from brainos.contracts.protocol import DeviceKind, ErrorCode, Modality, RuntimeState
-from brainos.runtime import Runtime, RuntimeCommandError
-from brainos.runtime.plugins import (
+from concord.adapters.plugin import PluginAdapter
+from concord.contracts.protocol import DeviceKind, ErrorCode, Modality, RuntimeState
+from concord.runtime import Runtime, RuntimeCommandError
+from concord.runtime.plugins import (
     PluginOpenError,
     PluginOptionsError,
     PluginRegistry,
@@ -45,7 +45,7 @@ async def _healthy(rt: Runtime) -> None:
 
 
 async def test_good_plugin_events_are_valid_and_bit_exact(runtime: Runtime) -> None:
-    from bos_test_plugins import CHUNK, signal_values
+    from concord_test_plugins import CHUNK, signal_values
 
     sub = subscribe(runtime)
     await _connect(runtime, "GoodPlugin", options={"fail_after": 0, "unit": "millivolts"})
@@ -54,8 +54,8 @@ async def test_good_plugin_events_are_valid_and_bit_exact(runtime: Runtime) -> N
     assert dev.kind is DeviceKind.SIMULATED and dev.synthetic
     assert dev.modality is Modality.INTRACORTICAL and dev.invasive is True  # by category
     assert dev.integration is not None and dev.integration.kind == "plugin"
-    assert dev.integration.isolated and dev.integration.package == "bos-test-plugins"
-    assert dev.adapter == "bos-test-plugins@0.0.1"
+    assert dev.integration.isolated and dev.integration.package == "concord-test-plugins"
+    assert dev.adapter == "concord-test-plugins@0.0.1"
     rec = next(c for c in dev.capabilities if c.capability == "recording")
     assert rec.params["unit"] == "uV" and rec.params["channel_labels"] == [
         f"ch{i}" for i in range(4)
@@ -109,10 +109,10 @@ async def test_disconnect_closes_the_plugin_session_gracefully(
 async def test_cancelled_request_is_drained(tmp_path: Path) -> None:
     import asyncio
 
-    from brainos.adapters.plugin.host_client import AsyncHostClient
+    from concord.adapters.plugin.host_client import AsyncHostClient
 
     marker = tmp_path / "closed.txt"
-    c = AsyncHostClient("bos_test_plugins:SlowReadPlugin", extra_path=[str(PLUGINS_DIR)])
+    c = AsyncHostClient("concord_test_plugins:SlowReadPlugin", extra_path=[str(PLUGINS_DIR)])
     try:
         await c.start(10)
         opts = {"close_marker": str(marker)}
@@ -256,11 +256,11 @@ def plugin_site(tmp_path: Path) -> Path:
     return make_dist(
         tmp_path / "site",
         {
-            "t-good": "bos_test_plugins:GoodPlugin",
-            "t-open-fails": "bos_test_plugins:OpenFailsPlugin",
-            "t-api2": "bos_test_plugins:Api2Plugin",
-            "t-import-error": "bos_test_plugins.import_error:Plugin",
-            "t-long-name-plugin-xxxxx": "bos_test_plugins:GoodPlugin",
+            "t-good": "concord_test_plugins:GoodPlugin",
+            "t-open-fails": "concord_test_plugins:OpenFailsPlugin",
+            "t-api2": "concord_test_plugins:Api2Plugin",
+            "t-import-error": "concord_test_plugins.import_error:Plugin",
+            "t-long-name-plugin-xxxxx": "concord_test_plugins:GoodPlugin",
         },
     )
 
@@ -291,7 +291,7 @@ async def test_registry_discovery_and_configure(plugin_site: Path) -> None:
 
 
 def test_device_id_rules() -> None:
-    from brainos.adapters.plugin import device_id
+    from concord.adapters.plugin import device_id
 
     assert device_id("example-mi-eeg", "mi-eeg") == "plugin:example-mi-eeg:mi-eeg"
     with pytest.raises(ValueError, match="64"):
@@ -299,7 +299,7 @@ def test_device_id_rules() -> None:
 
 
 def test_ipc_error_types_cover_recoverable_set() -> None:
-    from brainos.adapters.plugin.adapter import RECOVERABLE
+    from concord.adapters.plugin.adapter import RECOVERABLE
 
     assert {ipc.LINK_LOST, ipc.CONFIGURATION_CHANGED} == RECOVERABLE
 
@@ -308,7 +308,7 @@ def test_device_modality_comes_from_the_primary_stream_only() -> None:
     """Regression (BrainFlow synthetic board): the primary EXG stream's modality is
     ambiguous (undeclared) while a secondary sensor stream declares ``other``; the device
     must report 'not declared', not 'other'."""
-    from brainos_adapter_sdk.api import (
+    from concord_adapter_sdk.api import (
         Channel,
         ClockInfo,
         Modality,
@@ -317,7 +317,7 @@ def test_device_modality_comes_from_the_primary_stream_only() -> None:
         StreamSpec,
     )
 
-    from brainos.adapters.plugin.mapping import neural_modality
+    from concord.adapters.plugin.mapping import neural_modality
 
     clock = ClockInfo("unix")
 

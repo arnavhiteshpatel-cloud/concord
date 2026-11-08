@@ -1,9 +1,9 @@
 """Milestone 5 (P0) tests against GENUINE human intracortical data: the Singer-Clark et al.
 cursor + click dataset (participant T15, Dryad doi:10.5061/dryad.prr4xgxzq, CC0).
 
-Needs the demo subset: ``python -m brainos.datasets.dryad`` (day 468 blocks 0-3, ~90 MiB;
+Needs the demo subset: ``python -m concord.datasets.dryad`` (day 468 blocks 0-3, ~90 MiB;
 Dryad requires an API token, see the module docstring). Skipped -- loudly -- when the files are
-absent, unless ``BRAINOS_REQUIRE_T15=1`` (set in CI when Dryad credentials are configured), in
+absent, unless ``CONCORD_REQUIRE_T15=1`` (set in CI when Dryad credentials are configured), in
 which case missing files fail the run.
 """
 
@@ -18,37 +18,37 @@ import pytest
 
 pytest.importorskip("scipy")
 
-from brainos.adapters.cursorclick.reader import load
-from brainos.adapters.cursorclick.source import (
+from concord.adapters.cursorclick.reader import load
+from concord.adapters.cursorclick.source import (
     HISTORICAL_CLICK,
     HISTORICAL_VELOCITY,
     T15CursorClickSource,
     device_id_for,
 )
-from brainos.adapters.simulated import OperatorIntentSource
-from brainos.contracts import Capability, parse_envelope
-from brainos.contracts.protocol import Modality
-from brainos.datasets.dryad import manifest, verify_file
-from brainos.decoding import click as clickdec
-from brainos.decoding import kalman
-from brainos.runtime import DeviceRegistry, Recorder, Runtime
+from concord.adapters.simulated import OperatorIntentSource
+from concord.contracts import Capability, parse_envelope
+from concord.contracts.protocol import Modality
+from concord.datasets.dryad import manifest, verify_file
+from concord.decoding import click as clickdec
+from concord.decoding import kalman
+from concord.runtime import DeviceRegistry, Recorder, Runtime
 
 from .conftest import subscribe
 from .helpers import drain, events, wait_for
 
 REPO = Path(__file__).resolve().parents[2]
-DATA = Path(os.environ.get("BRAINOS_TEST_T15", REPO / "data" / "datasets" / "dryad-prr4xgxzq"))
+DATA = Path(os.environ.get("CONCORD_TEST_T15", REPO / "data" / "datasets" / "dryad-prr4xgxzq"))
 NAMES = [f.filename for f in manifest("t15-cursor-click").blocks(468) if f.block in (0, 1, 2, 3)]
 FILES = [DATA / n for n in NAMES]
 CAL, GRID = FILES[:3], FILES[3]
 PRESENT = all(f.exists() for f in FILES)
 
-if not PRESENT and os.environ.get("BRAINOS_REQUIRE_T15") == "1":
-    raise RuntimeError(f"BRAINOS_REQUIRE_T15=1 but the T15 demo files are missing in {DATA}")
+if not PRESENT and os.environ.get("CONCORD_REQUIRE_T15") == "1":
+    raise RuntimeError(f"CONCORD_REQUIRE_T15=1 but the T15 demo files are missing in {DATA}")
 
 pytestmark = pytest.mark.skipif(
     not PRESENT,
-    reason=f"T15 cursor+click files not found in {DATA}; run `python -m brainos.datasets.dryad`",
+    reason=f"T15 cursor+click files not found in {DATA}; run `python -m concord.datasets.dryad`",
 )
 
 
@@ -151,7 +151,7 @@ def test_records_validate_and_label_historical_outputs() -> None:
             "quality": r.envelope["quality"].model_dump(),
             "provenance": r.envelope["provenance"].model_dump(),
         }
-        from brainos.contracts.capabilities import EVENT_CAPABILITY, EventType
+        from concord.contracts.capabilities import EVENT_CAPABILITY, EventType
 
         env["capability"] = EVENT_CAPABILITY[EventType(env["event_type"])].value
         ev = parse_envelope(env)
@@ -204,11 +204,11 @@ async def test_block_replays_through_the_runtime(rt: Runtime) -> None:
     assert rt.diagnostics.validation_errors == 0 and rt.diagnostics.decode_errors == 0
 
 
-# ----------------------------------------------------------------- BrainOS decoders
+# ----------------------------------------------------------------- Concord decoders
 
 
 def _intention(b: object) -> np.ndarray:
-    from brainos.evaluation.cursorclick import intention_labels
+    from concord.evaluation.cursorclick import intention_labels
 
     return intention_labels(b)  # type: ignore[arg-type]
 
@@ -218,7 +218,7 @@ def test_kalman_and_click_decoders_on_held_out_block() -> None:
 
     Thresholds are loose floors well above controls; the measured values are reported by
     ``scripts/eval_cursorclick.py`` (docs/CURSOR_CLICK.md), not asserted here."""
-    from brainos.adapters.cursorclick.source import neural_streams
+    from concord.adapters.cursorclick.source import neural_streams
 
     cal = [load(f) for f in CAL]
     g = load(GRID)

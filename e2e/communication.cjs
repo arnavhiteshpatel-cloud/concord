@@ -6,15 +6,15 @@
 // operator-authorized SDK app: the participant communication board (14 x 14 word grid laid
 // over the task's target grid, pointer + click). Two chains:
 //   historical — the original research decoders' recorded outputs (model_origin historical)
-//   brainos    — BrainOS Kalman + click decoders fitted on calibration blocks 0-2 only
+//   concord    — Concord Kalman + click decoders fitted on calibration blocks 0-2 only
 // The board takes no mouse input. What it selected is read from its read-only snapshot
-// (window.__brainosBoard) and compared with an offline prediction of the same chain
-// (python -m brainos.evaluation.board_e2e compare): same bins, same tiles. Selections are
+// (window.__concordBoard) and compared with an offline prediction of the same chain
+// (python -m concord.evaluation.board_e2e compare): same bins, same tiles. Selections are
 // also scored against the cued task targets. Open loop: the person recorded was steering the
 // original cursor, not this one; replayed text is never the participant's message.
 //
 // Usage: node e2e/communication.cjs   (needs `make build`, the T15 demo subset
-//        `python -m brainos.datasets.dryad`, and playwright: `make e2e-setup`)
+//        `python -m concord.datasets.dryad`, and playwright: `make e2e-setup`)
 // Writes reports/communication_e2e.json.
 
 const { spawn, execFileSync } = require("node:child_process");
@@ -78,30 +78,30 @@ async function waitFor(fn, label, timeoutMs, everyMs = 200) {
 }
 
 async function main() {
-  const work = fs.mkdtempSync(path.join(os.tmpdir(), "brainos-e2e-comm-"));
+  const work = fs.mkdtempSync(path.join(os.tmpdir(), "concord-e2e-comm-"));
   const results = {};
   let server = null;
   let browser = null;
   let ok = false;
   try {
     let plan = null;
-    await step("P0-1. prepare: T15 demo blocks + BrainOS models fitted on calibration blocks 0-2 only", async () => {
-      execFileSync(PY, ["-m", "brainos.evaluation.board_e2e", "prepare", "--out", work], {
+    await step("P0-1. prepare: T15 demo blocks + Concord models fitted on calibration blocks 0-2 only", async () => {
+      execFileSync(PY, ["-m", "concord.evaluation.board_e2e", "prepare", "--out", work], {
         env: { ...process.env, ...pyEnv },
         encoding: "utf8",
       });
       plan = JSON.parse(fs.readFileSync(path.join(work, "plan.json"), "utf8"));
-      return `device ${plan.device_id}; Kalman ${plan.modes.brainos.model_id}; click ${plan.modes.brainos.model_ids[0]}`;
+      return `device ${plan.device_id}; Kalman ${plan.modes.concord.model_id}; click ${plan.modes.concord.model_ids[0]}`;
     });
 
-    server = spawn(PY, ["-m", "brainos.server"], {
+    server = spawn(PY, ["-m", "concord.server"], {
       env: {
         ...process.env,
         ...pyEnv,
-        BRAINOS_PORT: String(PORT),
-        BRAINOS_DATA_DIR: work,
-        BRAINOS_LOG_LEVEL: "WARNING",
-        BRAINOS_OPEN_BROWSER: "0",
+        CONCORD_PORT: String(PORT),
+        CONCORD_DATA_DIR: work,
+        CONCORD_LOG_LEVEL: "WARNING",
+        CONCORD_OPEN_BROWSER: "0",
       },
       stdio: ["ignore", "inherit", "inherit"],
     });
@@ -109,7 +109,7 @@ async function main() {
     browser = await chromium.launch();
 
     // the 14 x 14 board is the task's own grid; 7 x 7 and 2 x 2 boards group whole task cells
-    const RUNS = [["historical", 14], ["brainos", 14], ["brainos", 7], ["brainos", 2]];
+    const RUNS = [["historical", 14], ["concord", 14], ["concord", 7], ["concord", 2]];
     for (const [mode, n] of RUNS) {
       const run = `${mode} ${n}x${n}`;
       const spec = plan.modes[mode];
@@ -129,7 +129,7 @@ async function main() {
         const st = await api("/pipeline/start", "POST", body);
         await api("/control/apps/communication-board/authorize", "POST", { capabilities: ["pointer_intent", "selection"] });
         await api("/runtime/playback", "POST", { speed: SPEED });
-        const before = await page.evaluate(() => window.__brainosBoard.counters.selections);
+        const before = await page.evaluate(() => window.__concordBoard.counters.selections);
         if (before !== 0) throw new Error(`board selected ${before} tiles before the replay resumed`);
         await api("/runtime/resume", "POST");
         const decs = (st.decoders || []).map((d) => `${d.model_id} (${d.model_origin ?? d.origin ?? "?"})`);
@@ -142,7 +142,7 @@ async function main() {
           return pb.loops >= 1 || (pb.duration_s && pb.position_s >= pb.duration_s - 0.05) ? pb : null;
         }, "end of the block", 200000, 500);
         await api("/runtime/pause", "POST");
-        const s = await page.evaluate(() => window.__brainosBoard);
+        const s = await page.evaluate(() => window.__concordBoard);
         if (!s.selections.length) throw new Error("no selections");
         const via = [...new Set(s.selections.map((x) => x.via))];
         if (via.some((v) => v !== "click")) throw new Error(`unexpected selection methods ${via}`);
@@ -151,13 +151,13 @@ async function main() {
       });
 
       await step(`P0-4 (${run}). the board's selections equal the offline prediction of the same chain`, async () => {
-        const s = await page.evaluate(() => window.__brainosBoard);
+        const s = await page.evaluate(() => window.__concordBoard);
         const obsPath = path.join(work, `observed-${mode}-${n}.json`);
         fs.writeFileSync(obsPath, JSON.stringify(s));
         const outPath = path.join(work, `compare-${mode}-${n}.json`);
         execFileSync(
           PY,
-          ["-m", "brainos.evaluation.board_e2e", "compare", "--plan", path.join(work, "plan.json"), "--mode", mode,
+          ["-m", "concord.evaluation.board_e2e", "compare", "--plan", path.join(work, "plan.json"), "--mode", mode,
             "--observed", obsPath, "--position-s", String(positionS), "--n", String(n), "--out", outPath],
           { env: { ...process.env, ...pyEnv }, encoding: "utf8" },
         );
@@ -172,7 +172,7 @@ async function main() {
           `${r.selections_on_the_cued_word}/${r.board_selections} on the cued word (chance ${(r.chance_per_selection * 100).toFixed(1)} %)`;
       });
       await step(`P0-5 (${run}). provenance shown on the board`, async () => {
-        const want = mode === "historical" ? /historical decoder replay/i : /\(BrainOS\)/;
+        const want = mode === "historical" ? /historical decoder replay/i : /\(Concord\)/;
         if (!want.test(snap.input)) throw new Error(`board input label: ${snap.input}`);
         if (!/demonstration/i.test(snap.text_label ?? "")) throw new Error(`text label: ${snap.text_label}`);
         return `${snap.input}; text: ${snap.text_label}`;

@@ -1,4 +1,4 @@
-# BrainOS documentation
+# Concord documentation
 
 Every document in this repository, grouped by what you want to do. If you are new, read the
 first three rows in order.
@@ -8,20 +8,20 @@ first three rows in order.
 | Document | What it covers |
 | --- | --- |
 | [Getting started](GETTING_STARTED.md) | Install, first launch, a simulated device, real human recordings, a research session; no terminal |
-| [User guide](USER_GUIDE.md) | Every part of the console and the communication board, the configuration file and the `brainos` command |
+| [User guide](USER_GUIDE.md) | Every part of the console and the communication board, the configuration file and the `concord` command |
 | [FAQ](FAQ.md) | Short answers to common questions |
 | [Glossary](GLOSSARY.md) | The terms used in the console and these documents |
 | [Troubleshooting](TROUBLESHOOTING.md) | Symptoms and fixes |
 | [Installing on a Mac](INSTALL_MAC.md) | The desktop app and the Python installation in detail; configuration |
 
-## Using BrainOS in a lab
+## Using Concord in a lab
 
 | Document | What it covers |
 | --- | --- |
 | [Lab setup](LAB_SETUP.md) | Which adapter for which acquisition system, network layout and ports, installation, a research session step by step, data handling |
 | [Lab guide](LAB_GUIDE.md) | Connecting LSL and Open Ephys sources, processing pipelines, calibrating a decoder, routing commands to applications |
 | [First lab session](FIRST_LAB_SESSION.md) | A validation protocol for the first session with real equipment (a protocol, not a result) |
-| [Hardware validation](HARDWARE_VALIDATION.md) | Verifying BrainOS against your acquisition software's own recording with `brainos-hwval` |
+| [Hardware validation](HARDWARE_VALIDATION.md) | Verifying Concord against your acquisition software's own recording with `concord-hwval` |
 | [Open Ephys](OPEN_EPHYS.md) | How the Open Ephys GUI ZMQ Interface is read, setup and limitations |
 | [Ecosystems: BrainFlow and BCI2000](ECOSYSTEMS.md) | The two plugins: what each interface provides and how it is mapped |
 | [Applications](APPLICATIONS.md) | What applications receive, the communication board's input methods, safe states |
@@ -41,14 +41,14 @@ first three rows in order.
 | [Compatibility](COMPATIBILITY.md) | Every integration, the level its evidence supports, the evidence ([certification reports](compatibility/)) |
 | [Benchmarks](BENCHMARKS.md), [live benchmarks](BENCHMARKS_LIVE.md), [scale benchmarks](BENCHMARKS_SCALE.md), [performance](PERFORMANCE.md) | Measured throughput, latency and loss, and what limits them |
 
-## Building on BrainOS
+## Building on Concord
 
 | Document | What it covers |
 | --- | --- |
 | [Developers](DEVELOPERS.md) | Installing and using the SDKs, the certification toolkit and the server as a developer |
 | [SDK](SDK.md) | The Python and TypeScript SDKs for applications |
 | [Adapter SDK](ADAPTER_SDK.md) | Writing a source plugin for an acquisition system |
-| [Certification](CERTIFICATION.md) | `brainos-certify`: checking a source plugin |
+| [Certification](CERTIFICATION.md) | `concord-certify`: checking a source plugin |
 | [Decoder SDK](DECODER_SDK.md) | Bringing your own decoder or model file |
 | [Guided demos](DEMOS.md) | Terminal walkthroughs from a source installation |
 | [Contributing](../CONTRIBUTING.md) | Development setup, rules and pull requests |
@@ -57,7 +57,7 @@ first three rows in order.
 
 | Document | What it covers |
 | --- | --- |
-| [Product](../PRODUCT.md) | Who BrainOS is for, the problem, non-goals |
+| [Product](../PRODUCT.md) | Who Concord is for, the problem, non-goals |
 | [Architecture](../ARCHITECTURE.md) | The contracts: adapters, capabilities, event envelope, provenance, runtime, API (normative) |
 | [MVP specification](../MVP_SPEC.md) | The first vertical slice's requirements and acceptance tests |
 | [Limitations](../LIMITATIONS.md) | What does not work or is not real |

@@ -1,6 +1,6 @@
 """Milestone 3 benchmarks: live protocols -> runtime -> pipeline, measured on this machine.
 
-Publishers run in a SEPARATE PROCESS (``python -m brainos.testing.publish``), speaking real
+Publishers run in a SEPARATE PROCESS (``python -m concord.testing.publish``), speaking real
 LSL (liblsl) or the Open Ephys ZMQ wire format, so the runtime process is measured on its
 own. Nothing here touches hardware: these are software/protocol measurements.
 
@@ -33,10 +33,10 @@ from typing import Any
 
 import numpy as np
 
-from brainos.adapters.simulated import OperatorIntentSource
-from brainos.contracts.events import EventEnvelope
-from brainos.runtime import DeviceRegistry, Recorder, Runtime
-from brainos.runtime.pipeline import PipelineStartRequest, RouterSpec
+from concord.adapters.simulated import OperatorIntentSource
+from concord.contracts.events import EventEnvelope
+from concord.runtime import DeviceRegistry, Recorder, Runtime
+from concord.runtime.pipeline import PipelineStartRequest, RouterSpec
 
 REPO = Path(__file__).resolve().parents[1]
 DATA = REPO / "data" / "datasets" / "dandi-000954"
@@ -47,7 +47,7 @@ WARMUP_S = 2.0  # connection + 1 s RMS threshold estimation, excluded from rate/
 
 def _publisher(*args: str) -> subprocess.Popen[bytes]:
     return subprocess.Popen(
-        [sys.executable, "-m", "brainos.testing.publish", *args],
+        [sys.executable, "-m", "concord.testing.publish", *args],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )
@@ -91,7 +91,7 @@ def _free_port_pair() -> int:
 class Tap:
     """Bus tap measuring acquisition->event latency on the LSL clock for selected events."""
 
-    def __init__(self, event_types: set[str], adapter_prefix: str = "brainos.pipeline") -> None:
+    def __init__(self, event_types: set[str], adapter_prefix: str = "concord.pipeline") -> None:
         import pylsl
 
         self.clock = pylsl.local_clock
@@ -166,9 +166,9 @@ async def lsl_raw(channels: int, seconds: float, tmp: Path) -> dict[str, Any]:
 async def falcon_decode(seconds: float, tmp: Path) -> dict[str, Any] | None:
     if not (TRAIN.exists() and EVAL.exists()):
         return None
-    from brainos.adapters.nwb.reader import load
-    from brainos.datasets import session_of
-    from brainos.decoding.ridge import fit
+    from concord.adapters.nwb.reader import load
+    from concord.datasets import session_of
+    from concord.decoding.ridge import fit
 
     rec = load(TRAIN)
     assert rec.behavior is not None
@@ -231,7 +231,7 @@ async def falcon_decode(seconds: float, tmp: Path) -> dict[str, Any] | None:
 
 
 async def openephys_raw(channels: int, seconds: float, tmp: Path) -> dict[str, Any]:
-    from brainos.adapters.openephys import OpenEphysConfig
+    from concord.adapters.openephys import OpenEphysConfig
 
     port = _free_port_pair()
     pub = _publisher("openephys", "--port", str(port), "--channels", str(channels))
@@ -277,7 +277,7 @@ async def openephys_raw(channels: int, seconds: float, tmp: Path) -> dict[str, A
 
 async def lsl_reconnect(tmp: Path, outage_s: float = 2.0) -> dict[str, Any]:
     """Publisher process killed under load and restarted with the same source_id."""
-    from brainos.contracts.protocol import RuntimeState
+    from concord.contracts.protocol import RuntimeState
 
     sid = f"bench-reconnect-{os.getpid()}"
     args = ("lsl-ephys", "--channels", "32", "--source-id", sid, "--no-latent")
@@ -370,7 +370,7 @@ def main() -> None:
     s = args.seconds
     lines: list[str] = []
     p = lines.append
-    p("# BrainOS live-acquisition benchmarks (Milestone 3)\n")
+    p("# Concord live-acquisition benchmarks (Milestone 3)\n")
     p(
         "> Measured on the machine below by `scripts/bench_live.py`. Publishers run in a separate "
         "process and speak real LSL (liblsl) or the Open Ephys ZMQ wire format; **no hardware "

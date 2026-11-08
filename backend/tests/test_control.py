@@ -19,18 +19,18 @@ pytest.importorskip("scipy")
 
 from pydantic import ValidationError
 
-from brainos.adapters.base import EventDraft
-from brainos.adapters.simulated import OperatorIntentSource
-from brainos.contracts.capabilities import Capability, EventType
-from brainos.contracts.events import Provenance, ProvenanceKind, Quality, parse_envelope
-from brainos.contracts.protocol import AppInfo, AppStatus, ErrorCode, NegotiationResult
-from brainos.decoding.lda import LDAClassifier
-from brainos.runtime import DeviceRegistry, Recorder, Runtime, RuntimeCommandError
-from brainos.runtime.bus import EventBus, Subscriber
-from brainos.runtime.control import AuthorizationStore
-from brainos.runtime.negotiation import negotiate
-from brainos.runtime.pipeline import PipelineStartRequest
-from brainos.runtime.router import CommandProvenanceError, CommandRouter, DiscreteRule, RouterSpec
+from concord.adapters.base import EventDraft
+from concord.adapters.simulated import OperatorIntentSource
+from concord.contracts.capabilities import Capability, EventType
+from concord.contracts.events import Provenance, ProvenanceKind, Quality, parse_envelope
+from concord.contracts.protocol import AppInfo, AppStatus, ErrorCode, NegotiationResult
+from concord.decoding.lda import LDAClassifier
+from concord.runtime import DeviceRegistry, Recorder, Runtime, RuntimeCommandError
+from concord.runtime.bus import EventBus, Subscriber
+from concord.runtime.control import AuthorizationStore
+from concord.runtime.negotiation import negotiate
+from concord.runtime.pipeline import PipelineStartRequest
+from concord.runtime.router import CommandProvenanceError, CommandRouter, DiscreteRule, RouterSpec
 
 from .conftest import subscribe
 from .helpers import drain, events, scripted_descriptor, valid_event, wait_for
@@ -48,7 +48,7 @@ def _prov(
 ) -> Provenance:
     return Provenance(
         kind=kind,
-        adapter="brainos.pipeline@0.4.0",
+        adapter="concord.pipeline@0.4.0",
         synthetic=True,
         model_id=model if kind is ProvenanceKind.DECODED_INTENT else None,
         origin="test",
@@ -622,7 +622,7 @@ async def test_classifier_calibrated_from_a_recording_runs_in_the_pipeline(
 ) -> None:
     """Record the synthetic source (band power through the pipeline + cue labels), calibrate
     an LDA from the recording, load it back: synthetic data, labelled as such."""
-    from brainos.decoding.calibrate import calibrate_classifier, classifier_report_markdown
+    from concord.decoding.calibrate import calibrate_classifier, classifier_report_markdown
 
     models_dir = tmp_path / "models"
     rt = _runtime(tmp_path, models_dir, **{"test-mi": {"speed": 40.0, "seed": 21}})
@@ -632,9 +632,9 @@ async def test_classifier_calibrated_from_a_recording_runs_in_the_pipeline(
     await wait_for(lambda: rt.pipeline.counters["features_out"] >= 1500, timeout=60)  # 300 s
     rt.stop_recording()
     await rt.disconnect()
-    path = tmp_path / "rec" / f"{name}.brainos.jsonl"
+    path = tmp_path / "rec" / f"{name}.concord.jsonl"
     model, report = calibrate_classifier(
-        [path], models_dir=models_dir, feature_source="brainos.pipeline"
+        [path], models_dir=models_dir, feature_source="concord.pipeline"
     )
     assert report["synthetic_source"] is True and report["classes"] == CLASS_NAMES  # declared names
     assert model.source["identity"] == ORIGIN and model.input["channel_labels"] == list(CHANNELS)

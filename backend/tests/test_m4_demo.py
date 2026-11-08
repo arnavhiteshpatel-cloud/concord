@@ -1,8 +1,8 @@
 """Milestone 4 required demonstration, end to end, with no core change for the source:
 
-1. A THIRD-PARTY adapter (``brainos-example-adapter``: separate package, depends only on
-   ``brainos-adapter-sdk``) is installed, discovered, validated and run in the plugin host.
-2. BrainOS's pipeline computes mu-band power from it; a session is recorded (features and
+1. A THIRD-PARTY adapter (``concord-example-adapter``: separate package, depends only on
+   ``concord-adapter-sdk``) is installed, discovered, validated and run in the plugin host.
+2. Concord's pipeline computes mu-band power from it; a session is recorded (features and
    labels only) and an LDA classifier is calibrated through the REST API.
 3. The classifier runs live; the command router maps classes to discrete actions.
 4. The independently runnable, SDK-only menu application receives NOTHING until the operator
@@ -24,12 +24,12 @@ from typing import Any
 
 import pytest
 
-from brainos.sdk import BrainOSError, RuntimeClient
+from concord.sdk import ConcordError, RuntimeClient
 
 from .helpers import wait_for
 from .test_plugin_example import server  # noqa: F401  (fixture: server with plugin discovery)
 
-pytest.importorskip("brainos_example_adapter")
+pytest.importorskip("concord_example_adapter")
 pytest.importorskip("scipy")
 
 APP_DIR = Path(__file__).resolve().parents[1] / "examples" / "reference_app"
@@ -67,12 +67,12 @@ async def test_third_party_adapter_to_authorized_sdk_app(server: str) -> None:  
         # 1. third-party adapter, isolated, declared synthetic EEG (noninvasive)
         dev = await op.configure_plugin("example-mi-eeg", "mi-eeg", OPTIONS)
         assert dev.integration is not None and dev.integration.kind == "plugin"
-        assert dev.integration.isolated and dev.integration.package == "brainos-example-adapter"
+        assert dev.integration.isolated and dev.integration.package == "concord-example-adapter"
         assert dev.synthetic and dev.modality is not None and dev.modality.value == "eeg"
         assert dev.invasive is False
         await op.connect(dev.device_id)
 
-        # 2. features in BrainOS's pipeline, a calibration recording, an LDA classifier
+        # 2. features in Concord's pipeline, a calibration recording, an LDA classifier
         await op.start_pipeline("band_power", **BAND)
         name = await op.start_recording("m4-demo-calibration", exclude_raw=True)
         await asyncio.sleep(CALIBRATION_S)
@@ -80,7 +80,7 @@ async def test_third_party_adapter_to_authorized_sdk_app(server: str) -> None:  
         cal = await op.calibrate(
             [name],
             kind="classifier",
-            feature_source="brainos.pipeline",
+            feature_source="concord.pipeline",
             class_names=["rest", "left", "right"],
             train_fraction=0.6,
             tau_ms=200,  # smoothing well below the 2 s cue length
@@ -94,7 +94,7 @@ async def test_third_party_adapter_to_authorized_sdk_app(server: str) -> None:  
         assert report["balanced_accuracy"] > report["chance_balanced_accuracy"] + 0.1
 
         # unsupported: a classifier cannot drive continuous pointer movement
-        with pytest.raises(BrainOSError) as exc:
+        with pytest.raises(ConcordError) as exc:
             await op.start_pipeline(
                 "band_power",
                 model_id=model_id,
@@ -141,4 +141,4 @@ def test_menu_app_imports_only_the_public_sdk() -> None:
         elif isinstance(node, ast.ImportFrom):
             names = [node.module or ""]
         for n in names:
-            assert n.split(".")[0] in stdlib or n.startswith("brainos.sdk"), n
+            assert n.split(".")[0] in stdlib or n.startswith("concord.sdk"), n

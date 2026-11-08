@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from brainos.contracts import envelope_json_schema
+from concord.contracts import envelope_json_schema
 
 OUT = Path(__file__).resolve().parents[1] / "contracts" / "event-envelope.v1.schema.json"
 

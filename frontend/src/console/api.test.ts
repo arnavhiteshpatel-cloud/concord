@@ -1,7 +1,7 @@
 // Milestone 3 console API helpers: exact endpoints and request bodies the backend expects
-// (backend/src/brainos/server/live_routes.py), and the server's error envelope surfaced.
+// (backend/src/concord/server/live_routes.py), and the server's error envelope surfaced.
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { BrainOSApiError } from "../sdk";
+import { ConcordApiError } from "../sdk";
 import { consoleApi, isDatasetFile, isLiveSource, isRecordable, labApi } from "./api";
 import { apiError, stubFetch } from "./testFetch";
 
@@ -50,7 +50,7 @@ describe("labApi", () => {
     const router = { enabled: true, x_dim: "vx", y_dim: "vy", gain: 1, deadzone: 0.3, invert_y: false, max_speed: 2 };
     await labApi.setRouter(router);
     await labApi.models();
-    await labApi.calibrate({ recordings: ["a"], train_fraction: 0.8, gap_bins: 12, feature_source: "brainos.pipeline" });
+    await labApi.calibrate({ recordings: ["a"], train_fraction: 0.8, gap_bins: 12, feature_source: "concord.pipeline" });
     expect(calls.map((c) => `${c.method} ${c.path}`)).toEqual([
       "GET /pipeline",
       "GET /pipeline/presets",
@@ -70,7 +70,7 @@ describe("labApi", () => {
       recordings: ["a"],
       train_fraction: 0.8,
       gap_bins: 12,
-      feature_source: "brainos.pipeline",
+      feature_source: "concord.pipeline",
     });
   });
 
@@ -79,10 +79,10 @@ describe("labApi", () => {
     const err = await labApi
       .startPipeline({ processing: { preset: "band_power" }, model_id: "m", allow_cross_source: false })
       .catch((e: unknown) => e);
-    expect(err).toBeInstanceOf(BrainOSApiError);
-    expect((err as BrainOSApiError).code).toBe("incompatible_decoder");
-    expect((err as BrainOSApiError).message).toBe("bin_ms 50 != 20");
-    expect((err as BrainOSApiError).status).toBe(409);
+    expect(err).toBeInstanceOf(ConcordApiError);
+    expect((err as ConcordApiError).code).toBe("incompatible_decoder");
+    expect((err as ConcordApiError).message).toBe("bin_ms 50 != 20");
+    expect((err as ConcordApiError).status).toBe(409);
   });
 });
 

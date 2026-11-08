@@ -16,7 +16,7 @@ repository root. Real-data demos download public datasets, verified by SHA-256, 
 - [Bring your own decoder](#bring-your-own-decoder)
 - [Writing an application](#writing-an-application)
 - [Compatibility registry](#compatibility-registry)
-- [Acquisition verification with brainos-hwval](#acquisition-verification-with-brainos-hwval)
+- [Acquisition verification with concord-hwval](#acquisition-verification-with-concord-hwval)
 
 ## Recorded human intracortical data with its offline decoder (FALCON H1)
 
@@ -31,7 +31,7 @@ make dataset
 make model
 ```
 
-Then start BrainOS as usual:
+Then start Concord as usual:
 
 ```bash
 make run
@@ -70,15 +70,15 @@ Recorded intracortical data from a person with paralysis controlling a cursor an
 (participant T15, Singer-Clark et al., Dryad doi:10.5061/dryad.prr4xgxzq, CC0) replays as
 "Recorded Human Intracortical Data (cursor + click) — Offline Replay" (`t15:*` devices): threshold
 crossings and spike band power, task state, and the original online decoders' outputs
-(labelled historical, never BrainOS). BrainOS's own Kalman cursor decoder and click decoder,
+(labelled historical, never Concord). Concord's own Kalman cursor decoder and click decoder,
 trained only on earlier calibration blocks, recover the movement intention on held-out blocks
 (angle error 28.0° vs 27.3° for the original online decoder; docs/CURSOR_CLICK.md), and drive
 the participant board end to end in a browser (docs/NEURAL_COMMUNICATION.md). Open loop only:
-nobody has communicated through BrainOS.
+nobody has communicated through Concord.
 
 ```bash
 make dataset-t15            # day 468 blocks 0-3 (~90 MiB; Dryad API token: see --help)
-make e2e-communication      # the board selects words from the replayed block (historical + BrainOS)
+make e2e-communication      # the board selects words from the replayed block (historical + Concord)
 make cursorclick-report     # all 18 blocks: decoders, clicks, word selection -> docs/CURSOR_CLICK.md
 ```
 
@@ -100,10 +100,10 @@ make ecog-report        # all 6 slices; model -> data/models/; docs/ECOG_DECODIN
 ## Live acquisition without hardware (LSL, Open Ephys test publishers)
 
 Protocol-level publishers stand in for acquisition software (each declares itself synthetic or
-prerecorded). With BrainOS running (`make run`), in a second terminal:
+prerecorded). With Concord running (`make run`), in a second terminal:
 
 ```bash
-.venv/bin/python -m brainos.testing.publish falcon data/datasets/dandi-000954/sub-HumanPitt-held-in-calib_ses-19250108T111022.nwb --loop
+.venv/bin/python -m concord.testing.publish falcon data/datasets/dandi-000954/sub-HumanPitt-held-in-calib_ses-19250108T111022.nwb --loop
 ```
 
 In the console: **Connect a source** → *Live streams* → **Find LSL streams** → *Search the
@@ -157,26 +157,26 @@ features, bin size, channel identities and order, units, participant). Third-par
 in an isolated decoder process, and every output is validated:
 
 ```bash
-brainos-decoder new my-decoder && pip install -e brainos-my-decoder   # a decoder plugin
-brainos-decoder check my-decoder                                       # run it as BrainOS does
-brainos-decoder check --model data/models/<id>.manifest.json           # an ONNX / skops / TorchScript file
+concord-decoder new my-decoder && pip install -e concord-my-decoder   # a decoder plugin
+concord-decoder check my-decoder                                       # run it as Concord does
+concord-decoder check --model data/models/<id>.manifest.json           # an ONNX / skops / TorchScript file
 ```
 
 In the console, **Start decoding** lists every decoder:
 
-- BrainOS-trained models, imported model files and decoder plugins;
+- Concord-trained models, imported model files and decoder plugins;
 - each decoder's compatibility verdict for the chosen processing;
 - the explicit channel mapping by label, offered only when it applies.
 
 **Calibrate…** starts from the output you need (continuous movement, discrete classes, click).
 Pickle / joblib files are refused unless you mark the exact file trusted. Guide:
 [docs/DECODER_SDK.md](DECODER_SDK.md). Example plugin:
-[examples/decoders/brainos-example-decoder](../examples/decoders/brainos-example-decoder/README.md).
+[examples/decoders/concord-example-decoder](../examples/decoders/concord-example-decoder/README.md).
 
 ## Writing an application
 
 ```python
-from brainos.sdk import EventStream, NegotiationUpdate, is_event
+from concord.sdk import EventStream, NegotiationUpdate, is_event
 
 async with await EventStream.connect(
     app_id="my-app", app_name="My App",
@@ -201,23 +201,23 @@ stale; `GET /api/v1/compatibility` serves it with this installation's status, an
 shows it under Advanced → Compatibility. See
 [docs/COMPATIBILITY.md](COMPATIBILITY.md#registry-m5-f).
 
-## Acquisition verification with brainos-hwval
+## Acquisition verification with concord-hwval
 
-`packages/brainos-hwval` checks that BrainOS received exactly what an acquisition system
-produced: it compares a BrainOS recording with the recording the system's own reference
+`packages/concord-hwval` checks that Concord received exactly what an acquisition system
+produced: it compares a Concord recording with the recording the system's own reference
 software made at the same time (LabRecorder XDF for LSL sources, the Open Ephys GUI's Record
 Node in Binary format) and writes a JSON + Markdown report (PASS / FAIL / INCONCLUSIVE, per
 check: identity, channels, units, loss, duplicates, values, timestamps, delay). The comparison
-needs only `numpy` and `pyxdf`, not BrainOS. The laboratory procedure is
+needs only `numpy` and `pyxdf`, not Concord. The laboratory procedure is
 [docs/HARDWARE_VALIDATION.md](HARDWARE_VALIDATION.md). So far it has been run against the
 real LabRecorder and the real Open Ephys GUI with software sources only: **no acquisition
 hardware has been verified** (docs/VALIDATION_LEVELS.md).
 
 ```bash
-brainos-hwval capture lsl --stream "MyAmp EEG" --duration 240 --out runs/ --name run1
+concord-hwval capture lsl --stream "MyAmp EEG" --duration 240 --out runs/ --name run1
 ```
 ```bash
-brainos-hwval lsl --reference runs/run1.xdf --brainos runs/run1.brainos.jsonl --out reports/
+concord-hwval lsl --reference runs/run1.xdf --concord runs/run1.concord.jsonl --out reports/
 ```
 ```bash
 make test-hwval   # also runs real LabRecorderCLI + Open Ephys GUI (Linux x86_64; see the Makefile)

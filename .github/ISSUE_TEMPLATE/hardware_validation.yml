@@ -1,11 +1,11 @@
 name: Hardware validation result
-description: Share a brainos-hwval report from your acquisition system (PASS, FAIL or INCONCLUSIVE).
+description: Share a concord-hwval report from your acquisition system (PASS, FAIL or INCONCLUSIVE).
 labels: ["hardware-validation"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thank you for testing BrainOS against your equipment. Follow the
+        Thank you for testing Concord against your equipment. Follow the
         [hardware validation protocol](https://github.com/arnavhiteshpatel-cloud/brainos/blob/main/docs/HARDWARE_VALIDATION.md).
         Attach the **report files only** (`*.hwval.json` and `*.hwval.md`), never the recordings:
         they may contain neural data. Use a phantom, signal generator or shorted inputs, never a
@@ -40,8 +40,8 @@ body:
   - type: input
     id: version
     attributes:
-      label: BrainOS and brainos-hwval versions
-      placeholder: "brainos 0.3.0, brainos-hwval 0.1.0"
+      label: Concord and concord-hwval versions
+      placeholder: "concordos 0.3.0, concord-hwval 0.1.0"
     validations:
       required: true
   - type: textarea

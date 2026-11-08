@@ -20,9 +20,9 @@ import numpy as np
 import pytest
 from pydantic import ValidationError
 
-from brainos.adapters.base import DeviceAdapter, EndOfStream, EventDraft, NativePacket
-from brainos.contracts.capabilities import Capability, EventType
-from brainos.contracts.events import (
+from concord.adapters.base import DeviceAdapter, EndOfStream, EventDraft, NativePacket
+from concord.contracts.capabilities import Capability, EventType
+from concord.contracts.events import (
     SCHEMA_VERSION,
     Provenance,
     ProvenanceKind,
@@ -32,10 +32,10 @@ from brainos.contracts.events import (
     envelope_json_schema,
     parse_envelope,
 )
-from brainos.contracts.protocol import AppInfo
-from brainos.runtime import DeviceRegistry, Recorder, Runtime, fastjson
-from brainos.runtime.bus import EventBus, EventJson
-from brainos.runtime.pipeline import QUEUE_MAX_VALUES, PipelineStartRequest
+from concord.contracts.protocol import AppInfo
+from concord.runtime import DeviceRegistry, Recorder, Runtime, fastjson
+from concord.runtime.bus import EventBus, EventJson
+from concord.runtime.pipeline import QUEUE_MAX_VALUES, PipelineStartRequest
 
 from .conftest import subscribe
 from .helpers import drain, scripted_descriptor, wait_for
@@ -199,8 +199,8 @@ def test_non_frame_envelopes_use_the_generic_serializer() -> None:
 
 
 def _bus_with(subs: int) -> tuple[EventBus, list[Any]]:
-    from brainos.contracts.protocol import AppStatus, NegotiationResult
-    from brainos.runtime.bus import Subscriber
+    from concord.contracts.protocol import AppStatus, NegotiationResult
+    from concord.runtime.bus import Subscriber
 
     bus = EventBus()
     out = []
@@ -266,8 +266,8 @@ async def test_prebuilt_json_strings_are_still_accepted() -> None:
 
 
 def _lsl_adapter(channels: int) -> Any:
-    from brainos.adapters.lsl import LSLAdapter, LSLSourceSpec
-    from brainos.adapters.lsl.metadata import ChannelMeta, Declaration, StreamMeta
+    from concord.adapters.lsl import LSLAdapter, LSLSourceSpec
+    from concord.adapters.lsl.metadata import ChannelMeta, Declaration, StreamMeta
 
     meta = StreamMeta(
         name="t",
@@ -343,8 +343,8 @@ def test_lsl_array_frames_equal_list_frames() -> None:
 
 
 def test_openephys_array_frames_equal_list_frames() -> None:
-    from brainos.adapters.openephys.adapter import OpenEphysPacket, normalize_packet
-    from brainos.adapters.openephys.assembly import FrameChunk
+    from concord.adapters.openephys.adapter import OpenEphysPacket, normalize_packet
+    from concord.adapters.openephys.assembly import FrameChunk
 
     raw = rand(5, 64, np.float32)
     pkt = OpenEphysPacket("oe:t", 30000.0, 0.195, 20.0, (FrameChunk(30, raw, False),))
@@ -450,7 +450,7 @@ async def test_recorder_lines_are_identical_and_raw_exclusion_skips_serializatio
     adapter.script.append([d])
     await wait_for(lambda: runtime.diagnostics.totals["recording.frame"] >= 1)
     runtime.stop_recording()
-    lines = (runtime.recorder.directory / "arrays.brainos.jsonl").read_text().splitlines()
+    lines = (runtime.recorder.directory / "arrays.concord.jsonl").read_text().splitlines()
     rec = [json.loads(x) for x in lines[1:] if '"recording.frame"' in x]
     assert rec[0]["payload"]["samples"] == d.payload["samples"].astype(np.float64).tolist()
     # exclude_raw: the recorder does not want frames, so they are never serialized for it
@@ -532,7 +532,7 @@ async def test_bench_scale_smoke() -> None:
 def test_frames_stay_under_the_sdk_message_limit_at_high_channel_counts() -> None:
     """Pre-M5, a 2000-sample frame at 256+ channels exceeded the Python SDK's 8 MiB WebSocket
     message limit and disconnected every raw-signal client (measured: 1009 message too big)."""
-    from brainos.adapters.base import MAX_FRAME_VALUES, frame_samples_limit
+    from concord.adapters.base import MAX_FRAME_VALUES, frame_samples_limit
 
     assert frame_samples_limit(64, 2000) == 2000
     assert frame_samples_limit(1024, 2000) == MAX_FRAME_VALUES // 1024 == 256
@@ -548,8 +548,8 @@ def test_frames_stay_under_the_sdk_message_limit_at_high_channel_counts() -> Non
 
 def test_server_disables_websocket_compression(tmp_path: Path) -> None:
     """permessage-deflate cost ~13 ms of CPU per 180 KB raw frame (M5-E measurement). The
-    server is started through ``brainos.server.serve`` (M5-D); its uvicorn config turns it off."""
-    from brainos.server.serve import uvicorn_config
+    server is started through ``concord.server.serve`` (M5-D); its uvicorn config turns it off."""
+    from concord.server.serve import uvicorn_config
 
     from .conftest import make_settings
 

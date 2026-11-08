@@ -1,7 +1,7 @@
 """Center-out calibration task that publishes its cues over LSL.
 
 Run it on the machine that shows the task to the participant. It publishes two LSL streams,
-which BrainOS (or any LSL recorder, e.g. LabRecorder) attaches to the neural stream as
+which Concord (or any LSL recorder, e.g. LabRecorder) attaches to the neural stream as
 behavior + markers; liblsl ``time_correction`` maps them onto the neural stream's clock:
 
 * ``Behavior`` (2 ch, ``cue_vx``/``cue_vy``, 50 Hz): the cued cursor velocity, the label the
@@ -14,7 +14,7 @@ hold -> return to center. Target order is a seeded random permutation per block 
     python backend/examples/center_out_task.py              # with a window (tkinter)
     python backend/examples/center_out_task.py --headless --trials 16
 
-Then, in BrainOS: discover LSL streams, attach this task's ``-behavior`` and ``-markers``
+Then, in Concord: discover LSL streams, attach this task's ``-behavior`` and ``-markers``
 streams to the neural stream, start the pipeline, record, calibrate (docs/LAB_GUIDE.md).
 
 The streams are declared neither synthetic nor prerecorded: they are live cues. They are
@@ -87,7 +87,7 @@ class CueSchedule:
 
 
 class CueTask:
-    def __init__(self, schedule: CueSchedule, source_id: str = "brainos-center-out") -> None:
+    def __init__(self, schedule: CueSchedule, source_id: str = "concord-center-out") -> None:
         import pylsl
 
         self.pylsl = pylsl
@@ -98,7 +98,7 @@ class CueTask:
         self.samples = 0
         self.markers: list[str] = []
         b = pylsl.StreamInfo(
-            "BrainOS center-out cues",
+            "Concord center-out cues",
             "Behavior",
             2,
             RATE_HZ,
@@ -113,7 +113,7 @@ class CueTask:
             c.append_child_value("unit", "workspace/s")
             c.append_child_value("type", "Velocity")
         m = pylsl.StreamInfo(
-            "BrainOS center-out markers", "Markers", 1, 0.0, pylsl.cf_string, source_id + "-markers"
+            "Concord center-out markers", "Markers", 1, 0.0, pylsl.cf_string, source_id + "-markers"
         )
         self._describe(m)
         self.beh_out = pylsl.StreamOutlet(b)
@@ -121,10 +121,10 @@ class CueTask:
 
     @staticmethod
     def _describe(info: object, **extra: str) -> None:
-        d = info.desc().append_child("brainos")  # type: ignore[attr-defined]
+        d = info.desc().append_child("concord")  # type: ignore[attr-defined]
         d.append_child_value("synthetic", "false")
         d.append_child_value("prerecorded", "false")
-        d.append_child_value("origin", "brainos:center-out-task")
+        d.append_child_value("origin", "concord:center-out-task")
         for k, v in extra.items():
             d.append_child_value(k, v)
 
@@ -158,7 +158,7 @@ def _window(task: CueTask) -> None:  # pragma: no cover - needs a display
 
     size = 600
     root = tk.Tk()
-    root.title("BrainOS center-out cues")
+    root.title("Concord center-out cues")
     cv = tk.Canvas(root, width=size, height=size, bg="black")
     cv.pack()
 
@@ -192,7 +192,7 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     ap.add_argument("--trials", type=int, default=40)
     ap.add_argument("--seed", type=int, default=0)
-    ap.add_argument("--source-id", default="brainos-center-out")
+    ap.add_argument("--source-id", default="concord-center-out")
     ap.add_argument("--headless", action="store_true", help="publish cues without a window")
     args = ap.parse_args(argv)
     task = CueTask(CueSchedule(args.trials, args.seed), args.source_id)

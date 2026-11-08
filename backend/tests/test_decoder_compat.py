@@ -11,13 +11,13 @@ from typing import Any
 import numpy as np
 import pytest
 
-from brainos.decoding import model as models
-from brainos.decoding.families import BuiltinFamily, family_for, register_family
-from brainos.decoding.lda import fit_lda
-from brainos.decoding.metrics import event_metrics, roc_auc, velocity_error
-from brainos.decoding.monitor import DriftMonitor
-from brainos.decoding.registry import ModelRegistry
-from brainos.decoding.ridge import RidgeDecoder, fit
+from concord.decoding import model as models
+from concord.decoding.families import BuiltinFamily, family_for, register_family
+from concord.decoding.lda import fit_lda
+from concord.decoding.metrics import event_metrics, roc_auc, velocity_error
+from concord.decoding.monitor import DriftMonitor
+from concord.decoding.registry import ModelRegistry
+from concord.decoding.ridge import RidgeDecoder, fit
 
 STREAM = {
     "event_type": "features.binned",
@@ -32,7 +32,7 @@ STREAM = {
 
 def manifest(**over: Any) -> dict[str, Any]:
     m: dict[str, Any] = {
-        "schema": "brainos.decoder-manifest/1",
+        "schema": "concord.decoder-manifest/1",
         "model_id": "m",
         "modalities": ["intracortical"],
         "inputs": [dict(STREAM)],
@@ -297,7 +297,7 @@ def test_derived_manifest_states_only_what_the_file_records() -> None:
     assert man["family"] == "ridge" and man["modalities"] == []  # unknown stays unknown
     assert man["output"]["scale"] == [2.0, 3.0] and man["derived"] is True
     assert man["inputs"][0]["unit"] == "count" and man["inputs"][0]["channel_count"] == 7
-    m.manifest = {**man, "derived": False, "schema": "brainos.decoder-manifest/1", "name": "stored"}
+    m.manifest = {**man, "derived": False, "schema": "concord.decoder-manifest/1", "name": "stored"}
     assert models.manifest_for(m)["name"] == "stored"
 
 
@@ -305,7 +305,7 @@ def test_derived_manifest_states_only_what_the_file_records() -> None:
 
 
 def _write_manifest(d: Path, model_id: str, fmt: str, content: bytes = b"x") -> Path:
-    from brainos_decoder_sdk import (
+    from concord_decoder_sdk import (
         API_VERSION,
         InputSpec,
         Modality,
@@ -313,7 +313,7 @@ def _write_manifest(d: Path, model_id: str, fmt: str, content: bytes = b"x") -> 
         OutputKind,
         OutputSpec,
     )
-    from brainos_decoder_sdk.formats import write_bundle
+    from concord_decoder_sdk.formats import write_bundle
 
     src = d / f"src-{model_id}"
     src.write_bytes(content)
@@ -350,7 +350,7 @@ def test_registry_lists_json_models_and_manifests_and_records_trust(tmp_path: Pa
     )
     reg = ModelRegistry(tmp_path)
     by = {r.model_id: r for r in reg.records()}
-    assert by[m.model_id].origin == "brainos-trained" and by[m.model_id].execution == "in_process"
+    assert by[m.model_id].origin == "concord-trained" and by[m.model_id].execution == "in_process"
     assert by["imported-onnx"].origin == "imported" and by["imported-onnx"].execution == "isolated"
     assert by["broken"].status == "rejected" and "modalities" in (by["broken"].reason or "")
     pk = by["imported-pickle"]
@@ -376,7 +376,7 @@ def test_registry_lists_json_models_and_manifests_and_records_trust(tmp_path: Pa
 def test_nwb_catalog_attaches_only_ridge_models_and_ignores_other_families_quietly(
     tmp_path: Path, caplog: pytest.LogCaptureFixture
 ) -> None:
-    from brainos.runtime.catalog import NWBCatalog
+    from concord.runtime.catalog import NWBCatalog
 
     m, x = _ridge()
     m.save(tmp_path / f"{m.model_id}.json")
