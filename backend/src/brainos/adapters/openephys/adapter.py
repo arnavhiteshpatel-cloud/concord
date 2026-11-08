@@ -39,6 +39,7 @@ from brainos.adapters.base import (
     EventDraft,
     NativePacket,
     PacketDecodeError,
+    frame_samples_limit,
 )
 from brainos.adapters.openephys.assembly import (
     BinSpec,
@@ -170,7 +171,7 @@ def normalize_packet(pkt: OpenEphysPacket) -> list[EventDraft]:
                     "channel_count": int(data.shape[0]),
                     "first_sample_index": item.first_sample_index,
                     "unit": unit,
-                    "samples": data.tolist(),
+                    "samples": data,  # (channels, n) float64 array (M5-E fast path)
                 },
                 dropped if item.dropped_before else ok,
                 raw,
@@ -261,7 +262,10 @@ class OpenEphysAdapter(DeviceAdapter):
                 sample_rate_hz=layout.sample_rate,
                 channel_names=[name for _, name in layout.channels],
                 stream=layout.stream,
-                frame_samples=min(layout.block_samples, cfg.max_frame_samples),
+                frame_samples=min(
+                    layout.block_samples,
+                    frame_samples_limit(layout.channel_count, cfg.max_frame_samples),
+                ),
             )
         caps = [
             CapabilityDescriptor(capability=Capability.RECORDING, params=rec, description=rec_desc)
@@ -594,7 +598,7 @@ class OpenEphysAdapter(DeviceAdapter):
         self._assembler = BlockAssembler(
             layout,
             self.counters,
-            max_frame_samples=cfg.max_frame_samples,
+            max_frame_samples=frame_samples_limit(layout.channel_count, cfg.max_frame_samples),
             electrodes=self.electrodes,
             bin_spec=bins,
             fixed_electrodes=cfg.spike_electrodes is not None,

@@ -47,7 +47,7 @@ def drain(sub: Subscriber) -> list[dict[str, Any]]:
         out.append(json.loads(sub._control.popleft()))
     while sub._events:
         dseq, ev, *_ = sub._events.popleft()
-        out.append({"type": "event", "delivery_seq": dseq, "event": json.loads(ev)})
+        out.append({"type": "event", "delivery_seq": dseq, "event": json.loads(ev.text)})
     return out
 
 

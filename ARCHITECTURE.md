@@ -774,3 +774,51 @@ retention policy. `brainos reproduce` verifies every file against the bundle man
 re-fits calibrated decoders from bundled recordings with the logged request, and recomputes
 recorded linear-decoder output bin by bin (after `len(kernel)` warm-up bins per
 discontinuity), within a 1e-6 relative tolerance.
+
+## 16. Performance at scale (Milestone 5, workstream E)
+
+Measurements and the alternatives compared: docs/PERFORMANCE.md (numbers from
+`scripts/bench_scale.py`, docs/BENCHMARKS_SCALE.md). Behaviour and wire format are unchanged;
+these are in-process representation and resource-bound changes.
+
+**Array-backed raw frames.** `recording.frame` `samples` may be held in-process as a
+read-only, C-ordered float64 numpy array of shape (channels, samples): the LSL, Open Ephys and
+plugin adapters emit arrays instead of `tolist()` lists, `RecordingFramePayload` validates an
+array with numpy (an owned copy; any array that is not a finite real 2-D array is validated by
+the list path, so accept/reject decisions and error messages are identical), and the pipeline
+reads it without conversion. On the wire and in the JSON Schema `samples` is
+`list[list[number]]` as before (schema test unchanged); `model_dump()`/`model_dump_json()`
+produce identical output. Consumers in the runtime must treat `samples` as a sequence of
+sequences (`np.asarray(samples)` works for both forms).
+
+**Lazy, shared JSON (§6.2 amended).** The runtime no longer serializes every envelope at ingest.
+`bus.publish` wraps the envelope in an `EventJson` whose text is produced on first use and then
+shared by all subscribers and taps: a subscriber's sender serializes when it actually sends,
+taps can declare `json=False` (pipeline) or a `when` predicate (recorder: only while recording,
+and not raw frames when `exclude_raw`). Frames dropped from a slow subscriber's queue are never
+serialized. Raw frames are serialized as the envelope without `samples` plus the array encoded
+directly (`runtime/fastjson.py`; orjson when installed, else pydantic's encoder on `tolist()`),
+byte-identical to `model_dump_json()`. Consequence for §10: *pipeline latency* no longer
+includes serialization; *delivery latency* now does.
+
+**Resource bounds (§6.4 amended).** Subscriber event queues are bounded in estimated bytes as
+well as count (64 MiB per subscriber by default; sample arrays count their `nbytes`), and the
+pipeline input queue in queued sample values (16 M, about 0.5 s of 1024 ch at 30 kHz) as well
+as count; oldest-first drops are counted as before. Adapters split raw frames at
+`MAX_FRAME_VALUES` (262 144 channel-samples) so a frame's JSON stays under the Python SDK's
+8 MiB WebSocket message limit (unchanged at <= 131 channels).
+
+**Fairness.** The runtime pump yields to the event loop after every packet: an adapter with a
+backlog returns from `read()` without suspending, which previously starved the pipeline task,
+WebSocket senders and REST under overload.
+
+**Transport.** `python -m brainos.server` disables WebSocket permessage-deflate: the server is
+local, and compressing JSON sample frames was the single largest cost of serving a raw-signal
+viewer. Other uvicorn launches (`make dev`, tests) keep uvicorn's default.
+
+**Process separation and limits.** One runtime process holds one device and runs adapter,
+validation, pipeline, decoder, router and WebSocket on one asyncio loop (one core). Scaling out
+today means one runtime process per device (measured in docs/BENCHMARKS_SCALE.md §7);
+recommended next steps — shared-memory ring buffers between an acquisition process and the
+pipeline, a negotiated binary frame encoding for raw-signal viewers, and a contract change for
+more than 1024 raw channels — are in docs/PERFORMANCE.md §8.

@@ -402,3 +402,33 @@ See docs/APPLICATIONS.md.
 - The lab acceptance test (`scripts/lab_acceptance.py`) approximates an outside lab on one
   machine with software publishers and the FALCON H1 file; it is not a test with acquisition
   hardware or a participant.
+
+## Performance at scale (Milestone 5, workstream E)
+
+See docs/PERFORMANCE.md and docs/BENCHMARKS_SCALE.md for the measurements.
+
+- **Measured on one shared 4-vCPU Linux cloud VM** while other workloads ran (load averages
+  are recorded with every run), with benchmark-generated synthetic streams and random-weight
+  decoders. Not measured on macOS or Windows, on real acquisition hardware, or over a network.
+- **Raw signal is limited to 1024 channels** by contract 1.4 (`recording.frame`
+  `channel_count <= 1024`). A 2048- or 4096-channel raw stream connects, but every frame is
+  rejected (validation errors) and nothing reaches the pipeline, while the runtime still
+  spends most of a core receiving and rejecting it. Binned features (`features.binned` /
+  `features.vector`) are allowed up to 4096 channels and were measured there.
+- **One device per runtime process; one core per runtime.** Acquisition, validation, DSP,
+  decoder, router and WebSocket share one asyncio loop. More devices means more runtime
+  processes (each with its own port and console); nothing coordinates them.
+- **Raw-signal viewers are expensive.** Raw frames go to WebSocket clients as JSON
+  (~20 ns of CPU per value to encode, plus the client's parse). At 256+ channels a Python
+  SDK client cannot keep up with 30 kHz raw and the runtime drops (and counts) frames for it;
+  at 1024 channels a raw viewer costs the runtime a large share of its core and delays other
+  apps' events. There is no decimated preview stream and no binary encoding yet.
+- **The liblsl inlet buffer is time-based (30 s), not byte-based**: a stalled runtime can
+  let liblsl hold several GB at 1024 channels x 30 kHz before samples are dropped.
+- Queue byte budgets are estimates (sample-array size, or 512 bytes for small events).
+- `make dev` and the test servers keep uvicorn's WebSocket permessage-deflate default; only
+  `python -m brainos.server` (`make run`, packaging) disables it.
+- Without orjson (an exotic platform without wheels) raw-frame JSON falls back to pydantic's
+  encoder: identical output, about 2.5x slower per value.
+- The numba and C SOS-filter prototypes in the benchmark are not shipped; the DSP is scipy.
+
