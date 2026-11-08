@@ -44,7 +44,7 @@ GAIN = 1 / 0.92  # board workspace (unit square) = the task grid (0.92 screen he
 IDENTITY = "dryad:10.5061/dryad.prr4xgxzq:t15"
 # settings selected by run_cursorclick (CV on blocks 0-2; docs/CURSOR_CLICK.md)
 KALMAN = {"smoothing_tau_ms": 0.0, "shrinkage": 0.1}
-CLICK = {"smoothing_tau_ms": 50.0, "l2": 1000.0, "threshold": 0.7, "hold_bins": 10}
+CLICK = {"smoothing_tau_ms": 50.0, "l2": 1000.0, "threshold": 0.9, "hold_bins": 5}
 HISTORICAL_CLICK_RULE = {"output": "click", "threshold": 0.5, "refractory_ms": 300.0}
 
 

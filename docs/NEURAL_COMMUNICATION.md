@@ -87,12 +87,12 @@ How to read it:
   replayed velocity stream drifts away from where the participant actually was; even the
   original decoder's own outputs select the cued word in 56 % of trials on this block (the
   session itself: 93 %). Across all nine grid blocks the board-integration figures are 65 % for
-  the original outputs and 1 % / 4 % / 43 % for BrainOS on 14 × 14 / 7 × 7 / 2 × 2
+  the original outputs and 1 % / 4 % / 44 % for BrainOS on 14 × 14 / 7 × 7 / 2 × 2
   (docs/CURSOR_CLICK.md).
 - **BrainOS on the 2 × 2 board** is above chance (44 % vs 25 %), but its selections are biased by
   cursor drift: 51 of 72 chose the top-left word, which was cued only 17 times; always choosing
   it would score 24 %. With the cursor restarted at the recorded position each trial (analysis
-  only), BrainOS reaches 15 % / 34 % / 83 % on 14 × 14 / 7 × 7 / 2 × 2 (docs/CURSOR_CLICK.md):
+  only), BrainOS reaches 15 % / 35 % / 84 % on 14 × 14 / 7 × 7 / 2 × 2 (docs/CURSOR_CLICK.md):
   the decoders carry real intention information; open-loop integration loses most of it.
 - **Answer to "can the board select words from independently decoded recordings?"** Yes, the
   path works end to end with BrainOS's own decoders and is labelled correctly; reliably, no:
