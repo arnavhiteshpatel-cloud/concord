@@ -523,7 +523,7 @@ async def test_bench_scale_smoke() -> None:
     text = bench.render(
         {"started": "now", "command": "x", "machine": {}, "load_start": "0", "micro": [micro]}
     )
-    assert "Per-frame cost" in text
+    assert "per 10 ms chunk" in text
 
 
 # --------------------------------------------------------------------------- transport limits
