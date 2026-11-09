@@ -287,7 +287,12 @@ def main(argv: list[str] | None = None) -> int:
                 open_browser(url)
 
             try:
-                log.info("Concord window open (quit: close it, Cmd-Q, or the Dock's Quit)")
+                quit_hint = (
+                    "close it, Cmd-Q, or the Dock's Quit"
+                    if sys.platform == "darwin"
+                    else "Stop and quit, or close the window"
+                )
+                log.info("Concord window open (quit: %s)", quit_hint)
                 return run_window(srv, url, stop_event, show_console)
             except WindowUnavailable as exc:
                 log.warning("no window could be created (%s)", exc)

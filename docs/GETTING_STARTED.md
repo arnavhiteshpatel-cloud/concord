@@ -35,8 +35,8 @@ unfamiliar word in the [glossary](GLOSSARY.md).
 - a Mac with Apple Silicon (M1 or later) and macOS 14 or later, a Windows 10 or 11 PC (64-bit,
   x86_64), or a Linux PC (x86_64, e.g. Ubuntu 22.04 or later);
 - a current web browser (Chrome, Firefox, Safari or Edge);
-- about 700 MB of free disk space: Concord itself takes about 350 MB, the demo recordings about
-  300 MB.
+- about 650 MB of free disk space: Concord itself takes about 250 MB (plus its 100 MB download,
+  which you can delete afterwards), the demo recordings about 300 MB.
 
 ---
 
@@ -63,6 +63,35 @@ unfamiliar word in the [glossary](GLOSSARY.md).
 
 Intel Macs and macOS 13 or older: use the Python installation in [INSTALL_MAC.md](INSTALL_MAC.md).
 
+### On Windows
+
+1. Download **[Concord-windows-x86_64.zip](https://github.com/arnavhiteshpatel-cloud/concord/releases/latest/download/Concord-windows-x86_64.zip)**.
+2. Open your **Downloads** folder, right-click `Concord-windows-x86_64.zip` → **Extract All…**
+   → **Extract**. A folder named `Concord-windows-x86_64` opens, with a folder named `Concord`
+   in it. Always start Concord from this extracted folder: double-clicking inside the zip itself
+   (Windows shows a zip like a folder) does not work.
+3. Open the **Concord** folder and double-click **Concord** (`Concord.exe`), not
+   **concord-cli** next to it, which has the same icon and is for commands. (Windows usually
+   hides the `.exe` ending.)
+4. The first time, Windows shows **Windows protected your PC** (Microsoft Defender
+   SmartScreen), because the app is not signed with a code-signing certificate:
+   1. Click **More info**.
+   2. Check that *App* says **Concord.exe**, then click **Run anyway**.
+
+   If instead Windows says it blocked the app with no **Run anyway** button, *Smart App Control*
+   is on, and it blocks all unsigned apps: use the Python installation in
+   [INSTALL_WINDOWS.md](INSTALL_WINDOWS.md).
+
+   You do this once for each extracted copy. Later, double-click **Concord** like any other
+   program (to start it from the Start menu: right-click it → **Pin to Start**; if you don't see
+   that, choose **Show more options** first).
+
+Concord's window and console use only `127.0.0.1` (this computer), which does not make the
+Windows firewall ask anything. You need the firewall only for your own equipment (section 9):
+if Windows later asks whether Concord may communicate on networks, allow **Private networks**
+only, and only if your acquisition system runs on another computer of your lab network;
+otherwise click **Cancel**.
+
 ### On Linux
 
 1. Download **[Concord-linux-x86_64.tar.gz](https://github.com/arnavhiteshpatel-cloud/concord/releases/latest/download/Concord-linux-x86_64.tar.gz)**
@@ -77,34 +106,12 @@ Intel Macs and macOS 13 or older: use the Python installation in [INSTALL_MAC.md
    ./Concord/Concord
    ```
 
-   The terminal prints `Concord 0.3.1 is running at http://127.0.0.1:8000`. Keep that terminal
+   Among a few log lines, the terminal prints `Concord 0.3.1 is running at
+   http://127.0.0.1:8000`. Keep that terminal
    open while you use Concord; it is busy now, so use a new terminal window for any other
    command. Next time, start Concord the same way.
 
-### On Windows
-
-1. Download **[Concord-windows-x86_64.zip](https://github.com/arnavhiteshpatel-cloud/concord/releases/latest/download/Concord-windows-x86_64.zip)**.
-2. Open your **Downloads** folder, right-click `Concord-windows-x86_64.zip` → **Extract All…**
-   → **Extract**. A folder named `Concord-windows-x86_64` opens, with a folder named `Concord`
-   in it. Always start Concord from this extracted folder: double-clicking inside the zip itself
-   (Windows shows a zip like a folder) does not work.
-3. Open the **Concord** folder and double-click **Concord.exe** (the program with the dark "C"
-   icon; `concord-cli.exe` next to it is for commands).
-4. The first time, Windows shows **Windows protected your PC** (Microsoft Defender
-   SmartScreen), because the app is not signed with a code-signing certificate:
-   1. Click **More info**.
-   2. Check that *App* says **Concord.exe**, then click **Run anyway**.
-
-   You do this once for each extracted copy. Later, double-click `Concord.exe` like any other
-   program (to start it from the Start menu: right-click `Concord.exe` → **Pin to Start**; on
-   Windows 11 it is under **Show more options**).
-
-Concord's window and console use only `127.0.0.1` (this computer), which does not make the
-Windows firewall ask anything. If Windows later asks whether Concord may communicate on
-networks (the LSL and BCI2000 sources listen for data), allow **Private networks** only, and
-only if your acquisition system runs on another computer of your lab network.
-
-### What you should see
+### What you should see (all systems)
 
 A small window titled **Concord** opens, with your browser behind it:
 
@@ -121,7 +128,8 @@ A small window titled **Concord** opens, with your browser behind it:
 ```
 
 - Your web browser opens the **console** at `http://127.0.0.1:8000`. If it does not, click
-  **Open console**.
+  **Open console**. If still no browser opens (on Linux this happens when no default browser is
+  set), open your browser yourself and type `http://127.0.0.1:8000`.
 - **Keep this small window open**: Concord runs for as long as it is open. **Stop and quit**
   ends Concord safely (section 8). On Windows it has the Concord icon in the taskbar.
 - `127.0.0.1` means "this computer". Concord runs entirely on your machine and sends nothing to
@@ -137,13 +145,15 @@ A small window titled **Concord** opens, with your browser behind it:
 > console's version (top left, next to **Concord**) is not **0.3.1**. You are then looking at the
 > other copy, an older version or one started differently, with its own data folder.
 >
-> **Fix:** quit the other copy (its small window → **Stop and quit**; or Ctrl-C in its terminal;
-> or `… stop` as in [Commands in this guide](#commands-in-this-guide)), then start Concord
-> again. Still stuck? See which program holds the console's address: on a Mac
+> **Fix:** quit the other copy: its small window → **Stop and quit**, or Ctrl-C in its terminal,
+> or its stop command: Mac `/Applications/Concord.app/Contents/MacOS/Concord stop`; Windows
+> (PowerShell, in the Concord folder) `.\concord-cli.exe stop`; Linux `cd ~/Downloads` then
+> `./Concord/Concord stop`. Then start Concord again. Still stuck? See which program holds the console's address: on a Mac
 > `lsof -nP -iTCP:8000 -sTCP:LISTEN` in Terminal, on Linux `ss -ltnp 'sport = :8000'`, on
 > Windows `netstat -ano | findstr :8000` in PowerShell (the number at the end of the
 > *LISTENING* line is the program's process ID: find it in **Task Manager → Details**, PID
-> column; a `Concord.exe` or `concord-cli.exe` there is another copy of Concord).
+> column; a `Concord.exe` or `concord-cli.exe` there is another copy of Concord, and so is a
+> `python.exe` if you also installed Concord with Python).
 
 ### Commands in this guide
 
@@ -158,7 +168,8 @@ always the same way:
 | Python install ([INSTALL_MAC.md](INSTALL_MAC.md), [INSTALL_WINDOWS.md](INSTALL_WINDOWS.md)) | a terminal with its virtual environment active | `concord dataset ajile12` |
 
 On Windows, commands go to `concord-cli.exe`, the command-line program next to `Concord.exe` in
-the same folder (`Concord.exe` is the app you double-click; it prints nothing to a terminal).
+the same folder (`Concord.exe` is the app you double-click; its output does not show properly
+in a terminal).
 Each command in this guide is written out for the Mac, Windows and Linux apps.
 
 ---
@@ -205,7 +216,8 @@ participant and choose words on the communication board yourself.
 
    *Recorded human data* says "No recorded datasets yet" until you add recordings in
    section 4. That is expected. The *Live streams* and *Plugins* parts are for your own
-   equipment; you don't need them in this guide (see section 9).
+   equipment; you don't need them in this guide (see section 9). The BCI2000 plugin listed there
+   comes with Concord.
 2. Under **Simulated profiles**, click **Connect** next to **Simulated Profile A** (32 channels at
    1,000 Hz, with a simulated pointer and click).
 
@@ -228,7 +240,8 @@ What the figures mean:
 
 In **Command output**, click **Open participant screen**. A second window opens with the
 **communication board**, the screen a participant would use to compose messages. Put it next
-to the console and make it large enough to see every tile. If nothing opens, your browser
+to the console and make it at least about 1280 × 800 pixels, or maximise it, so every tile
+and the **History** column fit. If nothing opens, your browser
 blocked the pop-up: allow pop-ups for `127.0.0.1:8000`.
 
 ![The communication board](images/05-participant-screen.png)
@@ -269,8 +282,8 @@ shows one **Communication Board** row; don't click its **Authorize** yet (sectio
    movement, so the cursor keeps drifting slowly.) Use small, short movements.
 
    With the keyboard: click once on an empty part of the console page, then press and hold an
-   arrow key (or W, A, S, D) **briefly**: about a quarter of a second moves the cursor about one
-   tile, and a one-second hold crosses the whole board. The keys work only while the console
+   arrow key (or W, A, S, D) **briefly**: a tap of about a tenth of a second moves the cursor
+   about one tile, and half a second crosses the whole board. The keys work only while the console
    window is in front.
 3. The tile the cursor (a ring) points at is outlined in blue. Click **Select** (or press Space)
    to choose the outlined tile.
@@ -408,8 +421,9 @@ Open **Advanced → Acquisition details**:
   tested on this file ("held-out" means tested on data it was not trained on). Concord does not
   ship a decoder for it; developers who build Concord from its source code can train one
   ([DECODING.md](DECODING.md)).
-- **Citation**: how to cite the dataset if you use it.
-- **Metadata notes**: corrections Concord applied and what the file does not provide.
+- **Channels (176)**, **Metadata notes** and **Citation** (how to cite the dataset if you use
+  it) are folded: click one to open it. The metadata notes list corrections Concord applied and
+  what the file does not provide.
 - Below these, **Recorded neural activity** plots the replayed spike counts of all 176 channels
   and the participant's cued movement. Choose the movement dimension in **Velocity dimension**:
   *tx, ty, tz* are translation, *rx* rotation, *g1–g3* grasp.
@@ -466,7 +480,9 @@ your browser makes. Concord skips duplicates, because the same block cannot be l
   original research system's decoder, replayed from the file. That is the starting state: in 5.4 you choose to pass this recorded
   output on, and only **Start control** in 5.5 lets it move the board. (The row names only
   *t15-historical-click*; the velocity decoder appears in 5.4.)
-- **Signal integrity** shows the threshold crossings of the most active channels.
+- **Signal integrity** shows the threshold crossings of the most active channels (a threshold
+  crossing is counted each time an electrode's voltage dips below a set level, roughly one
+  nearby neuron firing).
 
 The file's checksum is verified when you connect; a file that does not match is refused. The
 citation is in [DATASETS.md](DATASETS.md).
@@ -486,7 +502,7 @@ The participant chose among targets on a 14 × 14 grid, so the board should show
 
 3. Under **Layout**, choose **Task grid (N × N words)**. **Grid size N** shows **14** (set it to
    14 if not). Then maximise the board window: the 196 tiles are small. If some long words
-   are still cut off, lower **Text size** (in the same panel) to 75%. Leave **Word list URL**
+   are still cut off, drag **Text size** (in the same panel) all the way left, to 75%. Leave **Word list URL**
    empty.
 4. Leave **Input method** on **Automatic**. For now it reads *Automatic (nothing available now)*
    and the other methods say *not offered by the current source*. That is expected: no command
@@ -562,8 +578,8 @@ the comparison is described in [NEURAL_COMMUNICATION.md](NEURAL_COMMUNICATION.md
    even if you change source or session.
 3. Click **Stop decoding** in the **Decoder** row, then **Disconnect** in **Acquisition
    source**. The board says *Paused — device disconnected (operator disconnect)*.
-4. On the board, open **Settings → Layout → Phrases and letters** to get the normal board back
-   (the setting is saved in this browser). Then close the board window: that removes the
+4. On the board, open **Settings → Layout → Phrases and letters** and set **Text size** back to
+   100% to get the normal board back (the settings are saved in this browser). Then close the board window: that removes the
    message. (You cannot select **Clear** now: nothing moves the cursor after **Disconnect**,
    and the board ignores mouse clicks.)
 
@@ -656,6 +672,8 @@ settings and a log, in one folder you can export as a zip file.
    2. Click **Create export bundle**.
    3. **Download the zip from the link that appears now** (the same file is also listed just
       below it), before you end the session. Your browser saves it in your Downloads folder.
+      The panel's hints name `concord reproduce` and `concord doctor`: with the app, type them
+      as in [Commands in this guide](#commands-in-this-guide).
 
    ![Session details and export](images/08-session-export.png)
 
@@ -676,14 +694,15 @@ full path. Its name is long: type the start, `~/Downloads/concord-session-`, the
 to complete it (or drag the zip from your file manager into the terminal).
 
 - **Mac:** `/Applications/Concord.app/Contents/MacOS/Concord reproduce ~/Downloads/concord-session-….zip`
-- **Windows** (PowerShell, in the Concord folder): `.\concord-cli.exe reproduce $HOME\Downloads\concord-session-….zip`
+- **Windows** (PowerShell): `cd $HOME\Downloads\Concord-windows-x86_64\Concord`, then `.\concord-cli.exe reproduce $HOME\Downloads\concord-session-….zip`
 - **Linux** (new terminal window): `cd ~/Downloads`, then `./Concord/Concord reproduce ~/Downloads/concord-session-….zip`
 
 (Python installation: `concord reproduce …`.)
 
 It checks every file against `manifest.json` and re-runs the session's decoder evaluation. For
 this session, which has no decoder, it prints `[OK  ] integrity: 6 files verified against
-manifest.json` and `result: nothing_to_reproduce`. That is the expected result.
+manifest.json` and `result: nothing_to_reproduce`. That is the expected result. (The export
+panel counts 7 files: the 6 checked here plus `manifest.json` itself.)
 
 ---
 
@@ -705,13 +724,14 @@ warnings and errors; that is expected. Download it as JSON or Markdown and attac
 - **Mac:** click **Stop and quit** in the small Concord window, or press ⌘Q.
 - **Windows:** click **Stop and quit** in the small Concord window, or close it (the **X** in its
   title bar). From PowerShell, `.\concord-cli.exe stop` in the Concord folder does the same.
-- **Linux:** click **Stop and quit**; or, if you started Concord in a terminal, press Ctrl-C there
-  (or run `./Concord/Concord stop` from `~/Downloads` in another terminal).
+- **Linux:** click **Stop and quit** in the small Concord window, or close it; or press Ctrl-C
+  in the terminal where you started Concord (or run `./Concord/Concord stop` from `~/Downloads`
+  in another terminal).
 
 Quitting performs a safe stop first, so recordings are closed properly. Afterwards the console
-says *Connection to Concord lost, reconnecting* and the board's header says *Reconnecting*
-instead of *Connected to Concord*: Concord has
-stopped, so close both tabs. If Concord ever stops unexpectedly,
+says *Connection to Concord lost, reconnecting* (and a board window, if one is still open,
+says *Reconnecting* in its header instead of *Connected to Concord*): Concord has stopped, so
+close the console tab and any board window. If Concord ever stops unexpectedly,
 the next start keeps the complete part of an interrupted recording and marks it *incomplete*.
 
 ---
