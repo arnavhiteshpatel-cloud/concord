@@ -47,6 +47,9 @@ release fixes both. Nothing about how data is received, processed or decoded cha
 - **The export's `REPRODUCE.md`** said to `pip install concordos` from PyPI, where Concord is not
   published. It now says to install from the release wheels, or to use the desktop app's own
   program.
+- **`concord reproduce` matches every decoded output, however far it lagged its input.** It
+  looked back only 256 feature bins, so when decoding fell further behind (a fast replay on a
+  slow computer) no output was compared and the check was reported as not run.
 
 **New**
 

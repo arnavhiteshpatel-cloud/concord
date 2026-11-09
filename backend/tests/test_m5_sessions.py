@@ -186,6 +186,23 @@ def test_session_safe_stop_export_and_reproduce(
     assert sum(c["compared"] for c in decoded) > 200
     assert max(c["max_abs_diff"] for c in decoded) == 0.0
 
+    # outputs may lag their inputs by any number of bins (a fast replay on a slow computer: the
+    # Windows CI runner fell >256 bins behind and none were matched). Worst case: every output
+    # after every input; each must still be matched by its timestamp (regression).
+    from concord.reproduce import check_decoded_output
+
+    root = tmp_path / "lagged"
+    with zipfile.ZipFile(bundle) as zf2:
+        zf2.extractall(root)
+    rec_path = root / "recordings" / "dec-1.concord.jsonl"
+    header, *lines = rec_path.read_text(encoding="utf-8").splitlines(keepends=True)
+    outputs = [ln for ln in lines if '"intent.kinematics"' in ln]
+    inputs = [ln for ln in lines if '"intent.kinematics"' not in ln]
+    rec_path.write_text(header + "".join(inputs + outputs), encoding="utf-8", newline="")
+    (lagged,) = [c for c in check_decoded_output(root, rec_path) if c["model_id"] == model_id]
+    assert lagged["ok"] is True and lagged["unmatched"] == 0, json.dumps(lagged)
+    assert lagged["compared"] == dec["compared"]
+
     # a tampered bundle fails integrity
     tampered = tmp_path / "tampered.zip"
     with zipfile.ZipFile(bundle) as src, zipfile.ZipFile(tampered, "w") as dst:

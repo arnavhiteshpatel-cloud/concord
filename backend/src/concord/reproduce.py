@@ -203,6 +203,18 @@ def check_calibration(root: Path, cal: dict[str, Any], work: Path) -> dict[str, 
     }
 
 
+MAX_PENDING_BINS = 1_000_000  # feature bins kept waiting for an output (memory bound)
+
+
+def _pop_oldest(order: deque[int], pending: dict[int, deque[list[float]]]) -> list[float]:
+    ts = order.popleft()
+    queue = pending[ts]
+    values = queue.popleft()
+    if not queue:
+        del pending[ts]
+    return values
+
+
 def check_decoded_output(root: Path, recording: Path) -> list[dict[str, Any]]:
     """Recompute recorded ridge-decoder output from recorded features."""
     from concord.decoding.model import load_model
@@ -210,7 +222,11 @@ def check_decoded_output(root: Path, recording: Path) -> list[dict[str, Any]]:
 
     models: dict[str, Any] = {}
     stats: dict[str, dict[str, Any]] = {}
-    feats: deque[tuple[int, list[float]]] = deque(maxlen=256)
+    # feature bins still waiting for their decoder output, oldest first. Outputs follow their
+    # input in order but can lag it by many bins (a fast replay on a slow computer), so the
+    # pending bins are matched by device timestamp with no fixed look-back window.
+    order: deque[int] = deque()
+    pending: dict[int, deque[list[float]]] = {}
     decoders: dict[str, Any] = {}
     since: dict[str, int] = {}
     with recording.open(encoding="utf-8") as fh:
@@ -224,7 +240,12 @@ def check_decoded_output(root: Path, recording: Path) -> list[dict[str, Any]]:
             ts = ev.get("device_timestamp_ns")
             if et in ("features.binned", "features.vector") and ts is not None:
                 p = ev["payload"]
-                feats.append((int(ts), p["counts"] if et == "features.binned" else p["values"]))
+                order.append(int(ts))
+                pending.setdefault(int(ts), deque()).append(
+                    p["counts"] if et == "features.binned" else p["values"]
+                )
+                if len(order) > MAX_PENDING_BINS:  # outputs stopped: forget the oldest bin
+                    _pop_oldest(order, pending)
                 continue
             if et != "intent.kinematics" or ts is None:
                 continue
@@ -241,16 +262,17 @@ def check_decoded_output(root: Path, recording: Path) -> list[dict[str, Any]]:
                 st["unmatched"] += 1
                 continue
             # the input bin: the oldest pending feature event with the same device timestamp
-            idx = next((i for i, (t, _) in enumerate(feats) if t == int(ts)), None)
-            if idx is None:
+            if not pending.get(int(ts)):
                 st["unmatched"] += 1
                 continue
-            if idx > 0 or mid not in decoders:  # features without output: discontinuity
+            skipped = 0
+            while order[0] != int(ts):  # older bins without output: a discontinuity
+                _pop_oldest(order, pending)
+                skipped += 1
+            if skipped or mid not in decoders:
                 decoders[mid] = model.streaming()
                 since[mid] = 0
-            for _ in range(idx):
-                feats.popleft()
-            _, values = feats.popleft()
+            values = _pop_oldest(order, pending)
             pred = decoders[mid].step(values)
             since[mid] += 1
             if since[mid] <= len(model.kernel):
