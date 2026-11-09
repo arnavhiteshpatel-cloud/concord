@@ -40,6 +40,13 @@ release fixes both. Nothing about how data is received, processed or decoded cha
 - **Delay to this screen** no longer shows negative values. The provenance table in
   **Capability contract** and a caption in **Acquisition details** were out of date and are
   rewritten.
+- **Advanced → Simulator controls** is shown only for Simulated Profile A and B. A plugin's
+  synthetic board (for example BrainFlow's) offered buttons that did nothing for it.
+- **A source that could not be reconnected names the reason** even when the last error had no
+  message (for example *TimeoutError*); before, the message ended in an empty reason.
+- **The export's `REPRODUCE.md`** said to `pip install concordos` from PyPI, where Concord is not
+  published. It now says to install from the release wheels, or to use the desktop app's own
+  program.
 
 **New**
 
@@ -60,7 +67,9 @@ release fixes both. Nothing about how data is received, processed or decoded cha
 - New: [Connect your equipment](docs/CONNECT_YOUR_EQUIPMENT.md) covers LSL, Open Ephys, BrainFlow,
   BCI2000 and your own device, including rehearsal without hardware.
 - The [user guide](docs/USER_GUIDE.md) is now a complete reference of every control, state and
-  message in the console and on the board. The [glossary](docs/GLOSSARY.md) is completed.
+  message in the console and on the board, in the order they appear on screen, with an A–Z
+  index of every control. The [glossary](docs/GLOSSARY.md) is completed; every term can be
+  linked directly.
 
 ## 0.3.0 — renamed to Concord
 
