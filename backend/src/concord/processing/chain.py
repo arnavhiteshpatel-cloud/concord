@@ -77,6 +77,17 @@ class OutputSpec:
     unit: str
 
 
+def default_bin_ms(fs: float, nominal_ms: float) -> float:
+    """The preset's default bin, rounded to a whole number of samples at ``fs``.
+
+    50 ms is 12.5 samples at 250 Hz: an explicit ``bin_ms`` must fit exactly, but an
+    unspecified one takes the nearest whole number of samples (48 ms there) instead of
+    refusing the preset. Where the nominal value fits (1 kHz, 30 kHz, 500 Hz) it is unchanged.
+    """
+    samples = max(1, round(fs * nominal_ms / 1000))
+    return samples * 1000 / fs
+
+
 class SignalChain:
     def __init__(
         self,
@@ -126,7 +137,7 @@ class SignalChain:
             self.tc: ThresholdCrossings | None = ThresholdCrossings(
                 fs,
                 channels,
-                bin_ms=spec.bin_ms or 20.0,
+                bin_ms=spec.bin_ms or default_bin_ms(fs, 20.0),
                 k=spec.threshold_k,
                 rms_window_s=spec.rms_window_s,
             )
@@ -149,7 +160,9 @@ class SignalChain:
                     raise StageConfigError("band_power needs band_low_hz and band_high_hz")
                 low, high = spec.band_low_hz, spec.band_high_hz
             self.tc = None
-            self.bp = BandPower(fs, channels, low, high, bin_ms=spec.bin_ms or 50.0)
+            self.bp = BandPower(
+                fs, channels, low, high, bin_ms=spec.bin_ms or default_bin_ms(fs, 50.0)
+            )
             unit_out = "log10(uV^2)" if unit == "uV" else "log10(arbitrary^2)"
             self.out = OutputSpec(
                 "features.vector", "log_band_power", self.bp.bin_ms, channels, unit_out

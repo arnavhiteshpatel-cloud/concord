@@ -141,3 +141,14 @@ def test_scipy_reference_equivalence() -> None:
     streamed = np.vstack([f.process(p) for p in _chunks(x, 9)])
     ref = sps.sosfilt(sps.butter(4, [250, 5000], btype="bandpass", fs=fs, output="sos"), x, axis=0)
     assert np.allclose(streamed, ref, atol=1e-10)
+
+
+def test_default_bin_fits_the_sample_rate() -> None:
+    """Band power with its default bin on a 250 Hz source (Simulated Profile B) was refused:
+    50 ms is 12.5 samples. The default now takes the nearest whole number of samples (regression);
+    an explicit bin must still fit exactly."""
+    spec = ProcessingSpec(preset="band_power", band_low_hz=8, band_high_hz=13)
+    assert SignalChain(spec, 250.0, 4, "uV").out.bin_ms == 48.0
+    assert SignalChain(spec, 1000.0, 4, "uV").out.bin_ms == 50.0
+    with pytest.raises(StageConfigError, match="not a whole number of samples"):
+        SignalChain(spec.model_copy(update={"bin_ms": 50.0}), 250.0, 4, "uV")
