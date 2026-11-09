@@ -367,11 +367,15 @@ def _reproduce_md(
         "",
         "## 1. Install the same Concord version",
         "",
+        "Download the wheels of this version from the project's release page (Concord's "
+        "packages are not on PyPI), put them in one folder, then:",
+        "",
         "```bash",
-        f'pip install "concordos[lab]=={__version__}"',
+        f'pip install --find-links <folder> "concordos[lab]=={__version__}"',
         "```",
         "",
-        "(From a source checkout: `make setup`. Package versions that differ from "
+        "(The desktop app of the same version works too: its program accepts `reproduce`. "
+        "From a source checkout: `make setup`. Package versions that differ from "
         "`environment.json` can change numerical results in the last digits.)",
         "",
         "## 2. Verify the bundle and re-run its evaluation",

@@ -27,3 +27,18 @@ def test_a_recording_that_stops_at_its_limit_is_announced_to_the_consoles(tmp_pa
         i += 1
     assert sent[-1]["type"] == "runtime"
     assert sent[-1]["runtime"]["recording"] is None  # type: ignore[index]
+
+
+def test_reproduce_instructions_point_to_the_release_wheels() -> None:
+    """Regression (0.3.1): REPRODUCE.md told readers to `pip install concordos`, which is not on
+    PyPI; it now says to install the release wheels (or use the desktop app)."""
+    from concord import __version__
+    from concord.runtime.export import ExportOptions, _reproduce_md
+    from concord.runtime.sessions import SessionInfo
+
+    info = SessionInfo(
+        id="20261109-000000-abcd", name="t", created_at_ns=1, concord_version=__version__
+    )
+    md = _reproduce_md(info, [], [], [], [], [], ExportOptions())
+    assert f'pip install --find-links <folder> "concordos[lab]=={__version__}"' in md
+    assert "not on PyPI" in md and "release page" in md

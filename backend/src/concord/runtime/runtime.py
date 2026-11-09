@@ -812,7 +812,9 @@ class Runtime:
                 f"source reconnected after {attempt} attempt(s)",
             )
             return True
-        message = f"link lost; {len(self._backoff)} reconnect attempts failed: {last}"
+        # some errors (e.g. a timeout) have no message: name the error instead of ending on ":"
+        reason = str(last) or type(last).__name__
+        message = f"link lost; {len(self._backoff)} reconnect attempts failed: {reason}"
         self._emit_status(DeviceState.ERROR, message)
         await adapter.close()
         self._pump_task = None

@@ -357,6 +357,8 @@ describe("Advanced: recording and simulator", () => {
   it("offers fault injection only for the built-in simulator", () => {
     expect(isBuiltInSimulator(rt(dev({})))).toBe(true);
     expect(isBuiltInSimulator(rt(dev({ device_id: "lsl:ephys" })))).toBe(false); // declared-synthetic external stream
+    // regression (0.3.1): a plugin's synthetic board (e.g. BrainFlow) showed dead simulator controls
+    expect(isBuiltInSimulator(rt(dev({ device_id: "plugin:concord-brainflow:synthetic" })))).toBe(false);
     expect(isBuiltInSimulator({ ...streaming, state: "idle" } as never)).toBe(false);
     render(<FaultInjection />);
     expect(screen.getByTestId("fault-link_drop")).toBeTruthy();

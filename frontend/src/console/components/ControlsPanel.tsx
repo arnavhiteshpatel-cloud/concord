@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { RuntimeSnapshot } from "../../sdk";
-import { consoleApi, isLiveSource, isRecordable, type Fault, type RecordingInfo } from "../api";
+import { consoleApi, isLiveSource, isPluginSource, isRecordable, type Fault, type RecordingInfo } from "../api";
 import { useLog, useLoggedAction } from "../context";
 import { fmt } from "./ui";
 
@@ -13,13 +13,15 @@ const FAULTS: { fault: Fault; label: string; hint: string }[] = [
   { fault: "timestamp_regression", label: "Clock regression", hint: "Device clock jumps back: flagged" },
 ];
 
-/** Fault injection exists only for the built-in simulator (an LSL stream declared synthetic is
- * kind "simulated" too, but it is an external publisher: nothing can be injected into it). */
+/** Fault injection exists only for the built-in simulator (an LSL stream declared synthetic, or a
+ * plugin's synthetic board, is kind "simulated" too, but it is an external source: nothing can
+ * be injected into it and its simulator controls would be refused). */
 export function isBuiltInSimulator(runtime: RuntimeSnapshot | null): boolean {
   const state = runtime?.state;
   return (
     runtime?.device?.kind === "simulated" &&
     !isLiveSource(runtime.device) &&
+    !isPluginSource(runtime.device) &&
     state !== "error" &&
     state !== "idle" &&
     state !== undefined
