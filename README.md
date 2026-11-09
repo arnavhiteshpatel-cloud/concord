@@ -85,15 +85,15 @@ Details, verification and known pitfalls of each dataset: [DATASETS.md](docs/DAT
 
 | | Feature | Learn more |
 | --- | --- | --- |
-| 📡 | **Connect sources**: simulated devices, recorded human datasets, live streams over Lab Streaming Layer (LSL) and the Open Ephys GUI, and plugins (BrainFlow, BCI2000, your own) | [User guide: sources](docs/USER_GUIDE.md#3-acquisition-source) |
-| ✅ | **Check signal integrity**: channels present, data received, delay, gaps and reconnects, all counted and shown | [User guide: signal integrity](docs/USER_GUIDE.md#4-signal-integrity) |
+| 📡 | **Connect sources**: simulated devices, recorded human datasets, live streams over Lab Streaming Layer (LSL) and the Open Ephys GUI, and plugins (BrainFlow, BCI2000, your own) | [User guide: sources](docs/USER_GUIDE.md#4-acquisition-source) |
+| ✅ | **Check signal integrity**: channels present, data received, delay, gaps and reconnects, all counted and shown | [User guide: signal integrity](docs/USER_GUIDE.md#5-signal-integrity) |
 | 🏷️ | **Know where every event came from**: simulated, recorded, live, decoded (by which model) — the provenance travels with the data into recordings and exports | [Architecture](ARCHITECTURE.md) |
-| ⚙️ | **Process signals**: streaming filters, threshold crossings, band power, ECoG high-gamma, as presets | [User guide: decoding](docs/USER_GUIDE.md#5-decoder) |
-| 🧠 | **Decode**: built-in decoders (ridge, Kalman, click, LDA), calibration from your recordings with held-out evaluation, or your own model (ONNX, scikit-learn, PyTorch) in an isolated process | [User guide: decoding](docs/USER_GUIDE.md#5-decoder), [Decoder SDK](docs/DECODER_SDK.md) |
-| 🛑 | **Control applications safely**: decoded commands reach only applications you authorize; one click stops them | [User guide: command output](docs/USER_GUIDE.md#6-command-output), [Control bridge](docs/CONTROL_BRIDGE.md) |
+| ⚙️ | **Process signals**: streaming filters, threshold crossings, band power, ECoG high-gamma, as presets | [User guide: decoding](docs/USER_GUIDE.md#6-decoder) |
+| 🧠 | **Decode**: built-in decoders (ridge, Kalman, click, LDA), calibration from your recordings with held-out evaluation, or your own model (ONNX, scikit-learn, PyTorch) in an isolated process | [User guide: decoding](docs/USER_GUIDE.md#6-decoder), [Decoder SDK](docs/DECODER_SDK.md) |
+| 🛑 | **Control applications safely**: decoded commands reach only applications you authorize; one click stops them | [User guide: command output](docs/USER_GUIDE.md#7-command-output), [Control bridge](docs/CONTROL_BRIDGE.md) |
 | 💬 | **Communication board**: a participant screen with five input methods (pointer and click, dwell, navigation, direct selection, scanning) | [Applications](docs/APPLICATIONS.md) |
 | 🔴 | **Record and replay**: crash-safe recordings that replay through the same pipeline | [User guide: recording](docs/USER_GUIDE.md#105-recording) |
-| 🗂️ | **Research sessions**: a session log, export bundles and `concord reproduce` to re-run an evaluation elsewhere | [User guide: sessions](docs/USER_GUIDE.md#7-research-sessions-and-export-the-session-strip) |
+| 🗂️ | **Research sessions**: a session log, export bundles and `concord reproduce` to re-run an evaluation elsewhere | [User guide: sessions](docs/USER_GUIDE.md#3-research-sessions-and-export-the-session-strip) |
 | 🔬 | **Verify your acquisition**: compare what Concord received with what LabRecorder or the Open Ephys Record Node recorded, sample by sample | [Hardware validation](docs/HARDWARE_VALIDATION.md) |
 | 🧩 | **Extend it**: source plugins, decoder plugins, Python and TypeScript SDKs for applications | [Developers](docs/DEVELOPERS.md) |
 

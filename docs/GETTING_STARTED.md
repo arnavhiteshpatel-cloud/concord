@@ -644,7 +644,7 @@ the next start keeps the complete part of an interrupted recording and marks it 
 | Understand the ideas: sources, data kinds, capabilities, decoders, command output | [How Concord works](CONCEPTS.md) |
 | Know what every button, field and message does | [User guide](USER_GUIDE.md) |
 | Connect your own equipment: LSL, Open Ephys, BrainFlow, BCI2000, your own device | [Connect your equipment](CONNECT_YOUR_EQUIPMENT.md) |
-| Calibrate a decoder from your own recordings | [User guide: Calibrate](USER_GUIDE.md#55-the-calibrate-panel) |
+| Calibrate a decoder from your own recordings | [User guide: Calibrate](USER_GUIDE.md#65-the-calibrate-panel) |
 | See every demo dataset, its license and how to cite it | [DATASETS.md](DATASETS.md) |
 | Fix a problem | [TROUBLESHOOTING.md](TROUBLESHOOTING.md), [FAQ.md](FAQ.md) |
 | Know what has been validated, and what has not | [VALIDATION_LEVELS.md](VALIDATION_LEVELS.md), [LIMITATIONS.md](../LIMITATIONS.md) |

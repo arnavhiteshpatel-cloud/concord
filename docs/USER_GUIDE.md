@@ -31,11 +31,11 @@ Conventions:
 
 1. [The console at a glance](#1-the-console-at-a-glance)
 2. [The title bar and its states](#2-the-title-bar-and-its-states)
-3. [Acquisition source](#3-acquisition-source)
-4. [Signal integrity](#4-signal-integrity)
-5. [Decoder](#5-decoder)
-6. [Command output](#6-command-output)
-7. [Research sessions and export (the session strip)](#7-research-sessions-and-export-the-session-strip)
+3. [Acquisition source](#4-acquisition-source)
+4. [Signal integrity](#5-signal-integrity)
+5. [Decoder](#6-decoder)
+6. [Command output](#7-command-output)
+7. [Research sessions and export (the session strip)](#3-research-sessions-and-export-the-session-strip)
 8. [The session log](#8-the-session-log)
 9. [Stopping safely](#9-stopping-safely)
 10. [Advanced](#10-advanced)
@@ -58,11 +58,11 @@ when Concord starts (the browser tab is called *Concord Runtime Console*).
 | # | Area | What it is for | Section |
 | --- | --- | --- | --- |
 | 1 | **Title bar** | Concord's version, the connected source, its state, *· Recording*, and **Stop control** | [2](#2-the-title-bar-and-its-states) |
-| 2 | **Session strip** | The research session (**New session**, **Session and export…**) and **Safe stop & disconnect** | [7](#7-research-sessions-and-export-the-session-strip) |
-| 3 | **Acquisition source** | Where the data comes from: connect, change, pause or disconnect a source | [3](#3-acquisition-source) |
-| 4 | **Signal integrity** | Whether data arrives complete and on time | [4](#4-signal-integrity) |
-| 5 | **Decoder** | Processing and decoding: **Start decoding**, **Calibrate…** | [5](#5-decoder) |
-| 6 | **Command output** | Whether decoded output may reach applications, its settings, and the applications you authorize | [6](#6-command-output) |
+| 2 | **Session strip** | The research session (**New session**, **Session and export…**) and **Safe stop & disconnect** | [3](#3-research-sessions-and-export-the-session-strip) |
+| 3 | **Acquisition source** | Where the data comes from: connect, change, pause or disconnect a source | [4](#4-acquisition-source) |
+| 4 | **Signal integrity** | Whether data arrives complete and on time | [5](#5-signal-integrity) |
+| 5 | **Decoder** | Processing and decoding: **Start decoding**, **Calibrate…** | [6](#6-decoder) |
+| 6 | **Command output** | Whether decoded output may reach applications, its settings, and the applications you authorize | [7](#7-command-output) |
 | 7 | **Session log** | What happened, newest first | [8](#8-the-session-log) |
 | 8 | **Advanced** | Twelve sections of details and tools (thirteen with a simulated profile) | [10](#10-advanced) |
 
@@ -143,15 +143,118 @@ there. You can also click **Change source** to pick another source directly.
 
 ---
 
-## 3. Acquisition source
+## 3. Research sessions and export (the session strip)
 
-### 3.1 The row
+A **research session** is a named folder that groups what you do: source changes, decoding and
+control settings, recordings, calibrations and a log. It can be exported as one zip file.
+Concord works without one; a session is for keeping a record.
+
+### 3.1 The strip
+
+![The session strip with an active session and a recording](images/07-session-recording.png)
+
+| Control | What it does | When you see it | Notes / units / defaults |
+| --- | --- | --- | --- |
+| *No research session. A session groups recordings, decoders and a log, and can be exported for reproduction.* | | No session | |
+| **New session** | Opens *New research session* ([3.2](#32-new-research-session)) | No session | |
+| *Research session* · name · operator · *started HH:MM:SS* · *N recordings* · *N models* | The active session | A session is active | Counts include recordings and models made during the session. |
+| **Session and export…** | Opens the session panel ([3.3](#33-session-and-export)) | A session is active | **End session…** is inside this panel. |
+| **Safe stop & disconnect** | Turns command output off, closes the recording, stops decoding and disconnects the source, in that order | Always; red when something runs | Greyed out (hover: *Nothing is running*) when nothing runs. No confirmation is asked. The research session stays open. Logged as *Safe stop: stopped decoding, source* (what it actually stopped). |
+
+### 3.2 New research session
+
+![The New research session panel](images/06-new-session.png)
+
+| Control | What it does | When you see it | Notes / units / defaults |
+| --- | --- | --- | --- |
+| **Session name** | The session's name | Always | Required (up to 80 characters); **Start session** stays grey until it is filled. Do not enter participant identifiers. |
+| **Operator (optional)** | Who runs the session | | Up to 80 characters. |
+| **Notes (optional)** | Free text | | Up to 4000 characters. Operator and notes stay in the session folder: never in logs or support reports, and in an export only if you tick **Include the operator name and notes**. |
+| **Start session** | Creates the session folder and starts logging | A name is entered | Logged as *Research session started: <name>*. |
+| **Close** | Closes without starting | | |
+
+You can start a session before or after connecting a source; changes during the session are
+logged either way.
+
+### 3.3 Session and export
+
+![The session panel after an export](images/08-session-export.png)
+
+| Control | What it does | When you see it | Notes / units / defaults |
+| --- | --- | --- | --- |
+| **Session id** | The folder name, for example *20261109-013717-2037* | Always | Not the same as the *Session 19250108T…* names of FALCON files. |
+| **Started**, **Operator**, **Notes** | As entered | | Operator and Notes only if given. |
+| **Recordings** | Recordings made during the session, with sizes | | *(deleted)* or *incomplete* when that applies. |
+| **Decoder models** | Models trained during the session | | *none yet* otherwise. |
+| **Include the session's recordings (N, size) — neural data; needed to re-run the evaluation** | Puts the recordings into the zip | | Off by default (recordings can be large and identifying). The label says "neural data" even for simulated recordings. Without it, recordings are *listed by hash only*. |
+| **Include the operator name and notes** | Puts operator and notes into the zip | | Off by default. |
+| **Create export bundle** | Writes the zip | | Logged as *Session exported: <file>*. |
+| Result box | The zip's name (a download link), size, number of files, its SHA-256, *Recordings included: …* | After an export | |
+| Export list | Every export of this session, with download links | After an export | The newest export therefore appears twice: in the result box and in the list. |
+| **Session log** | The last 12 entries of the session's own log, and *N entries in the session folder* | Always | Entries such as *Source sim-a: streaming*, *pipeline start*, *router*, *Recording started: …*; *(refused 409)* marks refused actions. |
+| **End session…** | Asks for confirmation | Always | *Ending turns command output off, closes any recording, stops decoding and disconnects the source.* |
+| **End session now** / **Cancel** | Ends the session (after a safe stop) / keeps it | After **End session…** | Logged as *Research session ended: <name>*. |
+
+**Download the zip before you end the session.** Afterwards this panel is gone; the exports
+stay in the data folder under `sessions/<session id>/exports/`, and **Advanced → Stored data**
+counts them but has no download link.
+
+### 3.4 What is in the export, and what reproducible means
+
+The zip contains:
+
+| File | Content |
+| --- | --- |
+| `manifest.json` | Format, session, versions and package fingerprints, plugins, the list of files with their SHA-256 and size, results, what is and is not included |
+| `session.json` | The session (operator and notes only if you included them) |
+| `session-log.jsonl` | Source status changes and operator actions with their settings |
+| `environment.json` | Platform, packages, plugins |
+| `devices/*.json` | Descriptions of the sources used |
+| `pipeline/*.json` | Each decoding start: processing, model and command-output settings, and status |
+| `models/<id>.json`, `models/<id>.manifest.json` | Decoder models used or trained in the session, with their SHA-256 |
+| `calibration/<id>.json` (and `.md`) | Each calibration's settings and report |
+| `recordings/…` | Only if you ticked **Include the session's recordings** |
+| `REPRODUCE.md` | The exact commands to check and re-run it |
+
+Public dataset files are never included (DANDI terms forbid redistribution); they are referenced
+by SHA-256. The application log and support reports are not included either.
+
+**Reproducible** means: someone with the zip and any Concord installation can check that no
+file was changed and **re-fit every decoder trained in the session from the included
+recordings**, comparing the weights and held-out scores with the originals. A session without a
+trained decoder, or exported without its recordings, has nothing to re-run: only the files are
+checked.
+
+### 3.5 `concord reproduce`
+
+```bash
+concord reproduce concord-session-<id>-<time>.zip
+```
+
+With the desktop app: `/Applications/Concord.app/Contents/MacOS/Concord reproduce <file>` (Mac)
+or `./Concord/Concord reproduce <file>` (Linux, from the folder where you extracted Concord).
+
+| Result line | Meaning | Exit status |
+| --- | --- | --- |
+| `[OK] integrity: N files verified against manifest.json` | Every file matches its SHA-256 | |
+| `[OK] calibration <model>: re-fitted from N recording(s): r2 0.851788 -> 0.851788, …` | A decoder was fitted again and its scores agree (to 1e-6) | |
+| `result: reproduced` | Everything checked was reproduced | 0 |
+| `result: failed` | A check failed | 1 |
+| `result: nothing_to_reproduce` | The files are intact, but nothing could be re-run (no trained decoder, or no recordings in the zip) | 2 |
+
+`--json FILE` also writes the report as JSON.
+
+---
+
+## 4. Acquisition source
+
+### 4.1 The row
 
 ![A simulated profile streaming](images/03-simulated-profile-streaming.png)
 
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
-| **Connect a source** | Opens the **Connect a source** panel ([3.3](#33-the-connect-a-source-panel)) | No source connected | |
+| **Connect a source** | Opens the **Connect a source** panel ([4.3](#43-the-connect-a-source-panel)) | No source connected | |
 | **Change source** | Opens the same panel, titled **Change source**, where the buttons read **Switch** | A source is connected, or in error | Switching stops decoding and command output, and closes any recording. Applications stay connected and are told what the new source provides. |
 | **Disconnect** | Stops the source | A source is connected | Decoding and command output stop; a recording is closed. |
 | **Reset** | Clears a failed or ended source | After *Source stopped with an error* or *Source ended* (replaces **Disconnect**) | See [2.3](#23-source-stopped-with-an-error-and-reset). |
@@ -169,20 +272,20 @@ there. You can also click **Change source** to pick another source directly.
 | **0.5× 1× 2× 4× 8×** | Replay speed | **Playback** only | Default 1×. The highlighted button is the current speed. T15 blocks have no speed control. |
 | Progress bar | How far the replay is | **Playback** only | Display only: you cannot drag it to move in the file. Replays loop: at the end they start again from the beginning, without a log entry. |
 
-### 3.2 What the row shows for each kind of source
+### 4.2 What the row shows for each kind of source
 
 | Source | Title bar state | Second line (file) | Folded controls | Notes |
 | --- | --- | --- | --- | --- |
 | Simulated Profile A or B | *Streaming · Simulated data* | — | **Options** (Pause) | **Advanced → Simulator controls** appears. |
 | FALCON H1 file | *Streaming · Recorded human data, offline replay* | *Session … · DANDI 000954 · held-in-calib* | **Playback** | Position, speeds. |
 | AJILE12 ECoG extract | *Streaming · Recorded human data, offline replay* | *Session … · DANDI 000055* | **Playback** | Position, speeds. |
-| T15 cursor + click block | *Streaming · Recorded human data, offline replay* | *Cursor + click · Day 468 · block N · …* | **Options** (Pause only) | No position, no speed. The **Decoder** row says the recording carries a historical decoder's output ([5.1](#51-the-row)). |
+| T15 cursor + click block | *Streaming · Recorded human data, offline replay* | *Cursor + click · Day 468 · block N · …* | **Options** (Pause only) | No position, no speed. The **Decoder** row says the recording carries a historical decoder's output ([6.1](#61-the-row)). |
 | Session recording | depends on what was recorded | — | **Playback** | Every event is marked replayed. |
 | LSL stream | *Live stream, origin unverified*, or what the publisher declares | — | **Options** (Pause) | **Data received (%)** is measured. |
 | Open Ephys | *Live stream, origin unverified* | — | **Options** (Pause) | **Data received (%)** is measured. |
 | Plugin | what the plugin declares | — | **Options** (Pause) | Plugin line and modality tag. |
 
-### 3.3 The Connect a source panel
+### 4.3 The Connect a source panel
 
 ![The Connect a source panel on a fresh installation](images/02-connect-a-source.png)
 
@@ -198,7 +301,7 @@ when nothing is connected and **Change source** otherwise.
 | Hover on any row | Shows the source's full description: file name, dataset, block, task, duration, whether the checksum is verified | Always | For T15 blocks, the hover also tells *includes computer assistance* or *fully neural*. |
 | Red text at the top | Why the last connect or remove was refused | After a refusal | |
 
-### 3.4 Simulated profiles
+### 4.4 Simulated profiles
 
 *Synthetic data for demonstrations and testing. Not brain data.* You stand in for the
 participant with **Advanced → Simulator controls** ([10.8](#108-simulator-controls)).
@@ -211,9 +314,9 @@ participant with **Advanced → Simulator controls** ([10.8](#108-simulator-cont
 Neither profile is a model of a real device. Their events are labelled `simulated_intent` and
 *synthetic*. Simulated input reaches the board **without** command output or authorization (it
 is labelled *simulated input* on the board); only decoded output needs them
-([6.1](#61-when-commands-reach-an-application)).
+([7.1](#71-when-commands-reach-an-application)).
 
-### 3.5 Recorded human data (offline replay)
+### 4.5 Recorded human data (offline replay)
 
 *Verified files from a public dataset, replayed. Not a live implant.* Files appear here as soon
 as they are in the data folder's `datasets` folder (or any folder inside it) and you reload the
@@ -229,7 +332,7 @@ page. How to download them: [Getting started](GETTING_STARTED.md) and [Datasets]
 | *Cursor + click · Day 468 · block 0 · radial-8 calibration* | T15 block 0: radial-8 calibration task, includes computer assistance, 180 s | T15 files in `datasets/` | Sub-line *Dryad T15 · 256 channels · 10 ms bins*. |
 | *Cursor + click · Day 468 · block 1 · radial-8 calibration* | T15 block 1: fully neural calibration, 70 s | | |
 | *Cursor + click · Day 468 · block 2 · radial-8 calibration* | T15 block 2: fully neural calibration, 180 s | | |
-| *Cursor + click · Day 468 · block 3 · grid evaluation* | T15 block 3: choosing targets on a grid, fully neural, 180 s | | The block to use with the board ([6.7](#67-example-the-t15-recorded-decoder-on-the-board)). |
+| *Cursor + click · Day 468 · block 3 · grid evaluation* | T15 block 3: choosing targets on a grid, fully neural, 180 s | | The block to use with the board ([7.7](#77-example-the-t15-recorded-decoder-on-the-board)). |
 | *No recorded datasets yet. Put downloaded dataset files in `<folder>` (create the folder if needed; Getting started, section 4), then reload this page.* | Tells you where the files go | No dataset file found | The message names the real folder on your computer. |
 
 Every FALCON and AJILE12 file is checked against a pinned SHA-256 checksum (a fingerprint of the
@@ -239,7 +342,7 @@ details has no dataset or citation panel for T15 (the citation is in [Datasets](
 
 ![A FALCON replay with Playback open](images/09-recorded-human-data.png)
 
-### 3.6 Session recordings (replay) and Other sources
+### 4.6 Session recordings (replay) and Other sources
 
 **Session recordings (replay)**: *Recordings made with this console, replayed through the same
 pipeline.* Each row is named *Replay · <recording name>*, with what was recorded (for example
@@ -250,12 +353,12 @@ A recording made with **Features and labels only** (including every recording ma
 **Calibrate…** panel) of a raw source replays only its labels in 0.3.1: the console shows *No
 signal* and the session log fills with *Undeclared capability: adapter emitted features.binned
 but did not declare neural_features*. Use those recordings to train a decoder
-([5.5](#55-the-calibrate-panel)), not to replay.
+([6.5](#65-the-calibrate-panel)), not to replay.
 
 **Other sources**: any other offline source Concord finds. It is empty in a standard
 installation and then not shown.
 
-### 3.7 Live streams: LSL
+### 4.7 Live streams: LSL
 
 *Lab Streaming Layer or Open Ephys. Concord only receives; nothing is sent to the acquisition
 system.* Setting up your own equipment: [Connect your equipment](CONNECT_YOUR_EQUIPMENT.md) and
@@ -301,7 +404,7 @@ channels · 30,000 Hz*. Two streams can have the same name: hover over a row to 
 | **Add source** | Registers the signal with its attachments | After **Use** | Updates the existing row; does not connect. |
 | **Remove** | Removes a registered source from the list | Each row that is not connected | |
 
-### 3.8 Live streams: Open Ephys
+### 4.8 Live streams: Open Ephys
 
 **Add Open Ephys source** registers the Open Ephys GUI's *ZMQ Interface* plugin as a source.
 Setup in the GUI: [OPEN_EPHYS.md](OPEN_EPHYS.md).
@@ -317,7 +420,7 @@ The Open Ephys protocol cannot carry a "synthetic" or "prerecorded" declaration,
 Ephys source is always shown as *Live stream, origin unverified*, even the test stream from
 `concord publish openephys`.
 
-### 3.9 Plugins
+### 4.9 Plugins
 
 *Sources from installed adapter packages. Each plugin runs in its own process and only delivers
 data to Concord; what it declares and sends is checked before use.*
@@ -338,7 +441,7 @@ your own: [ADAPTER_SDK.md](ADAPTER_SDK.md).
 
 ---
 
-## 4. Signal integrity
+## 5. Signal integrity
 
 *Whether the data is arriving complete and on time.* Laid out like a patient monitor: live traces
 on the left, the verdict and three measured numbers on the right.
@@ -357,7 +460,7 @@ on the left, the verdict and three measured numbers on the right.
 | --- | --- | --- |
 | *Good* | None of the conditions below | Nothing. |
 | *Gaps detected* | A loss counter rose in the last 10 s: stream gaps, estimated missing samples, missed messages, incomplete blocks, inputs the pipeline dropped, or events an application or console tab could not take in time | Look at **Advanced → Acquisition details** (source losses) and **Advanced → Diagnostics → Subscriber drops**. If *Data received* shows *—* or 100, the cause is usually a slow application: check **Advanced → Connected applications** for a non-zero *dropped* and close console or board tabs you don't need. |
-| *No signal* | No raw-signal or feature data arrived in the last 2 s (also shown when nothing is connected) | Check the source. A replayed features-only recording also shows this ([3.6](#36-session-recordings-replay-and-other-sources)). |
+| *No signal* | No raw-signal or feature data arrived in the last 2 s (also shown when nothing is connected) | Check the source. A replayed features-only recording also shows this ([4.6](#46-session-recordings-replay-and-other-sources)). |
 | *Paused* | You paused the source | **Resume**. |
 | *Interrupted — reconnecting* | Concord is reconnecting to the source | Wait; see [2.2](#22-every-state-the-title-bar-can-show). |
 
@@ -366,19 +469,19 @@ counters are in [10.3](#103-acquisition-details).
 
 ---
 
-## 5. Decoder
+## 6. Decoder
 
 *Turns brain activity into intended movement.* This row starts the processing pipeline
 (filters and feature extraction) and, optionally, a decoder model. What decoders are and how they
 are evaluated: [How Concord works](CONCEPTS.md#5-decoders-from-brain-activity-to-intended-movement).
 
-### 5.1 The row
+### 6.1 The row
 
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
-| **Start decoding** | Opens the **Start decoding** panel ([5.2](#52-the-start-decoding-panel)) | A source is connected, decoding is off | |
+| **Start decoding** | Opens the **Start decoding** panel ([6.2](#62-the-start-decoding-panel)) | A source is connected, decoding is off | |
 | **Stop decoding** | Stops processing and the decoder | Decoding runs | Command output turns off with it. |
-| **Calibrate…** | Opens the **Calibrate a decoder** panel ([5.5](#55-the-calibrate-panel)) | A source is connected | |
+| **Calibrate…** | Opens the **Calibrate a decoder** panel ([6.5](#65-the-calibrate-panel)) | A source is connected | |
 | *Off* / *Connect a source first.* | Nothing runs | | |
 | *Unavailable: …* | Decoding cannot run in this installation, with the reason | Rare | |
 | *Running · <processing>* | Decoding runs with that processing preset | Decoding | Green dot. |
@@ -387,24 +490,24 @@ are evaluated: [How Concord works](CONCEPTS.md#5-decoders-from-brain-activity-to
 | Origin line | For example *Concord-trained · ridge regression · in Concord · compatible with this source* | With a model | Origin: *Concord-trained*, *Imported model file*, *Decoder plugin*, *External decoder*, *Historical decoder replay (original research system)*. Where it runs: *in Concord* or *isolated process*. *channels mapped by label (operator enabled)* when you chose **Map channels by label**. |
 | *Trained on …* | The recording(s) the model was fitted on | With a model | |
 | *Historical decoder replay (original research system): t15-historical-velocity → vx, vy (velocity, 271 received)* | A decoder output the source carries, passed through unchanged; the count is how many outputs arrived since decoding started | **Source decoder outputs (passthrough)** | One line per decoder output; T15 has two (velocity and click). |
-| *T15-historical-velocity: no declared output scale; the router uses its values as they are.* (amber) | The source does not say in what units its output is | Passthrough of such an output | **Gain** and **Dead-zone** are then in the decoder's own units ([6.3](#63-settings-for-movement-decoders)). |
+| *T15-historical-velocity: no declared output scale; the router uses its values as they are.* (amber) | The source does not say in what units its output is | Passthrough of such an output | **Gain** and **Dead-zone** are then in the decoder's own units ([7.3](#73-settings-for-movement-decoders)). |
 | *Estimating thresholds (0.6 s left).* | The spike-band preset measures each channel's noise level during the first second | Spike-band preset, first second | |
 | *Drift monitor warming up (N bins)* | The model compares incoming features with its training data; it needs some data first | With a Concord model | Then *No drift from the training data detected*, or (amber) *Recalibration recommended: …* with the reason. *Drift monitor: …* means it cannot check (for example no training statistics). |
 | *Cross-source override: decoded output is marked as reduced quality.* (amber) | You allowed a model trained on another source | | |
 | Compatibility warnings (amber) | Differences between the model and the source that do not prevent running | | |
 | *Decoder stopped: …* (red) | The decoder failed; command output turned off | | Check the reason; start decoding again. |
-| *This recording carries the replayed output of an offline decoder (<model>); it is not used for control.* | The file contains a decoder's recorded output (T15: the original research system's decoders) | Such a file, decoding off | It reaches command output only if you choose **Source decoder outputs (passthrough)** and start control ([6.7](#67-example-the-t15-recorded-decoder-on-the-board)). |
+| *This recording carries the replayed output of an offline decoder (<model>); it is not used for control.* | The file contains a decoder's recorded output (T15: the original research system's decoders) | Such a file, decoding off | It reaches command output only if you choose **Source decoder outputs (passthrough)** and start control ([7.7](#77-example-the-t15-recorded-decoder-on-the-board)). |
 
-### 5.2 The Start decoding panel
+### 6.2 The Start decoding panel
 
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
-| **Processing** | Chooses how features are made from the source ([5.3](#53-processing-presets)) | Always | Preselected for the source. A one-paragraph description of the chosen preset appears below it. |
+| **Processing** | Chooses how features are made from the source ([6.3](#63-processing-presets)) | Always | Preselected for the source. A one-paragraph description of the chosen preset appears below it. |
 | **Bin (ms)** | Length of one feature bin | Spike-band, High-gamma, Band power | Leave empty for the default: 20 ms (spike-band) or 50 ms (high-gamma, band power). Must be a number above 0 and up to 1000. |
 | **Threshold (× RMS)** | Spike detection threshold, in multiples of each channel's noise level (RMS) | Spike-band only | Default −4.5 (negative: crossings below the noise). Allowed −20 to just below 0. |
 | **Band low (Hz)**, **Band high (Hz)** | The frequency band whose power is computed | Band power only | No default: fill both, or the panel says *band_power needs a low and a high band edge*. |
-| **Decoder model** | **None (features only)** or a model ([5.4](#54-decoder-models)) | Every preset except Source decoder outputs | Each model is marked *(compatible)* or *(incompatible)* with what this processing will produce. Models Concord refuses are greyed out. |
-| Model details | Origin, data it was trained on, its score, what it expects, compatibility, warnings | A model is chosen | See [5.4](#54-decoder-models). |
+| **Decoder model** | **None (features only)** or a model ([6.4](#64-decoder-models)) | Every preset except Source decoder outputs | Each model is marked *(compatible)* or *(incompatible)* with what this processing will produce. Models Concord refuses are greyed out. |
+| Model details | Origin, data it was trained on, its score, what it expects, compatibility, warnings | A model is chosen | See [6.4](#64-decoder-models). |
 | **Map channels by label (the model's channels are taken from the source by name)** | Feeds the model the source channels whose labels match the model's channel labels, in the model's order | Offered only when the labels allow it | Use only if the labels name the same electrodes. The mapping is logged and shown while decoding. |
 | **Allow a model trained on a different source** | Runs a model calibrated on another source or session | A model is chosen | For deliberate cross-source tests only. Its output is not expected to be meaningful; decoded events are marked reduced quality. |
 | **Mark this file trusted** / **Withdraw trust** | Allows (or no longer allows) a pickle or joblib model file to load | Such a file is chosen | These formats run code from the file when loaded, so Concord refuses them until you decide. The decision is tied to the file's SHA-256: changing the file voids it. |
@@ -412,7 +515,7 @@ are evaluated: [How Concord works](CONCEPTS.md#5-decoders-from-brain-activity-to
 | **Search for decoder plugins** | Looks again for installed decoder plugins | Always | *Installed decoder plugins and model files are listed with the models.* |
 | **Close** | Closes the panel without starting | | |
 
-### 5.3 Processing presets
+### 6.3 Processing presets
 
 | Preset (**Processing**) | For | What it does | Preselected when | Parameters |
 | --- | --- | --- | --- | --- |
@@ -425,11 +528,11 @@ are evaluated: [How Concord works](CONCEPTS.md#5-decoders-from-brain-activity-to
 A raw preset on a source without a raw signal, or a preset below its minimum rate, is refused
 with the reason.
 
-### 5.4 Decoder models
+### 6.4 Decoder models
 
 The **Decoder model** list shows every model Concord can run:
 
-- **Concord-trained** models: made with **Calibrate…** ([5.5](#55-the-calibrate-panel)) or, in a
+- **Concord-trained** models: made with **Calibrate…** ([6.5](#65-the-calibrate-panel)) or, in a
   source installation, `make model`. Saved as JSON files in the data folder's `models` folder.
 - **Imported model files** (ONNX, scikit-learn via skops, TorchScript, safetensors; pickle and
   joblib only after **Mark this file trusted**): copy the file and its `<id>.manifest.json` into
@@ -452,13 +555,13 @@ Model details, shown when you pick a model:
 | Compatibility line | *Compatible with this processing (… preview).*, *Not compatible with …* (red), or *Compatibility is checked against the pipeline output when it starts.* |
 | Errors (red), warnings (amber) | Why it cannot run, or what to be careful about |
 
-### 5.5 The Calibrate panel
+### 6.5 The Calibrate panel
 
 **Calibrate…** opens *Calibrate a decoder*: record labelled data from the connected source, then
 fit a decoder on it. Step by step with a lab setup: [LAB_GUIDE.md](LAB_GUIDE.md).
 
 The labels come from a **behaviour stream**: an LSL behaviour stream you attached
-([3.7](#37-live-streams-lsl)), BCI2000 states, or a test stream. Simulated profiles carry no
+([4.7](#47-live-streams-lsl)), BCI2000 states, or a test stream. Simulated profiles carry no
 labels. To rehearse without hardware: start `concord publish lsl-ephys` (synthetic signal plus a
 "latent velocity" behaviour stream), attach its behaviour stream, **Start decoding** with
 **Spike-band threshold crossings** and **None (features only)**, then record and train here.
@@ -483,7 +586,7 @@ for scoring.*
 | **What the decoder should output** | **Continuous movement**, **Discrete classes** or **Click** | Always | The line below says what it needs. Continuous: *a behavior stream with continuous targets (e.g. cued cursor velocity)*. Discrete classes: *a behavior dimension with a small-integer class code per bin (e.g. a cue)*. Click: *a behavior dimension that is 1 while a click is attempted and 0 otherwise*. |
 | **Decoder family** | Which kind of model | Continuous movement, Click | Continuous: **Default (ridge regression)**, **ridge regression**, **Kalman filter**. Click: **Default (LDA classifier)**, **LDA classifier**, **click classifier**. Discrete classes always uses the LDA classifier (no choice shown). |
 | **Label dimension (optional)** | Which behaviour dimension holds the label | Discrete classes, Click | Needed only when there are several. Examples shown: `cue_class`, `click`. |
-| **Class names (optional)** | Names for classes 0, 1, 2, … separated by commas | Discrete classes | Example shown: `rest, left, right`. A class named rest, idle, none or baseline later gets no action by default ([6.4](#64-settings-for-classifiers)). |
+| **Class names (optional)** | Names for classes 0, 1, 2, … separated by commas | Discrete classes | Example shown: `rest, left, right`. A class named rest, idle, none or baseline later gets no action by default ([7.4](#74-settings-for-classifiers)). |
 | **Train fraction** | The share of the data (from the start) used for fitting | Always | Default 0.8; allowed 0.5 to 0.95. |
 | **Gap (bins)** | Bins skipped between the training part and the held-out part, so that slow signals do not leak from one into the other | Always | Default 12; a whole number, 0 or more. |
 | **Feature source** | Which features in the recording to use | Always | **All feature events in the recording** (default). **Features computed by the Concord pipeline**: those made by **Start decoding** from a raw source. **Features delivered by an LSL stream**: binned counts the stream itself sent. **Spike bins from Open Ephys**: spikes the Open Ephys GUI detected, binned by Concord. Choose one when a recording holds more than one kind. |
@@ -495,13 +598,13 @@ for scoring.*
 
 ---
 
-## 6. Command output
+## 7. Command output
 
 *Lets the decoder send commands to the applications you authorize. Off unless you start it.*
 Background: [How Concord works](CONCEPTS.md#6-command-output-the-only-way-decoded-data-reaches-an-app).
 Every rule and stop path in detail: [CONTROL_BRIDGE.md](CONTROL_BRIDGE.md).
 
-### 6.1 When commands reach an application
+### 7.1 When commands reach an application
 
 A decoded command reaches an application only while **all three** hold:
 
@@ -516,7 +619,7 @@ can read *Receiving pointer movement, discrete actions.* next to an **Authorize*
 **Stop control** stays grey: there is no command output to stop. To stop simulated input, pause
 or disconnect the source.
 
-### 6.2 The row
+### 7.2 The row
 
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
@@ -525,10 +628,10 @@ or disconnect the source.
 | *Off* / *On · …* | Whether command output is on, and what it sends | Always | Notation below. |
 | *Start decoding with a model first.* | Why it cannot start | Nothing is decoding | |
 | *The decoder has no model. Start decoding with a model.* | Why it cannot start | Decoding with **None (features only)** | |
-| *Last stopped: …* | Why command output last turned off | A decoder runs and command output is off, once command output has been on since Concord started | Reasons in [6.6](#66-why-command-output-turned-off-last-stopped). |
+| *Last stopped: …* | Why command output last turned off | A decoder runs and command output is off, once command output has been on since Concord started | Reasons in [7.6](#76-why-command-output-turned-off-last-stopped). |
 | *When started, the cursor in authorized apps follows the decoder's vx/vy output.* | What starting would do | A movement decoder runs, output off | For a classifier: *When started, authorized apps receive select when left is held, …*, or *Choose in Settings which class triggers which action.* |
-| **Settings** | Folded mapping settings | A decoder runs | [6.3](#63-settings-for-movement-decoders) for movement decoders, [6.4](#64-settings-for-classifiers) for classifiers. |
-| **Authorized applications** | Every application that asks for commands, with **Authorize** / **Revoke** | Applications are connected | [6.5](#65-authorized-applications). |
+| **Settings** | Folded mapping settings | A decoder runs | [7.3](#73-settings-for-movement-decoders) for movement decoders, [7.4](#74-settings-for-classifiers) for classifiers. |
+| **Authorized applications** | Every application that asks for commands, with **Authorize** / **Revoke** | Applications are connected | [7.5](#75-authorized-applications). |
 | Footer line | *N applications connected*, then *<app> waiting for: …* for each one that cannot run | Always | The console itself is not counted. |
 
 **Reading the status line.** *On · x ← vx, y ← vy (inverted), gain 1.09; click ← click* means:
@@ -538,7 +641,7 @@ classifier it reads like *select ← left; activate ← right* (action ← class
 
 ![Command output settings for the T15 replay](images/15-command-output-settings.png)
 
-### 6.3 Settings for movement decoders
+### 7.3 Settings for movement decoders
 
 For decoders with continuous output (velocity). The application's workspace is the board's tile
 area, counted as 1 wide and 1 high, with y pointing down.
@@ -560,7 +663,7 @@ area, counted as 1 wide and 1 high, with y pointing down.
 The settings are filled in when a decoder starts and are kept while you edit; starting a
 different decoder fills them in again.
 
-### 6.4 Settings for classifiers
+### 7.4 Settings for classifiers
 
 For decoders that output classes (for example rest, left, right). *The decoder estimates how
 likely each class is. An action is sent when a class stays above its threshold for the hold
@@ -576,7 +679,7 @@ time; it can repeat only after the class drops back and the pause has passed.*
 | **Apply settings** | As above | Command output is on | |
 | Problem line | *Check the actions: …* or *Choose an action for at least one class.* | | |
 
-### 6.5 Authorized applications
+### 7.5 Authorized applications
 
 *Decoded commands reach only the applications you authorize here, until you revoke them.* Each
 application that asks for commands is listed once by name, even if several windows of it are
@@ -593,7 +696,7 @@ open: all windows of one application share one authorization.
 | --- | --- |
 | *Not authorized. Asks for pointer movement, discrete actions, navigation, text; command output does not provide it now.* | Command output is off, and it is not authorized. |
 | *Not authorized. Would receive pointer movement, discrete actions.* | Command output is on: authorize it and it receives these. |
-| *Receiving pointer movement, discrete actions.* | It receives these now. With a simulated profile this is simulated input, which needs no authorization ([6.1](#61-when-commands-reach-an-application)). |
+| *Receiving pointer movement, discrete actions.* | It receives these now. With a simulated profile this is simulated input, which needs no authorization ([7.1](#71-when-commands-reach-an-application)). |
 | *Authorized for … .* | Authorized; it will receive commands when command output provides them. |
 | *Authorized for … . Nothing to receive now.* | Authorized, but command output is off or provides none of these. |
 | *… It cannot run without …, which command output does not provide now.* | A capability it requires is missing. |
@@ -605,7 +708,7 @@ connects as an application. The footer counts every connection: each console tab
 board, plus each participant window. They all appear under the one name *Communication Board*
 and share its authorization. Close console tabs you don't use.
 
-### 6.6 Why Command output turned off (Last stopped)
+### 7.6 Why Command output turned off (Last stopped)
 
 The line appears while a decoder runs and command output is off. It shows the most recent stop
 since Concord started, which can come from an earlier decoder or source.
@@ -627,7 +730,7 @@ since Concord started, which can come from an earlier decoder or source.
 After decoding stops, the source changes or a safe stop runs, command output stays off: start
 decoding and control again when you need them.
 
-### 6.7 Example: the T15 recorded decoder on the board
+### 7.7 Example: the T15 recorded decoder on the board
 
 The T15 blocks carry the original research system's decoder outputs: a cursor velocity
 (`t15-historical-velocity`) and a click decision (`t15-historical-click`). To let them drive the
@@ -651,109 +754,6 @@ cursor can drift away from where the participant's own screen was.
 ![The board driven by the replayed T15 decoder](images/16-board-t15.png)
 
 When you are done: **Stop control** (title bar), **Revoke**, **Stop decoding**.
-
----
-
-## 7. Research sessions and export (the session strip)
-
-A **research session** is a named folder that groups what you do: source changes, decoding and
-control settings, recordings, calibrations and a log. It can be exported as one zip file.
-Concord works without one; a session is for keeping a record.
-
-### 7.1 The strip
-
-![The session strip with an active session and a recording](images/07-session-recording.png)
-
-| Control | What it does | When you see it | Notes / units / defaults |
-| --- | --- | --- | --- |
-| *No research session. A session groups recordings, decoders and a log, and can be exported for reproduction.* | | No session | |
-| **New session** | Opens *New research session* ([7.2](#72-new-research-session)) | No session | |
-| *Research session* · name · operator · *started HH:MM:SS* · *N recordings* · *N models* | The active session | A session is active | Counts include recordings and models made during the session. |
-| **Session and export…** | Opens the session panel ([7.3](#73-session-and-export)) | A session is active | **End session…** is inside this panel. |
-| **Safe stop & disconnect** | Turns command output off, closes the recording, stops decoding and disconnects the source, in that order | Always; red when something runs | Greyed out (hover: *Nothing is running*) when nothing runs. No confirmation is asked. The research session stays open. Logged as *Safe stop: stopped decoding, source* (what it actually stopped). |
-
-### 7.2 New research session
-
-![The New research session panel](images/06-new-session.png)
-
-| Control | What it does | When you see it | Notes / units / defaults |
-| --- | --- | --- | --- |
-| **Session name** | The session's name | Always | Required (up to 80 characters); **Start session** stays grey until it is filled. Do not enter participant identifiers. |
-| **Operator (optional)** | Who runs the session | | Up to 80 characters. |
-| **Notes (optional)** | Free text | | Up to 4000 characters. Operator and notes stay in the session folder: never in logs or support reports, and in an export only if you tick **Include the operator name and notes**. |
-| **Start session** | Creates the session folder and starts logging | A name is entered | Logged as *Research session started: <name>*. |
-| **Close** | Closes without starting | | |
-
-You can start a session before or after connecting a source; changes during the session are
-logged either way.
-
-### 7.3 Session and export
-
-![The session panel after an export](images/08-session-export.png)
-
-| Control | What it does | When you see it | Notes / units / defaults |
-| --- | --- | --- | --- |
-| **Session id** | The folder name, for example *20261109-013717-2037* | Always | Not the same as the *Session 19250108T…* names of FALCON files. |
-| **Started**, **Operator**, **Notes** | As entered | | Operator and Notes only if given. |
-| **Recordings** | Recordings made during the session, with sizes | | *(deleted)* or *incomplete* when that applies. |
-| **Decoder models** | Models trained during the session | | *none yet* otherwise. |
-| **Include the session's recordings (N, size) — neural data; needed to re-run the evaluation** | Puts the recordings into the zip | | Off by default (recordings can be large and identifying). The label says "neural data" even for simulated recordings. Without it, recordings are *listed by hash only*. |
-| **Include the operator name and notes** | Puts operator and notes into the zip | | Off by default. |
-| **Create export bundle** | Writes the zip | | Logged as *Session exported: <file>*. |
-| Result box | The zip's name (a download link), size, number of files, its SHA-256, *Recordings included: …* | After an export | |
-| Export list | Every export of this session, with download links | After an export | The newest export therefore appears twice: in the result box and in the list. |
-| **Session log** | The last 12 entries of the session's own log, and *N entries in the session folder* | Always | Entries such as *Source sim-a: streaming*, *pipeline start*, *router*, *Recording started: …*; *(refused 409)* marks refused actions. |
-| **End session…** | Asks for confirmation | Always | *Ending turns command output off, closes any recording, stops decoding and disconnects the source.* |
-| **End session now** / **Cancel** | Ends the session (after a safe stop) / keeps it | After **End session…** | Logged as *Research session ended: <name>*. |
-
-**Download the zip before you end the session.** Afterwards this panel is gone; the exports
-stay in the data folder under `sessions/<session id>/exports/`, and **Advanced → Stored data**
-counts them but has no download link.
-
-### 7.4 What is in the export, and what reproducible means
-
-The zip contains:
-
-| File | Content |
-| --- | --- |
-| `manifest.json` | Format, session, versions and package fingerprints, plugins, the list of files with their SHA-256 and size, results, what is and is not included |
-| `session.json` | The session (operator and notes only if you included them) |
-| `session-log.jsonl` | Source status changes and operator actions with their settings |
-| `environment.json` | Platform, packages, plugins |
-| `devices/*.json` | Descriptions of the sources used |
-| `pipeline/*.json` | Each decoding start: processing, model and command-output settings, and status |
-| `models/<id>.json`, `models/<id>.manifest.json` | Decoder models used or trained in the session, with their SHA-256 |
-| `calibration/<id>.json` (and `.md`) | Each calibration's settings and report |
-| `recordings/…` | Only if you ticked **Include the session's recordings** |
-| `REPRODUCE.md` | The exact commands to check and re-run it |
-
-Public dataset files are never included (DANDI terms forbid redistribution); they are referenced
-by SHA-256. The application log and support reports are not included either.
-
-**Reproducible** means: someone with the zip and any Concord installation can check that no
-file was changed and **re-fit every decoder trained in the session from the included
-recordings**, comparing the weights and held-out scores with the originals. A session without a
-trained decoder, or exported without its recordings, has nothing to re-run: only the files are
-checked.
-
-### 7.5 `concord reproduce`
-
-```bash
-concord reproduce concord-session-<id>-<time>.zip
-```
-
-With the desktop app: `/Applications/Concord.app/Contents/MacOS/Concord reproduce <file>` (Mac)
-or `./Concord/Concord reproduce <file>` (Linux, from the folder where you extracted Concord).
-
-| Result line | Meaning | Exit status |
-| --- | --- | --- |
-| `[OK] integrity: N files verified against manifest.json` | Every file matches its SHA-256 | |
-| `[OK] calibration <model>: re-fitted from N recording(s): r2 0.851788 -> 0.851788, …` | A decoder was fitted again and its scores agree (to 1e-6) | |
-| `result: reproduced` | Everything checked was reproduced | 0 |
-| `result: failed` | A check failed | 1 |
-| `result: nothing_to_reproduce` | The files are intact, but nothing could be re-run (no trained decoder, or no recordings in the zip) | 2 |
-
-`--json FILE` also writes the report as JSON.
 
 ---
 
@@ -1324,7 +1324,7 @@ The board picks the first method the source supports, in this order, unless you 
 
 In every method, a cancel action undoes the last change (or cancels a pending confirmation, or
 returns row scanning to rows). The cursor speed is not a board setting: it is set by the
-operator in **Command output → Settings** ([6.3](#63-settings-for-movement-decoders)).
+operator in **Command output → Settings** ([7.3](#73-settings-for-movement-decoders)).
 
 ### 11.9 Board settings
 
@@ -1392,15 +1392,15 @@ The full reference for evaluation harnesses: [APPLICATIONS.md](APPLICATIONS.md).
 
 | You see | Why | What to do |
 | --- | --- | --- |
-| An application listed before you opened one; "2 applications connected" | Each console tab contains the embedded board | Normal ([6.5](#65-authorized-applications)). Close console tabs you don't use. |
-| *Receiving pointer movement, discrete actions.* next to **Authorize** | A simulated profile drives the board without authorization | Normal ([6.1](#61-when-commands-reach-an-application)). |
+| An application listed before you opened one; "2 applications connected" | Each console tab contains the embedded board | Normal ([7.5](#75-authorized-applications)). Close console tabs you don't use. |
+| *Receiving pointer movement, discrete actions.* next to **Authorize** | A simulated profile drives the board without authorization | Normal ([7.1](#71-when-commands-reach-an-application)). |
 | **Stop control** is grey | Command output is off | Nothing to stop. |
 | **Data received (%)** shows *—* | Only LSL and Open Ephys report losses | Normal for other sources. |
 | *Gaps detected* although the source is fine | An application or console tab fell behind and dropped events | **Advanced → Connected applications**: find the one with *dropped* rising; close it. |
-| The board's cursor moves but never clicks | No click output is mapped | Choose **Click from** ([6.3](#63-settings-for-movement-decoders)), or use dwell selection. |
+| The board's cursor moves but never clicks | No click output is mapped | Choose **Click from** ([7.3](#73-settings-for-movement-decoders)), or use dwell selection. |
 | Clicking tiles on the board does nothing | By design | [11.3](#113-mouse-clicks-on-tiles-do-nothing). |
 | **Start recording** is grey | A file replay is connected | Record a simulated or live source ([10.5](#105-recording)). |
-| A replayed recording shows *No signal* and *Undeclared capability* entries | It was recorded with features and labels only | Use it for training, not replay ([3.6](#36-session-recordings-replay-and-other-sources)). |
+| A replayed recording shows *No signal* and *Undeclared capability* entries | It was recorded with features and labels only | Use it for training, not replay ([4.6](#46-session-recordings-replay-and-other-sources)). |
 | The board keeps old words from another source | The message keeps everything until cleared | Press **Clear** before changing source. |
 | An export disappeared after **End session now** | The session panel closes with the session | It is in `sessions/<id>/exports/` in the data folder. |
 | The console says *Connection to Concord lost, reconnecting* | Concord stopped | Start Concord again, or close the tab if you quit it. |
@@ -1454,7 +1454,7 @@ Installed with the Python package. The desktop app's own program answers the sam
 | `concord version` | Versions of Concord and Python | `--json` (also lists packages) |
 | `concord config` | `path` (where the file is), `show` (settings in effect; the default), `init` (create the file), `template` (print a commented file) | `--config` |
 | `concord dataset` | Downloads and verifies demo recordings into `<data folder>/datasets/dandi-<number>/`: `falcon-h1` (default: the two demo blocks) or `ajile12` (two ECoG extracts) | `--all-calib` (all 13 FALCON calibration blocks, about 66 MiB), `--list`, `--data-dir`. T15 files are downloaded in the browser from Dryad. |
-| `concord reproduce BUNDLE.zip` | Verifies a session export and re-runs its evaluation ([7.5](#75-concord-reproduce)) | `--json FILE` |
+| `concord reproduce BUNDLE.zip` | Verifies a session export and re-runs its evaluation ([3.5](#35-concord-reproduce)) | `--json FILE` |
 | `concord serve` | Runs Concord in the foreground (what `start` runs) | as `start` |
 | `concord publish …` | Test streams for rehearsing without hardware ([14.2](#142-test-streams-concord-publish)) | `concord publish --help` |
 
