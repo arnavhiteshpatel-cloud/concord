@@ -21,7 +21,7 @@ unfamiliar word in the [glossary](GLOSSARY.md).
 
 | Part | What you do | Time | Terminal needed? |
 | --- | --- | --- | --- |
-| [1. Install and open Concord](#1-install-and-open-concord) | Download, install, start | 5 min | No (Mac); one command on some Linux desktops |
+| [1. Install and open Concord](#1-install-and-open-concord) | Download, install, start | 5 min | No (Mac); Linux: yes, two commands to start |
 | [2. A tour of the console](#2-a-tour-of-the-console) | Learn what is on the screen | 5 min | No |
 | [3. A simulated device and the communication board](#3-a-simulated-device-and-the-communication-board) | Move a cursor and choose words yourself | 10 min | No |
 | [4. Replay a real human recording](#4-replay-a-real-human-recording-falcon-h1) | Replay intracortical recordings | 10 min | No |
@@ -71,16 +71,17 @@ Intel Macs and macOS 13 or older: use the Python installation in [INSTALL_MAC.md
    into your **Downloads** folder.
 2. Extract it there (right-click → *Extract Here* in most file managers). This creates a folder
    named `Concord` inside **Downloads**.
-3. Start it. Double-click `Concord/Concord`. If nothing happens (many file managers do not start
-   programs this way), open a terminal and run these two commands. The first goes to the folder
-   where you extracted Concord; the second starts it:
+3. Start it from a terminal. Open one (Ubuntu: press **Ctrl+Alt+T**) and run these two
+   commands. The first goes to the folder where you extracted Concord; the second starts it:
 
    ```bash
    cd ~/Downloads
    ./Concord/Concord
    ```
 
-   Keep that terminal open while you use Concord. Next time, start it the same way.
+   The terminal prints `Concord 0.3.1 is running at http://127.0.0.1:8000`. Keep that terminal
+   open while you use Concord; it is busy now, so use a new terminal window for any other
+   command. Next time, start Concord the same way.
 
 ### What you should see
 
@@ -110,20 +111,15 @@ A small window titled **Concord** opens, with your browser behind it:
 > Open `http://127.0.0.1:8000` in your browser yourself. To quit, press **Ctrl-C** in that
 > terminal.
 
-> **No small window, or the console looks different from this guide?** Another copy of Concord
-> is probably already running: an older version, or one started from a terminal (`make run`,
-> `concord start`). The new app then only opens that copy's console, which uses that copy's
-> data folder.
+> **Another copy already running?** You see this when the terminal says `Concord is already
+> running at http://127.0.0.1:8000`, when no small window appears on a Mac, or when the
+> console's version (top left, next to **Concord**) is not **0.3.1**. You are then looking at the
+> other copy, an older version or one started differently, with its own data folder.
 >
-> **Check:** the top-left of the console shows **Concord** and its version. It must match the
-> version on the Releases page you downloaded from (this guide was written for **0.3.1**). An
-> older number means you are looking at another copy.
->
-> **Fix:**
-> 1. Quit the other copy: its window → **Stop and quit**, or Ctrl-C in its terminal.
-> 2. If you can't find it, see which program holds the console's address. On a Mac, run
->    `lsof -nP -iTCP:8000 -sTCP:LISTEN` in Terminal. On Linux, run `ss -ltnp 'sport = :8000'`.
-> 3. Open Concord again.
+> **Fix:** quit the other copy (its small window → **Stop and quit**; or Ctrl-C in its terminal;
+> or, on Linux, `cd ~/Downloads` then `./Concord/Concord stop` in a new terminal), then start
+> Concord again. Still stuck? See which program holds the console's address: on a Mac
+> `lsof -nP -iTCP:8000 -sTCP:LISTEN` in Terminal, on Linux `ss -ltnp 'sport = :8000'`.
 
 ### Commands in this guide
 
@@ -132,7 +128,8 @@ You need no commands for most of this guide. The few optional ones are typed in 
 
 - **Mac:** `/Applications/Concord.app/Contents/MacOS/Concord` followed by the command, for
   example `/Applications/Concord.app/Contents/MacOS/Concord dataset ajile12`.
-- **Linux:** first `cd ~/Downloads`, then `./Concord/Concord` followed by the command, for
+- **Linux:** open a **new** terminal window (Ctrl+Alt+T; the one running Concord is busy and
+  must stay open), run `cd ~/Downloads`, then `./Concord/Concord` followed by the command, for
   example `./Concord/Concord dataset ajile12`.
 
 Each command in this guide is written out for both. (If you installed Concord with Python
@@ -162,9 +159,7 @@ top to bottom:
 already lists a **Communication Board** with an **Authorize** button, and says
 "1 application connected · Communication Board waiting for: a source". That board is the
 preview built into **Advanced → Communication board**. **Do not click Authorize yet**:
-section 5 explains when you need it. Once you open the participant screen (section 3.2), it
-says **2 applications connected** and lists the board twice: the preview and the board window.
-That is normal.
+section 5 explains when you need it.
 
 Every control is explained in the [user guide](USER_GUIDE.md).
 
@@ -217,7 +212,7 @@ message bar.)*
 
 What is on the board:
 - **Header:** *Communication board*, *Research use only*, the input method in use (here
-  *Pointer and click*), and **Settings**.
+  *Pointer and click*), the connection (*Connected to Concord*) and **Settings**.
 - **Input line:** where the input comes from, here *Input: simulated input · synthetic data*.
 - **Message bar:** the message being composed. Once a word is chosen, a label under it says
   where the words came from: *simulated input — no participant*.
@@ -231,6 +226,10 @@ because that is how a participant would use it. In this section the input comes 
 through the simulator. (The board's hint *click to choose it* means the participant's click:
 here, **Select** in the simulator.)
 
+In the console, **Command output** now says **2 applications connected**: the board window and
+the preview built into **Advanced → Communication board**. **Authorized applications** still
+shows one **Communication Board** row; don't click its **Authorize** yet (section 5).
+
 ### 3.3 Move the cursor and choose a word
 
 1. In the console, scroll to the bottom, click **Advanced** to open it, then click **Simulator
@@ -240,14 +239,15 @@ here, **Select** in the simulator.)
 
 2. The square pad works like a **joystick**: drag the dot away from the centre and the board's
    cursor *keeps moving* in that direction, faster the further you drag; let go and the dot
-   springs back and the cursor almost stops. (Profile A adds a little random jitter, like a real
-   decoder, so the cursor keeps drifting slowly.) Use small, short movements.
+   springs back and the cursor almost stops. (Profile A adds a little random noise to every
+   movement, so the cursor keeps drifting slowly.) Use small, short movements.
 
    With the keyboard: click once on an empty part of the console page, then press and hold an
    arrow key (or W, A, S, D) **briefly**: about a quarter of a second moves the cursor about one
    tile, and a one-second hold crosses the whole board. The keys work only while the console
    window is in front.
-3. When the cursor (a ring) is on a tile, click **Select** (or press Space).
+3. The tile the cursor (a ring) points at is outlined in blue. Click **Select** (or press Space)
+   to choose the outlined tile.
 
 **What you should see:** the tile's word appears in the board's message bar, labelled
 *simulated input — no participant*, so nobody can mistake it for a person's message. "N sent"
@@ -305,46 +305,39 @@ If your browser saves a second copy with a name like `… (1).nwb`, delete the e
 ### 4.2 Put them in Concord's datasets folder
 
 Concord keeps everything in one **data folder**. Recordings you download go in a folder named
-`datasets` inside it.
+`datasets` inside it. On a new installation that folder does not exist yet.
 
-1. **Find the folder.** The quickest way: click **Connect a source**. Under *Recorded human
-   data*, Concord shows the exact folder to put recordings in: *Put downloaded dataset files in
-   …/data/datasets …*. Select and copy that path, then close the panel.
-
-   The same data folder is also the first line (**Data directory**) of **Advanced → Stored
-   data**, at the bottom of the console. It is normally:
-
-   | You installed | Data folder |
-   | --- | --- |
-   | Mac app | `~/Library/Application Support/Concord/data` |
-   | Linux bundle | `~/.local/share/concord/data` |
-   | Python install (`concord start`) | Mac: `~/Library/Application Support/Concord/data`; Linux: `~/.local/share/concord/data` |
-   | From the source code (`make setup`) | `data/` inside the repository |
-
-   (`~` is your home folder.) If **Stored data** shows a different folder, or this folder does not
-   exist, another copy of Concord is running: see the note at the end of section 1.
-2. **Open it:**
-   - **Mac:** in Finder choose **Go → Go to Folder…**, paste the path, press Return.
-   - **Linux:** in your file manager press Ctrl+L, paste the path, press Enter. The path
-     contains `.local`; a name starting with a dot is hidden, but typing the path opens it anyway.
-
-   On a new installation the `datasets` folder does not exist yet, so this fails. Then paste the
-   path without its last part, `/datasets` (that is the data folder; it contains only `logs` and
-   `concord.pid`, leave those alone), and create a folder named `datasets` in it.
-3. **Move both `.nwb` files into `datasets`.**
-
-> **With a terminal instead:** one command downloads, verifies and places both files
-> (see [Commands in this guide](#commands-in-this-guide)):
+> **Shortcut with a terminal:** one command downloads, verifies and places both files, and
+> creates the folder (see [Commands in this guide](#commands-in-this-guide)). Then skip to 4.3.
 > - Mac: `/Applications/Concord.app/Contents/MacOS/Concord dataset`
-> - Linux: `cd ~/Downloads`, then `./Concord/Concord dataset`
->
-> It puts them in `datasets/dandi-000954/`; any subfolder of `datasets` works.
+> - Linux (new terminal window): `cd ~/Downloads`, then `./Concord/Concord dataset`
+
+Without a terminal:
+
+1. **See where the folder is.** Click **Connect a source**. Under *Recorded human data*,
+   Concord shows the folder to use, for example
+   `/home/you/.local/share/concord/data/datasets` (Linux) or
+   `/Users/you/Library/Application Support/Concord/data/datasets` (Mac). Close the panel.
+2. **Open the data folder**, the same path without `/datasets` at the end:
+   - **Mac:** in Finder choose **Go → Go to Folder…**, type
+     `~/Library/Application Support/Concord/data`, press Return.
+   - **Linux:** in your file manager press **Ctrl+L**, type `~/.local/share/concord/data`, press
+     Enter. (`.local` is a hidden folder, but typing the path opens it.)
+
+   It contains `logs` and `concord.pid`; leave those alone.
+3. **Create a folder named `datasets`** there (right-click → **New Folder**), open it, and
+   **move both `.nwb` files into it**.
+
+If the panel shows a different folder than these, another copy of Concord is running: see
+*Another copy already running?* in section 1. (The data folder is also the first line,
+**Data directory**, of **Advanced → Stored data**.)
 
 ### 4.3 Connect a recording
 
 1. Reload the console page (⌘R or Ctrl+R), then click **Connect a source**. (Reloading clears
    the on-screen Session log; what happened is still in Concord's log files and, during a
-   research session, in the session's log.)
+   research session, in the session's log.) Right after Concord starts, the list may say
+   *Checking the recorded datasets…* for a few seconds while Concord verifies each file.
 2. Under **Recorded human data (offline replay)** you now see **Session 19250108T110520** and
    **Session 19250108T111022**, each with "DANDI 000954 · held-in-calib · 176 channels · 20 ms
    bins". They are two blocks from the same day; either works. The numbers are the recording's
@@ -408,8 +401,8 @@ what that decoder did. (Singer-Clark et al. 2025,
 
 On the Dryad page, sign in (a free account) and download these four files one at a time from
 the file list (click a file's name to download it). The list is long: use your browser's Find
-(Ctrl+F or ⌘F) for `day00468_block0`. Don't use the button that downloads the whole dataset;
-it is much larger.
+(Ctrl+F or ⌘F) for `day00468_block0`. It highlights blocks 00 to 09; download only blocks **00,
+01, 02 and 03** (table below). Don't click **Download full dataset**; it is much larger.
 
 | File | Size | What it is |
 | --- | --- | --- |
@@ -438,8 +431,9 @@ your browser makes. Concord skips duplicates, because the same block cannot be l
 
 **What you should see:**
 - The title bar says **Streaming · Recorded human data, offline replay**.
-- The Decoder row says the recording carries the replayed output of a decoder and that *it is
-  not used for control*. That is the starting state: in 5.4 you choose to pass this recorded
+- The Decoder row says *This recording carries the replayed output of an offline decoder
+  (t15-historical-click); it is not used for control.* "Offline" here means recorded: it is the
+  original research system's decoder, replayed from the file. That is the starting state: in 5.4 you choose to pass this recorded
   output on, and only **Start control** in 5.5 lets it move the board. (The row names only
   *t15-historical-click*; the velocity decoder appears in 5.4.)
 - **Signal integrity** shows the threshold crossings of the most active channels.
@@ -461,8 +455,9 @@ The participant chose among targets on a 14 × 14 grid, so the board should show
    ![Board settings](images/14-board-settings.png)
 
 3. Under **Layout**, choose **Task grid (N × N words)**. **Grid size N** shows **14** (set it to
-   14 if not). Then maximise the board window: the 196 tiles are small, and words are cut off
-   in a smaller window.
+   14 if not). Then maximise the board window: the 196 tiles are small. If some long words
+   are still cut off, lower **Text size** (in the same panel) to 75%. Leave **Word list URL**
+   empty.
 4. Leave **Input method** on **Automatic**. For now it reads *Automatic (nothing available now)*
    and the other methods say *not offered by the current source*. That is expected: no command
    output reaches the board yet. After 5.5 it reads *Automatic (now: Pointer and click)*, as in
@@ -474,12 +469,13 @@ browser, so the board keeps them next time.
 
 ### 5.4 Turn on the recorded decoder
 
-1. In the **Decoder** row, click **Start decoding**.
-2. Under **Processing**, choose **Source decoder outputs (passthrough)**. This option exists only
-   for sources that carry a decoder's output. It forwards that output unchanged, labelled
-   *historical*. No model of yours is involved.
-3. Click the **Start decoding** button under *Processing* in this panel (not the one in the
-   Decoder row).
+1. In the **Decoder** row, click **Start decoding**. A panel titled **Start decoding** opens on
+   the right.
+2. In its **Processing** list, choose **Source decoder outputs (passthrough)**, not the similar
+   *Source features (passthrough)*. This option exists only for sources that carry a decoder's
+   output. It forwards that output unchanged, labelled *historical*. No model of yours is
+   involved.
+3. Click the dark **Start decoding** button in that panel (not the one in the Decoder row).
 
 **What you should see:** the Decoder row says *Running* and lists two decoders:
 - **t15-historical-velocity**, with outputs **vx, vy**: the cursor velocity;
@@ -561,7 +557,7 @@ running while you run it.
   /Applications/Concord.app/Contents/MacOS/Concord dataset ajile12
   ```
 
-- **Linux** (open a terminal):
+- **Linux** (in a new terminal window, see [Commands in this guide](#commands-in-this-guide)):
 
   ```bash
   cd ~/Downloads
@@ -600,22 +596,22 @@ settings and a log, in one folder you can export as a zip file.
    and models it holds.
 2. Connect **Simulated Profile A** (**Connect a source**, or **Change source → Switch** if
    something is connected). Source changes are written to the session's log.
-3. Record: open **Advanced → Recording** and click **Start recording**. The title bar adds
-   **· Recording**.
-   - Leave **Features and labels only** unticked for this exercise. A recording with raw samples
-     stops by itself after 5 minutes or 200 MB. Simulated Profile A writes about 12 MB a minute,
-     so a one-minute recording is fine. (The panel's warning that raw frames "reach the size cap
-     in seconds" applies to high-channel-count live sources.)
-   - With **Features and labels only (for calibration)** ticked, the raw samples are left out
-     and a recording can run for an hour.
-   - The size shown in the list of recordings updates when the recording stops.
-   - Both limits can be changed in the [configuration file](USER_GUIDE.md#15-configuration-file).
-   - Recorded datasets (sections 4–6) cannot be recorded: they already are recordings.
+3. Open **Advanced → Recording**, leave **Features and labels only** unticked, and click
+   **Start recording**. The title bar adds **· Recording**. The size in the list of recordings
+   updates when the recording stops.
 
    ![A session with a recording in progress](images/07-session-recording.png)
 
 4. After a minute, click **Safe stop & disconnect**. It stops command output, closes the
    recording, stops decoding and disconnects the source, in that order. The session stays open.
+
+   > **About recording limits.** A recording with raw samples stops by itself after 5 minutes or
+   > 200 MB; Simulated Profile A writes about 12 MB a minute, so a one-minute recording is fine.
+   > (The panel's warning that raw frames "reach the size cap in seconds" applies to
+   > high-channel-count live sources.) With **Features and labels only (for calibration)**
+   > ticked, the raw samples are left out and a recording can run for an hour. Both limits can
+   > be changed in the [configuration file](USER_GUIDE.md#15-configuration-file). Recorded
+   > datasets (sections 4–6) cannot be recorded: they already are recordings.
 5. Click **Session and export…** in the session strip:
    1. For this exercise, tick **Include the session's recordings** (the data needed to re-run an
       evaluation). Leave **Include the operator name and notes** unticked unless the people you
@@ -643,7 +639,7 @@ full path. Its name is long: type the start, `~/Downloads/concord-session-`, the
 to complete it (or drag the zip from your file manager into the terminal).
 
 - **Mac:** `/Applications/Concord.app/Contents/MacOS/Concord reproduce ~/Downloads/concord-session-….zip`
-- **Linux:** `cd ~/Downloads`, then `./Concord/Concord reproduce ~/Downloads/concord-session-….zip`
+- **Linux** (new terminal window): `cd ~/Downloads`, then `./Concord/Concord reproduce ~/Downloads/concord-session-….zip`
 
 (Python installation: `concord reproduce …`.)
 
@@ -673,7 +669,8 @@ warnings and errors; that is expected. Download it as JSON or Markdown and attac
   (or run `./Concord/Concord stop` from `~/Downloads` in another terminal).
 
 Quitting performs a safe stop first, so recordings are closed properly. Afterwards the console
-says *Connection to Concord lost, reconnecting* and the board says *Reconnecting*: Concord has
+says *Connection to Concord lost, reconnecting* and the board's header says *Reconnecting*
+instead of *Connected to Concord*: Concord has
 stopped, so close both tabs. If Concord ever stops unexpectedly,
 the next start keeps the complete part of an interrupted recording and marks it *incomplete*.
 

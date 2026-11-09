@@ -86,11 +86,14 @@ Things that work the same everywhere in the console:
 
 - **Most buttons appear only when they can be used.** For example, **Start decoding** and
   **Calibrate…** appear once a source is connected. Some buttons are always shown and are greyed
-  out while they cannot be used: **Stop control**, **Safe stop & disconnect**, and buttons inside
-  panels such as **Start session**, **Start recording**, **Check labels** or **Add source**. The
-  reason is usually a grey line next to the button or under the row's heading (for example
-  *Connect a source first.* or *Start decoding with a model first.*); some buttons also show it
-  when you hover over them.
+  out while they cannot be used:
+  - **Stop control** and **Safe stop & disconnect**: hover over them to see why (*Command output
+    is off*, *Nothing is running*).
+  - Buttons inside panels: **Start session** (until a session name is typed), **Start
+    recording** (until a recordable source streams), **Check labels** (until a recording is
+    chosen), **Add source** (until the form is complete).
+  - Rows that cannot act yet say why in a grey line under the row's heading, for example
+    *Connect a source first.* or *Start decoding with a model first.*
 - **Panels that slide in from the right** (called [sheets](GLOSSARY.md#sheet): **Connect a
   source**, **Start decoding**, **Calibrate a decoder**, **New research session**,
   **Session · …**) close with their **Close** button, with the Escape key, or by clicking the grey
@@ -340,8 +343,9 @@ Where the data comes from. One [source](GLOSSARY.md#acquisition-source) is conne
 
 When a source declares a modality, the tag is the last line of text above **Options** or
 **Playback**: the fourth line for FALCON and T15 files (which also have a file line), the third
-for other sources. On a plugin it ends the plugin line (for example *Plugin ·
-concord-brainflow@0.1.0 · isolated · modality not declared*). "Intracranial" in the FALCON source name is the
+for other sources. On a plugin it is added to the end of the plugin line, and reads *modality
+not declared* when the plugin declares none (for example *Plugin · concord-brainflow@0.1.0 ·
+isolated · modality not declared*). "Intracranial" in the FALCON source name is the
 general term (inside the skull); *Intracortical* is the specific modality (electrodes inside the
 cortex). See [intracortical, intracranial](GLOSSARY.md#intracortical-intracranial).
 
@@ -447,7 +451,8 @@ every recording made while decoding runs, including every recording made from th
 
 - the session log fills with *Undeclared capability: adapter emitted features.binned* (or
   *features.vector*) *but did not declare neural_features*, and, if a model was running while
-  you recorded, the same for *intent.kinematics* and *intent.pointer*;
+  you recorded, the same for *intent.kinematics* (and for *intent.pointer* if command output was
+  also on and the source has no pointer of its own);
 - **Advanced → Diagnostics → Contract violations** keeps rising (a
   [contract violation](GLOSSARY.md#contract-violation) means the source sent something it had not
   declared);
@@ -462,11 +467,11 @@ installation and then not shown.
 ### 4.7 Live streams: LSL
 
 *Lab Streaming Layer or Open Ephys. Concord only receives; nothing is sent to the acquisition
-system.* (One exception: an Open Ephys source sends a short
-[heartbeat](GLOSSARY.md#heartbeat), a "still listening" message, to the GUI's plugin; see
-[4.8](#48-live-streams-open-ephys). Nothing is ever sent to an LSL stream.)
-([LSL](GLOSSARY.md#lsl-lab-streaming-layer) is a common way to stream data between programs on a
-lab network.) Setting up your own equipment:
+system.* The one exception is Open Ephys: an Open Ephys source sends a short
+[heartbeat](GLOSSARY.md#heartbeat), a "still listening" message, to the GUI's plugin
+([4.8](#48-live-streams-open-ephys)). Nothing is ever sent to an LSL stream.
+[LSL](GLOSSARY.md#lsl-lab-streaming-layer) is a common way to stream data between programs on a
+lab network. Setting up your own equipment:
 [Connect your equipment](CONNECT_YOUR_EQUIPMENT.md) and [Lab guide](LAB_GUIDE.md). To rehearse
 without hardware, start a [test stream](GLOSSARY.md#test-stream) with
 `concord publish lsl-ephys` or `concord publish falcon <file>`
@@ -486,7 +491,8 @@ a restart, search again.
 2. The results table lists every stream found. **At the same time, every stream that can be a
    signal is added to the list of live sources above, ready to connect.** For a signal stream
    without attachments, just click **Connect** (or **Switch**) on its row. You are done.
-   Behavior streams are added as rows too (named *… (Behavior)*); connect the signal stream's
+   Behavior streams are added as rows too, with their stream type in brackets (for example
+   *LSL · Concord synthetic ephys latent velocity (Behavior) — declared synthetic*); connect the signal stream's
    row, not theirs.
 3. To attach a [behavior stream](GLOSSARY.md#behavior-stream) (calibration labels) or a
    [marker stream](GLOSSARY.md#marker-stream): click **Use** on the signal stream, pick the
@@ -655,7 +661,7 @@ optionally, a [decoder](GLOSSARY.md#decoder) model. What decoders are and how th
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
 | **Processing** | Chooses how features are made from the source ([6.3](#63-processing-presets)) | Always | Preselected for the source. A one-paragraph description of the chosen preset appears below it. |
-| **Bin (ms)** | Length of one feature [bin](GLOSSARY.md#bin) | Spike-band, High-gamma, Band power | Leave empty for the default: 20 ms (spike-band) or 50 ms (high-gamma, band power), rounded to a whole number of samples (for example 48 ms at 250 Hz). Must be a number above 0 and up to 1000; another value is refused with *Bin (ms) must be above 0 and at most 1000*. |
+| **Bin (ms)** | Length of one feature [bin](GLOSSARY.md#bin) | Spike-band, High-gamma, Band power | Leave empty for the default: 20 ms (spike-band) or 50 ms (high-gamma, band power), rounded to a whole number of samples (for example 48 ms at 250 Hz). Must be a number above 0 and up to 1000. Otherwise **Start decoding** stays grey and an amber line below it says *Bin (ms) must be above 0 and at most 1000* (or *bin_ms must be a number*). |
 | **Threshold (× RMS)** | Spike detection threshold, in multiples of each channel's noise level ([RMS](GLOSSARY.md#rms)) | Spike-band only | Default −4.5 (negative: crossings below the noise). Allowed −20 to just below 0. |
 | **Band low (Hz)**, **Band high (Hz)** | The frequency band whose power is computed | Band power only | No default: fill both, or the panel says *band_power needs a low and a high band edge*. |
 | **Decoder model** | **None (features only)** or a model ([6.4](#64-decoder-models)) | Every preset except Source decoder outputs | Each model is marked *(compatible)* or *(incompatible)* with what this processing will produce. Models Concord refuses are greyed out. |
@@ -945,13 +951,13 @@ open: all windows of one application share one authorization.
 | --- | --- |
 | *Not authorized. Asks for pointer movement, discrete actions, navigation, text; command output does not provide it now.* | Command output is off, and it is not authorized. |
 | *Not authorized. Would receive pointer movement, discrete actions.* | Command output is on: authorize it and it receives these. |
-| *Receiving pointer movement, discrete actions.* | The current source (simulated input) or command output provides these to it. Simulated input needs no authorization ([7.1](#71-when-commands-reach-an-application)). With a simulated profile the sentence stays the same while the profile is paused or has stopped with an error: look at the title bar to see whether input is actually flowing. |
+| *Receiving pointer movement, discrete actions.* | The current source (simulated input) or command output provides these to it. Simulated input needs no authorization ([7.1](#71-when-commands-reach-an-application)). With a simulated profile the sentence stays the same while the profile is paused or reconnecting: look at the title bar to see whether input is actually flowing. Once the source has stopped with an error, the row reads *Not authorized. Asks for …* again. |
 | *Authorized for … .* | Authorized; it will receive commands when command output provides them. |
 | *Authorized for … . Nothing to receive now.* | Authorized, but command output is off or provides none of these. |
 | *… It cannot run without …, which command output does not provide now.* | A capability it requires is missing. |
 | *Not connected. Authorized for … .* | Authorized, but no window of it is open. (For the Communication Board you will not see this while a console tab is open: each console tab contains a board, see [10.9](#109-communication-board-embedded).) |
 
-**Why you may see "2 (or 3) applications connected" before opening anything.** Every console tab
+**Why *1 application connected* (or more) shows before you open any board.** Every console tab
 contains an embedded copy of the communication board (**Advanced → Communication board**), which
 connects as an application. The footer counts every connection: each console tab's embedded
 board, plus each participant window. They all appear under the one name *Communication Board*
@@ -990,8 +996,8 @@ board:
 2. Click **Open participant screen** (in the **Command output** row). In the board window, click
    **Settings**, set **Layout** to **Task grid (N × N words)** (**Grid size N** is 14 by default),
    then **Close** ([11.6](#116-the-task-grid)).
-3. **Start decoding** → **Processing**: **Source decoder outputs (passthrough)** → **Start
-   decoding**.
+3. Back in the console: **Start decoding** → **Processing**: **Source decoder outputs
+   (passthrough)** → **Start decoding**.
 4. **Command output → Settings**: **Gain** 1.09 (1 / 0.92: the original decoder's units are
    screen heights per second, with targets in a square 0.92 screen heights wide;
    [CONTROL_BRIDGE.md](CONTROL_BRIDGE.md#native-pointer-scale)), **Dead-zone** 0, **Max speed**
@@ -1169,7 +1175,7 @@ Counters that should be zero are shown in amber when they are not (**dropped inp
 | **processing per input** | Time to process one input event, in µs |
 | **input event → derived event** | Time from an input event to the feature or decoded event made from it, in ms |
 
-Columns p50, p95, p99 and max ([latency, p50, p95, p99](GLOSSARY.md#latency-p50-p95-p99)): the
+The latency table is headed **Measured**. Columns p50, p95, p99 and max ([latency, p50, p95, p99](GLOSSARY.md#latency-p50-p95-p99)): the
 value that 50 %, 95 %, 99 % and all measurements stayed under; n: how many measurements.
 Compatibility warnings and *Last error: …* follow.
 
@@ -1417,13 +1423,15 @@ it the capabilities it asked for that the source provides
 You stand in for the participant's intent ([simulated intent](GLOSSARY.md#simulated-intent)).
 No neural decoding is involved. Shown only while Simulated Profile A or B is connected (not after
 an error). It is not shown for other synthetic sources, such as the LSL test stream or a plugin's
-synthetic board: nothing can be simulated or injected there.
+synthetic board: nothing can be simulated or injected there. It has two parts: **Simulated
+intention** (the pad, **Select** and the text field) and **Fault injection** (the fault
+buttons).
 
 ![Simulator controls](images/04-simulator-controls.png)
 
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
-| Pad | **A joystick**: pull the dot away from the centre and the board's cursor keeps moving in that direction, faster the further you pull; let go and it springs back. Profile A adds a little random jitter to every movement, like a real decoder, so even at rest the cursor drifts slowly | Profile A | Use small, short pulls: holding the dot off-centre makes the cursor overshoot. *Simulated Profile B has no pointer intent* on Profile B. |
+| Pad | **A joystick**: pull the dot away from the centre and the board's cursor keeps moving in that direction, faster the further you pull; let go and it springs back. Profile A adds a little random noise to every movement, so even at rest the cursor drifts slowly | Profile A | Use small, short pulls: holding the dot off-centre makes the cursor overshoot. *Simulated Profile B has no pointer intent* on Profile B. |
 | **Select** | Sends one select action | Both profiles | On the board this chooses (Pointer and click, Scanning) or moves (Direct selection). |
 | Keyboard | Arrow keys or W A S D move (like the dot pulled 60 % of the way); Space or Enter selects | While this section is open and the console window has focus | Not while typing in a text field. While this section is open, Space and Enter send **Select** even if a console button has keyboard focus. |
 | *Velocity 0.00, 0.00 · N sent* | The current joystick velocity, and how many selections and texts were sent | Always | *sent* does not count movements. |
@@ -1859,7 +1867,7 @@ Concord refuses a file that other users can change.
 | `[server] open_browser` | `true` | Open the console when Concord starts | `CONCORD_OPEN_BROWSER` |
 | `[server] log_level` | `INFO` | DEBUG, INFO, WARNING or ERROR | `CONCORD_LOG_LEVEL` |
 | `[storage] data_dir` | see [16](#16-data-folders-ports-and-network) | Datasets, recordings, models, sessions, exports, logs | `CONCORD_DATA_DIR` |
-| `[storage] reports_dir` | `reports` next to the data folder | Test and calibration reports | `CONCORD_REPORTS_DIR` |
+| `[storage] reports_dir` | `reports` next to the default data folder (it does not move when you change `data_dir`) | Test and calibration reports | `CONCORD_REPORTS_DIR` |
 | `[retention] recordings_days`, `sessions_days`, `exports_days`, `models_days` | `0` (keep; `concord config show` prints `null`) | Delete items older than this many days when Concord starts; items in use are never deleted | none |
 | `[recording] max_duration_s` | `300` | A recording with raw frames stops after this many seconds (at most 86400) | `CONCORD_RECORDING_MAX_S` |
 | `[recording] max_duration_no_raw_s` | `3600` | A features-and-labels-only recording stops after this many seconds (at most 86400) | `CONCORD_RECORDING_MAX_NO_RAW_S` |
@@ -2012,7 +2020,7 @@ explains it. Labels that appear in several places list each section.
 | **Delivery p95** | Advanced → Diagnostics | [10.4](#104-diagnostics) |
 | **Device** | Advanced → Event stream | [10.1](#101-event-stream) |
 | **Device switches** | Advanced → Diagnostics | [10.4](#104-diagnostics) |
-| **Device telemetry** | Advanced → Acquisition details (simulated profiles, session recordings, plugins) | [10.3](#103-acquisition-details) |
+| **Device telemetry** | Advanced → Acquisition details (simulated profiles, T15 blocks, session recordings, plugins) | [10.3](#103-acquisition-details) |
 | **Diagnostics** | Advanced | [10.4](#104-diagnostics) |
 | **Direct selection** | Board settings → Input method | [11.8](#118-input-methods) |
 | **Directional navigation** | Board settings → Input method | [11.8](#118-input-methods) |

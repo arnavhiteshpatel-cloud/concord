@@ -52,7 +52,7 @@ replays two verified extracts, shown as *Session 5* and *Session 6*.
 
 Also *app*. A program that receives data from Concord, such as the communication board. The
 board embedded in each console tab counts as one application. The console tab itself is listed
-under **Connected applications** (as `console`) but is not counted in *N applications
+under **Connected applications** (as *Operator Console*, type `console`) but is not counted in *N applications
 connected*. [Guide 10.7](USER_GUIDE.md#107-connected-applications)
 
 ### Arbitrary (unit)
@@ -69,7 +69,9 @@ not authorized by default; an authorization lasts until you revoke it or Concord
 
 ### Automatic (input method)
 
-The board uses the first input method the source supports, in the order listed in the guide.
+The board uses the first input method the source supports, in this order: Pointer and click,
+Pointer with dwell selection, Directional navigation, Direct selection (only once the source has
+sent an activate or cancel), Scanning.
 [Guide 11.8](USER_GUIDE.md#118-input-methods)
 
 ## B
