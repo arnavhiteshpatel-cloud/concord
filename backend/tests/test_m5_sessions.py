@@ -55,11 +55,18 @@ def ok(r: Any) -> Any:
 
 
 def _record(client: TestClient, name: str, bins: int) -> None:
+    """Record until the pipeline has taken ``bins`` inputs. Then pause the source and let the
+    pipeline finish its queue before stopping, so every recorded feature bin has its decoder
+    output in the file however far decoding lagged (the test source replays at 50x; a slow
+    computer, such as the Windows CI runner, falls hundreds of bins behind)."""
     svc = client.app.state.services  # type: ignore[attr-defined]
     ok(client.post("/api/v1/recordings/start", json={"name": name, "exclude_raw": True}))
     start = svc.runtime.pipeline.counters["inputs"]
     wait_until(lambda: svc.runtime.pipeline.counters["inputs"] - start >= bins)
+    ok(client.post("/api/v1/runtime/pause"))
+    wait_until(lambda: svc.runtime.pipeline.status().counters["queue_depth"] == 0)
     ok(client.post("/api/v1/recordings/stop"))
+    ok(client.post("/api/v1/runtime/resume"))
 
 
 def _run_session(client: TestClient) -> tuple[str, str]:
