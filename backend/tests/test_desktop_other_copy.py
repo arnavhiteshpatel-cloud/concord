@@ -9,11 +9,9 @@ The single-instance behaviour for this data directory's own server is unchanged.
 
 from __future__ import annotations
 
-import fcntl
 import json
 import logging
 import os
-import stat
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
@@ -21,13 +19,13 @@ from typing import Any
 
 import pytest
 
-from concord import __version__, desktop, launcher
+from concord import __version__, desktop, launcher, oscompat
 from concord.contracts.events import SCHEMA_VERSION
 from concord.contracts.protocol import STREAM_PROTOCOL
 from concord.server.routes import Health
 
 from .conftest import free_port
-from .helpers import fake_health_server
+from .helpers import assert_mode, fake_health_server
 
 OTHER_PID = 4242
 # A build from before the rename: the same version number, another stream protocol name and
@@ -60,9 +58,9 @@ def test_the_fake_health_answer_matches_the_real_one() -> None:
 def held_pid_file(pid_file: Path, url: str) -> Iterator[None]:
     """This data directory's instance lock, held as a running Concord server holds it."""
     pid_file.parent.mkdir(parents=True, exist_ok=True)
-    fd = os.open(pid_file, os.O_RDWR | os.O_CREAT, 0o600)
+    fd = os.open(pid_file, os.O_RDWR | os.O_CREAT | oscompat.O_BINARY, 0o600)
     try:
-        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        assert oscompat.try_lock(fd), "the pid file is already locked"
         os.write(fd, json.dumps({"pid": OTHER_PID, "url": url, "version": __version__}).encode())
         yield
     finally:
@@ -189,9 +187,8 @@ def test_an_older_copy_on_the_address_is_explained_not_silently_opened(
     text = _log(app["data"])
     assert f"another copy of Concord answers at {app['url']}" in text
     assert f"pid {OTHER_PID}" in text and "differs: data_dir, stream_protocol" in text
-    mode = stat.S_IMODE
-    assert mode(app["data"].stat().st_mode) == 0o700
-    assert mode((app["data"] / "logs" / "concord.log").stat().st_mode) == 0o600
+    assert_mode(app["data"], 0o700)  # POSIX permission bits; Windows has none
+    assert_mode(app["data"] / "logs" / "concord.log", 0o600)
 
 
 def test_the_same_build_with_another_data_directory_is_explained(
