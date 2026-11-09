@@ -25,6 +25,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from concord import __version__
+from concord.config import command_hint
 
 log = logging.getLogger(__name__)
 
@@ -259,7 +260,10 @@ def main(argv: list[str] | None = None) -> int:
             except WindowUnavailable as exc:
                 log.warning("no window could be created (%s)", exc)
         if not args.headless:
-            log.info("no window toolkit available; running headless (stop: concord stop)")
+            log.info(
+                "no window toolkit available; running headless (stop: Ctrl-C or %s)",
+                command_hint("stop"),
+            )
         return run_headless(srv, url, stop_event)
     finally:
         lock.release()

@@ -99,3 +99,16 @@ def test_dataset_command_explains_an_unknown_dataset(capsys: pytest.CaptureFixtu
     assert main(["dataset", "t15", "--list"]) == 2
     err = capsys.readouterr().err
     assert "unknown dataset 't15'" in err and "falcon-h1" in err and "Dryad" in err
+
+
+def test_messages_name_the_desktop_apps_own_program(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A desktop app has no `concord` command: its stop hint names the app's program (regression)."""
+    from concord.config import command_hint
+
+    monkeypatch.delattr(sys, "frozen", raising=False)
+    assert command_hint("stop") == "concord stop"
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    monkeypatch.setattr(sys, "executable", "/home/me/Downloads/Concord/Concord")
+    assert command_hint("stop") == "/home/me/Downloads/Concord/Concord stop"
+    monkeypatch.setattr(sys, "executable", "/Users/me/My Apps/Concord.app/Contents/MacOS/Concord")
+    assert command_hint("stop") == '"/Users/me/My Apps/Concord.app/Contents/MacOS/Concord" stop'

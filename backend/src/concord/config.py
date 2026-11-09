@@ -92,6 +92,18 @@ def frozen() -> bool:
     return bool(getattr(sys, "frozen", False))
 
 
+def command_hint(subcommand: str) -> str:
+    """How the user runs a ``concord`` subcommand from this installation, for messages.
+
+    A desktop app has no ``concord`` command on the PATH: its own program takes the same
+    subcommands (``./Concord/Concord stop``), so messages name that program's full path.
+    """
+    if frozen():
+        exe = sys.executable
+        return f'"{exe}" {subcommand}' if " " in exe else f"{exe} {subcommand}"
+    return f"concord {subcommand}"
+
+
 def source_checkout() -> Path | None:
     """The repository root when Concord runs from a source checkout (``make setup``)."""
     if frozen():

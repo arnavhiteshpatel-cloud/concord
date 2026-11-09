@@ -30,7 +30,7 @@ from pathlib import Path
 from typing import Any
 
 from concord import __version__
-from concord.config import ConfigError, frozen, load_config, source_checkout
+from concord.config import ConfigError, command_hint, frozen, load_config, source_checkout
 from concord.environment import packages, platform_info, plugins
 from concord.security import is_loopback, open_permissions, redact
 
@@ -232,7 +232,8 @@ def _optional() -> list[dict[str, Any]]:
                 v,
                 None
                 if ok
-                else "the desktop app then runs without its window; quit with `concord stop`",
+                else "the desktop app then runs without its window; quit with "
+                f"`{command_hint('stop')}`",
             )
         )
     return checks

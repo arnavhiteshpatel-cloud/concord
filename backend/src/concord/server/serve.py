@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Any
 
 from concord import __version__
+from concord.config import command_hint
 from concord.security import BindRefused, check_bind, configure_logging, ensure_private_dir
 from concord.server.settings import Settings
 
@@ -35,7 +36,7 @@ class AlreadyRunning(Exception):
     def __init__(self, info: dict[str, Any]) -> None:
         super().__init__(
             f"another Concord server (pid {info.get('pid')}, {info.get('url')}) uses this data "
-            "directory; stop it first (concord stop)"
+            f"directory; stop it first ({command_hint('stop')})"
         )
         self.info = info
 

@@ -27,6 +27,7 @@ from concord import __version__
 from concord.config import (
     CONFIG_ENV,
     ConfigError,
+    command_hint,
     default_config_path,
     load_config,
     template,
@@ -135,7 +136,7 @@ def cmd_start(args: argparse.Namespace) -> int:
         print(f"WARNING: {warning}", file=sys.stderr)
     print(f"Concord {inst.health.get('version') if inst.health else ''} is running: {inst.url}")
     print(f"  data: {s.data_dir}")
-    print("  stop it with: concord stop")
+    print(f"  stop it with: {command_hint('stop')}")
     if s.open_browser:
         launcher.open_browser(inst.url)
     return 0
