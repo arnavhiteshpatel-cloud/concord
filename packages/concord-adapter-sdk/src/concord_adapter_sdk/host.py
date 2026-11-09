@@ -24,6 +24,7 @@ plugin that crashes, hangs or exits on import cannot affect the others.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import importlib
 import json
 import logging
@@ -422,7 +423,14 @@ def _claim_stdio() -> tuple[IO[bytes], IO[bytes]]:
     devnull = os.open(os.devnull, os.O_RDONLY)
     os.dup2(devnull, 0)
     os.close(devnull)
-    sys.stdin = open(os.devnull)  # noqa: SIM115 - process lifetime
+    sys.stdin = open(os.devnull, encoding="utf-8")  # noqa: SIM115 - process lifetime
+    # plugin text output must never raise: on Windows the streams use the ANSI code page
+    # (cp1252), which cannot encode e.g. "→"; such characters are written escaped instead
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            with contextlib.suppress(ValueError, OSError):
+                reconfigure(errors="backslashreplace")
     return os.fdopen(in_fd, "rb"), os.fdopen(out_fd, "wb")
 
 

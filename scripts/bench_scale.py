@@ -126,7 +126,7 @@ class Proc:
 
     def cpu_s(self) -> float | None:
         try:
-            with open(f"/proc/{self.pid}/stat") as fh:
+            with open(f"/proc/{self.pid}/stat", encoding="utf-8") as fh:
                 fields = fh.read().rsplit(")", 1)[1].split()
             return (int(fields[11]) + int(fields[12])) / self.TICK
         except (OSError, IndexError, ValueError):
@@ -134,7 +134,7 @@ class Proc:
 
     def mem_mb(self, key: str = "VmRSS") -> float | None:
         try:
-            with open(f"/proc/{self.pid}/status") as fh:
+            with open(f"/proc/{self.pid}/status", encoding="utf-8") as fh:
                 for line in fh:
                     if line.startswith(key + ":"):
                         return int(line.split()[1]) / 1024
@@ -160,12 +160,12 @@ def machine() -> dict[str, Any]:
         "python": sys.version.split()[0],
         "numpy": np.__version__,
     }
-    with contextlib.suppress(OSError), open("/proc/cpuinfo") as fh:
+    with contextlib.suppress(OSError), open("/proc/cpuinfo", encoding="utf-8") as fh:
         for line in fh:
             if line.startswith("model name"):
                 info["cpu"] = line.split(":", 1)[1].strip()
                 break
-    with contextlib.suppress(OSError), open("/proc/meminfo") as fh:
+    with contextlib.suppress(OSError), open("/proc/meminfo", encoding="utf-8") as fh:
         info["mem_gb"] = round(int(fh.readline().split()[1]) / 1024 / 1024, 1)
     for mod in ("scipy", "pydantic", "pylsl", "orjson", "numba"):
         try:
@@ -183,7 +183,7 @@ def machine() -> dict[str, Any]:
 def loadavg() -> str:
     try:
         return " ".join(f"{x:.2f}" for x in os.getloadavg())
-    except OSError:
+    except (OSError, AttributeError):  # Windows has no load average
         return "n/a"
 
 
@@ -665,7 +665,7 @@ async def live_run(
         )
     except Exception as exc:  # recorded, not fatal: the report says what failed
         log = srv.data / "server.log"
-        tail = log.read_text(errors="replace")[-400:] if log.exists() else ""
+        tail = log.read_text(errors="replace", encoding="utf-8")[-400:] if log.exists() else ""
         err = f"{type(exc).__name__}: {exc}"[:200]
         if srv.rss_killed_after_s is not None:
             err = (
@@ -831,7 +831,7 @@ async def _live_body(
     if viewer is not None:
         kill(viewer[0])  # SIGTERM: the viewer writes its counts and exits
         try:
-            v = json.loads(viewer[1].read_text())
+            v = json.loads(viewer[1].read_text(encoding="utf-8"))
         except (OSError, ValueError):
             v = {"frames": 0, "bytes": 0, "delivery_gaps": 0, "closed": "no report"}
         out["viewer"] = v | {"frames_per_s": v["frames"] / dt, "mb_per_s": v["bytes"] / dt / 1e6}
@@ -898,7 +898,7 @@ def run_viewer(base: str, out: Path) -> None:
             stats["closed"] = f"{type(exc).__name__}: {exc}"[:160]
 
     def stop(*_: object) -> None:
-        out.write_text(json.dumps(stats))
+        out.write_text(json.dumps(stats), encoding="utf-8")
         os._exit(0)
 
     signal.signal(signal.SIGTERM, stop)
@@ -1058,7 +1058,7 @@ def _build_c(tmp: Path) -> Any:
     if cc is None:
         return None
     src, lib = tmp / "sos.c", tmp / "libsos.so"
-    src.write_text(_C_SOS)
+    src.write_text(_C_SOS, encoding="utf-8")
     r = subprocess.run(
         [cc, "-O3", "-march=native", "-shared", "-fPIC", "-o", str(lib), str(src)],
         capture_output=True,
@@ -2107,17 +2107,17 @@ def main() -> None:
     args = ap.parse_args()
     RSS_CAP_MB = args.rss_cap_mb
     if args.compare:
-        b, a = (json.loads(p.read_text()) for p in args.compare)
+        b, a = (json.loads(p.read_text(encoding="utf-8")) for p in args.compare)
         print(compare(b, a))
         return
     if args.assemble:
-        merged = assemble([json.loads(p.read_text()) for p in args.assemble])
+        merged = assemble([json.loads(p.read_text(encoding="utf-8")) for p in args.assemble])
         if args.json:
-            args.json.write_text(json.dumps(merged, indent=1, default=str))
+            args.json.write_text(json.dumps(merged, indent=1, default=str), encoding="utf-8")
         text = render(merged)
         print(text)
         if args.write:
-            args.write.write_text(text)
+            args.write.write_text(text, encoding="utf-8")
         return
     res: dict[str, Any] = {
         "started": time.strftime("%Y-%m-%d %H:%M %Z"),
@@ -2132,11 +2132,11 @@ def main() -> None:
         res["load_end"] = loadavg()
         if args.json:
             args.json.parent.mkdir(parents=True, exist_ok=True)
-            args.json.write_text(json.dumps(res, indent=1, default=str))
+            args.json.write_text(json.dumps(res, indent=1, default=str), encoding="utf-8")
     text = render(res)
     print(text)
     if args.write:
-        args.write.write_text(text)
+        args.write.write_text(text, encoding="utf-8")
         print(f"wrote {args.write}")
 
 

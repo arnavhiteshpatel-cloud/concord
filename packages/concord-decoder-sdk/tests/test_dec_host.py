@@ -151,7 +151,9 @@ def test_import_errors_are_reported_in_hello(name: str) -> None:
 
 def test_garbage_on_the_channel_is_a_protocol_error(tmp_path: Path) -> None:
     script = tmp_path / "garbage.py"
-    script.write_text("import sys\nsys.stdout.buffer.write(b'\\xff\\xff\\xff\\xffgarbage')\n")
+    script.write_text(
+        "import sys\nsys.stdout.buffer.write(b'\\xff\\xff\\xff\\xffgarbage')\n", encoding="utf-8"
+    )
     with pytest.raises(DecoderHostDied, match="protocol error"):
         SyncDecoderHost(command=[sys.executable, str(script)], hello_timeout_s=10)
 
@@ -161,7 +163,8 @@ def test_wrong_hello_is_refused(tmp_path: Path) -> None:
     script.write_text(
         "import sys\nfrom concord_decoder_sdk import ipc\n"
         "ipc.write_message(sys.stdout.buffer, {'type': 'hello', 'protocol': 'other/9'})\n"
-        "import time; time.sleep(5)\n"
+        "import time; time.sleep(5)\n",
+        encoding="utf-8",
     )
     with pytest.raises(DecoderHostDied, match="unexpected first message"):
         SyncDecoderHost(command=[sys.executable, str(script)], hello_timeout_s=10)
@@ -191,13 +194,14 @@ def test_list_probes_installed_entry_points(tmp_path: Path) -> None:
     info = site / "concord_test_decoders-0.0.1.dist-info"
     info.mkdir(parents=True)
     (info / "METADATA").write_text(
-        "Metadata-Version: 2.1\nName: concord-test-decoders\nVersion: 0.0.1\n"
+        "Metadata-Version: 2.1\nName: concord-test-decoders\nVersion: 0.0.1\n", encoding="utf-8"
     )
     (info / "entry_points.txt").write_text(
         "[concord.decoders]\n"
         "good = concord_test_decoders:GoodDecoder\n"
         "bad-manifest = concord_test_decoders:BadManifestDecoder\n"
-        "missing = concord_test_decoders:NoSuchClass\n"
+        "missing = concord_test_decoders:NoSuchClass\n",
+        encoding="utf-8",
     )
     import os
 

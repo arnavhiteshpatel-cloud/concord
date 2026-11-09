@@ -686,10 +686,10 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
     res = run(args.data, None if args.no_models else args.models)
     args.json.parent.mkdir(parents=True, exist_ok=True)
-    args.json.write_text(json.dumps(res, indent=1, default=float))
+    args.json.write_text(json.dumps(res, indent=1, default=float), encoding="utf-8")
     print(f"wrote {args.json}")
     if args.write:
-        args.write.write_text(markdown(res))
+        args.write.write_text(markdown(res), encoding="utf-8")
         print(f"wrote {args.write}")
     return 0
 

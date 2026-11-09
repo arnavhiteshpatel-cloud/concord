@@ -63,7 +63,7 @@ def test_failing_prepare_session_is_open_failed_with_brainflow_error_code() -> N
 
 def test_playback_of_a_file_that_is_not_brainflow_data_fails_cleanly(tmp_path: Path) -> None:
     empty = tmp_path / "empty.csv"
-    empty.write_text("")
+    empty.write_text("", encoding="utf-8")
     with pytest.raises(OpenFailed, match="prepare_session failed"):
         BrainFlowPlugin().open("playback", {"file": str(empty), "master_board": "SYNTHETIC_BOARD"})
     # the failed session was released; the synthetic board still opens

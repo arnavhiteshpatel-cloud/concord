@@ -48,7 +48,9 @@ def test_whole_directory_tree_is_resolved(tmp_path: Path) -> None:
     rep = compare_openephys(top, b, OEOptions())
     assert rep["result"] == "pass"
     (top / "Record Node 102" / "experiment1" / "recording1").mkdir(parents=True)
-    (top / "Record Node 102" / "experiment1" / "recording1" / "structure.oebin").write_text("{}")
+    (top / "Record Node 102" / "experiment1" / "recording1" / "structure.oebin").write_text(
+        "{}", encoding="utf-8"
+    )
     with pytest.raises(InputError, match="contains 2 recordings"):
         compare_openephys(top, b, OEOptions())
 
@@ -278,5 +280,5 @@ def test_reader_parses_official_layout(tmp_path: Path) -> None:
     s = rec.stream(None)
     assert s.n == case.n and np.array_equal(s.sample_numbers, case.sn)
     assert np.array_equal(np.asarray(s.samples), case.i16)
-    oebin = json.loads((ref / "structure.oebin").read_text())
+    oebin = json.loads((ref / "structure.oebin").read_text(encoding="utf-8"))
     assert s.folder_name == oebin["continuous"][0]["folder_name"].rstrip("/")

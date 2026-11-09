@@ -35,7 +35,7 @@ from concord.decoding import evaluate_ecog as ev
 from concord.decoding.lda import LDAClassifier
 
 from .conftest import free_port, make_settings, serve, subscribe
-from .helpers import drain, events, wait_for
+from .helpers import drain, events, link_or_copy, wait_for
 
 REPO = Path(__file__).resolve().parents[2]
 DATA = Path(os.environ.get("CONCORD_TEST_ECOG", REPO / "data" / "datasets" / "dandi-000055"))
@@ -78,8 +78,8 @@ def data_root(tmp_path: Path, demo_model: tuple[LDAClassifier, dict[str, Any], P
     root = tmp_path / "data"
     (root / "datasets").mkdir(parents=True)
     for f in (TRAIN_FILE, TEST_FILE):
-        (root / "datasets" / f.name).symlink_to(f)
-    (root / "models").symlink_to(demo_model[2], target_is_directory=True)
+        link_or_copy(root / "datasets" / f.name, f)
+    link_or_copy(root / "models", demo_model[2])
     return root
 
 
@@ -316,7 +316,7 @@ async def test_modality_guards_on_real_streams(
     )
     assert "modality" not in ridge.input
     ridge.save(models / f"{ridge.model_id}.json")
-    (data_root / "datasets" / falcon_file.name).symlink_to(falcon_file)
+    link_or_copy(data_root / "datasets" / falcon_file.name, falcon_file)
     reg = DeviceRegistry(OperatorIntentSource(), data_root / "recordings", seed=1)
     rt = Runtime(reg, Recorder(data_root / "recordings"))
     ecog_spec = {"preset": "ecog_high_gamma", "bin_ms": 100}

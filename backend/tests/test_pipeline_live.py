@@ -106,7 +106,7 @@ async def _collect(sub: Any, until: Any, timeout: float) -> list[dict[str, Any]]
 
 
 def _read_recording(path: Path) -> list[dict[str, Any]]:
-    with path.open() as fh:
+    with path.open(encoding="utf-8") as fh:
         return [json.loads(line) for i, line in enumerate(fh) if i > 0 and line.strip()]
 
 
@@ -141,7 +141,7 @@ async def test_calibrate_from_falcon_streamed_over_lsl(
     info = rt.stop_recording()
     assert info.name == name
     path = tmp_path / "rec" / f"{name}.concord.jsonl"
-    with path.open() as fh:
+    with path.open(encoding="utf-8") as fh:
         header = json.loads(fh.readline())
     src = header["source_metadata"]  # the LSL adapter's own snapshot when recording started
     assert src["protocol"] == "lsl" and src["device_id"] == did
@@ -209,7 +209,7 @@ def test_calibration_refuses_recordings_without_labels(tmp_path: Path) -> None:
                 "payload": {"feature": "spike_count", "bin_ms": 20.0, "counts": [1, 2]},
             }
         )
-    path.write_text("\n".join(json.dumps(x) for x in lines))
+    path.write_text("\n".join(json.dumps(x) for x in lines), encoding="utf-8")
     with pytest.raises(CalibrationError, match="no behavioral targets"):
         calibrate([path])
 

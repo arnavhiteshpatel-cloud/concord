@@ -17,6 +17,7 @@ override both for one run. Ordinary use needs no flags.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import os
 import sys
@@ -251,10 +252,10 @@ def cmd_doctor(args: argparse.Namespace) -> int:
     md = doctor.to_markdown(report)
     written: list[Path] = []
     if args.json:
-        Path(args.json).write_text(json.dumps(report, indent=1) + "\n")
+        Path(args.json).write_text(json.dumps(report, indent=1) + "\n", encoding="utf-8")
         written.append(Path(args.json))
     if args.markdown:
-        Path(args.markdown).write_text(md)
+        Path(args.markdown).write_text(md, encoding="utf-8")
         written.append(Path(args.markdown))
     if not written and not args.print:
         j, m = doctor.write(report, data_dir / "support")
@@ -465,7 +466,19 @@ def cmd_publish(args: argparse.Namespace) -> int:
     return publish_main(list(args.publish_args))
 
 
+def safe_console_streams() -> None:
+    """Never crash on a character the console cannot show. A redirected Windows console
+    encodes with the ANSI code page (cp1252), which has no arrows, "µ" in some pages, etc.;
+    such characters are printed escaped instead of raising UnicodeEncodeError."""
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            with contextlib.suppress(ValueError, OSError):
+                reconfigure(errors="backslashreplace")
+
+
 def main(argv: list[str] | None = None) -> int:
+    safe_console_streams()
     argv = list(sys.argv[1:] if argv is None else argv)
     if argv[:1] == ["publish"]:  # its own options (incl. --help) go to the publisher unparsed
         return cmd_publish(argparse.Namespace(publish_args=argv[1:]))

@@ -41,12 +41,8 @@ from concord.adapters.replay.format import (
 )
 from concord.contracts.events import SCHEMA_VERSION, EventEnvelope
 from concord.contracts.protocol import DeviceDescriptor
+from concord.oscompat import is_locked, try_lock, unlink_before_close, unlock
 from concord.security import ensure_private_dir, open_private, write_private
-
-try:  # POSIX advisory locks; on other platforms the marker's pid is used instead
-    import fcntl
-except ImportError:  # pragma: no cover - Windows
-    fcntl = None  # type: ignore[assignment]
 
 log = logging.getLogger(__name__)
 
@@ -171,16 +167,6 @@ def _json_safe(value: dict[str, Any] | None) -> dict[str, Any] | None:
     return out if isinstance(out, dict) else None
 
 
-def _pid_alive(pid: int) -> bool:
-    try:
-        os.kill(pid, 0)
-    except ProcessLookupError:
-        return False
-    except PermissionError:
-        return True
-    return True
-
-
 class Recorder:
     def __init__(
         self,
@@ -285,8 +271,14 @@ class Recorder:
             fd = open_private(path, exclusive=True)
         except FileExistsError:
             raise RecorderError(f"recording {name!r} already exists") from None
-        self._marker_fd = self._write_marker(name, device, header.created_at_ns)
-        self._fh = os.fdopen(fd, "w", encoding="utf-8")
+        try:
+            self._marker_fd = self._write_marker(name, device, header.created_at_ns)
+        except BaseException:
+            os.close(fd)
+            path.unlink(missing_ok=True)
+            raise
+        # newline="\n": the same bytes on every platform (Windows would write "\r\n")
+        self._fh = os.fdopen(fd, "w", encoding="utf-8", newline="\n")
         line = header.model_dump_json(exclude_none=True) + "\n"
         self._fh.write(line)
         self._fh.flush()  # header must be readable while recording (device listing)
@@ -302,8 +294,9 @@ class Recorder:
     def _write_marker(self, name: str, device: DeviceDescriptor, created_at_ns: int) -> int:
         marker = _sidecar(self.directory, name, ACTIVE_SUFFIX)
         fd = open_private(marker)
-        if fcntl is not None:
-            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        if not try_lock(fd):
+            os.close(fd)
+            raise RecorderError(f"recording {name!r} is being written by another process")
         body = {
             "pid": os.getpid(),
             "device_id": device.device_id,
@@ -314,11 +307,24 @@ class Recorder:
 
     def _release_marker(self, name: str) -> None:
         fd, self._marker_fd = self._marker_fd, None
-        with contextlib.suppress(OSError):
-            _sidecar(self.directory, name, ACTIVE_SUFFIX).unlink()
-        if fd is not None:
+        marker = _sidecar(self.directory, name, ACTIVE_SUFFIX)
+        if unlink_before_close():  # POSIX: gone before the lock is released
             with contextlib.suppress(OSError):
-                os.close(fd)  # releases the lock
+                marker.unlink()
+            if fd is not None:
+                with contextlib.suppress(OSError):
+                    os.close(fd)  # releases the lock
+            return
+        # Windows cannot delete an open file; a marker left behind would make the next start
+        # "recover" this cleanly closed recording as interrupted
+        if fd is not None:
+            unlock(fd)
+            with contextlib.suppress(OSError):
+                os.close(fd)
+        try:
+            marker.unlink(missing_ok=True)
+        except OSError as exc:
+            log.error("recording %s: could not remove its marker %s: %s", name, marker, exc)
 
     def wants(self, envelope: EventEnvelope) -> bool:
         """Whether ``on_event`` would write ``envelope`` (the bus serializes only then)."""
@@ -441,9 +447,19 @@ class Recorder:
         if not any(p.name.endswith(RECORDING_SUFFIX) for p in files):
             raise RecorderError(f"no recording {name!r}")
         freed = 0
+        # the recording itself first (files() lists it first): on Windows a file that is open
+        # (being replayed, or in another program) cannot be deleted, and then nothing is
         for p in files:
-            freed += p.stat().st_size
-            p.unlink()
+            size = p.stat().st_size
+            try:
+                p.unlink()
+            except PermissionError as exc:
+                log.warning("recording %s: cannot delete %s: %s", name, p.name, exc)
+                raise RecorderError(
+                    f"recording {name!r} is open (being replayed, or in another program); "
+                    "close it and try again"
+                ) from None
+            freed += size
         log.info("recording %s deleted (%d bytes)", name, freed)
         self._notify("deleted", name, {"bytes": freed})
         return freed
@@ -487,21 +503,9 @@ class Recorder:
             pid = int(raw) if raw else None
         except (ValueError, OSError, TypeError):
             pid = None
-        if fcntl is not None:
-            try:
-                fd = os.open(marker, os.O_RDONLY)
-            except OSError:
-                return pid
-            try:
-                fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            except OSError:
-                return "alive"
-            finally:
-                os.close(fd)
-            return pid
-        if pid is not None and pid != os.getpid() and _pid_alive(pid):
-            return "alive"
-        return pid
+        # the writer holds a lock on the marker until it closes the recording; the OS releases
+        # it when the writer dies (flock on POSIX, a byte-range lock on Windows)
+        return "alive" if is_locked(marker) else pid
 
     def _recover_one(self, name: str, pid: int | None) -> RecoveryInfo | None:
         path = recording_path(self.directory, name)

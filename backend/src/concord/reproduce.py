@@ -25,6 +25,7 @@ import argparse
 import hashlib
 import json
 import math
+import re
 import sys
 import tempfile
 import zipfile
@@ -34,6 +35,8 @@ from typing import Any
 
 TOL = 1e-6
 BUNDLE_FORMAT = "concord.session-bundle/1"
+# device names Windows reserves in every folder (also with an extension: "con.json")
+WINDOWS_RESERVED = re.compile(r"^(con|prn|aux|nul|com[0-9]|lpt[0-9])$")
 
 
 class BundleError(Exception):
@@ -45,8 +48,19 @@ def _close(a: float, b: float) -> bool:
 
 
 def _safe_member(name: str) -> bool:
+    """A zip member that extracts inside the destination on every platform. Backslashes and
+    colons are refused too: on Windows "..\\x" climbs out of the folder and "C:x" or "D:/x"
+    names another drive, although neither looks like a path to POSIX rules."""
     p = PurePosixPath(name)
-    return not p.is_absolute() and ".." not in p.parts and name == p.as_posix() and bool(name)
+    return (
+        bool(name)
+        and not p.is_absolute()
+        and ".." not in p.parts
+        and name == p.as_posix()
+        and "\\" not in name
+        and ":" not in name
+        and not any(WINDOWS_RESERVED.match(part.split(".")[0].lower()) for part in p.parts)
+    )
 
 
 def verify_and_extract(bundle: Path, dest: Path) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -160,8 +174,8 @@ def check_calibration(root: Path, cal: dict[str, Any], work: Path) -> dict[str, 
     bundled = root / "models" / f"{mid}.json"
     weights_diff: float | None = None
     if bundled.exists():
-        orig = json.loads(bundled.read_text())
-        new = json.loads((out_dir / f"{model.model_id}.json").read_text())
+        orig = json.loads(bundled.read_text(encoding="utf-8"))
+        new = json.loads((out_dir / f"{model.model_id}.json").read_text(encoding="utf-8"))
         keys = [
             k for k in ("weights", "intercept", "x_mean", "x_std", "means", "coef") if k in orig
         ]
@@ -285,7 +299,10 @@ def check_decoded_output(root: Path, recording: Path) -> list[dict[str, Any]]:
 
 
 def reproduce(bundle: Path) -> dict[str, Any]:
-    with tempfile.TemporaryDirectory(prefix="concord-reproduce-") as tmp:
+    # ignore_cleanup_errors: on Windows a virus scanner may still hold a file open briefly
+    with tempfile.TemporaryDirectory(
+        prefix="concord-reproduce-", ignore_cleanup_errors=True
+    ) as tmp:
         root = Path(tmp) / "bundle"
         root.mkdir()
         manifest, integrity = verify_and_extract(bundle, root)
@@ -337,7 +354,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"[{mark}] {what}: {c['detail']}")
     print(f"result: {result['status']}")
     if args.json:
-        args.json.write_text(json.dumps(result, indent=1, default=str) + "\n")
+        args.json.write_text(json.dumps(result, indent=1, default=str) + "\n", encoding="utf-8")
     return {"reproduced": 0, "failed": 1}.get(result["status"], 2)
 
 

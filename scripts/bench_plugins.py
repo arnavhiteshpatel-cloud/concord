@@ -141,7 +141,7 @@ def main() -> int:
     table = asyncio.run(run(a.seconds))
     print(table)
     if a.write:
-        a.write.write_text(table)
+        a.write.write_text(table, encoding="utf-8")
     return 0
 
 

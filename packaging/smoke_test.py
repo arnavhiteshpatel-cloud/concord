@@ -1,22 +1,27 @@
 """Smoke-test a built Concord desktop bundle as a user would run it (no repository code used).
 
-    python packaging/smoke_test.py EXECUTABLE [--app Concord.app] [--gui] [--dmg Concord.dmg]
-                                   [--report report.json]
+    python packaging/smoke_test.py EXECUTABLE [--cli PROGRAM] [--app Concord.app] [--gui]
+                                   [--window] [--dmg Concord.dmg] [--report report.json]
 
-EXECUTABLE is ``Concord.app/Contents/MacOS/Concord`` (macOS) or ``Concord/Concord`` (Linux).
-Steps (each recorded in the report; any failure exits 1):
+EXECUTABLE is ``Concord.app/Contents/MacOS/Concord`` (macOS), ``Concord/Concord`` (Linux) or
+``Concord\\Concord.exe`` (Windows). ``--cli`` is the program that answers ``concord`` commands:
+the same executable on macOS and Linux, ``Concord\\concord-cli.exe`` on Windows (the windowed
+``Concord.exe`` has no console output). Steps (each recorded in the report; any failure exits 1):
 
-1. ``--version`` and ``doctor`` from the bundle itself.
+1. ``--version``, the decoder host and ``doctor`` from the bundle itself.
 2. Headless launch with a fresh data directory: health, the console page, the built-in
    sources, bundled native parts (scipy pipeline presets, NWB support, liblsl), the plugin
    host inside the bundle (BCI2000 plugin discovered as compatible), Simulated Profile A
-   connected over REST with events flowing, a research session and a recording; then SIGTERM
-   (= Quit) and checks that the recording was closed cleanly with private permissions.
-3. Crash recovery: SIGKILL mid-recording, relaunch, the recording is kept and marked
-   incomplete.
-4. ``--gui`` (macOS): ``open`` the .app like a double-click, then quit it with an Apple Event
+   connected over REST with events flowing, a research session and a recording; then quit
+   (SIGTERM; on Windows ``concord-cli.exe stop``, which has no SIGTERM to send) and checks that
+   the recording was closed cleanly (with private permissions, on POSIX).
+3. Crash recovery: kill mid-recording (SIGKILL / TerminateProcess), relaunch, the recording
+   is kept and marked incomplete.
+4. ``start`` / ``status`` / ``stop`` from the command program: the background server.
+5. ``--window``: the Tk status window opens, and the same quit stops everything cleanly.
+6. ``--gui`` (macOS): ``open`` the .app like a double-click, then quit it with an Apple Event
    (as Cmd-Q / Dock > Quit do) and check the clean shutdown.
-5. ``--dmg``: attach the disk image read-only and run step 2 from the mounted app.
+7. ``--dmg``: attach the disk image read-only and run step 2 from the mounted app.
 """
 
 from __future__ import annotations
@@ -42,6 +47,7 @@ from typing import Any, ParamSpec
 P = ParamSpec("P")
 BUNDLE_ID = "org.concord.desktop"
 STEPS: list[dict[str, Any]] = []
+WINDOWS = sys.platform == "win32"
 
 
 def free_port() -> int:
@@ -126,14 +132,44 @@ def env_for(data: Path, port: int) -> dict[str, str]:
     return env
 
 
-def launch(exe: Path, data: Path, port: int) -> subprocess.Popen[bytes]:
-    log = (data.parent / f"launch-{port}.log").open("ab")
-    return subprocess.Popen(
-        [str(exe), "--headless", "--no-browser"],
+def run_cli(cli: Path, args: list[str], data: Path, port: int, timeout: float = 180) -> Any:
+    """A ``concord`` command from the bundle, for the instance on ``data`` / ``port``."""
+    return subprocess.run(
+        [str(cli), *args],
         env=env_for(data, port),
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=timeout,
+    )
+
+
+def launch(exe: Path, data: Path, port: int, *, window: bool = False) -> subprocess.Popen[bytes]:
+    log = (data.parent / f"launch-{port}.log").open("ab")
+    args = ["--no-browser"] if window else ["--headless", "--no-browser"]
+    return subprocess.Popen(
+        [str(exe), *args],
+        env={**env_for(data, port), "PYTHONIOENCODING": "utf-8"},
         stdout=log,
         stderr=subprocess.STDOUT,
     )
+
+
+def quit_app(proc: subprocess.Popen[bytes], cli: Path, data: Path, port: int) -> tuple[int, str]:
+    """Quit like `concord stop` does: SIGTERM on POSIX; on Windows the command program's
+    `stop` (a stop request: Windows has no SIGTERM a program can catch). Returns the app's
+    exit code and how it was asked."""
+    if WINDOWS:
+        out = run_cli(cli, ["stop"], data, port, timeout=120)
+        text = (out.stdout + out.stderr).strip()
+        assert out.returncode == 0, f"stop exited {out.returncode}: {text[-1500:]}"
+        assert "Concord stopped" in text, text[-1500:]
+        how = "concord-cli.exe stop"
+    else:
+        proc.send_signal(signal.SIGTERM)
+        how = "SIGTERM"
+    return proc.wait(60), how
 
 
 def wait_healthy(
@@ -152,9 +188,43 @@ def mode(p: Path) -> int:
     return stat.S_IMODE(p.stat().st_mode)
 
 
+def lock_released(pid_file: Path) -> bool:
+    """No process holds the server's instance lock. Windows: the file is gone (the server
+    deletes it after closing it). POSIX: the file may stay behind after SIGTERM (uvicorn ends
+    the process by re-raising the signal), but nobody holds its lock."""
+    if not pid_file.exists():
+        return True
+    if WINDOWS:
+        return False
+    import fcntl
+
+    with pid_file.open("rb") as fh:
+        try:
+            fcntl.flock(fh.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError:
+            return False
+    return True
+
+
+def private(rec: Path, data: Path) -> str:
+    """POSIX: the recording is 0600 and the data folder 0700. Windows has no mode bits (the
+    data folder's access comes from the user's profile folder)."""
+    if WINDOWS:
+        return "permissions: Windows ACLs (not checked)"
+    assert mode(rec) == 0o600 and mode(data) == 0o700, "private permissions"
+    return "0600, data dir 0700"
+
+
 @step("version")
 def check_version(exe: Path) -> str:
-    out = subprocess.run([str(exe), "--version"], capture_output=True, text=True, timeout=120)
+    out = subprocess.run(
+        [str(exe), "--version"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=120,
+    )
     text = (out.stdout + out.stderr).strip()
     assert out.returncode == 0, text
     if not text:  # a windowed bootloader may have no console streams; doctor checks the rest
@@ -170,6 +240,8 @@ def check_decoder_host(exe: Path) -> str:
         [str(exe), "-m", "concord_decoder_sdk.host", "--list"],
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
         timeout=120,
     )
     assert out.returncode == 0, (out.stdout + out.stderr).strip()[-2000:]
@@ -183,14 +255,8 @@ def check_decoder_host(exe: Path) -> str:
 def check_doctor(exe: Path, work: Path) -> str:
     data, port = work / "doctor-data", free_port()
     report = work / "doctor.json"
-    out = subprocess.run(
-        [str(exe), "doctor", "--json", str(report), "--no-plugins"],
-        env=env_for(data, port),
-        capture_output=True,
-        text=True,
-        timeout=180,
-    )
-    rep = json.loads(report.read_text())
+    out = run_cli(exe, ["doctor", "--json", str(report), "--no-plugins"], data, port)
+    rep = json.loads(report.read_text(encoding="utf-8"))
     assert rep["format"] == "concord.support-report/1", rep.get("format")
     checks = {c["id"]: c["status"] for c in rep["checks"]}
     for cid in ("dsp", "nwb", "lsl", "zmq"):
@@ -244,34 +310,36 @@ def exercise(base: str, label: str) -> dict[str, Any]:
     }
 
 
-@step("headless launch, sources, plugin host, events, quit (SIGTERM)")
-def check_headless(exe: Path, work: Path, label: str = "headless") -> str:
+@step("headless launch, sources, plugin host, events, quit")
+def check_headless(exe: Path, cli: Path, work: Path, label: str = "headless") -> str:
     data, port = work / f"data-{label}", free_port()
     base = f"http://127.0.0.1:{port}"
     proc = launch(exe, data, port)
     try:
         h = wait_healthy(base, proc)
         info = exercise(base, label)
-        proc.send_signal(signal.SIGTERM)
-        code = proc.wait(60)
+        code, how = quit_app(proc, cli, data, port)
     finally:
         if proc.poll() is None:
             proc.kill()
-    assert code == 0, f"exit code {code} after SIGTERM"
+    assert code == 0, f"exit code {code} after {how}"
     assert healthy(base) is None, "still answering after quit"
     rec = data / "recordings" / f"{info['recording']}.concord.jsonl"
     assert rec.exists() and not (data / "recordings" / f"{info['recording']}.active.json").exists()
-    assert mode(rec) == 0o600 and mode(data) == 0o700, "private permissions"
-    s = json.loads((data / "sessions" / info["session"] / "session.json").read_text())
+    perms = private(rec, data)
+    s = json.loads(
+        (data / "sessions" / info["session"] / "session.json").read_text(encoding="utf-8")
+    )
     assert s["status"] == "closed", s["status"]
+    assert not (data / "concord.pid").exists(), "instance lock not released"
     return (
         f"Concord {h['version']} healthy; sim-a frames {info['frame_rate_hz']} Hz; plugins "
-        f"{info['plugins']}; recording closed cleanly (0600, data dir 0700); session closed"
+        f"{info['plugins']}; quit by {how}; recording closed cleanly ({perms}); session closed"
     )
 
 
-@step("crash recovery (SIGKILL mid-recording, relaunch)")
-def check_crash(exe: Path, work: Path) -> str:
+@step("crash recovery (killed mid-recording, relaunch)")
+def check_crash(exe: Path, cli: Path, work: Path) -> str:
     data, port = work / "data-crash", free_port()
     base = f"http://127.0.0.1:{port}"
     proc = launch(exe, data, port)
@@ -280,7 +348,7 @@ def check_crash(exe: Path, work: Path) -> str:
         http("POST", base + "/api/v1/runtime/connect", {"device_id": "sim-a"})
         name = http("POST", base + "/api/v1/recordings/start", {"name": "crash"})["name"]
         time.sleep(1.5)
-        proc.kill()
+        proc.kill()  # SIGKILL; TerminateProcess on Windows
         proc.wait(30)
     finally:
         if proc.poll() is None:
@@ -290,39 +358,67 @@ def check_crash(exe: Path, work: Path) -> str:
         wait_healthy(base, proc)
         rec = next(r for r in http("GET", base + "/api/v1/recordings") if r["name"] == name)
         assert rec["complete"] is False and rec["recovery"]["valid_events"] > 0, rec
-        proc.send_signal(signal.SIGTERM)
-        assert proc.wait(60) == 0
+        code, how = quit_app(proc, cli, data, port)
+        assert code == 0, f"exit code {code} after {how}"
     finally:
         if proc.poll() is None:
             proc.kill()
     return f"kept {rec['recovery']['valid_events']} events, marked incomplete"
 
 
-@step("window mode (Tk status window), quit (SIGTERM reaches the window's event loop)")
-def check_window(exe: Path, work: Path) -> str:
+@step("command program: start (background server), status, stop")
+def check_cli_server(cli: Path, work: Path) -> str:
+    data, port = work / "data-cli", free_port()
+    base = f"http://127.0.0.1:{port}"
+    started = False
+    try:
+        out = run_cli(cli, ["start", "--no-browser"], data, port)
+        text = (out.stdout + out.stderr).strip()
+        assert out.returncode == 0, f"start exited {out.returncode}: {text[-1500:]}"
+        started = True
+        assert healthy(base) is not None, "start returned but the server is not healthy"
+        st = run_cli(cli, ["status", "--json"], data, port, timeout=60)
+        status = json.loads(st.stdout)
+        assert st.returncode == 0 and status["running"] is True, st.stdout + st.stderr
+        http("POST", base + "/api/v1/runtime/connect", {"device_id": "sim-a"})
+        name = http("POST", base + "/api/v1/recordings/start", {"name": "cli"})["name"]
+        time.sleep(1.0)
+        stop = run_cli(cli, ["stop"], data, port, timeout=120)
+        said = (stop.stdout + stop.stderr).strip()
+        assert stop.returncode == 0 and "Concord stopped" in said, said[-1500:]
+        started = False
+    finally:
+        if started:  # do not leave a server behind on a failed check
+            with contextlib.suppress(Exception):
+                run_cli(cli, ["stop", "--timeout", "10"], data, port, timeout=60)
+    wait_until(lambda: healthy(base) is None, 30, "the server to stop")
+    rec = data / "recordings" / f"{name}.concord.jsonl"
+    assert rec.exists() and not (data / "recordings" / f"{name}.active.json").exists()
+    assert lock_released(data / "concord.pid"), "instance lock not released"
+    return f"pid {status['pid']} started in the background; {said.splitlines()[-1]}"
+
+
+@step("window mode (Tk status window), quit reaches the window's event loop")
+def check_window(exe: Path, cli: Path, work: Path) -> str:
     data, port = work / "data-window", free_port()
     base = f"http://127.0.0.1:{port}"
-    log = (work / f"launch-{port}.log").open("ab")
-    proc = subprocess.Popen(
-        [str(exe), "--no-browser"], env=env_for(data, port), stdout=log, stderr=subprocess.STDOUT
-    )
+    proc = launch(exe, data, port, window=True)
     try:
         wait_healthy(base, proc)
         http("POST", base + "/api/v1/runtime/connect", {"device_id": "sim-a"})
         name = http("POST", base + "/api/v1/recordings/start", {"name": "window"})["name"]
         time.sleep(1.0)
-        text = (data / "logs" / "concord.log").read_text()
+        text = (data / "logs" / "concord.log").read_text(encoding="utf-8")
         assert "Concord window open" in text, "the app did not open its window"
         assert "no window could be created" not in text and "no window toolkit" not in text
-        proc.send_signal(signal.SIGTERM)
-        code = proc.wait(60)
+        code, how = quit_app(proc, cli, data, port)
     finally:
         if proc.poll() is None:
             proc.kill()
-    assert code == 0, f"exit code {code}"
+    assert code == 0, f"exit code {code} after {how}"
     rec = data / "recordings" / f"{name}.concord.jsonl"
     assert rec.exists() and not (data / "recordings" / f"{name}.active.json").exists()
-    return "window opened; quit stopped the server cleanly; recording closed"
+    return f"window opened; quit by {how} stopped the server cleanly; recording closed"
 
 
 @step("macOS: open the .app (double-click equivalent), quit with an Apple Event")
@@ -367,7 +463,11 @@ def check_gui(app: Path, work: Path) -> str:
     window = "unknown"
     log = data / "logs" / "concord.log"
     if log.exists():
-        window = "headless fallback" if "no window toolkit" in log.read_text() else "Tk window"
+        window = (
+            "headless fallback"
+            if "no window toolkit" in log.read_text(encoding="utf-8")
+            else "Tk window"
+        )
     return f"Concord {h['version']} launched via `open`; quit by {how}; recording closed; {window}"
 
 
@@ -383,7 +483,8 @@ def check_dmg(dmg: Path, work: Path) -> str:
     try:
         app = mnt / "Concord.app"
         assert app.is_dir() and (mnt / "Applications").is_symlink(), "dmg layout"
-        detail = check_headless(app / "Contents" / "MacOS" / "Concord", work, label="dmg")
+        exe = app / "Contents" / "MacOS" / "Concord"
+        detail = check_headless(exe, exe, work, label="dmg")
     finally:
         subprocess.run(["hdiutil", "detach", str(mnt)], timeout=120)
     return f"mounted read-only; {detail}"
@@ -394,12 +495,18 @@ def main(argv: list[str] | None = None) -> int:
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
     ap.add_argument("executable", type=Path)
+    ap.add_argument(
+        "--cli",
+        type=Path,
+        help="the program that answers concord commands (Windows: concord-cli.exe; "
+        "default: EXECUTABLE)",
+    )
     ap.add_argument("--app", type=Path, help="the .app bundle (macOS) for --gui")
     ap.add_argument("--gui", action="store_true")
     ap.add_argument(
         "--window",
         action="store_true",
-        help="also run with the status window (needs a display: macOS, or Linux DISPLAY)",
+        help="also run with the status window (needs a display: macOS, Windows, or Linux DISPLAY)",
     )
     ap.add_argument("--dmg", type=Path)
     ap.add_argument("--report", type=Path)
@@ -407,17 +514,21 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
     if args.gui and (sys.platform != "darwin" or args.app is None):
         raise SystemExit("--gui needs macOS and --app")
+    exe = args.executable.resolve()
+    cli = (args.cli or args.executable).resolve()
+    if WINDOWS and cli == exe:
+        raise SystemExit("Windows: pass --cli Concord\\concord-cli.exe (Concord.exe is windowed)")
     work = Path(tempfile.mkdtemp(prefix="concord-smoke-"))
-    exe = args.executable
     checks: list[Callable[[], str]] = [
-        lambda: check_version(exe),
-        lambda: check_decoder_host(exe),
-        lambda: check_doctor(exe, work),
-        lambda: check_headless(exe, work),
-        lambda: check_crash(exe, work),
+        lambda: check_version(cli),
+        lambda: check_decoder_host(cli),
+        lambda: check_doctor(cli, work),
+        lambda: check_headless(exe, cli, work),
+        lambda: check_crash(exe, cli, work),
+        lambda: check_cli_server(cli, work),
     ]
     if args.window:
-        checks.append(lambda: check_window(exe, work))
+        checks.append(lambda: check_window(exe, cli, work))
     if args.gui:
         checks.append(lambda: check_gui(args.app, work))
     if args.dmg:
@@ -435,15 +546,19 @@ def main(argv: list[str] | None = None) -> int:
             "ok": ok,
             "platform": sys.platform,
             "executable": str(args.executable),
+            "cli": str(cli),
             "steps": STEPS,
         }
         if args.report:
-            args.report.write_text(json.dumps(report, indent=1) + "\n")
+            args.report.write_text(json.dumps(report, indent=1) + "\n", encoding="utf-8")
         if not ok:
-            for log in sorted(work.glob("launch-*.log")):
+            logs = [*sorted(work.glob("launch-*.log")), *sorted(work.glob("data-*/logs/*.log"))]
+            for log in logs:
                 print(
-                    f"--- {log.name} (tail)\n"
-                    + "\n".join(log.read_text(errors="replace").splitlines()[-40:])
+                    f"--- {log.relative_to(work)} (tail)\n"
+                    + "\n".join(
+                        log.read_text(errors="replace", encoding="utf-8").splitlines()[-40:]
+                    )
                 )
         if not args.keep:
             shutil.rmtree(work, ignore_errors=True)

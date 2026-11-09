@@ -121,7 +121,7 @@ class DemoSession(SourceSession):
 
     def close(self) -> None:
         if self.close_marker:
-            with open(self.close_marker, "a") as f:
+            with open(self.close_marker, "a", encoding="utf-8") as f:
                 f.write(f"closed after {self.reads} reads\n")
 
     def stats(self) -> Mapping[str, int | float]:

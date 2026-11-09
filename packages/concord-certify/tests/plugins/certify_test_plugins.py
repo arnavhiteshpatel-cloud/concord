@@ -89,7 +89,7 @@ class DefectSession(SourceSession):
         if self.defect == "stale_lock" and self.lock_file:
             if os.path.exists(self.lock_file):
                 raise OpenFailed(f"device busy: lock file {self.lock_file} exists")
-            with open(self.lock_file, "w") as f:
+            with open(self.lock_file, "w", encoding="utf-8") as f:
                 f.write(str(os.getpid()))
         labels = [f"ch{i}" for i in range(N_CH)]
         if self.defect == "shuffle_labels" and _OPENS[0] > 1:

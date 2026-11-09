@@ -9,7 +9,6 @@ from __future__ import annotations
 import asyncio
 import itertools
 import os
-import signal
 import subprocess
 import sys
 import threading
@@ -34,6 +33,7 @@ from concord.server import create_app
 
 from .conftest import free_port as _free_port
 from .conftest import make_settings
+from .helpers import kill_now
 
 PLUGIN = "example-mi-eeg"
 DEVICE = "plugin:example-mi-eeg:mi-eeg"
@@ -220,7 +220,7 @@ async def test_example_adapter_end_to_end(server: str, tmp_path: Path) -> None:
         meta = await c._call("GET", f"/devices/{DEVICE}/source")
         pid = meta["host_pid"]
         assert pid and pid != os.getpid()
-        os.kill(pid, signal.SIGKILL)
+        kill_now(pid)
         for _ in range(200):
             d = await c.diagnostics()
             snap = await c.runtime()

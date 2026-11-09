@@ -21,7 +21,6 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-import sys
 import threading
 import time
 from collections.abc import Sequence
@@ -31,6 +30,7 @@ from typing import Any, Literal
 
 from concord.decoding import model as models
 from concord.decoding.families import family_of
+from concord.oscompat import child_kwargs, helper_executable, replace
 
 log = logging.getLogger(__name__)
 
@@ -132,7 +132,7 @@ class ModelRegistry:
         self, models_dir: Path, *, python: str | None = None, extra_path: Sequence[str] = ()
     ) -> None:
         self.models_dir = models_dir
-        self.python = python or sys.executable
+        self.python = python or helper_executable()
         self.extra_path = list(extra_path)
         self._plugins: list[ModelRecord] = []
         self._lock = threading.Lock()
@@ -144,7 +144,7 @@ class ModelRegistry:
 
     def configure(self, python: str | None, extra_path: Sequence[str]) -> None:
         """Interpreter and extra sys.path for decoder hosts (same as source-plugin hosts)."""
-        self.python = python or sys.executable
+        self.python = python or helper_executable()
         self.extra_path = list(extra_path)
 
     # ------------------------------------------------------------------ files
@@ -237,6 +237,7 @@ class ModelRegistry:
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             env=host_env(self.extra_path),
+            **child_kwargs(),
         )
         try:
             out, err = await asyncio.wait_for(proc.communicate(), LIST_TIMEOUT_S)
@@ -398,5 +399,5 @@ class ModelRegistry:
         self.models_dir.mkdir(parents=True, exist_ok=True)
         tmp = self._trust_path().with_suffix(".tmp")
         tmp.write_text(json.dumps(data, indent=1), encoding="utf-8")
-        tmp.replace(self._trust_path())
+        replace(tmp, self._trust_path())
         return data.get(model_id)

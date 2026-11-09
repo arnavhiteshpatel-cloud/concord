@@ -648,7 +648,7 @@ async def test_calibration_round_trip_across_a_restart(
         model.training["output_stats"]
         and model.training["feature_stats"]["bins"] == report["train_bins"]
     )
-    saved = json.loads((models_dir / f"{model.model_id}.json").read_text())
+    saved = json.loads((models_dir / f"{model.model_id}.json").read_text(encoding="utf-8"))
     assert saved["manifest"]["model_id"] == model.model_id
     # "restart": a new registry and runtime load the saved file and decode new data
     src2 = FeatureSource(

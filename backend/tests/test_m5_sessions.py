@@ -9,7 +9,6 @@ from __future__ import annotations
 import io
 import json
 import logging
-import stat
 import time
 import zipfile
 from collections.abc import Callable, Iterator
@@ -26,6 +25,7 @@ from concord.server import create_app
 
 from .conftest import make_settings
 from .feature_source import FeatureSourceAdapter, feature_descriptor
+from .helpers import assert_mode
 
 OPERATOR = "Dr Example Person"
 NOTES = "Participant P-07 reported fatigue after block 2"
@@ -135,8 +135,8 @@ def test_session_safe_stop_export_and_reproduce(
     ]
     folder = tmp_path / "data" / "sessions" / sid
     bundle = folder / "exports" / info["file"]
-    assert stat.S_IMODE(bundle.stat().st_mode) == 0o600
-    assert stat.S_IMODE(folder.stat().st_mode) == 0o700
+    assert_mode(bundle, 0o600)
+    assert_mode(folder, 0o700)
     dl = client.get(f"/api/v1/sessions/{sid}/exports/{info['file']}")
     assert dl.status_code == 200 and dl.headers["content-type"] == "application/zip"
     zf = zipfile.ZipFile(io.BytesIO(dl.content))
@@ -213,10 +213,10 @@ def test_session_safe_stop_export_and_reproduce(
         assert sj["operator"] == OPERATOR and sj["notes"] == NOTES
 
     # the session log and the application log never contain operator name or notes
-    log_text = (folder / "log.jsonl").read_text()
+    log_text = (folder / "log.jsonl").read_text(encoding="utf-8")
     assert OPERATOR not in log_text and "P-07" not in log_text
-    assert stat.S_IMODE((folder / "log.jsonl").stat().st_mode) == 0o600
-    assert stat.S_IMODE((folder / "session.json").stat().st_mode) == 0o600
+    assert_mode(folder / "log.jsonl", 0o600)
+    assert_mode(folder / "session.json", 0o600)
     assert not [r for r in caplog.records if OPERATOR in r.getMessage() or "P-07" in r.getMessage()]
 
     closed = ok(client.post(f"/api/v1/sessions/{sid}/close", json={"safe_stop": True}))
@@ -272,7 +272,7 @@ def test_deletion_requires_confirmation_and_refuses_items_in_use(
     # models: refused while the running pipeline uses it
     models = tmp_path / "data" / "models"
     models.mkdir(parents=True, exist_ok=True)
-    (models / "m-1.json").write_text("{}")
+    (models / "m-1.json").write_text("{}", encoding="utf-8")
     assert client.delete("/api/v1/models/m-1").status_code == 400
     assert client.delete("/api/v1/models/..%2Fx", params={"confirm": "../x"}).status_code in (
         404,

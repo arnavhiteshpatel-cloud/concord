@@ -136,7 +136,9 @@ def test_channel_count_limit_still_applies_to_arrays() -> None:
 
 
 def test_json_schema_is_unchanged_by_the_array_path() -> None:
-    committed = json.loads((REPO / "contracts" / "event-envelope.v1.schema.json").read_text())
+    committed = json.loads(
+        (REPO / "contracts" / "event-envelope.v1.schema.json").read_text(encoding="utf-8")
+    )
     assert envelope_json_schema() == committed
 
 
@@ -450,7 +452,11 @@ async def test_recorder_lines_are_identical_and_raw_exclusion_skips_serializatio
     adapter.script.append([d])
     await wait_for(lambda: runtime.diagnostics.totals["recording.frame"] >= 1)
     runtime.stop_recording()
-    lines = (runtime.recorder.directory / "arrays.concord.jsonl").read_text().splitlines()
+    lines = (
+        (runtime.recorder.directory / "arrays.concord.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()
+    )
     rec = [json.loads(x) for x in lines[1:] if '"recording.frame"' in x]
     assert rec[0]["payload"]["samples"] == d.payload["samples"].astype(np.float64).tolist()
     # exclude_raw: the recorder does not want frames, so they are never serialized for it

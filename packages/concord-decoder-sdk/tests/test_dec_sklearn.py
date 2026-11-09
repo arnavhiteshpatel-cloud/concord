@@ -120,12 +120,12 @@ def test_malicious_pickle_never_executes_without_trust(tmp_path: Path) -> None:
 
 def test_manifest_without_artifact_or_with_bad_json(tmp_path: Path) -> None:
     p = tmp_path / "x.manifest.json"
-    p.write_text("{not json")
+    p.write_text("{not json", encoding="utf-8")
     with SyncDecoderHost(model_path=p, env=ENV) as c:
         m = c.manifest()
         assert not m["compatible"] and m["problems"][0]["code"] == "manifest.parse"
     from concord_decoder_sdk.manifest import manifest_to_dict
 
-    p.write_text(json.dumps(manifest_to_dict(manifest("noart", "onnx"))))
+    p.write_text(json.dumps(manifest_to_dict(manifest("noart", "onnx"))), encoding="utf-8")
     with SyncDecoderHost(model_path=p, env=ENV) as c:
         assert {q["code"] for q in c.manifest()["problems"]} == {"manifest.artifact"}

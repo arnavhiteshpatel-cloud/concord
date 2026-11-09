@@ -1194,7 +1194,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     out = REPO_ROOT / "reports" / "calibration" / f"{model_id}.md"
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(md)
+    out.write_text(md, encoding="utf-8")
     print(md)
     print(f"model saved to {args.models_dir / (model_id + '.json')}; report {out}")
     return 0

@@ -231,9 +231,12 @@ def test_test_reports_endpoint(client: TestClient, tmp_path: Path) -> None:
         '<testsuites><testsuite name="s"><testcase classname="a" name="ok" time="0.1"/>'
         '<testcase classname="a" name="bad" time="0.2"><failure message="boom"/></testcase>'
         '<testcase classname="a" name="skip"><skipped message="x"/></testcase>'
-        "</testsuite></testsuites>"
+        "</testsuite></testsuites>",
+        encoding="utf-8",
     )
-    (rdir / "e2e.json").write_text(json.dumps({"steps": [{"name": "s1", "ok": True}]}))
+    (rdir / "e2e.json").write_text(
+        json.dumps({"steps": [{"name": "s1", "ok": True}]}), encoding="utf-8"
+    )
     reports = client.get("/api/v1/system/tests").json()
     py = reports[0]
     assert (py["total"], py["passed"], py["failed"], py["skipped"]) == (3, 1, 1, 1)
@@ -249,7 +252,8 @@ def test_corrupt_recording_files_do_not_break_listing(client: TestClient, tmp_pa
     (rec / "badver.concord.jsonl").write_text(
         '{"format":"concord.recording/1","schema_version":"x.0","created_at_ns":1,'
         '"device":{"device_id":"sim-a","display_name":"a","kind":"simulated","adapter":"a@1.0.0",'
-        '"native_format":"-","capabilities":[],"synthetic":true},"synthetic":true}\n'
+        '"native_format":"-","capabilities":[],"synthetic":true},"synthetic":true}\n',
+        encoding="utf-8",
     )
     assert client.get("/api/v1/devices").status_code == 200
     assert client.get("/api/v1/recordings").json() == []

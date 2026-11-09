@@ -17,9 +17,12 @@ import os
 import re
 import socket
 import stat
+import sys
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
+
+from concord.oscompat import O_BINARY, replace
 
 PRIVATE_DIR = 0o700
 PRIVATE_FILE = 0o600
@@ -66,6 +69,11 @@ def check_bind(host: str, allow_remote: bool) -> str | None:
 
 
 # --------------------------------------------------------------------------- permissions
+#
+# POSIX only. Windows has no mode bits (os.chmod there only sets or clears read-only), so
+# these functions leave files alone on Windows: the default data folder is inside the user's
+# profile (%LOCALAPPDATA%), which Windows' own access control keeps private to that user
+# (docs/SECURITY.md). A data folder configured elsewhere keeps the permissions it inherits.
 
 
 def _owned(path: Path) -> bool:
@@ -106,7 +114,8 @@ def open_private(path: Path, mode: str = "w", *, exclusive: bool = False) -> int
     if exclusive:
         flags |= os.O_EXCL
     flags |= os.O_APPEND if mode == "a" else os.O_TRUNC
-    fd = os.open(path, flags, PRIVATE_FILE)
+    # O_BINARY: on Windows os.open defaults to text mode, which writes "\n" as "\r\n"
+    fd = os.open(path, flags | O_BINARY, PRIVATE_FILE)
     if os.name == "posix":
         os.fchmod(fd, PRIVATE_FILE)
     return fd
@@ -118,7 +127,7 @@ def write_private(path: Path, data: str | bytes) -> Path:
     fd = open_private(tmp)
     with os.fdopen(fd, "wb") as fh:
         fh.write(data.encode("utf-8") if isinstance(data, str) else data)
-    os.replace(tmp, path)
+    replace(tmp, path)
     return path
 
 
@@ -200,6 +209,8 @@ _BEARER = re.compile(r"(?i)\b(bearer|basic)\s+[A-Za-z0-9._~+/=-]{8,}")
 _EMAIL = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b")
 _IPV4 = re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b")
 _HOME = re.compile(r"(/Users/|/home/)[^/\s\"']+")
+# Windows profiles, also as written in JSON (backslashes doubled): C:\Users\name
+_WIN_HOME = re.compile(r"([A-Za-z]:(?:\\\\|\\)Users(?:\\\\|\\))[^\\/\s\"']+")
 
 
 def _ip(match: re.Match[str]) -> str:
@@ -232,10 +243,12 @@ def redact(text: str, *, home: Path | None = None) -> str:
     homes = {str(home or Path.home())}
     with contextlib.suppress(OSError):
         homes.add(str((home or Path.home()).resolve()))
+    homes |= {h.replace("\\", "\\\\") for h in homes if "\\" in h}  # as written in JSON
     for h in sorted(homes, key=len, reverse=True):
         if h and h != "/":
             text = text.replace(h, "~")
     text = _HOME.sub(lambda m: f"{m.group(1)}<user>", text)
+    text = _WIN_HOME.sub(lambda m: f"{m.group(1)}<user>", text)
     text = _EMAIL.sub("<email>", text)
     text = _IPV4.sub(_ip, text)
     host = socket.gethostname()
@@ -266,9 +279,10 @@ def configure_logging(level: str, log_file: Path | None) -> None:
     root = logging.getLogger()
     for h in list(root.handlers):
         root.removeHandler(h)
-    stream = logging.StreamHandler()
-    stream.setFormatter(formatter)
-    root.addHandler(stream)
+    if sys.stderr is not None:  # None in a windowed program (the Windows desktop app)
+        stream = logging.StreamHandler()
+        stream.setFormatter(formatter)
+        root.addHandler(stream)
     if log_file is not None:
         ensure_private_dir(log_file.parent)
         os.close(open_private(log_file, "a"))

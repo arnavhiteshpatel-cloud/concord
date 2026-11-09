@@ -69,7 +69,8 @@ def main() -> None:
                 "datagrams": got,
             },
             indent=0,
-        )
+        ),
+        encoding="utf-8",
     )
     print(f"{len(got)} datagrams -> {args.out}")
 

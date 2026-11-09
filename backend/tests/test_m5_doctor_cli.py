@@ -6,7 +6,6 @@ from __future__ import annotations
 import json
 import os
 import signal
-import stat
 import subprocess
 import sys
 import time
@@ -23,9 +22,9 @@ from concord.runtime import Recorder
 from concord.runtime.sessions import SessionManager
 
 from .conftest import free_port
-from .helpers import valid_event
+from .helpers import POSIX, assert_mode, graceful_stop, valid_event
 
-posix = pytest.mark.skipif(os.name != "posix", reason="POSIX processes and permissions")
+posix = pytest.mark.skipif(not POSIX, reason="POSIX signals (SIGTERM ignored, zombie reaping)")
 
 SENSITIVE = [
     "12345.678",  # a sample value in a recording
@@ -58,7 +57,8 @@ def _sensitive_data_dir(root: Path) -> Path:
         "2026-11-07 10:00:00,000 INFO    concord.x: fine\n"
         f"2026-11-07 10:00:01,000 WARNING concord.x: cannot open {home}/concord/data/x.nwb\n"
         "2026-11-07 10:00:02,000 ERROR   concord.y: lsl outlet at 192.168.77.20 password=hunter2 "
-        "values [12345.678, 1, 2, 3, 4, 5, 6, 7, 8] contact alice@example.org\n"
+        "values [12345.678, 1, 2, 3, 4, 5, 6, 7, 8] contact alice@example.org\n",
+        encoding="utf-8",
     )
     return data
 
@@ -75,6 +75,8 @@ def test_doctor_report_has_no_neural_or_personal_data(tmp_path: Path) -> None:
     for s in SENSITIVE:
         assert s not in text, s
     assert str(Path.home()) + "/" not in text
+    # Windows: the home folder as JSON writes it (backslashes doubled), e.g. in tmp_path
+    assert json.dumps(str(Path.home()) + os.sep)[1:-1] not in text
     assert (
         report["format"] == "concord.support-report/1"
         and report["concord"]["version"] == __version__
@@ -111,14 +113,15 @@ def test_doctor_report_has_no_neural_or_personal_data(tmp_path: Path) -> None:
     md = doctor.to_markdown(report)
     assert "## Not included in this report" in md and "| Check | Status | Detail |" in md
     j, m = doctor.write(report, tmp_path / "support")
-    assert stat.S_IMODE(j.stat().st_mode) == 0o600 and m.read_text() == md
+    assert_mode(j, 0o600)
+    assert m.read_text(encoding="utf-8") == md
 
 
 def test_doctor_reports_unsafe_config_and_busy_port(tmp_path: Path) -> None:
     import socket
 
     cfg = tmp_path / "config.toml"
-    cfg.write_text("[server]\nport = 8000\n")
+    cfg.write_text("[server]\nport = 8000\n", encoding="utf-8")
     cfg.chmod(0o666)
     with socket.socket() as busy:
         busy.bind(("127.0.0.1", 0))
@@ -128,10 +131,13 @@ def test_doctor_reports_unsafe_config_and_busy_port(tmp_path: Path) -> None:
             data_dir=tmp_path / "data", port=port, config_path=cfg, discover_plugins=False
         )
     checks = {c["id"]: c for c in report["checks"]}
-    assert checks["config"]["status"] == "fail" and "other users" in checks["config"]["detail"]
+    if POSIX:  # Windows has no mode bits: the file is not refused there
+        assert checks["config"]["status"] == "fail" and "other users" in checks["config"]["detail"]
+    # regression (Windows): SO_REUSEADDR there binds a port another program listens on, so a
+    # busy port looked free
     assert checks["port"]["status"] == "fail" and "another program" in checks["port"]["detail"]
     assert checks["data_dir"]["status"] == "ok"  # not created yet is fine
-    assert report["summary"]["fail"] >= 2
+    assert report["summary"]["fail"] >= (2 if POSIX else 1)
 
 
 # --------------------------------------------------------------------------- the command
@@ -168,17 +174,17 @@ def test_version_and_config_commands(cli_env: dict[str, str], tmp_path: Path) ->
     assert concord(["--version"], cli_env).stdout.strip() == f"Concord {__version__}"
     assert concord(["config", "path"], cli_env).stdout.strip() == str(tmp_path / "config.toml")
     r = concord(["config", "init"], cli_env)
-    assert r.returncode == 0 and stat.S_IMODE((tmp_path / "config.toml").stat().st_mode) == 0o600
+    assert r.returncode == 0
+    assert_mode(tmp_path / "config.toml", 0o600)
     assert concord(["config", "init"], cli_env).returncode == 1  # never overwritten
     shown = json.loads(concord(["config", "show"], cli_env).stdout)
     assert shown["host"] == "127.0.0.1" and shown["allow_remote"] is False
     assert shown["data_dir"] == str(tmp_path / "data")  # environment beats the file
-    (tmp_path / "config.toml").write_text("[server]\nhots = 1\n")
+    (tmp_path / "config.toml").write_text("[server]\nhots = 1\n", encoding="utf-8")
     r = concord(["config", "show"], cli_env)
     assert r.returncode == 2 and "unknown key" in r.stderr
 
 
-@posix
 def test_serve_refuses_remote_bind_unless_allowed(cli_env: dict[str, str]) -> None:
     r = concord(["serve", "--host", "0.0.0.0"], cli_env, timeout=60)
     assert r.returncode == 2 and "refusing to listen" in r.stderr and "--allow-remote" in r.stderr
@@ -186,8 +192,9 @@ def test_serve_refuses_remote_bind_unless_allowed(cli_env: dict[str, str]) -> No
     assert r.returncode == 2 and "no authentication" in r.stderr
 
 
-@posix
 def test_start_status_doctor_stop(cli_env: dict[str, str], tmp_path: Path) -> None:
+    """Also on Windows: `start` detaches the server (own hidden console and process group) and
+    `stop` reaches it through a stop request (Windows has no SIGTERM to catch)."""
     port = cli_env["CONCORD_PORT"]
     base = f"http://127.0.0.1:{port}"
     r = concord(["status"], cli_env)
@@ -198,7 +205,7 @@ def test_start_status_doctor_stop(cli_env: dict[str, str], tmp_path: Path) -> No
         assert f"is running: {base}" in r.stdout and "concord stop" in r.stdout
         h = httpx.get(base + "/api/v1/health").json()
         pid = h["pid"]
-        info = json.loads((tmp_path / "data" / "concord.pid").read_text())
+        info = json.loads((tmp_path / "data" / "concord.pid").read_text(encoding="utf-8"))
         assert info["pid"] == pid and info["port"] == int(port)
         # starting again finds the running server instead of starting a second one
         r2 = concord(["start"], cli_env)
@@ -211,7 +218,7 @@ def test_start_status_doctor_stop(cli_env: dict[str, str], tmp_path: Path) -> No
         assert st["running"] and st["pid"] == pid and st["runtime"]["state"] == "streaming"
         assert st["runtime"]["recording"] == "cli-rec" and st["command_output"] == "off"
         r = concord(["doctor", "--json", str(tmp_path / "d.json"), "--no-plugins"], cli_env)
-        rep = json.loads((tmp_path / "d.json").read_text())
+        rep = json.loads((tmp_path / "d.json").read_text(encoding="utf-8"))
         port_check = next(c for c in rep["checks"] if c["id"] == "port")
         assert "in use by Concord" in port_check["detail"] and rep["server"]["running"]
         rep_rest = httpx.get(base + "/api/v1/system/doctor").json()
@@ -230,10 +237,10 @@ def test_start_status_doctor_stop(cli_env: dict[str, str], tmp_path: Path) -> No
     assert concord(["status"], cli_env).returncode == 3
     assert "not running" in concord(["stop"], cli_env).stdout
     log = tmp_path / "data" / "logs" / "concord.log"
-    assert stat.S_IMODE(log.stat().st_mode) == 0o600 and "ready" in log.read_text()
+    assert_mode(log, 0o600)
+    assert "ready" in log.read_text(encoding="utf-8")
 
 
-@posix
 def test_start_reports_a_port_used_by_another_program(cli_env: dict[str, str]) -> None:
     import socket
 
@@ -244,11 +251,11 @@ def test_start_reports_a_port_used_by_another_program(cli_env: dict[str, str]) -
     assert r.returncode == 1 and "in use by another program" in r.stderr
 
 
-@posix
 def test_desktop_app_headless_starts_and_stops_cleanly(
     cli_env: dict[str, str], tmp_path: Path
 ) -> None:
-    """The desktop app's controller (what Concord.app runs), headless: SIGTERM = Quit."""
+    """The desktop app's controller (what Concord.app / Concord.exe run), headless: SIGTERM =
+    Quit; on Windows the stop request that `concord stop` writes."""
     port = cli_env["CONCORD_PORT"]
     base = f"http://127.0.0.1:{port}"
     proc = subprocess.Popen(
@@ -291,7 +298,7 @@ def test_desktop_app_headless_starts_and_stops_cleanly(
         )
         assert again.returncode == 0 and "already running" in again.stdout
         time.sleep(0.5)
-        proc.send_signal(signal.SIGTERM)
+        graceful_stop(proc.pid, tmp_path / "data" / "concord.pid")
         code = proc.wait(60)
         out: Any = proc.stdout.read() if proc.stdout else ""
     finally:

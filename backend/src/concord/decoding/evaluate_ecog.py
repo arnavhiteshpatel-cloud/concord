@@ -601,11 +601,11 @@ def main(argv: list[str] | None = None) -> int:
     res = run(args.data, args.models_dir)
     seconds = time.perf_counter() - t0
     args.json.parent.mkdir(parents=True, exist_ok=True)
-    args.json.write_text(json.dumps(res, indent=1, default=float))
+    args.json.write_text(json.dumps(res, indent=1, default=float), encoding="utf-8")
     md = to_markdown(res, seconds)
     print(md)
     if args.write:
-        args.write.write_text(md)
+        args.write.write_text(md, encoding="utf-8")
         print(f"wrote {args.write}")
     return 0
 

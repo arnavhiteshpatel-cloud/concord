@@ -81,7 +81,7 @@ def test_kalman_streaming_equals_offline(tau: float) -> None:
 def test_kalman_roundtrip_json(tmp_path: Path) -> None:
     model = fit_kalman()
     path = model.save(tmp_path / "m.json")
-    data = json.loads(path.read_text())
+    data = json.loads(path.read_text(encoding="utf-8"))
     assert data["kind"] == "kalman" and data["inputs"][1]["feature"] == "spike_band_power"
     again = kalman.KalmanDecoder.load(path)
     x, _ = synthetic(4, 200)

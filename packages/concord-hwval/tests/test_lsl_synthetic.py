@@ -410,8 +410,8 @@ def test_provenance_must_be_carried(tmp_path: Path) -> None:
 def test_truncated_concord_file(tmp_path: Path) -> None:
     case = LSLCase()
     x, b = case.write(tmp_path)
-    text = b.read_text()
-    b.write_text(text[: len(text) - 300])  # crash mid-write
+    text = b.read_text(encoding="utf-8")
+    b.write_text(text[: len(text) - 300], encoding="utf-8")  # crash mid-write
     rep = compare_lsl(x, b, LSLOptions())
     assert "CONCORD-FILE" in failed(rep)
     assert by_id(rep)["CONCORD-FILE"]["evidence"]["malformed_lines"] == 1
@@ -452,7 +452,7 @@ def test_recorder_markers_fail_the_file_check(tmp_path: Path, marker: str) -> No
     """Concord's recorder marks crashed/unfinished recordings next to the file."""
     case = LSLCase()
     x, b = case.write(tmp_path)
-    (tmp_path / f"run.{marker}.json").write_text('{"status": "incomplete"}')
+    (tmp_path / f"run.{marker}.json").write_text('{"status": "incomplete"}', encoding="utf-8")
     rep = compare_lsl(x, b, LSLOptions())
     assert "CONCORD-FILE" in failed(rep)
     ev = by_id(rep)["CONCORD-FILE"]["evidence"]

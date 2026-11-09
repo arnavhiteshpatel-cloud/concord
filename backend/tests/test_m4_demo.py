@@ -133,7 +133,7 @@ def test_menu_app_imports_only_the_public_sdk() -> None:
     import ast
 
     stdlib = set(sys.stdlib_module_names) | {"__future__"}
-    tree = ast.parse((APP_DIR / "menu_app.py").read_text())
+    tree = ast.parse((APP_DIR / "menu_app.py").read_text(encoding="utf-8"))
     for node in ast.walk(tree):
         names: list[Any] = []
         if isinstance(node, ast.Import):

@@ -25,22 +25,24 @@ def mutate_recording(
 ) -> Path:
     """Copy a Concord recording, letting ``fn`` edit its envelopes; seq is renumbered so the
     file stays internally consistent (as if Concord itself had produced it)."""
-    lines = src.read_text().splitlines()
+    lines = src.read_text(encoding="utf-8").splitlines()
     header = json.loads(lines[0])
     envs = [json.loads(x) for x in lines[1:] if x.strip()]
     envs = fn(envs)
     seq0 = envs[0]["seq"] if envs else 0
     for i, e in enumerate(envs):
         e["seq"] = seq0 + i
-    dst.write_text("\n".join([json.dumps(header)] + [json.dumps(e) for e in envs]) + "\n")
+    dst.write_text(
+        "\n".join([json.dumps(header)] + [json.dumps(e) for e in envs]) + "\n", encoding="utf-8"
+    )
     return dst
 
 
 def mutate_header(src: Path, dst: Path, fn: Callable[[dict[str, Any]], None]) -> Path:
-    lines = src.read_text().splitlines()
+    lines = src.read_text(encoding="utf-8").splitlines()
     header = json.loads(lines[0])
     fn(header)
-    dst.write_text("\n".join([json.dumps(header), *lines[1:]]) + "\n")
+    dst.write_text("\n".join([json.dumps(header), *lines[1:]]) + "\n", encoding="utf-8")
     return dst
 
 

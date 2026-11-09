@@ -326,5 +326,5 @@ async def calibration_train(body: CalibrationRequest, svc: Svc) -> CalibrationRe
     md = capability_report_markdown(report)
     out = svc.settings.reports_dir / "calibration" / f"{model.model_id}.md"
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(md)
+    out.write_text(md, encoding="utf-8")
     return CalibrationResult(model=models.summary(model), report=report, report_markdown=md)

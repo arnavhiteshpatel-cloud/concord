@@ -315,7 +315,7 @@ async def test_record_and_replay_preserves_provenance_and_order(
     await asyncio.sleep(0.2)
     info = rt.stop_recording()
     assert info.name == name and info.events and info.events > 3
-    lines = (rec_dir / f"{name}.concord.jsonl").read_text().splitlines()
+    lines = (rec_dir / f"{name}.concord.jsonl").read_text(encoding="utf-8").splitlines()
     header = json.loads(lines[0])
     assert header["format"] == "concord.recording/1" and header["synthetic"] is True
     original = [json.loads(line) for line in lines[1:]]
@@ -384,7 +384,9 @@ async def test_recording_stops_when_reconnect_gives_up(runtime: Runtime) -> None
     await wait_for(lambda: runtime.state is RuntimeState.ERROR)
     assert runtime.recorder.active_name is None
     await runtime.connect("sim-b")
-    lines = (runtime.recorder.directory / "leak.concord.jsonl").read_text().splitlines()
+    lines = (
+        (runtime.recorder.directory / "leak.concord.jsonl").read_text(encoding="utf-8").splitlines()
+    )
     assert {json.loads(line)["device_id"] for line in lines[1:]} == {"sim-a"}
 
 
@@ -486,7 +488,9 @@ async def test_replay_skips_truncated_last_line(
     await wait_for(lambda: rt.diagnostics.totals["recording.frame"] >= 3)
     rt.stop_recording()
     path = rec_dir / "trunc.concord.jsonl"
-    path.write_text(path.read_text() + '{"schema_version": "1.0", "seq": 9')
+    path.write_text(
+        path.read_text(encoding="utf-8") + '{"schema_version": "1.0", "seq": 9', encoding="utf-8"
+    )
     await rt.switch("replay:trunc")
     await wait_for(lambda: rt.state is RuntimeState.ENDED, timeout=5)
     assert rt.diagnostics.link_errors == 0

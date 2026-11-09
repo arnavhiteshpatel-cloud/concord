@@ -36,6 +36,7 @@ from pydantic import BaseModel
 
 from concord import __version__
 from concord.environment import packages, platform_info, plugins
+from concord.oscompat import replace
 from concord.runtime.recorder import Recorder
 from concord.runtime.sessions import SessionError, SessionInfo, SessionManager
 from concord.security import ensure_private_dir, open_private
@@ -298,7 +299,7 @@ def export_session(
                 else:
                     zf.write(b.paths[arc], arc)
             zf.writestr("manifest.json", json.dumps(manifest_doc, indent=1, default=str) + "\n")
-        os.replace(tmp, final)
+        replace(tmp, final)
     except BaseException:
         tmp.unlink(missing_ok=True)
         raise

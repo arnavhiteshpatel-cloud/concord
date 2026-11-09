@@ -8,6 +8,10 @@ disconnected) and then a graceful server shutdown, so recordings are closed prop
 Without a window toolkit, or with ``--headless``, it runs until SIGTERM/SIGINT with the same
 clean shutdown. Inside the bundle the same executable also answers ``concord`` commands
 (``Concord doctor``, ``Concord status`` …) and serves as the source-plugin host.
+
+Windows (Concord.exe): the same window; ``concord stop`` (``concord-cli.exe stop``) reaches
+the app through a stop request in the data folder (Windows has no SIGTERM to catch), and
+Ctrl-C / Ctrl-Break quit a ``--headless`` app in a console.
 """
 
 from __future__ import annotations
@@ -22,10 +26,10 @@ import threading
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 from concord import __version__
-from concord.config import command_hint
 
 log = logging.getLogger(__name__)
 
@@ -122,11 +126,15 @@ def run_window(
     # Creating the Tk root initializes Cocoa on macOS, which can replace the process's SIGTERM
     # disposition (CI: the windowed app exited with status 1 on SIGTERM without the safe quit).
     # Reinstate ours so SIGTERM / SIGINT (e.g. `concord stop`) run the same quit as the window.
-    previous = {sig: signal.getsignal(sig) for sig in (signal.SIGTERM, signal.SIGINT)}
+    previous = {sig: signal.getsignal(sig) for sig in quit_signals()}
     for sig in previous:
         signal.signal(sig, lambda *_: stop_event.set())
     root.title("Concord")
     root.resizable(False, False)
+    icon = window_icon()
+    if icon is not None:
+        with contextlib.suppress(tk.TclError):
+            root.iconbitmap(default=str(icon))  # type: ignore[no-untyped-call]
     frame = tk.Frame(root, padx=18, pady=14)
     frame.pack()
     tk.Label(frame, text="Concord is running", font=("TkDefaultFont", 14, "bold")).pack(anchor="w")
@@ -182,11 +190,33 @@ def run_window(
     return result["code"]
 
 
+def window_icon() -> Path | None:
+    """The Windows app's icon (``concord.ico`` bundled next to the program), else None: macOS
+    takes the icon from the .app, and Linux bundles have none."""
+    if sys.platform != "win32" or not getattr(sys, "frozen", False):
+        return None
+    base = Path(getattr(sys, "_MEIPASS", Path(sys.executable).parent))
+    icon = base / "concord.ico"
+    return icon if icon.is_file() else None
+
+
+def quit_signals() -> tuple[signal.Signals, ...]:
+    """Signals that quit the app like its window does. Windows: Ctrl-C and Ctrl-Break in a
+    console (SIGTERM cannot be sent there; ``concord stop`` uses a stop request instead)."""
+    sigs = [signal.SIGTERM, signal.SIGINT]
+    brk = getattr(signal, "SIGBREAK", None)  # Windows only
+    if brk is not None:
+        sigs.append(brk)
+    return tuple(sigs)
+
+
 def has_window_toolkit() -> bool:
+    """Tk is usable: always on macOS and Windows (their desktop is always there), on Linux
+    and other X11 systems only with a display."""
     try:
         import tkinter
 
-        if sys.platform != "darwin" and not os.environ.get("DISPLAY"):
+        if sys.platform not in ("darwin", "win32") and not os.environ.get("DISPLAY"):
             return False
         return bool(tkinter.TkVersion)
     except Exception:
@@ -208,10 +238,10 @@ def parse(argv: list[str]) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     args = parse(list(sys.argv[1:] if argv is None else argv))
     from concord.cli import _apply_overrides
-    from concord.config import ConfigError
+    from concord.config import ConfigError, command_hint
     from concord.launcher import find, open_browser
     from concord.security import BindRefused
-    from concord.server.serve import AlreadyRunning, prepare
+    from concord.server.serve import AlreadyRunning, StopWatcher, prepare
     from concord.server.settings import Settings
 
     _apply_overrides(args)
@@ -234,8 +264,10 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Concord: {exc}", file=sys.stderr)
         return 2
     stop_event = threading.Event()
-    for sig in (signal.SIGTERM, signal.SIGINT):
+    for sig in quit_signals():
         signal.signal(sig, lambda *_: stop_event.set())
+    # `concord stop` on Windows (no catchable SIGTERM there) asks through the data folder
+    watcher = StopWatcher(settings.pid_file, stop_event.set).start()
     try:
         srv = start_server_thread(settings)
         if not srv.wait_ready(READY_TIMEOUT_S):
@@ -266,4 +298,5 @@ def main(argv: list[str] | None = None) -> int:
             )
         return run_headless(srv, url, stop_event)
     finally:
+        watcher.close()
         lock.release()

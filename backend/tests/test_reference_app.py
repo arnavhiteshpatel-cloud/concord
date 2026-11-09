@@ -38,7 +38,7 @@ def test_reference_app_imports_only_the_public_sdk() -> None:
     allowed_prefix = "concord.sdk"
     stdlib = set(sys.stdlib_module_names) | {"__future__"}
     for path in APP_DIR.glob("*.py"):
-        for node in ast.walk(ast.parse(path.read_text())):
+        for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
             names: list[str] = []
             if isinstance(node, ast.Import):
                 names = [a.name for a in node.names]
@@ -47,7 +47,7 @@ def test_reference_app_imports_only_the_public_sdk() -> None:
             for n in names:
                 ok = n.split(".")[0] in stdlib or n == allowed_prefix
                 assert ok, f"{path.name} imports {n}; reference apps may use only concord.sdk"
-        text = path.read_text()
+        text = path.read_text(encoding="utf-8")
         for word in ("sim-a", "sim-b", "lsl:", "openephys", "nwb:", "falcon"):
             assert word not in text.lower(), f"{path.name} mentions device/source {word!r}"
 
@@ -174,7 +174,7 @@ OPERATOR_CALLS = (
 @pytest.mark.parametrize("name", ["cursor_app", "menu_app"])
 def test_reference_apps_never_act_as_the_operator(name: str) -> None:
     """M4: apps declare capabilities and wait; authorization is the operator's decision."""
-    text = (APP_DIR / f"{name}.py").read_text()
+    text = (APP_DIR / f"{name}.py").read_text(encoding="utf-8")
     for word in OPERATOR_CALLS:
         assert word not in text, f"{name} uses operator API {word!r}"
     assert "CommandGuard" in text  # both apps act on commands through the SDK guard

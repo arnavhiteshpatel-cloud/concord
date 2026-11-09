@@ -1,6 +1,6 @@
-"""Build the Concord desktop bundle with PyInstaller (and the .dmg on macOS).
+"""Build the Concord desktop bundle with PyInstaller (and the .dmg on macOS, the .zip on Windows).
 
-    python packaging/build_app.py [--build-console] [--dmg]
+    python packaging/build_app.py [--build-console] [--dmg] [--zip]
 
 Prerequisites in the active Python environment: Concord with the lab extra, the plugin host
 SDK and the BCI2000 plugin, and the pinned build tools::
@@ -13,6 +13,9 @@ Outputs (packaging/dist/, git-ignored):
 - macOS: ``Concord.app`` and, with ``--dmg``, ``Concord-<version>-macos-<arch>.dmg``
   (the app plus an Applications shortcut). Unsigned: ad-hoc signature only, not notarized.
 - Linux: ``Concord/Concord`` (same layout; validates the packaging, not a Linux installer).
+- Windows: ``Concord/Concord.exe`` (windowed desktop app) and ``Concord/concord-cli.exe`` (the
+  ``concord`` command) and, with ``--zip``, ``Concord-<version>-windows-<arch>.zip`` (the
+  folder, for Extract All). Unsigned: Windows SmartScreen warns on first start.
 
 ``packaging/smoke_test.py`` then runs the bundle headless and checks it end to end.
 """
@@ -29,6 +32,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -38,7 +42,7 @@ WORK = PKG / "build"
 
 
 def version() -> str:
-    text = (ROOT / "backend" / "src" / "concord" / "__init__.py").read_text()
+    text = (ROOT / "backend" / "src" / "concord" / "__init__.py").read_text(encoding="utf-8")
     m = re.search(r'__version__ = "([^"]+)"', text)
     assert m is not None
     return m.group(1)
@@ -81,6 +85,21 @@ def macos_minimum(bundle: Path) -> dict[str, object]:
     }
 
 
+def make_zip(folder: Path, out: Path) -> Path:
+    """The onedir folder as a zip whose top level is that folder (``Concord/...``)."""
+    out.unlink(missing_ok=True)
+    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED, compresslevel=6) as zf:
+        for p in sorted(folder.rglob("*")):
+            if p.is_file() and not p.is_symlink():
+                zf.write(p, (Path(folder.name) / p.relative_to(folder)).as_posix())
+    return out
+
+
+def windows_arch() -> str:
+    machine = platform.machine().lower()
+    return {"amd64": "x86_64", "x86_64": "x86_64", "arm64": "arm64"}.get(machine, machine)
+
+
 def make_dmg(app: Path, out: Path) -> Path:
     hdiutil = shutil.which("hdiutil")
     if hdiutil is None:
@@ -116,6 +135,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     ap.add_argument("--build-console", action="store_true", help="npm build the console first")
     ap.add_argument("--dmg", action="store_true", help="macOS: also make the .dmg")
+    ap.add_argument("--zip", action="store_true", help="Windows: also zip the Concord folder")
     args = ap.parse_args(argv)
 
     stage = [sys.executable, str(PKG / "stage_console.py")]
@@ -139,10 +159,16 @@ def main(argv: list[str] | None = None) -> int:
         cwd=ROOT,
     )
     mac = sys.platform == "darwin"
+    win = sys.platform == "win32"
     bundle = DIST / ("Concord.app" if mac else "Concord")
-    exe = bundle / "Contents" / "MacOS" / "Concord" if mac else bundle / "Concord"
-    if not exe.is_file():
-        raise SystemExit(f"build did not produce {exe}")
+    if mac:
+        exe = bundle / "Contents" / "MacOS" / "Concord"
+    else:
+        exe = bundle / ("Concord.exe" if win else "Concord")
+    programs = [exe, bundle / "concord-cli.exe"] if win else [exe]
+    for program in programs:
+        if not program.is_file():
+            raise SystemExit(f"build did not produce {program}")
     info: dict[str, object] = {
         "version": version(),
         "platform": sys.platform,
@@ -150,8 +176,11 @@ def main(argv: list[str] | None = None) -> int:
         "python": platform.python_version(),
         "bundle": str(bundle.relative_to(ROOT)),
         "executable": str(exe.relative_to(ROOT)),
+        "cli": str(programs[-1].relative_to(ROOT)) if win else None,
         "bundle_bytes": tree_size(bundle),
-        "signed": "ad-hoc (PyInstaller default on Apple Silicon); not notarized" if mac else None,
+        "signed": "ad-hoc (PyInstaller default on Apple Silicon); not notarized"
+        if mac
+        else ("unsigned (no Authenticode signature)" if win else None),
     }
     if mac:
         info.update(macos_minimum(bundle))
@@ -175,7 +204,18 @@ def main(argv: list[str] | None = None) -> int:
                 "dmg_sha256": sha256(dmg),
             }
         )
-    (DIST / "build-info.json").write_text(json.dumps(info, indent=1) + "\n")
+    if args.zip:
+        if not win:
+            raise SystemExit("--zip is the Windows download (use --dmg on macOS)")
+        archive = make_zip(bundle, DIST / f"Concord-{version()}-windows-{windows_arch()}.zip")
+        info.update(
+            {
+                "zip": str(archive.relative_to(ROOT)),
+                "zip_bytes": archive.stat().st_size,
+                "zip_sha256": sha256(archive),
+            }
+        )
+    (DIST / "build-info.json").write_text(json.dumps(info, indent=1) + "\n", encoding="utf-8")
     print(json.dumps(info, indent=1))
     return 0
 

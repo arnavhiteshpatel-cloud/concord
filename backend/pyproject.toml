@@ -49,6 +49,10 @@ dsp = [
 live = [
     "pylsl>=1.16",
     "pyzmq>=25",
+    # Windows only: the server's asyncio loop there is the Proactor loop (needed for the plugin
+    # and decoder host subprocesses), which lacks add_reader; pyzmq's asyncio sockets then need
+    # tornado's selector thread (zmq.asyncio raises without it).
+    "tornado>=6.1; sys_platform == 'win32'",
 ]
 dev = [
     "pytest>=8",

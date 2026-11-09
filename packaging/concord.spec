@@ -3,6 +3,10 @@
 # One-directory bundle (fast start, no unpacking to a temp directory on every launch):
 #   macOS: dist/Concord.app (windowed .app, ad-hoc signed by PyInstaller, NOT notarized)
 #   Linux: dist/Concord/Concord (same layout; used to validate the packaging on CI and locally)
+#   Windows: dist/Concord/Concord.exe (windowed: the desktop app) and dist/Concord/concord-cli.exe
+#     (console: the `concord` command and the helper processes), sharing one _internal folder.
+#     Two programs because a Windows program is either windowed or a console program; the names
+#     differ in more than case because Windows file names are case-insensitive. Unsigned.
 #
 # Bundled: CPython, Concord (server, console, processing, NWB, LSL, Open Ephys), the source
 # plugin host and the BCI2000 plugin (pure Python). Not bundled: BrainFlow (native libraries
@@ -25,8 +29,16 @@ SRC = ROOT / "backend" / "src"
 CONSOLE = SRC / "concord" / "server" / "console"
 if not (CONSOLE / "index.html").is_file():
     raise SystemExit("the console is not staged: python packaging/stage_console.py --build")
-VERSION = re.search(r'__version__ = "([^"]+)"', (SRC / "concord" / "__init__.py").read_text())[1]
+VERSION = re.search(r'__version__ = "([^"]+)"', (SRC / "concord" / "__init__.py").read_text(encoding="utf-8"))[1]
 MAC = sys.platform == "darwin"
+WIN = sys.platform == "win32"
+# Windows: the program icon, drawn here by packaging/make_icon.py (no binary file in the repo)
+ICON = ROOT / "packaging" / "build" / "icon" / "concord.ico"
+if WIN:
+    sys.path.insert(0, str(ROOT / "packaging"))
+    from make_icon import write_ico
+
+    write_ico(ICON)
 
 hiddenimports = [
     *collect_submodules("concord"),
@@ -38,7 +50,12 @@ hiddenimports = [
     *collect_submodules("pynwb"),
     "tkinter",
 ]
+if WIN:
+    # zmq.asyncio imports it inside a function, on the Proactor event loop (Open Ephys)
+    hiddenimports.append("tornado.platform.asyncio")
 datas = [(str(CONSOLE), "concord/server/console")]
+if WIN:
+    datas.append((str(ICON), "."))  # the Tk window's icon (concord.desktop.window_icon)
 datas += collect_data_files("concord", excludes=["server/console/**"])  # dataset manifests
 datas += collect_data_files("pynwb") + collect_data_files("hdmf")  # NWB schema files
 # package metadata: versions in support reports and export manifests, and the plugin entry
@@ -60,6 +77,7 @@ for dist in (
     "h5py",
     "pylsl",
     "pyzmq",
+    *(["tornado"] if WIN else []),
 ):
     try:
         datas += copy_metadata(dist)
@@ -85,12 +103,31 @@ exe = EXE(  # noqa: F821
     [],
     exclude_binaries=True,
     name="Concord",
-    console=not MAC,  # macOS: a windowed .app; Linux: keep stdout for the smoke test
+    # macOS: a windowed .app; Windows: windowed Concord.exe (no terminal window on double-click);
+    # Linux: keep stdout for the smoke test
+    console=not (MAC or WIN),
     argv_emulation=False,
     codesign_identity=None,  # unsigned (ad-hoc on Apple Silicon); see docs/INSTALL_MAC.md
     entitlements_file=None,
+    icon=str(ICON) if WIN else None,
+    upx=False,  # never compress with UPX (if installed): it breaks DLLs and alarms antivirus
 )
-coll = COLLECT(exe, a.binaries, a.datas, name="Concord")  # noqa: F821
+executables = [exe]
+if WIN:
+    executables.append(
+        EXE(  # noqa: F821
+            pyz,
+            a.scripts,
+            [],
+            exclude_binaries=True,
+            name="concord-cli",
+            console=True,
+            argv_emulation=False,
+            icon=str(ICON),
+            upx=False,
+        )
+    )
+coll = COLLECT(*executables, a.binaries, a.datas, upx=False, name="Concord")  # noqa: F821
 if MAC:
     app = BUNDLE(  # noqa: F821
         coll,

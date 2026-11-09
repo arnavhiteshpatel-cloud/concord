@@ -9,7 +9,8 @@ hardware. Every stream is declared for what it is (synthetic, or prerecorded).
     concord publish openephys --port 5556 --channels 64
 
 In the desktop app the command is the app's own program: on a Mac
-/Applications/Concord.app/Contents/MacOS/Concord publish ..., in the Linux bundle
+/Applications/Concord.app/Contents/MacOS/Concord publish ..., on Windows
+.\\concord-cli.exe publish ... (in the Concord folder), in the Linux bundle
 ./Concord/Concord publish ... (also: python -m concord.testing.publish ...).
 The data folder is shown in the console under Advanced -> Stored data.
 
@@ -31,6 +32,8 @@ def _wait(seconds: float | None, done: threading.Event | None = None) -> None:
     stop = threading.Event()
     signal.signal(signal.SIGINT, lambda *_: stop.set())
     signal.signal(signal.SIGTERM, lambda *_: stop.set())
+    if hasattr(signal, "SIGBREAK"):  # Windows: Ctrl-Break in the console
+        signal.signal(signal.SIGBREAK, lambda *_: stop.set())
     end = None if seconds is None else time.monotonic() + seconds
     while not stop.is_set() and (end is None or time.monotonic() < end):
         if done is not None and done.is_set():

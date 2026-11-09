@@ -36,7 +36,7 @@ from concord.runtime import DeviceRegistry, Recorder, Runtime, RuntimeCommandErr
 from concord.server import create_app
 
 from .conftest import make_settings, subscribe
-from .helpers import drain, events, wait_for
+from .helpers import drain, events, link_or_copy, wait_for
 
 REPO = Path(__file__).resolve().parents[2]
 DATA = Path(os.environ.get("CONCORD_TEST_DATASETS", REPO / "data" / "datasets" / "dandi-000954"))
@@ -99,8 +99,8 @@ def data_root(tmp_path: Path, demo_model: Path) -> Path:
     root = tmp_path / "data"
     (root / "datasets").mkdir(parents=True)
     for f in (TRAIN_FILE, EVAL_FILE):
-        (root / "datasets" / f.name).symlink_to(f)
-    (root / "models").symlink_to(demo_model, target_is_directory=True)
+        link_or_copy(root / "datasets" / f.name, f)
+    link_or_copy(root / "models", demo_model)
     return root
 
 
@@ -354,7 +354,7 @@ async def test_python_sdk_receives_real_data(data_root: Path, tmp_path: Path) ->
 
 
 def test_model_json_is_plain_data(demo_model: Path) -> None:
-    raw = json.loads(next(demo_model.glob("*.json")).read_text())
+    raw = json.loads(next(demo_model.glob("*.json")).read_text(encoding="utf-8"))
     assert raw["training"]["session"] == "19250108T110520"
     assert raw["evaluations"][0]["file"] == EVAL_FILE.name
 

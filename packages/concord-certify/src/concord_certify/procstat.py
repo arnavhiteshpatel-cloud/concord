@@ -20,7 +20,7 @@ def available(pid: int) -> bool:
 def cpu_seconds(pid: int) -> float | None:
     """utime + stime of the process, in seconds (children not included)."""
     try:
-        raw = Path(f"/proc/{pid}/stat").read_text()
+        raw = Path(f"/proc/{pid}/stat").read_text(encoding="utf-8")
     except OSError:
         return None
     # the command name (field 2) may contain spaces / parentheses: split after the last ')'
@@ -36,7 +36,7 @@ def memory_kib(pid: int) -> dict[str, int]:
     """VmRSS (current resident set) and VmHWM (peak resident set) in KiB."""
     out: dict[str, int] = {}
     try:
-        text = Path(f"/proc/{pid}/status").read_text()
+        text = Path(f"/proc/{pid}/status").read_text(encoding="utf-8")
     except OSError:
         return out
     for line in text.splitlines():

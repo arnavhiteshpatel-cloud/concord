@@ -45,7 +45,10 @@ def wait_bound(port: int, timeout: float = 5.0) -> None:
     end = time.monotonic() + timeout
     while time.monotonic() < end:
         # local_address column is "<hex ip>:<hex port>"; never bind the port ourselves
-        if any(needle in line.split()[1] + " " for line in table.read_text().splitlines()[1:]):
+        if any(
+            needle in line.split()[1] + " "
+            for line in table.read_text(encoding="utf-8").splitlines()[1:]
+        ):
             return
         time.sleep(0.005)
     raise AssertionError(f"port {port} was never bound")
@@ -122,7 +125,7 @@ def emulate(
 
 
 def _expected_blocks() -> list[dict[str, str]]:
-    raw = json.loads(FIXTURE.read_text())["datagrams"]
+    raw = json.loads(FIXTURE.read_text(encoding="utf-8"))["datagrams"]
     blocks: list[dict[str, str]] = []
     for _, text in raw:
         name, value = text.rstrip("\n").split(" ")
@@ -133,7 +136,7 @@ def _expected_blocks() -> list[dict[str, str]]:
 
 
 def test_replay_of_genuine_bci2000_output() -> None:
-    raw = json.loads(FIXTURE.read_text())["datagrams"]
+    raw = json.loads(FIXTURE.read_text(encoding="utf-8"))["datagrams"]
 
     def replay(port: int) -> None:
         s = Sender(port)

@@ -23,6 +23,8 @@ from functools import cache
 from importlib import resources
 from pathlib import Path
 
+from concord.oscompat import replace
+
 log = logging.getLogger(__name__)
 
 SESSION_RE = re.compile(r"_ses-([0-9T]+)")
@@ -248,5 +250,5 @@ def download_asset(m: DatasetManifest, asset: DatasetAsset, dest_dir: Path) -> P
         raise DownloadError(
             f"{asset.filename}: checksum/size mismatch (got {size} bytes, sha256 {h.hexdigest()})"
         )
-    tmp.replace(dest)
+    replace(tmp, dest)  # retried on Windows while a virus scanner holds the new file
     return dest

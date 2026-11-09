@@ -47,6 +47,8 @@ test-frontend:
 lint:  ## ruff + mypy (strict) + tsc
 	cd backend && ../$(VENV)/bin/ruff check src tests examples ../scripts && ../$(VENV)/bin/ruff format --check src tests examples ../scripts
 	cd backend && ../$(VENV)/bin/ruff check $(PLUGIN_SRC) && ../$(VENV)/bin/ruff format --check $(PLUGIN_SRC)
+	# text files opened without encoding= are cp1252 on Windows (PLW1514: a ruff preview rule)
+	cd backend && ../$(VENV)/bin/ruff check --preview --select PLW1514 src tests examples ../scripts ../packaging ../packages ../examples
 	cd backend && ../$(VENV)/bin/mypy && ../$(VENV)/bin/mypy --strict examples/reference_app examples/center_out_task.py
 	$(VENV)/bin/mypy --strict packages/concord-adapter-sdk/src/concord_adapter_sdk \
 	  examples/adapters/concord-example-adapter/src/concord_example_adapter

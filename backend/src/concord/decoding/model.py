@@ -41,7 +41,7 @@ MANIFEST_SCHEMA = "concord.decoder-manifest/1"
 
 
 def load_model(path: Path) -> Any:
-    data = json.loads(path.read_text())
+    data = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(data, dict):
         raise ValueError(f"{path.name}: not a model object")
     return family_for(data).from_dict(data, path.name)

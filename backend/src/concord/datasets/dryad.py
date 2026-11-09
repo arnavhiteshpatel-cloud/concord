@@ -34,6 +34,8 @@ from functools import cache
 from importlib import resources
 from pathlib import Path
 
+from concord.oscompat import replace
+
 log = logging.getLogger(__name__)
 
 TOKEN_ENV = "DRYAD_TOKEN"
@@ -208,7 +210,7 @@ def download(m: DryadManifest, f: DryadFile, dest_dir: Path, token: str | None) 
             f"{f.filename}: checksum/size mismatch (got {size} bytes, sha256 {h.hexdigest()}); "
             "the file was discarded"
         )
-    tmp.replace(dest)
+    replace(tmp, dest)  # retried on Windows while a virus scanner holds the new file
     return dest
 
 

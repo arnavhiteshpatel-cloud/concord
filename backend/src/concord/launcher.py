@@ -4,6 +4,10 @@ The server runs as its own process (``concord serve``), detached from the termin
 to ``<data>/logs/``. It holds an exclusive lock on ``<data>/concord.pid`` while it runs, so
 ``status`` and ``stop`` find it without guessing, and a stale pid file after a crash is
 recognised as stale. Stdlib only (works without the server extra for status/stop).
+
+Windows: the server is started in its own hidden console and process group (no window, not
+stopped by closing the terminal), and stopped by a stop request in the data folder instead of
+SIGTERM (``concord.server.serve.request_stop``); TerminateProcess only if it does not exit.
 """
 
 from __future__ import annotations
@@ -11,7 +15,6 @@ from __future__ import annotations
 import contextlib
 import json
 import os
-import signal
 import subprocess
 import sys
 import time
@@ -22,7 +25,15 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from concord.config import frozen
+from concord.config import command_hint, frozen
+from concord.oscompat import (
+    background_kwargs,
+    force_kill,
+    helper_executable,
+    is_windows,
+    pid_alive,
+    terminate,
+)
 from concord.security import ensure_private_dir, open_private, redact
 
 START_TIMEOUT_S = 90.0  # first launch of a desktop bundle on macOS can be slow (Gatekeeper)
@@ -82,8 +93,8 @@ def find(url: str, pid_file: Path) -> Instance | None:
 
 
 def serve_command() -> list[str]:
-    if frozen():
-        return [sys.executable, "serve"]
+    if frozen():  # the bundled program answers `serve` (packaging/app_entry.py)
+        return [helper_executable(), "serve"]
     return [sys.executable, "-m", "concord", "serve"]
 
 
@@ -120,27 +131,22 @@ def start(
     if _port_busy(host, port):
         raise LaunchError(
             f"port {port} is in use by another program. Choose another port: "
-            "concord start --port 8010 (or [server] port in the config file)."
+            f"{command_hint('start --port 8010')} (or [server] port in the config file)."
         )
     logs = ensure_private_dir(data_dir / "logs")
     console = logs / "console.log"
     fd = open_private(console, "a")
-    with os.fdopen(fd, "a") as out:
+    with os.fdopen(fd, "a", encoding="utf-8") as out:
         out.write(f"\n--- concord start {time.strftime('%Y-%m-%d %H:%M:%S')} ---\n")
         out.flush()
-        kwargs: dict[str, Any] = {}
-        if os.name == "posix":
-            kwargs["start_new_session"] = True  # not killed by Ctrl-C in this terminal
-        else:  # pragma: no cover - Windows
-            kwargs["creationflags"] = getattr(subprocess, "DETACHED_PROCESS", 0)
         proc = subprocess.Popen(
             serve_command(),
-            env=env,
+            env={**env, "PYTHONIOENCODING": "utf-8"},  # the log is UTF-8 on every platform
             stdin=subprocess.DEVNULL,
             stdout=out,
             stderr=subprocess.STDOUT,
             close_fds=True,
-            **kwargs,
+            **background_kwargs(),
         )
     deadline = time.monotonic() + timeout_s
     while time.monotonic() < deadline:
@@ -160,29 +166,41 @@ def start(
 
 
 def _alive(pid: int) -> bool:
-    try:
-        os.kill(pid, 0)
-    except ProcessLookupError:
-        return False
-    except PermissionError:
-        return True
     # a zombie child of this process counts as gone
-    with contextlib.suppress(ChildProcessError, OSError):
-        done, _ = os.waitpid(pid, os.WNOHANG)
-        if done == pid:
-            return False
-    return True
+    return pid_alive(pid, reap=True)
+
+
+def _ask_to_exit(pid: int, pid_file: Path | None) -> str:
+    """The graceful stop for this platform; returns how it was asked."""
+    from concord.server.serve import read_instance, request_stop
+
+    if is_windows():
+        # no catchable SIGTERM on Windows: a stop request the server watches for
+        info = read_instance(pid_file) if pid_file is not None else None
+        if info is not None and info.get("pid") == pid and pid_file is not None:
+            request_stop(pid_file, pid)
+            return "stop request"
+        # a server of another data folder (found by its port): nothing to ask it with; the
+        # safe stop has already closed its recording, so it is ended directly
+        with contextlib.suppress(OSError):
+            terminate(pid)
+        return "terminated"
+    with contextlib.suppress(ProcessLookupError):
+        terminate(pid)  # SIGTERM: uvicorn's graceful shutdown
+    return "SIGTERM"
 
 
 def stop(
     instance: Instance, timeout_s: float = STOP_TIMEOUT_S, pid_file: Path | None = None
 ) -> dict[str, Any]:
-    """Safe stop (command output off, recording closed, source disconnected), then SIGTERM.
+    """Safe stop (command output off, recording closed, source disconnected), then SIGTERM
+    (Windows: a stop request in the data folder, see ``concord.server.serve``).
 
-    SIGKILL only if the server does not exit within ``timeout_s``; an active recording is
-    then recovered (marked incomplete) at the next start. With ``pid_file``, a server whose
-    instance lock is released and whose API is gone counts as stopped even if its process
-    has not been reaped yet (containers without an init process).
+    Killed (SIGKILL; TerminateProcess on Windows) only if the server does not exit within
+    ``timeout_s``; an active recording is then recovered (marked incomplete) at the next
+    start. With ``pid_file``, a server whose instance lock is released and whose API is gone
+    counts as stopped even if its process has not been reaped yet (containers without an init
+    process).
     """
     from concord.server.serve import read_instance
 
@@ -204,15 +222,15 @@ def stop(
     pid = instance.pid
     if pid is None:
         raise LaunchError("cannot determine the server's process id; stop it where it runs")
-    with contextlib.suppress(ProcessLookupError):
-        os.kill(pid, signal.SIGTERM)
+    result["asked_by"] = _ask_to_exit(pid, pid_file)
     deadline = time.monotonic() + timeout_s
     while time.monotonic() < deadline:
         if gone(pid):
+            result["forced"] = result["asked_by"] == "terminated"
             return result
         time.sleep(0.1)
-    with contextlib.suppress(ProcessLookupError):
-        os.kill(pid, signal.SIGKILL)
+    with contextlib.suppress(ProcessLookupError, OSError):
+        force_kill(pid)
     result["forced"] = True
     return result
 

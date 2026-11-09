@@ -1,6 +1,6 @@
 """Milestone 5 (D): the desktop bundle's entry point routing (packaging/app_entry.py) and the
 staged-console lookup. The bundle itself is built and smoke-tested by packaging/build_app.py and
-packaging/smoke_test.py (CI jobs package-linux and package-macos)."""
+packaging/smoke_test.py (CI jobs package-linux, package-macos and package-windows)."""
 
 from __future__ import annotations
 
@@ -56,6 +56,59 @@ def test_bundle_entry_routing(argv: list[str], kind: str, args: list[str]) -> No
     assert entry.route(argv) == (kind, args)
 
 
+@pytest.mark.parametrize(
+    ("argv", "kind", "args"),
+    [
+        ([], "cli", ["--help"]),  # the console program never opens the desktop app
+        (["stop"], "cli", ["stop"]),
+        (["--headless"], "cli", ["--headless"]),  # argparse explains it is not a command
+        (["-m", "concord_adapter_sdk.host", "x"], "module", ["concord_adapter_sdk.host", "x"]),
+        (["-m", "os"], "refuse", ["os"]),
+    ],
+)
+def test_windows_console_program_is_the_concord_command(
+    argv: list[str], kind: str, args: list[str]
+) -> None:
+    """Windows ships Concord.exe (windowed) and concord-cli.exe (console) from one entry
+    point; concord-cli.exe answers like the `concord` command."""
+    entry = _load("app_entry")
+    assert entry.route(argv, cli_program=True) == (kind, args)
+    assert entry.is_cli_program(r"C:\Users\a\Downloads\Concord\concord-cli.exe")
+    assert entry.is_cli_program("/x/CONCORD-CLI.EXE")  # Windows names ignore case
+    assert not entry.is_cli_program(r"C:\Users\a\Downloads\Concord\Concord.exe")
+
+
+def test_windows_icon_is_a_valid_ico() -> None:
+    """The program and window icon is drawn at build time (packaging/make_icon.py)."""
+    import struct
+
+    icon = _load("make_icon")
+    data = icon.ico()
+    reserved, kind, count = struct.unpack_from("<HHH", data)
+    assert (reserved, kind, count) == (0, 1, len(icon.SIZES))
+    for i, size in enumerate(icon.SIZES):
+        w, h, _, _, planes, bpp, length, offset = struct.unpack_from("<BBBBHHII", data, 6 + 16 * i)
+        assert (w, h) == (size % 256, size % 256) and planes == 1 and bpp == 32
+        header = struct.unpack_from("<IiiHHI", data, offset)
+        assert header == (40, size, 2 * size, 1, 32, 0)  # BITMAPINFOHEADER, XOR + AND rows
+        assert offset + length <= len(data)
+    px = icon.pixels(32)
+    assert px[0][3] == 0 and px[16 * 32 + 4][3] == 255  # transparent corner, opaque inside
+
+
+def test_windows_download_zip_has_the_concord_folder_at_its_top(tmp_path: Path) -> None:
+    import zipfile
+
+    build = _load("build_app")
+    folder = tmp_path / "Concord"
+    (folder / "_internal" / "sub").mkdir(parents=True)
+    (folder / "Concord.exe").write_bytes(b"MZ")
+    (folder / "_internal" / "sub" / "x.pyd").write_bytes(b"x")
+    out = build.make_zip(folder, tmp_path / "Concord-0.0.0-windows-x86_64.zip")
+    with zipfile.ZipFile(out) as zf:
+        assert sorted(zf.namelist()) == ["Concord/Concord.exe", "Concord/_internal/sub/x.pyd"]
+
+
 def test_desktop_ignores_the_finder_process_serial_number() -> None:
     from concord.desktop import parse
 
@@ -70,7 +123,7 @@ def test_packaged_console_is_preferred_outside_a_checkout(
 
     console = tmp_path / "console"
     console.mkdir()
-    (console / "index.html").write_text("<title>Concord</title>")
+    (console / "index.html").write_text("<title>Concord</title>", encoding="utf-8")
     monkeypatch.setattr(config, "source_checkout", lambda: None)
     monkeypatch.setattr(config, "packaged_console_dir", lambda: console)
     assert config.default_static_dir() == console
@@ -103,8 +156,11 @@ def test_dataset_command_explains_an_unknown_dataset(capsys: pytest.CaptureFixtu
 
 def test_messages_name_the_desktop_apps_own_program(monkeypatch: pytest.MonkeyPatch) -> None:
     """A desktop app has no `concord` command: its stop hint names the app's program (regression)."""
+    from concord import oscompat
     from concord.config import command_hint
 
+    # the Windows form is tested in test_m5_windows
+    monkeypatch.setattr(oscompat, "is_windows", lambda: False)
     monkeypatch.delattr(sys, "frozen", raising=False)
     assert command_hint("stop") == "concord stop"
     monkeypatch.setattr(sys, "frozen", True, raising=False)

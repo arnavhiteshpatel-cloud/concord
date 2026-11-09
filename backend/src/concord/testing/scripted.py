@@ -237,7 +237,7 @@ def write_identity_model(models_dir: Path) -> Path:
     }
     models_dir.mkdir(parents=True, exist_ok=True)
     path = models_dir / f"{MODEL_ID}.json"
-    path.write_text(json.dumps(model, indent=1))
+    path.write_text(json.dumps(model, indent=1), encoding="utf-8")
     return path
 
 

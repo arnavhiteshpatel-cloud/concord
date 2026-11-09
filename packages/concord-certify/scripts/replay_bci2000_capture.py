@@ -38,7 +38,7 @@ DEFAULT_FIXTURE = (
 
 
 def load_blocks(path: Path) -> list[list[tuple[float, str]]]:
-    raw = json.loads(path.read_text())["datagrams"]
+    raw = json.loads(path.read_text(encoding="utf-8"))["datagrams"]
     blocks: list[list[tuple[float, str]]] = []
     for t, text in raw:
         if text.startswith("Notes ") or not blocks:

@@ -5,17 +5,22 @@ file is optional; nothing in it is required for ordinary use. Location:
 
 - ``$CONCORD_CONFIG`` if set;
 - macOS: ``~/Library/Application Support/Concord/config.toml``;
+- Windows: ``%LOCALAPPDATA%\\Concord\\config.toml`` (next to the data folder
+  ``%LOCALAPPDATA%\\Concord\\data``);
 - Linux and others: ``$XDG_CONFIG_HOME/concord/config.toml`` (``~/.config/concord/config.toml``).
 
 ``concord config init`` writes a commented template (mode 0600). A config file that other
 users can write to, or that belongs to another user, is refused: it decides where neural data
-is written and which network interface the server listens on.
+is written and which network interface the server listens on. (POSIX only: Windows has no
+mode bits; the default location is inside the user's profile, which Windows already keeps
+private to that user.)
 
 This module must stay importable without the server extra (the ``concord`` command uses it).
 """
 
 from __future__ import annotations
 
+import json
 import os
 import stat
 import sys
@@ -92,18 +97,6 @@ def frozen() -> bool:
     return bool(getattr(sys, "frozen", False))
 
 
-def command_hint(subcommand: str) -> str:
-    """How the user runs a ``concord`` subcommand from this installation, for messages.
-
-    A desktop app has no ``concord`` command on the PATH: its own program takes the same
-    subcommands (``./Concord/Concord stop``), so messages name that program's full path.
-    """
-    if frozen():
-        exe = sys.executable
-        return f'"{exe}" {subcommand}' if " " in exe else f"{exe} {subcommand}"
-    return f"concord {subcommand}"
-
-
 def source_checkout() -> Path | None:
     """The repository root when Concord runs from a source checkout (``make setup``)."""
     if frozen():
@@ -134,6 +127,21 @@ def default_config_path() -> Path:
         return user_dir() / "config.toml"
     base = os.environ.get("XDG_CONFIG_HOME")
     return (Path(base) if base else Path.home() / ".config") / "concord" / "config.toml"
+
+
+def command_hint(args: str) -> str:
+    """A ``concord`` command as the operator types it for this installation: ``concord stop``;
+    in the desktop app the bundled program, e.g. on Windows
+    ``"C:\\Users\\me\\Downloads\\Concord\\concord-cli.exe" stop``."""
+    from concord.oscompat import cli_command
+
+    return f"{cli_command()} {args}".strip()
+
+
+def toml_string(value: str) -> str:
+    """``value`` as a TOML basic string. Windows paths contain backslashes, which TOML reads
+    as escapes ("C:\\Users" would be an invalid \\U escape), so they are escaped."""
+    return json.dumps(value, ensure_ascii=False)
 
 
 def packaged_console_dir() -> Path:
@@ -320,8 +328,8 @@ def template() -> str:
         'log_level = "INFO"',
         "",
         "[storage]",
-        f'# data_dir = "{default_data_dir()}"',
-        f'# reports_dir = "{default_reports_dir()}"',
+        f"# data_dir = {toml_string(str(default_data_dir()))}",
+        f"# reports_dir = {toml_string(str(default_reports_dir()))}",
         "",
         "[retention]",
         "# Days to keep each kind of data; 0 keeps it forever. Enforced when the server starts;",
@@ -353,7 +361,9 @@ def write_template(path: Path | None = None) -> Path:
     """Create the config file (0600) with the template. Refuses to overwrite."""
     path = path or default_config_path()
     path.parent.mkdir(parents=True, exist_ok=True)
-    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    from concord.oscompat import O_BINARY
+
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | O_BINARY, 0o600)
     with os.fdopen(fd, "w", encoding="utf-8") as fh:
         fh.write(template())
     return path

@@ -143,7 +143,7 @@ def prepare(data: Path, out: Path) -> dict[str, Any]:
             },
         },
     }
-    (out / "plan.json").write_text(json.dumps(plan, indent=1))
+    (out / "plan.json").write_text(json.dumps(plan, indent=1), encoding="utf-8")
     return plan
 
 
@@ -291,14 +291,14 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({"plan": str(args.out / "plan.json"), "device_id": plan["device_id"]}))
         return 0
     res = compare(
-        json.loads(args.plan.read_text()),
+        json.loads(args.plan.read_text(encoding="utf-8")),
         args.mode,
-        json.loads(args.observed.read_text()),
+        json.loads(args.observed.read_text(encoding="utf-8")),
         args.position_s,
         args.n,
     )
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(json.dumps(res, indent=1))
+    args.out.write_text(json.dumps(res, indent=1), encoding="utf-8")
     print(json.dumps(res))
     return 0
 

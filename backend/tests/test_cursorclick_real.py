@@ -34,7 +34,7 @@ from concord.decoding import kalman
 from concord.runtime import DeviceRegistry, Recorder, Runtime
 
 from .conftest import subscribe
-from .helpers import drain, events, wait_for
+from .helpers import drain, events, link_or_copy, wait_for
 
 REPO = Path(__file__).resolve().parents[2]
 DATA = Path(os.environ.get("CONCORD_TEST_T15", REPO / "data" / "datasets" / "dryad-prr4xgxzq"))
@@ -170,7 +170,7 @@ async def rt(tmp_path: Path) -> Iterator[Runtime]:  # type: ignore[misc]
     root = tmp_path / "data"
     (root / "datasets").mkdir(parents=True)
     for f in FILES:
-        (root / "datasets" / f.name).symlink_to(f)
+        link_or_copy(root / "datasets" / f.name, f)
     reg = DeviceRegistry(OperatorIntentSource(), root / "recordings", seed=1)
     runtime = Runtime(reg, Recorder(root / "recordings"))
     yield runtime

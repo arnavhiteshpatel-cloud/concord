@@ -95,7 +95,7 @@ async def test_brainflow_synthetic_board_through_plugin_host(server: str) -> Non
 def _replay_bci2000(port: int, stop: threading.Event) -> None:
     """Re-send the recorded BCI2000 datagrams with their original timing, looping (a run
     of ~2 s; the plugin learns its layout at configure time and again on connect)."""
-    raw = json.loads(BCI_FIXTURE.read_text())["datagrams"]
+    raw = json.loads(BCI_FIXTURE.read_text(encoding="utf-8"))["datagrams"]
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         while not stop.is_set():

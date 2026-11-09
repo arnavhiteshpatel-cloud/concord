@@ -45,6 +45,7 @@ from concord.datasets import (
     manifest,
     sha256_file,
 )
+from concord.oscompat import replace
 
 log = logging.getLogger(__name__)
 
@@ -369,7 +370,7 @@ def write_extract(
         warnings.filterwarnings("ignore", message=".*does not end in '.nwb'.*")
         with NWBHDF5IO(str(tmp), "w") as io:
             io.write(nwb)
-    tmp.replace(path)
+    replace(tmp, path)  # retried on Windows while a virus scanner holds the new file
 
 
 # ------------------------------------------------------------------ public entry points

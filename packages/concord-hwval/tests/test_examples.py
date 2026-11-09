@@ -21,8 +21,8 @@ EXAMPLES = sorted(SAMPLES.glob("*.hwval.json"))
 
 @pytest.mark.parametrize("path", EXAMPLES, ids=[p.name for p in EXAMPLES])
 def test_example_report(path: Path) -> None:
-    rep = json.loads(path.read_text())
-    jsonschema.validate(rep, json.loads(SCHEMA_PATH.read_text()))
+    rep = json.loads(path.read_text(encoding="utf-8"))
+    jsonschema.validate(rep, json.loads(SCHEMA_PATH.read_text(encoding="utf-8")))
     assert rep["evidence_scope"]["hardware_verified"] is False
     assert rep["evidence_scope"]["level"] != "hardware_run_candidate"  # no hardware was used
     from concord_hwval.model import Category, Check

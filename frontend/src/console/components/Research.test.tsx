@@ -10,7 +10,7 @@ import type { ResearchSession, SafeStopReport, SessionLogEntry } from "../resear
 import { safeStopText } from "../researchApi";
 import { stubFetch } from "../testFetch";
 import { SessionBar, entryText, somethingRunning } from "./SessionBar";
-import { StoredData, retentionText } from "./StoredData";
+import { StoredData, dataDirPrivacy, retentionText } from "./StoredData";
 import { SupportReport } from "./SupportReport";
 
 afterEach(() => {
@@ -282,6 +282,10 @@ describe("wording", () => {
     expect(entryText({ at_ns: 1, kind: "device_status", device_id: "sim-a", state: "streaming" })).toBe("Source sim-a: streaming");
     expect(entryText({ at_ns: 1, kind: "recording_started", recording: "r1" })).toBe("Recording started: r1");
     expect(retentionText({ recordings_days: null })).toContain("No retention policy");
+    // Windows has no 0700 folders: privacy there depends on the folder being in the profile
+    expect(dataDirPrivacy("/home/ana/.local/share/concord/data")).toBe("only your user can read it");
+    expect(dataDirPrivacy("C:\\Users\\Ana\\AppData\\Local\\Concord\\data")).toContain("cannot open it");
+    expect(dataDirPrivacy("D:\\lab\\concord")).toContain("may be able to read it");
     expect(somethingRunning(null, false, false)).toBe(false);
     expect(somethingRunning(null, true, false)).toBe(true);
   });

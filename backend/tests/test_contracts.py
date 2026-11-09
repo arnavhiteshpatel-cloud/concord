@@ -302,7 +302,7 @@ def test_decoded_intent_with_model_id_is_valid() -> None:
 def test_committed_schema_matches_models() -> None:
     """AT-4: committed JSON Schema equals the schema generated from the models."""
     assert SCHEMA_FILE.exists(), "run `make schema`"
-    committed = json.loads(SCHEMA_FILE.read_text())
+    committed = json.loads(SCHEMA_FILE.read_text(encoding="utf-8"))
     assert committed == envelope_json_schema(), "schema drift: run `make schema`"
 
 

@@ -99,7 +99,7 @@ def _bridge(**cfg: Any) -> tuple[Any, Any, Clock]:
 def test_bridge_is_sdk_only_and_never_the_operator() -> None:
     stdlib = set(sys.stdlib_module_names) | {"__future__"}
     for path in BRIDGE_DIR.glob("*.py"):
-        text = path.read_text()
+        text = path.read_text(encoding="utf-8")
         for node in ast.walk(ast.parse(text)):
             names: list[str] = []
             if isinstance(node, ast.Import):
@@ -114,7 +114,9 @@ def test_bridge_is_sdk_only_and_never_the_operator() -> None:
     assert (BRIDGE_DIR / "SAFETY.md").exists()
     ref = Path(__file__).resolve().parents[1] / "examples" / "reference_app"
     for path in ref.glob("*.py"):  # the reference apps never drive the OS
-        assert "desktop_bridge" not in path.read_text() and "xdotool" not in path.read_text()
+        assert "desktop_bridge" not in path.read_text(
+            encoding="utf-8"
+        ) and "xdotool" not in path.read_text(encoding="utf-8")
 
 
 def test_off_by_default_and_refusals() -> None:

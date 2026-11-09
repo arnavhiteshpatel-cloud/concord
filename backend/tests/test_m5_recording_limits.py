@@ -151,11 +151,11 @@ def test_recordings_with_the_earlier_header_still_replay(tmp_path: Path) -> None
     _write(rec, 4)
     rec.stop()
     path = tmp_path / "old.concord.jsonl"
-    lines = path.read_text().splitlines(keepends=True)
+    lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
     header = json.loads(lines[0])
     for key in ("source_metadata", "timing", "limits"):
         header.pop(key, None)
-    path.write_text(json.dumps(header) + "\n" + "".join(lines[1:]))
+    path.write_text(json.dumps(header) + "\n" + "".join(lines[1:]), encoding="utf-8")
     src = ConcordRecordingSource(path)
     assert src.header().timing is None and src.header().source_metadata is None
     assert sum(1 for _ in src.records()) == 4
@@ -205,7 +205,10 @@ def test_recording_limits_from_config_file_and_environment(
     assert s.recording_min_free_bytes == 256 * MIB
 
     cfg = tmp_path / "config.toml"
-    cfg.write_text("[recording]\nmax_duration_s = 1800\nmax_size_mb = 4096\nmin_free_mb = 0\n")
+    cfg.write_text(
+        "[recording]\nmax_duration_s = 1800\nmax_size_mb = 4096\nmin_free_mb = 0\n",
+        encoding="utf-8",
+    )
     cfg.chmod(0o600)
     monkeypatch.setenv("CONCORD_CONFIG", str(cfg))
     s = Settings.from_env()

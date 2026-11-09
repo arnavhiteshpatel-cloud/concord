@@ -531,7 +531,10 @@ def test_r5_report_for_changed_plugin_source_is_not_counted(repo: TmpRepo) -> No
     repo.sources(builtins=[], plugins=[example_plugin()])
     assert repo.entry("concord-example-adapter").evidence[0].counted
     plugin_py = repo.root / "plugins/example/src/concord_example_adapter/plugin.py"
-    plugin_py.write_text(plugin_py.read_text() + "\n# changed after certification\n")
+    plugin_py.write_text(
+        plugin_py.read_text(encoding="utf-8") + "\n# changed after certification\n",
+        encoding="utf-8",
+    )
     (ev,) = repo.entry("concord-example-adapter").evidence
     assert not ev.counted and ev.certify is not None
     assert ev.certify.source_matches is False and ev.certify.changed_files == ["plugin.py"]
@@ -626,13 +629,18 @@ def test_check_detects_a_stale_registry(repo: TmpRepo, capsys: pytest.CaptureFix
     assert main(["--root", root]) == 0
     # the generated docs section edited by hand
     doc = repo.root / DOC
-    doc.write_text(doc.read_text().replace("built-in adapter", "builtin"))
+    doc.write_text(
+        doc.read_text(encoding="utf-8").replace("built-in adapter", "builtin"), encoding="utf-8"
+    )
     assert main(["--check", "--root", root]) == 1
     assert f"stale: {DOC}" in capsys.readouterr().err
     assert main(["--root", root]) == 0
     # a hand-edited level in the registry file
     reg = repo.root / REGISTRY
-    reg.write_text(reg.read_text().replace('"software_implemented"', '"hardware_verified"', 1))
+    reg.write_text(
+        reg.read_text(encoding="utf-8").replace('"software_implemented"', '"hardware_verified"', 1),
+        encoding="utf-8",
+    )
     assert main(["--check", "--root", root]) == 1
 
 

@@ -330,7 +330,7 @@ def main() -> None:
     print(text)
     if args.write:
         args.write.parent.mkdir(parents=True, exist_ok=True)
-        args.write.write_text(text)
+        args.write.write_text(text, encoding="utf-8")
         print(f"wrote {args.write}")
 
 

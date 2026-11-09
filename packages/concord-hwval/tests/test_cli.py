@@ -18,13 +18,13 @@ from concord_hwval.model import Status, Thresholds, overall
 from concord_hwval.report import SCHEMA_PATH
 from concord_hwval.scope import equipment_template
 
-SCHEMA = json.loads(SCHEMA_PATH.read_text())
+SCHEMA = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
 
 
 def _report(out: Path, stem: str) -> dict[str, Any]:
-    rep: dict[str, Any] = json.loads((out / f"{stem}.hwval.json").read_text())
+    rep: dict[str, Any] = json.loads((out / f"{stem}.hwval.json").read_text(encoding="utf-8"))
     jsonschema.validate(rep, SCHEMA)
-    md = (out / f"{stem}.hwval.md").read_text()
+    md = (out / f"{stem}.hwval.md").read_text(encoding="utf-8")
     assert md.startswith("# Concord acquisition verification")
     assert f"**Result: {rep['result'].upper()}**" in md
     assert "Hardware verified: **no**" in md
@@ -102,7 +102,7 @@ def test_input_errors_exit_2(tmp_path: Path, capsys: pytest.CaptureFixture[str])
     assert main(["openephys", "--reference", str(tmp_path), "--concord", str(b)]) == 2
     assert "no structure.oebin" in capsys.readouterr().err
     eq = tmp_path / "eq.json"
-    eq.write_text("{}")
+    eq.write_text("{}", encoding="utf-8")
     assert main(["lsl", "--reference", str(x), "--concord", str(b), "--equipment", str(eq)]) == 2
     assert "equipment manifest" in capsys.readouterr().err
 
@@ -143,7 +143,7 @@ def test_equipment_template_and_hardware_candidate_logic(
     assert tpl == equipment_template()
     # a template as printed is incomplete: never a hardware run
     eq = tmp_path / "eq.json"
-    eq.write_text(json.dumps(tpl))
+    eq.write_text(json.dumps(tpl), encoding="utf-8")
     case = LSLCase(rate=50.0, seconds=260, frame=10, concord_start=20, concord_stop_before_end=20)
     x, b = case.write(tmp_path)
     out = tmp_path / "r"
@@ -178,7 +178,7 @@ def test_equipment_template_and_hardware_candidate_logic(
     full["reference_recorder"].update(name="LabRecorder", version="1.16.4")
     full["concord"].update(version="0.3.0")
     full["hosts"] = [{"name": "h", "os": "linux", "cpu": "x", "clock_sync": "NTP"}]
-    eq.write_text(json.dumps(full))
+    eq.write_text(json.dumps(full), encoding="utf-8")
     assert (
         main(
             [
@@ -200,7 +200,7 @@ def test_equipment_template_and_hardware_candidate_logic(
     assert rep["evidence_scope"]["hardware_verified"] is False
     # a declared software simulator is never a hardware run, whatever else holds
     full["signal_source"]["kind"] = "software_simulator"
-    eq.write_text(json.dumps(full))
+    eq.write_text(json.dumps(full), encoding="utf-8")
     main(
         [
             "lsl",
@@ -254,5 +254,5 @@ def test_report_has_no_nan(tmp_path: Path) -> None:
     case.values = case.values.astype(np.float64)
     x, b = case.write(tmp_path)
     main(["lsl", "--reference", str(x), "--concord", str(b), "--out", str(tmp_path / "r")])
-    text = (tmp_path / "r" / "run.hwval.json").read_text()
+    text = (tmp_path / "r" / "run.hwval.json").read_text(encoding="utf-8")
     assert "NaN" not in text and "Infinity" not in text

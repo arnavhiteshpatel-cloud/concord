@@ -202,7 +202,16 @@ class SessionManager:
         if not folder.is_dir():
             raise SessionError(f"no session {session_id!r}", not_found=True)
         freed = sum(p.stat().st_size for p in folder.rglob("*") if p.is_file())
-        shutil.rmtree(folder)
+        try:
+            shutil.rmtree(folder)
+        except OSError as exc:
+            # Windows: a file that is open (an export being downloaded, a log in an editor)
+            # cannot be deleted; what could be deleted is gone, the rest is reported
+            log.warning("research session %s: delete incomplete: %s", session_id, exc)
+            raise SessionError(
+                f"session {session_id!r} could not be deleted completely: a file in it is open "
+                f"in another program ({exc.filename or exc}); close it and try again"
+            ) from None
         log.info("research session %s deleted (%d bytes)", session_id, freed)
         return freed
 
@@ -225,7 +234,7 @@ class SessionManager:
         path = self.folder(session_id) / "log.jsonl"
         try:
             fd = open_private(path, "a")
-            with os.fdopen(fd, "a", encoding="utf-8") as fh:
+            with os.fdopen(fd, "a", encoding="utf-8", newline="\n") as fh:
                 fh.write(line + "\n")
         except OSError as exc:
             log.error("session %s: cannot write the session log: %s", session_id, exc)

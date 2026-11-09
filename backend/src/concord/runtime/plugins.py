@@ -11,7 +11,6 @@ import asyncio
 import contextlib
 import json
 import logging
-import sys
 import threading
 import time
 from collections.abc import Mapping, Sequence
@@ -33,6 +32,7 @@ from concord.adapters.base import DeviceAdapter, DeviceLinkError
 from concord.adapters.plugin import PLUGIN_PREFIX, PluginAdapter, PluginSpec, device_id
 from concord.adapters.plugin.host_client import host_env
 from concord.contracts.protocol import DeviceDescriptor
+from concord.oscompat import child_kwargs, helper_executable
 
 log = logging.getLogger(__name__)
 
@@ -135,7 +135,7 @@ class PluginRegistry:
 
     async def _run_list(self) -> dict[str, Any]:
         proc = await asyncio.create_subprocess_exec(
-            self.python or sys.executable,
+            self.python or helper_executable(),
             "-m",
             "concord_adapter_sdk.host",
             "--list",
@@ -144,7 +144,7 @@ class PluginRegistry:
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             env=host_env(self.extra_path),
-            start_new_session=True,
+            **child_kwargs(),
         )
         try:
             out, err = await asyncio.wait_for(proc.communicate(), self.list_timeout_s)
@@ -321,7 +321,7 @@ class PluginRegistry:
         return {
             "host_api_version": API_VERSION,
             "sdk_version": SDK_VERSION,
-            "python": self.python or sys.executable,
+            "python": self.python or helper_executable(),
             "discovering": self.discovering,
             "discovered_at_ns": self.last_discovery_ns,
             "error": self.last_error,

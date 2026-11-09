@@ -116,7 +116,7 @@ class Lab:
         return dc.http(method, self.base + "/api/v1" + path, body, timeout=900 if slow else 60)
 
     def publisher(self, *args: str) -> subprocess.Popen[str]:
-        log = (self.tmp / f"publisher-{len(self.children)}.log").open("w")
+        log = (self.tmp / f"publisher-{len(self.children)}.log").open("w", encoding="utf-8")
         p = subprocess.Popen(
             [str(self.py), "-m", "concord.testing.publish", *args],
             env=self.env,
@@ -195,7 +195,7 @@ def main() -> int:
         )
         data = tmp / "lab-data"
         r = lab.concord("doctor", "--json", str(tmp / "doctor.json"), "--data-dir", str(data))
-        rep = json.loads((tmp / "doctor.json").read_text())
+        rep = json.loads((tmp / "doctor.json").read_text(encoding="utf-8"))
         checks = {c["id"]: c["status"] for c in rep["checks"]}
         assert all(checks[c] == "ok" for c in ("dsp", "nwb", "lsl", "zmq", "server_extra")), checks
         step(
@@ -205,10 +205,10 @@ def main() -> int:
 
         # 3. config + start ---------------------------------------------------------------
         lab.concord("config", "init")
-        text = cfg.read_text().replace("port = 8000", f"port = {port}")
+        text = cfg.read_text(encoding="utf-8").replace("port = 8000", f"port = {port}")
         text = text.replace("open_browser = true", "open_browser = false")
         text = re.sub(r"^# data_dir = .*$", f'data_dir = "{data}"', text, count=1, flags=re.M)
-        cfg.write_text(text)
+        cfg.write_text(text, encoding="utf-8")
         shown = json.loads(lab.concord("config", "show").stdout)
         assert (
             shown["port"] == port
@@ -286,7 +286,7 @@ def main() -> int:
         lab.api("POST", "/recordings/start", {"name": "lab-syn-decode", "exclude_raw": True})
         app_py = dc.venv(tmp / "app")
         dc.install(app_py, "concordos", find_links=dist)
-        (tmp / "app.py").write_text(APP)
+        (tmp / "app.py").write_text(APP, encoding="utf-8")
         app = subprocess.Popen(
             [str(app_py), str(tmp / "app.py"), lab.base, "40"],
             text=True,
@@ -417,7 +417,7 @@ def main() -> int:
             timeout=900,
         )
         print(r.stdout)
-        rep = json.loads((tmp / "reproduce.json").read_text())
+        rep = json.loads((tmp / "reproduce.json").read_text(encoding="utf-8"))
         assert r.returncode == 0 and rep["status"] == "reproduced", (r.returncode, r.stderr[-2000:])
         cals = [c for c in rep["checks"] if c["check"] == "calibration"]
         decs = [c for c in rep["checks"] if c["check"] == "decoded_output" and c.get("ok")]
@@ -453,14 +453,17 @@ def main() -> int:
                     if log.exists():
                         print(
                             f"--- {log.name}\n"
-                            + "\n".join(log.read_text(errors="replace").splitlines()[-30:])
+                            + "\n".join(
+                                log.read_text(errors="replace", encoding="utf-8").splitlines()[-30:]
+                            )
                         )
         args.report.parent.mkdir(parents=True, exist_ok=True)
         args.report.write_text(
             json.dumps(
                 {"ok": ok, "seconds": round(time.monotonic() - t0, 1), "steps": STEPS}, indent=1
             )
-            + "\n"
+            + "\n",
+            encoding="utf-8",
         )
         if not args.keep:
             shutil.rmtree(tmp, ignore_errors=True)

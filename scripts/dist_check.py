@@ -50,12 +50,21 @@ def run(cmd: list[str], **kw: object) -> subprocess.CompletedProcess[str]:
     return r  # type: ignore[no-any-return]
 
 
+WINDOWS = os.name == "nt"
+
+
 def venv(path: Path) -> Path:
     if UV:
         run([UV, "venv", "-q", "-p", sys.executable, str(path)])
     else:
         run([sys.executable, "-m", "venv", str(path)])
-    return path / "bin" / "python"
+    # Windows virtualenvs keep their programs in Scripts\ with an .exe suffix
+    return path / "Scripts" / "python.exe" if WINDOWS else path / "bin" / "python"
+
+
+def script(py: Path, name: str) -> Path:
+    """A console script installed in the virtualenv of interpreter ``py``."""
+    return py.parent / (f"{name}.exe" if WINDOWS else name)
 
 
 def install(py: Path, *specs: str, find_links: Path) -> None:
@@ -153,7 +162,7 @@ def main() -> int:
         # 1. adapter developer: only the adapter SDK
         dev = venv(tmp / "adapter-dev")
         install(dev, "concord-adapter-sdk", "pytest", find_links=dist)
-        cli = dev.parent / "concord-adapter"
+        cli = script(dev, "concord-adapter")
         run(
             [
                 str(cli),
@@ -190,7 +199,7 @@ def main() -> int:
             "CONCORD_LOG_LEVEL": "WARNING",
         }
         server = subprocess.Popen(
-            [str(lab.parent / "concord-server")],
+            [str(script(lab, "concord-server"))],
             env=env,
             text=True,
             stdout=subprocess.PIPE,
@@ -230,10 +239,10 @@ def main() -> int:
             ]
         ).stdout.strip()
         assert mods == "[]", f"application SDK pulled in server/numeric packages: {mods}"
-        (tmp / "app.py").write_text(APP)
+        (tmp / "app.py").write_text(APP, encoding="utf-8")
         out = run([str(app), str(tmp / "app.py"), base, device_id]).stdout.strip()
         print(f"3. app developer (SDK only, deps: pydantic/httpx/websockets): {out}")
-        r = subprocess.run([str(app.parent / "concord-server")], text=True, capture_output=True)
+        r = subprocess.run([str(script(app, "concord-server"))], text=True, capture_output=True)
         assert r.returncode != 0 and "concordos[server]" in (r.stderr + r.stdout), r
         print("   concord-server without the server extra: clear install hint")
 
@@ -255,7 +264,7 @@ def main() -> int:
             ]
         ).stdout.strip()
         assert mods == "[]", f"concord-hwval pulled in Concord: {mods}"
-        hcli = hw.parent / "concord-hwval"
+        hcli = script(hw, "concord-hwval")
         version = run([str(hcli), "--version"]).stdout.strip()
         json.loads(run([str(hcli), "equipment-template"]).stdout)
         info = json.loads(run([str(hcli), "inspect", str(recording)]).stdout)

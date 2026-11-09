@@ -236,7 +236,7 @@ def write_concord(
                 )
             )
         )
-    path.write_text("\n".join(lines) + "\n")
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 def lsl_device(
@@ -463,9 +463,10 @@ def write_oe_binary(
         }
     )
     oebin = {"GUI version": gui_version, "continuous": [cont], "events": events, "spikes": []}
-    (rec / "structure.oebin").write_text(json.dumps(oebin, indent=2))
+    (rec / "structure.oebin").write_text(json.dumps(oebin, indent=2), encoding="utf-8")
     (rec / "sync_messages.txt").write_text(
-        f"Start Time for {source} (100) - {stream} @ {rate:g} Hz: {int(sn[0]) if len(sn) else 0}\n"
+        f"Start Time for {source} (100) - {stream} @ {rate:g} Hz: {int(sn[0]) if len(sn) else 0}\n",
+        encoding="utf-8",
     )
     return rec
 

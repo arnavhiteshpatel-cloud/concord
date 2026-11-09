@@ -33,6 +33,13 @@ log = logging.getLogger(__name__)
 RECORDING_FORMAT = "concord.recording/1"
 RECORDING_SUFFIX = ".concord.jsonl"
 NAME_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_\-]{0,47}$")
+# Device names Windows reserves in every folder ("con.concord.jsonl" is the console there):
+# refused on every platform, so a recording made anywhere can be copied to a Windows PC.
+WINDOWS_RESERVED = re.compile(r"^(con|prn|aux|nul|com[0-9]|lpt[0-9])$")
+
+
+def valid_name(name: str) -> bool:
+    return bool(NAME_PATTERN.match(name)) and not WINDOWS_RESERVED.match(name)
 
 
 class RecordingFormatError(ValueError):
@@ -82,7 +89,7 @@ class ReplaySource(Protocol):
 
 
 def recording_path(directory: Path, name: str) -> Path:
-    if not NAME_PATTERN.match(name):
+    if not valid_name(name):
         raise RecordingFormatError(f"invalid recording name {name!r}")
     return directory / f"{name}{RECORDING_SUFFIX}"
 

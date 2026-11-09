@@ -38,7 +38,7 @@ from . import nwb_fixtures as fx
 def test_not_an_nwb_file(tmp_path: Path) -> None:
     """M2-AT-5: garbage with an .nwb name is rejected with a clear error."""
     p = tmp_path / "fake.nwb"
-    p.write_text("this is not HDF5")
+    p.write_text("this is not HDF5", encoding="utf-8")
     with pytest.raises(NWBFormatError, match="not a readable NWB/HDF5 file"):
         load(p)
 

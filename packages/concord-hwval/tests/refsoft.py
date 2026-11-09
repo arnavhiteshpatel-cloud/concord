@@ -262,7 +262,7 @@ class OpenEphysGUI:
         xdg = self.home / "xdg"
         xdg.mkdir(mode=0o700, parents=True, exist_ok=True)
         (self.home / ".asoundrc").write_text(
-            "pcm.!default { type pulse }\nctl.!default { type pulse }\n"
+            "pcm.!default { type pulse }\nctl.!default { type pulse }\n", encoding="utf-8"
         )
         disp = _free_display()
         self.env = dict(
@@ -300,7 +300,9 @@ class OpenEphysGUI:
         time.sleep(1.5)
         if any(p.poll() is not None for p in self.procs):
             self.stop()
-            raise Unavailable(f"Xvfb/pulseaudio did not start: {self.log_path.read_text()[-800:]}")
+            raise Unavailable(
+                f"Xvfb/pulseaudio did not start: {self.log_path.read_text(encoding='utf-8')[-800:]}"
+            )
         exe = self.gui_dir / "open-ephys" / "open-ephys"
         self.procs.append(
             subprocess.Popen([str(exe)], cwd=exe.parent, env=self.env, stdout=log, stderr=log)
@@ -318,7 +320,11 @@ class OpenEphysGUI:
 
     def activity_log(self) -> str:
         p = self.home / ".config" / "open-ephys" / "configs-api10" / "activity.log"
-        return p.read_text(errors="replace") if p.is_file() else self.log_path.read_text()
+        return (
+            p.read_text(errors="replace", encoding="utf-8")
+            if p.is_file()
+            else self.log_path.read_text(encoding="utf-8")
+        )
 
     def api(self, method: str, path: str, body: dict[str, Any] | None = None) -> dict[str, Any]:
         data = None if body is None else json.dumps(body).encode()

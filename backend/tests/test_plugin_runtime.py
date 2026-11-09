@@ -7,7 +7,6 @@ runtime stays healthy (a simulated device connects afterwards).
 from __future__ import annotations
 
 import os
-import signal
 from pathlib import Path
 
 import numpy as np
@@ -25,7 +24,7 @@ from concord.runtime.plugins import (
 )
 
 from .conftest import subscribe
-from .helpers import drain, events, wait_for
+from .helpers import drain, events, kill_now, killed_message_ok, wait_for
 from .plugin_helpers import PLUGINS_DIR, make_dist, spec
 
 
@@ -100,9 +99,11 @@ async def test_disconnect_closes_the_plugin_session_gracefully(
     adapter = runtime.adapter
     assert isinstance(adapter, PluginAdapter)
     await wait_for(lambda: adapter.counters["chunks"] > 3, timeout=10)
-    probe_closes = marker.read_text().count("closed")  # configure's probe also closed once
+    probe_closes = marker.read_text(encoding="utf-8").count(
+        "closed"
+    )  # configure's probe also closed once
     await runtime.disconnect()
-    assert marker.read_text().count("closed") == probe_closes + 1
+    assert marker.read_text(encoding="utf-8").count("closed") == probe_closes + 1
     assert adapter.last_exit is None or "code 0" in adapter.last_exit
 
 
@@ -128,7 +129,7 @@ async def test_cancelled_request_is_drained(tmp_path: Path) -> None:
     finally:
         code = await c.close()
     assert code == 0
-    assert "closed" in marker.read_text()
+    assert "closed" in marker.read_text(encoding="utf-8")
 
 
 async def test_unknown_unit_is_arbitrary(runtime: Runtime) -> None:
@@ -211,7 +212,7 @@ async def test_killed_host_reconnects(runtime: Runtime) -> None:
     adapter = runtime.adapter
     assert isinstance(adapter, PluginAdapter) and adapter.host_pid
     old = adapter.host_pid
-    os.kill(old, signal.SIGKILL)
+    kill_now(old)
     await wait_for(lambda: runtime.diagnostics.reconnect_successes >= 1, timeout=10)
     assert adapter.host_pid not in (None, old)
     drain(sub)
@@ -219,7 +220,7 @@ async def test_killed_host_reconnects(runtime: Runtime) -> None:
     await wait_for(lambda: bool(msgs.extend(drain(sub)) or events(msgs, "recording.frame")), 10)
     assert runtime.state is RuntimeState.STREAMING
     errs = [e.message for e in runtime.diagnostics_snapshot().recent_errors]
-    assert any("SIGKILL" in m for m in errs), errs
+    assert any(killed_message_ok(m) for m in errs), errs
     await runtime.disconnect()
 
 

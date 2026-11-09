@@ -4,8 +4,13 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
+import shutil
+import signal
+import stat
 import time
 from collections.abc import Callable, Sequence
+from pathlib import Path
 from typing import Any
 
 from concord.adapters.base import (
@@ -30,6 +35,75 @@ DEV_PROV = Provenance(
     kind=ProvenanceKind.DEVICE_REPORT, adapter="test.adapter@0.0.1", synthetic=True, origin="test"
 )
 Q = Quality(score=1.0, flags=[QualityFlag.SYNTHETIC])
+
+
+POSIX = os.name == "posix"
+# what a test kills a process with: SIGKILL; Windows has none (os.kill there terminates)
+KILL_SIGNAL = getattr(signal, "SIGKILL", signal.SIGTERM)
+
+
+def kill_now(pid: int) -> None:
+    """End ``pid`` at once, as a crash would (SIGKILL; TerminateProcess on Windows)."""
+    os.kill(pid, KILL_SIGNAL)
+
+
+def killed_message_ok(message: str) -> bool:
+    """How a host killed by ``kill_now`` is reported: by signal name on POSIX, by its exit code
+    (15, from TerminateProcess) on Windows."""
+    return "SIGKILL" in message if POSIX else "exited with code" in message
+
+
+def server_pid(pid_file: Path) -> int:
+    """The pid the running server wrote into its pid file. On Windows, a virtualenv's
+    python.exe is a launcher that runs the interpreter as a child process, so a Popen's pid
+    is not necessarily the server's."""
+    pid = json.loads(pid_file.read_text(encoding="utf-8"))["pid"]
+    assert isinstance(pid, int)
+    return pid
+
+
+def graceful_stop(pid: int, pid_file: Path) -> None:
+    """Ask a Concord server or desktop app to quit as `concord stop` does after its safe stop:
+    SIGTERM on POSIX, a stop request in the data folder on Windows (naming the pid the server
+    wrote into ``pid_file``)."""
+    if POSIX:
+        os.kill(pid, signal.SIGTERM)
+    else:
+        from concord.server.serve import request_stop
+
+        request_stop(pid_file, server_pid(pid_file))
+
+
+def link_or_copy(dst: Path, src: Path) -> None:
+    """Make ``dst`` refer to ``src`` (a real-data file or folder) without copying when possible.
+
+    A symbolic link; on Windows, where symbolic links need a privilege most accounts lack, a
+    directory junction or a hard link (neither does), else a copy."""
+    try:
+        dst.symlink_to(src, target_is_directory=src.is_dir())
+        return
+    except OSError:
+        if POSIX:
+            raise
+    if src.is_dir():
+        try:
+            import _winapi
+
+            getattr(_winapi, "CreateJunction")(str(src.resolve()), str(dst))  # noqa: B009
+            return
+        except (ImportError, OSError):
+            shutil.copytree(src, dst)
+            return
+    try:
+        os.link(src, dst)  # same volume only
+    except OSError:
+        shutil.copy2(src, dst)
+
+
+def assert_mode(path: Path, mode: int) -> None:
+    """POSIX permission bits; Windows has none (os.chmod only toggles read-only there)."""
+    if POSIX:
+        assert stat.S_IMODE(path.stat().st_mode) == mode, (path, oct(path.stat().st_mode))
 
 
 async def wait_for(cond: Callable[[], bool], timeout: float = 3.0, interval: float = 0.01) -> None:

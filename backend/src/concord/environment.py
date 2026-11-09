@@ -99,4 +99,6 @@ def platform_info() -> dict[str, Any]:
     }
     if sys.platform == "darwin":
         info["macos"] = platform.mac_ver()[0]
+    elif sys.platform == "win32":  # e.g. "10.0.22631" (Windows 11 builds are 22000 and later)
+        info["windows"] = platform.win32_ver()[1]
     return info

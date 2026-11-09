@@ -234,7 +234,7 @@ def git_info(path: Path) -> dict[str, Any] | None:
 
 def _cpu_model() -> str | None:
     with contextlib.suppress(OSError):
-        for line in Path("/proc/cpuinfo").read_text().splitlines():
+        for line in Path("/proc/cpuinfo").read_text(encoding="utf-8").splitlines():
             if line.lower().startswith("model name"):
                 return line.split(":", 1)[1].strip()
     return platform.processor() or None
@@ -242,7 +242,7 @@ def _cpu_model() -> str | None:
 
 def _mem_total_mib() -> int | None:
     with contextlib.suppress(OSError, ValueError, IndexError):
-        for line in Path("/proc/meminfo").read_text().splitlines():
+        for line in Path("/proc/meminfo").read_text(encoding="utf-8").splitlines():
             if line.startswith("MemTotal:"):
                 return int(line.split()[1]) // 1024
     return None

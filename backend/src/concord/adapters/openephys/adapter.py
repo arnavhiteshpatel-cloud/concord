@@ -25,6 +25,7 @@ import logging
 import re
 import time
 import uuid
+import warnings
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any, Literal
@@ -66,6 +67,13 @@ from concord.contracts.events import Provenance, ProvenanceKind, Quality, Qualit
 from concord.contracts.protocol import DeviceDescriptor, DeviceKind
 
 log = logging.getLogger(__name__)
+
+# Windows: the server's asyncio loop is the Proactor loop (it is what runs the plugin and
+# decoder host subprocesses), which has no add_reader. pyzmq then runs a selector thread from
+# tornado (a Windows-only dependency of the `live` extra) and warns about it; that is expected.
+warnings.filterwarnings(
+    "ignore", message="Proactor event loop does not implement add_reader", category=RuntimeWarning
+)
 
 ADAPTER_NAME = "concord.openephys.zmq"
 ADAPTER_VERSION = "0.1.0"

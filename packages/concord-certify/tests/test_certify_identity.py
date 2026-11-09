@@ -24,9 +24,11 @@ def install(site: Path, name: str = "certify-test-plugins", ep: str = "certify-t
     shutil.copy(MODULE_FILE, site / MODULE_FILE.name)
     info = site / f"{name.replace('-', '_')}-0.0.1.dist-info"
     info.mkdir(exist_ok=True)
-    (info / "METADATA").write_text(f"Metadata-Version: 2.1\nName: {name}\nVersion: 0.0.1\n")
+    (info / "METADATA").write_text(
+        f"Metadata-Version: 2.1\nName: {name}\nVersion: 0.0.1\n", encoding="utf-8"
+    )
     (info / "entry_points.txt").write_text(
-        f"[concord.sources]\n{ep} = certify_test_plugins:DefectPlugin\n"
+        f"[concord.sources]\n{ep} = certify_test_plugins:DefectPlugin\n", encoding="utf-8"
     )
     data = (site / MODULE_FILE.name).read_bytes()
     record = [
@@ -34,7 +36,7 @@ def install(site: Path, name: str = "certify-test-plugins", ep: str = "certify-t
         f"{info.name}/METADATA,,",
         f"{info.name}/RECORD,,",
     ]
-    (info / "RECORD").write_text("\n".join(record) + "\n")
+    (info / "RECORD").write_text("\n".join(record) + "\n", encoding="utf-8")
     return site
 
 
@@ -55,7 +57,7 @@ def test_installed_entry_point_and_record_verified(tmp_path: Path) -> None:
 
 def test_modified_installed_file_is_reported(tmp_path: Path) -> None:
     site = install(tmp_path / "site")
-    with open(site / MODULE_FILE.name, "a") as f:
+    with open(site / MODULE_FILE.name, "a", encoding="utf-8") as f:
         f.write("\n# edited after installation\n")
     doc = collect_identity("certify-test", extra_path=[str(site)])
     rec = doc["distribution"]["record"]
@@ -79,7 +81,7 @@ def test_duplicate_entry_point_fails(tmp_path: Path) -> None:
 def test_module_reference_hashes_files_without_importing(tmp_path: Path) -> None:
     pkg = tmp_path / "boom_pkg"
     pkg.mkdir()
-    (pkg / "__init__.py").write_text("raise RuntimeError('imported!')\n")
+    (pkg / "__init__.py").write_text("raise RuntimeError('imported!')\n", encoding="utf-8")
     doc = collect_identity("boom_pkg:Plugin", extra_path=[str(tmp_path)])
     assert doc["kind"] == "module" and doc["distribution"] is None
     assert doc["module"]["file_count"] == 1 and len(doc["module"]["tree_sha256"]) == 64

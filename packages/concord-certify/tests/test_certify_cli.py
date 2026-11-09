@@ -27,7 +27,7 @@ def test_good_plugin_exits_zero_and_writes_both_reports(
 ) -> None:
     code = run_cli(tmp_path, ref(), "--no-runtime", "--name", "good")
     assert code == 0
-    doc = json.loads((tmp_path / "good.certify.json").read_text())
+    doc = json.loads((tmp_path / "good.certify.json").read_text(encoding="utf-8"))
     assert validate_report(doc) == []
     assert doc["summary"]["exit_code"] == 0
     assert all(
@@ -35,7 +35,7 @@ def test_good_plugin_exits_zero_and_writes_both_reports(
         for c in doc["checks"]
         if c["id"].startswith("runtime.")
     )
-    md = (tmp_path / "good.certify.md").read_text()
+    md = (tmp_path / "good.certify.md").read_text(encoding="utf-8")
     assert "not hardware certification" in md.splitlines()[2]
     assert "level: adapter_implementation" in capsys.readouterr().out
 
@@ -43,7 +43,7 @@ def test_good_plugin_exits_zero_and_writes_both_reports(
 def test_failing_plugin_exits_one(tmp_path: Path) -> None:
     code = run_cli(tmp_path, ref(), "--no-runtime", "--option", "defect=wrong_rate")
     assert code == 1
-    doc = json.loads(next(tmp_path.glob("*.certify.json")).read_text())
+    doc = json.loads(next(tmp_path.glob("*.certify.json")).read_text(encoding="utf-8"))
     assert doc["summary"]["level"] is None
     assert any(b.startswith("timing.rate") for b in doc["summary"]["blocking"])
 
@@ -75,7 +75,9 @@ def test_runs_without_concord(tmp_path: Path) -> None:
     is reported as not run (not passed)."""
     shadow = tmp_path / "shadow"
     (shadow / "concord").mkdir(parents=True)
-    (shadow / "concord" / "__init__.py").write_text("raise ImportError('Concord hidden')\n")
+    (shadow / "concord" / "__init__.py").write_text(
+        "raise ImportError('Concord hidden')\n", encoding="utf-8"
+    )
     env = {**os.environ, "PYTHONPATH": os.pathsep.join([str(shadow), str(PLUGINS_DIR)])}
     out = tmp_path / "out"
     p = subprocess.run(
@@ -84,7 +86,7 @@ def test_runs_without_concord(tmp_path: Path) -> None:
         env=env, capture_output=True, text=True, timeout=120, check=False,
     )  # fmt: skip
     assert p.returncode == 0, p.stdout + p.stderr
-    doc = json.loads((out / "x.certify.json").read_text())
+    doc = json.loads((out / "x.certify.json").read_text(encoding="utf-8"))
     rt = [c for c in doc["checks"] if c["id"].startswith("runtime.")]
     assert rt and all(c["status"] == "not_run" for c in rt)
     assert "Concord hidden" in rt[0]["reason"]
@@ -97,7 +99,7 @@ def test_protocol_reference_needs_a_declared_ecosystem(tmp_path: Path) -> None:
         tmp_path, ref(), "--no-runtime", "--name", "p", "--protocol-reference", "Some Software 1.0"
     )
     assert code == 0  # level 1 still achieved: the exit code depends on it alone
-    doc = json.loads((tmp_path / "p.certify.json").read_text())
+    doc = json.loads((tmp_path / "p.certify.json").read_text(encoding="utf-8"))
     pt = doc["levels"]["levels"]["protocol_tested"]
     assert not pt["achieved"] and any("ecosystem_declared" in m for m in pt["missing"])
     assert doc["summary"]["level"] == "adapter_implementation"
@@ -108,17 +110,17 @@ def test_signed_attestation_end_to_end(tmp_path: Path) -> None:
     key, pub = keypair(tmp_path)
     att = tmp_path / "attestation.json"
     doc = attestation_doc(plugin={"name": "certify-test-plugins", "version": "0.0.1"})
-    att.write_text(json.dumps(doc))
+    att.write_text(json.dumps(doc), encoding="utf-8")
     sign(att, key)  # -> attestation.json.sig, the CLI's default signature path
     code = run_cli(
         tmp_path, ref(), "--no-runtime", "--name", "a",
         "--attestation", str(att), "--attestation-public-key", str(pub),
     )  # fmt: skip
     assert code == 0
-    rep = json.loads((tmp_path / "a.certify.json").read_text())
+    rep = json.loads((tmp_path / "a.certify.json").read_text(encoding="utf-8"))
     assert rep["attestation"]["accepted"] is True
     assert rep["summary"]["level"] == "hardware_tested"
     assert "not verified by this toolkit" in rep["summary"]["level_statement"]
     assert rep["levels"]["levels"]["human_participant_validated"]["achieved"] is False
-    md = (tmp_path / "a.certify.md").read_text()
+    md = (tmp_path / "a.certify.md").read_text(encoding="utf-8")
     assert "operator-attested" in md and "hardware claims NOT verified" in md

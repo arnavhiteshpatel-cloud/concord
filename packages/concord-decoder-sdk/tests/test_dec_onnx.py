@@ -78,7 +78,7 @@ def test_onnx_linear_matches_numpy(tmp_path: Path) -> None:
     w, b = RNG.standard_normal((WIDTH, 2)), RNG.standard_normal(2)
     src = linear_onnx(tmp_path / "src.onnx", w, b)
     path = write_bundle(tmp_path / "models", manifest("onnx-lin", "onnx"), src, "onnx", LIN_IO)
-    doc = json.loads(path.read_text())
+    doc = json.loads(path.read_text(encoding="utf-8"))
     assert doc["artifact"]["sha256"] == sha256_file(tmp_path / "models" / "onnx-lin.onnx")
     x = RNG.poisson(3.0, (25, WIDTH)).astype(np.float64)
     np.testing.assert_allclose(run_host(path, x), x @ w + b, rtol=1e-12, atol=1e-12)

@@ -272,9 +272,11 @@ def make_decoder_dist(
 ) -> Path:
     info = site / f"{name.replace('-', '_')}-0.0.1.dist-info"
     info.mkdir(parents=True, exist_ok=True)
-    (info / "METADATA").write_text(f"Metadata-Version: 2.1\nName: {name}\nVersion: 0.0.1\n")
+    (info / "METADATA").write_text(
+        f"Metadata-Version: 2.1\nName: {name}\nVersion: 0.0.1\n", encoding="utf-8"
+    )
     lines = ["[concord.decoders]", *(f"{k} = {v}" for k, v in entries.items())]
-    (info / "entry_points.txt").write_text("\n".join(lines) + "\n")
+    (info / "entry_points.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
     return site
 
 

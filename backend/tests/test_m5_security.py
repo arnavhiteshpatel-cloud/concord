@@ -9,7 +9,14 @@ from pathlib import Path
 
 import pytest
 
-from concord.config import ConfigError, load_config, parse_config, template, write_template
+from concord.config import (
+    ConfigError,
+    load_config,
+    parse_config,
+    template,
+    toml_string,
+    write_template,
+)
 from concord.security import (
     BindRefused,
     RedactingFormatter,
@@ -25,7 +32,9 @@ from concord.security import (
 from concord.server.serve import AlreadyRunning, acquire_instance, read_instance, run
 from concord.server.settings import Settings
 
-posix = pytest.mark.skipif(os.name != "posix", reason="POSIX permissions")
+from .helpers import assert_mode
+
+posix = pytest.mark.skipif(os.name != "posix", reason="POSIX permissions and symlinks")
 
 
 def mode(p: Path) -> int:
@@ -53,7 +62,9 @@ def test_config_file_is_read_validated_and_overridden_by_env(
     cfg = tmp_path / "config.toml"
     cfg.write_text(
         '[server]\nport = 8123\nopen_browser = false\nlog_level = "warning"\n'
-        f'[storage]\ndata_dir = "{tmp_path / "d"}"\n[retention]\nrecordings_days = 30\nmodels_days = 0\n'
+        f"[storage]\ndata_dir = {toml_string(str(tmp_path / 'd'))}\n"
+        "[retention]\nrecordings_days = 30\nmodels_days = 0\n",
+        encoding="utf-8",
     )
     cfg.chmod(0o600)
     monkeypatch.setenv("CONCORD_CONFIG", str(cfg))
@@ -88,7 +99,7 @@ def test_malformed_config_is_refused(text: str, match: str) -> None:
 @posix
 def test_config_writable_by_others_is_refused(tmp_path: Path) -> None:
     cfg = tmp_path / "config.toml"
-    cfg.write_text("[server]\nport = 8001\n")
+    cfg.write_text("[server]\nport = 8001\n", encoding="utf-8")
     cfg.chmod(0o666)
     with pytest.raises(ConfigError, match="other users"):
         load_config(cfg)
@@ -96,16 +107,33 @@ def test_config_writable_by_others_is_refused(tmp_path: Path) -> None:
     assert load_config(cfg).get("server", "port") == 8001
 
 
-@posix
 def test_config_template_round_trips_and_is_private(tmp_path: Path) -> None:
     path = write_template(tmp_path / "sub" / "config.toml")
-    assert mode(path) == 0o600
+    assert_mode(path, 0o600)
     cfg = load_config(path)
     assert cfg.get("server", "host") == "127.0.0.1" and cfg.get("server", "allow_remote") is False
     assert not cfg.retention().active  # 0 = keep forever
     with pytest.raises(FileExistsError):
         write_template(path)
     assert "allow_remote" in template()
+
+
+@pytest.mark.parametrize(
+    "folder",
+    [r"C:\Users\Ana Lopez\AppData\Local\Concord\data", "/home/ana/.local/share/concord/data"],
+)
+def test_template_paths_are_valid_toml_when_uncommented(
+    monkeypatch: pytest.MonkeyPatch, folder: str
+) -> None:
+    """Regression (Windows): the template wrote data_dir = "C:\\Users\\...", where TOML reads
+    "\\U" as an escape; uncommenting the line made the config file invalid."""
+    from concord import config
+
+    monkeypatch.setattr(config, "default_data_dir", lambda: Path(folder))
+    text = "\n".join(
+        line[2:] if line.startswith("# data_dir") else line for line in template().splitlines()
+    )
+    assert parse_config(text, Path("c.toml"))["storage"]["data_dir"] == str(Path(folder))
 
 
 # --------------------------------------------------------------------------- bind policy
@@ -131,20 +159,24 @@ def test_server_refuses_non_local_bind_without_the_flag(
     assert not (tmp_path / "data" / "concord.pid").exists()  # refused before anything else
 
 
-@posix
 def test_single_instance_lock(tmp_path: Path) -> None:
+    """Also on Windows, where the lock is a byte-range lock beyond the end of the pid file (so
+    its content stays readable) and the file is deleted after it is closed."""
     s = Settings(data_dir=tmp_path / "data", port=8999)
     lock = acquire_instance(s)
     try:
         info = read_instance(s.pid_file)
         assert info is not None and info["pid"] == os.getpid() and info["port"] == 8999
-        assert mode(s.pid_file) == 0o600
+        assert_mode(s.pid_file, 0o600)
         with pytest.raises(AlreadyRunning):
             acquire_instance(s)
     finally:
         lock.release()
     assert read_instance(s.pid_file) is None
-    s.pid_file.write_text('{"pid": 999999}')  # stale file from a crash: nobody holds the lock
+    assert not s.pid_file.exists()  # removed on release (Windows: after closing it)
+    s.pid_file.write_text(
+        '{"pid": 999999}', encoding="utf-8"
+    )  # stale file from a crash: nobody holds the lock
     assert read_instance(s.pid_file) is None
     acquire_instance(s).release()
 
@@ -156,12 +188,12 @@ def test_single_instance_lock(tmp_path: Path) -> None:
 def test_private_dirs_and_hardening(tmp_path: Path) -> None:
     root = tmp_path / "data"
     (root / "recordings").mkdir(parents=True)
-    (root / "recordings" / "a.concord.jsonl").write_text("x")
+    (root / "recordings" / "a.concord.jsonl").write_text("x", encoding="utf-8")
     (root / "datasets").mkdir()
-    (root / "datasets" / "public.nwb").write_text("x")
+    (root / "datasets" / "public.nwb").write_text("x", encoding="utf-8")
     shared = tmp_path / "shared-models"
     shared.mkdir()
-    (shared / "m.json").write_text("{}")
+    (shared / "m.json").write_text("{}", encoding="utf-8")
     (root / "models").symlink_to(shared)
     os.chmod(root / "recordings" / "a.concord.jsonl", 0o644)
     os.chmod(root / "datasets" / "public.nwb", 0o644)
@@ -189,7 +221,7 @@ def test_app_startup_secures_the_data_directory(tmp_path: Path) -> None:
     data = tmp_path / "data"
     (data / "recordings").mkdir(parents=True)
     leaked = data / "recordings" / "old.recovery.json"
-    leaked.write_text("{}")
+    leaked.write_text("{}", encoding="utf-8")
     os.chmod(data, 0o755)
     os.chmod(data / "recordings", 0o755)
     os.chmod(leaked, 0o644)
@@ -216,7 +248,8 @@ def test_redaction() -> None:
         f"ERROR open {home}/concord/data/recordings/p07.concord.jsonl failed; token=abc123SECRET "
         'password: hunter2 {"api_key": "k-123"} Authorization: Bearer abcdefghijklmnop '
         "samples [1.5, 2.25, -3.0, 4e-3, 5, 6, 7, 8, 9] small [1, 2] "
-        "from 192.168.1.20 and 127.0.0.1 mail alice@example.org /home/bob/x /Users/carol/y"
+        "from 192.168.1.20 and 127.0.0.1 mail alice@example.org /home/bob/x /Users/carol/y "
+        r'C:\Users\erin\data {"p": "D:\\Users\\frank\\x"}'
     )
     out = redact(line)
     for secret in (
@@ -228,6 +261,8 @@ def test_redaction() -> None:
         "alice@example.org",
         "bob",
         "carol",
+        "erin",  # Windows profiles, as text and as JSON writes them
+        "frank",
         str(home) + "/",
     ):
         assert secret not in out, secret
@@ -240,7 +275,6 @@ def test_redaction() -> None:
     )
 
 
-@posix
 def test_logging_is_redacted_and_private(tmp_path: Path) -> None:
     log_file = tmp_path / "logs" / "concord.log"
     root = logging.getLogger()
@@ -252,9 +286,10 @@ def test_logging_is_redacted_and_private(tmp_path: Path) -> None:
         )
         for h in root.handlers:
             h.flush()
-        text = log_file.read_text()
+        text = log_file.read_text(encoding="utf-8")
         assert "s3cr3t" not in text and "64 values redacted" in text
-        assert mode(log_file) == 0o600 and mode(log_file.parent) == 0o700
+        assert_mode(log_file, 0o600)
+        assert_mode(log_file.parent, 0o700)
         rec = logging.LogRecord("x", logging.INFO, "", 0, "y" * 10_000, None, None)
         assert len(RedactingFormatter("%(message)s").format(rec)) < 4100
     finally:

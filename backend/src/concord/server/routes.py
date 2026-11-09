@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel, ConfigDict, Field
 
 from concord import __version__
+from concord.config import command_hint, source_checkout
 from concord.contracts.capabilities import (
     CAPABILITY_DESCRIPTIONS,
     EVENT_CAPABILITY,
@@ -172,7 +173,11 @@ async def datasets(svc: Svc) -> DatasetsStatus:
         datasets_dir=str(catalog.datasets_dir),
         devices=[d.device_id for d in devices],
         problems=[DatasetProblem(file=p.file, error=p.error) for p in catalog.problems],
-        fetch_command="make dataset   (python -m concord.datasets.fetch)",
+        fetch_command=(
+            "make dataset   (python -m concord.datasets.fetch)"
+            if source_checkout()
+            else command_hint("dataset")
+        ),
     )
 
 

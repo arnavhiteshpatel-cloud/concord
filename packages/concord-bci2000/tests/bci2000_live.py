@@ -65,7 +65,7 @@ def run_bci2000(
     work.mkdir(parents=True, exist_ok=True)
     (work / "data").mkdir(exist_ok=True)
     bat = work / "concord_app_connector.bat"
-    bat.write_text(batch_script(port, work / "data", run_seconds))
+    bat.write_text(batch_script(port, work / "data", run_seconds), encoding="utf-8")
     env = dict(os.environ, QT_QPA_PLATFORM="offscreen")
     return subprocess.Popen(
         [str(prog_dir / "BCI2000Shell"), str(bat)],

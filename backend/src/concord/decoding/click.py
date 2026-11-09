@@ -122,7 +122,7 @@ class ClickDecoder:
 
     def save(self, path: Path) -> Path:
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(self.to_dict(), indent=1))
+        path.write_text(json.dumps(self.to_dict(), indent=1), encoding="utf-8")
         return path
 
     @classmethod
@@ -142,7 +142,7 @@ class ClickDecoder:
 
     @classmethod
     def load(cls, path: Path) -> ClickDecoder:
-        return cls.from_dict(json.loads(path.read_text()), path.name)
+        return cls.from_dict(json.loads(path.read_text(encoding="utf-8")), path.name)
 
 
 class StreamingClick:

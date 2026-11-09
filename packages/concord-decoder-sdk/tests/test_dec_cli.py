@@ -13,7 +13,11 @@ from concord_decoder_sdk.cli import main
 def test_new_scaffold_runs_through_the_host(tmp_path: Path) -> None:
     root = tmp_path / "pkg"
     assert main(["new", "lab-gru", "--dir", str(root)]) == 0
-    assert (root / "pyproject.toml").read_text().count('[project.entry-points."concord.decoders"]')
+    assert (
+        (root / "pyproject.toml")
+        .read_text(encoding="utf-8")
+        .count('[project.entry-points."concord.decoders"]')
+    )
     assert main(["new", "lab-gru", "--dir", str(root)]) == 1  # not empty: refused
     assert main(["new", "Bad_Name", "--dir", str(tmp_path / "x")]) == 2
     env = {**os.environ, "PYTHONPATH": str(root / "src")}
@@ -36,4 +40,6 @@ def test_new_scaffold_runs_through_the_host(tmp_path: Path) -> None:
     assert "OK: manifest, load and every output passed validation" in r.stdout
     # the template is honest about what it is not
     assert "compatibility.source_unknown" in r.stdout
-    assert "PLACEHOLDER" in (root / "src" / "concord_lab_gru" / "decoder.py").read_text()
+    assert "PLACEHOLDER" in (root / "src" / "concord_lab_gru" / "decoder.py").read_text(
+        encoding="utf-8"
+    )

@@ -72,7 +72,13 @@ def delete_model(models_dir: Path, model_id: str, *, in_use: str | None) -> int:
     if not path.is_file():
         raise RetentionError(f"no model {model_id!r}")
     size = path.stat().st_size
-    path.unlink()
+    try:
+        path.unlink()
+    except PermissionError as exc:  # Windows: the file is open in another program
+        raise RetentionError(
+            f"model {model_id} is in use by the running pipeline or another program; "
+            f"close it and try again ({exc})"
+        ) from None
     log.info("model %s deleted", model_id)
     return size
 

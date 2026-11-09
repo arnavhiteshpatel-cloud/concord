@@ -214,7 +214,7 @@ def _new(args: argparse.Namespace) -> int:
     }
     for path, text in files.items():
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text)
+        path.write_text(text, encoding="utf-8")
     print(f"created {root}/ (entry point {name!r} -> {module}.plugin:{cls})")
     print(f"next: pip install -e {root} && concord-adapter check {name}")
     return 0

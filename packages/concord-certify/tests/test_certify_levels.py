@@ -147,7 +147,7 @@ def test_unverifiable_version_does_not_block() -> None:
 
 def write(tmp: Path, doc: dict[str, Any], name: str = "att.json") -> Path:
     p = tmp / name
-    p.write_text(json.dumps(doc, indent=1))
+    p.write_text(json.dumps(doc, indent=1), encoding="utf-8")
     return p
 
 
@@ -185,7 +185,9 @@ def test_tampered_attestation_is_rejected(tmp_path: Path) -> None:
     key, pub = keypair(tmp_path)
     p = write(tmp_path, attestation_doc())
     sig = sign(p, key)
-    p.write_text(p.read_text().replace("SN-1", "SN-2"))  # edited after signing
+    p.write_text(
+        p.read_text(encoding="utf-8").replace("SN-1", "SN-2"), encoding="utf-8"
+    )  # edited after signing
     att = check_att(p, sig, pub)
     assert not att["accepted"] and "does not verify" in att["reason"]
     r = lv.evaluate(results(), reference=None, rules=[], attestation=att)
@@ -245,7 +247,7 @@ def test_unsigned_attestation_is_rejected(tmp_path: Path) -> None:
     p = write(tmp_path, attestation_doc())
     att = check_att(p, None, None)
     assert not att["accepted"] and "not signed" in att["reason"]
-    (tmp_path / "bad.json").write_text("{not json")
+    (tmp_path / "bad.json").write_text("{not json", encoding="utf-8")
     assert "not valid UTF-8 JSON" in check_att(tmp_path / "bad.json", None, None)["reason"]
 
 

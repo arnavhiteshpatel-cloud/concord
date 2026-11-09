@@ -55,6 +55,11 @@ DISK_WARN_BYTES = 2 * 1024**3
 DISK_FAIL_BYTES = 200 * 1024**2
 
 
+def posix_permissions() -> bool:
+    """Whether file modes and owners mean anything here (not on Windows, which uses ACLs)."""
+    return os.name == "posix"
+
+
 def _check(
     cid: str, title: str, status: str, detail: str, hint: str | None = None
 ) -> dict[str, Any]:
@@ -77,7 +82,10 @@ def _import_version(module: str, attr: Callable[[Any], str] | None = None) -> tu
 
 def _port_state(port: int, host: str = "127.0.0.1") -> str:
     with socket.socket() as s:
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        if os.name == "posix":
+            # POSIX: ignore TIME_WAIT leftovers. Not on Windows, where SO_REUSEADDR lets a
+            # socket bind a port another program is listening on (the port would look free).
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
             s.bind((host, port))
         except OSError:
@@ -127,8 +135,10 @@ def _config_check(config_path: Path | None) -> tuple[dict[str, Any], dict[str, A
     }
     if not cfg.exists:
         return info, _check("config", "Config file", "ok", "none (safe defaults apply)")
+    if not posix_permissions():  # Windows: no mode bits; access is the profile folder's (ACLs)
+        return info, _check("config", "Config file", "ok", f"valid; {len(info['keys'])} key(s) set")
     mode = stat.S_IMODE(cfg.path.stat().st_mode)
-    status = "ok" if os.name != "posix" or not mode & (stat.S_IRWXG | stat.S_IRWXO) else "warn"
+    status = "ok" if not mode & (stat.S_IRWXG | stat.S_IRWXO) else "warn"
     hint = None if status == "ok" else f"chmod 600 {cfg.path}"
     return info, _check(
         "config",
@@ -222,7 +232,7 @@ def _optional() -> list[dict[str, Any]]:
             "then connect the BCI2000 source; see docs/LAB_SETUP.md",
         )
     )
-    if frozen() or sys.platform == "darwin":
+    if frozen() or sys.platform in ("darwin", "win32"):
         ok, v = _import_version("tkinter", lambda m: f"Tk {m.TkVersion}")
         checks.append(
             _check(
@@ -312,7 +322,7 @@ def _storage(data_dir: Path) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     else:
         st = data_dir.lstat()
         mode = stat.S_IMODE(data_dir.stat().st_mode)
-        owned = os.name != "posix" or st.st_uid == os.getuid()
+        owned = not posix_permissions() or st.st_uid == os.getuid()
         writable = False
         with (
             contextlib.suppress(OSError),
@@ -333,7 +343,8 @@ def _storage(data_dir: Path) -> tuple[dict[str, Any], list[dict[str, Any]]]:
             status, problems = "fail", [*problems, "owned by another user"]
         if not writable:
             status, problems = "fail", [*problems, "not writable"]
-        if os.name == "posix" and mode & (stat.S_IRWXG | stat.S_IRWXO):
+        posix = posix_permissions()
+        if posix and mode & (stat.S_IRWXG | stat.S_IRWXO):
             status = "warn" if status == "ok" else status
             problems.append(f"mode {mode:o} lets other users in (Concord sets 0700 at start)")
         checks.append(
@@ -341,24 +352,40 @@ def _storage(data_dir: Path) -> tuple[dict[str, Any], list[dict[str, Any]]]:
                 "data_dir",
                 "Data directory",
                 status,
-                "; ".join(problems) or f"mode {mode:o}, owned by you, writable",
+                "; ".join(problems)
+                or (f"mode {mode:o}, owned by you, writable" if posix else "writable"),
             )
         )
-        d, f = open_permissions(data_dir, skip=("datasets",))
-        info["open_permissions"] = {"dirs": d, "files": f}
-        checks.append(
-            _check(
-                "permissions",
-                "Private files",
-                "ok" if d + f == 0 else "warn",
-                f"{d} director(ies) and {f} file(s) readable by other users"
-                if d + f
-                else "all directories 0700 and files 0600 (datasets excluded)",
-                None
-                if d + f == 0
-                else "Concord tightens them at the next start, or: chmod -R go-rwx <data dir>",
+        if posix:
+            d, f = open_permissions(data_dir, skip=("datasets",))
+            info["open_permissions"] = {"dirs": d, "files": f}
+            checks.append(
+                _check(
+                    "permissions",
+                    "Private files",
+                    "ok" if d + f == 0 else "warn",
+                    f"{d} director(ies) and {f} file(s) readable by other users"
+                    if d + f
+                    else "all directories 0700 and files 0600 (datasets excluded)",
+                    None
+                    if d + f == 0
+                    else "Concord tightens them at the next start, or: chmod -R go-rwx <data dir>",
+                )
             )
-        )
+        else:
+            info["open_permissions"] = None
+            checks.append(
+                _check(
+                    "permissions",
+                    "Private files",
+                    "info",
+                    "not checked on Windows: access to the data folder comes from Windows "
+                    "permissions (the default folder, %LOCALAPPDATA%\\Concord\\data, is inside "
+                    "your user profile, which other standard users cannot open)",
+                    "a data folder elsewhere (e.g. C:\\data) may be readable by other users of "
+                    "this PC; keep it inside your profile (docs/SECURITY.md)",
+                )
+            )
         info["counts"] = _counts(data_dir)
         usage = shutil.disk_usage(data_dir)
     info["disk_free_bytes"] = usage.free
@@ -539,12 +566,14 @@ ICON = {"ok": "ok", "info": "info", "warn": "WARN", "fail": "FAIL"}
 
 def to_markdown(report: dict[str, Any]) -> str:
     s = report["summary"]
+    pf = report["platform"]
+    os_version = pf.get("macos") or pf.get("windows") or pf["release"]
     lines = [
         "# Concord support report",
         "",
         f"Generated {report['generated_at']} · Concord {report['concord']['version']} "
         f"({report['concord']['install']}) · {report['platform']['system']} "
-        f"{report['platform'].get('macos') or report['platform']['release']} "
+        f"{os_version} "
         f"{report['platform']['machine']} · Python {report['platform']['python']}",
         "",
         f"**{s['fail']} failed, {s['warn']} warnings, {s['ok']} ok, {s['info']} info.**",

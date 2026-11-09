@@ -12,13 +12,14 @@ import contextlib
 import logging
 import os
 import signal
-import sys
 from collections import deque
 from collections.abc import Mapping, Sequence
 from typing import Any
 
 from concord_adapter_sdk import ipc
 from numpy.typing import NDArray
+
+from concord.oscompat import child_kwargs, helper_executable
 
 log = logging.getLogger(__name__)
 
@@ -64,6 +65,9 @@ def host_env(extra_path: Sequence[str] = ()) -> dict[str, str]:
     if paths:
         env["PYTHONPATH"] = os.pathsep.join(paths)
     env["PYTHONUNBUFFERED"] = "1"
+    # stdout/stderr text as UTF-8 (read here as UTF-8): on Windows the default is the ANSI code
+    # page, where printing e.g. "→" from plugin code would raise UnicodeEncodeError
+    env.setdefault("PYTHONIOENCODING", "utf-8")
     return env
 
 
@@ -90,7 +94,7 @@ class AsyncHostClient:
         self.pending_timeout_s = pending_timeout_s
         self._pending: int | None = None
         self._in_message = False
-        self.python = python or sys.executable
+        self.python = python or helper_executable()
         self.extra_path = list(extra_path)
         self.label = label or plugin_ref
         self.proc: asyncio.subprocess.Process | None = None
@@ -119,7 +123,7 @@ class AsyncHostClient:
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             env=host_env(self.extra_path),
-            start_new_session=True,  # a signal to the runtime's process group spares it
+            **child_kwargs(),  # own process group; on Windows no console window
         )
         self._stderr_task = asyncio.create_task(
             self._drain_stderr(), name=f"plugin-stderr:{self.label}"

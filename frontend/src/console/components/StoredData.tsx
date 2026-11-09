@@ -18,6 +18,16 @@ export function retentionText(r: Record<string, number | null> | undefined): str
     .join(", ")}.`;
 }
 
+/** Who can read the data folder. macOS and Linux: Concord makes it private (0700). Windows has no
+ * such permission bits: a folder inside the user profile is private, one elsewhere may not be. */
+export function dataDirPrivacy(dataDir: string): string {
+  const windows = /^[A-Za-z]:[\\/]|^\\\\/.test(dataDir);
+  if (!windows) return "only your user can read it";
+  return /^[A-Za-z]:[\\/]Users[\\/]/i.test(dataDir)
+    ? "inside your Windows user profile: other users of this PC cannot open it"
+    : "outside your Windows user profile: other users of this PC may be able to read it";
+}
+
 /** A Delete button that asks once more, inline, before calling `onDelete`. */
 export function DeleteButton({
   testId,
@@ -98,7 +108,7 @@ export function StoredData({ onChanged }: { onChanged: () => void }) {
       {storage && (
         <>
           <p className="hint">
-            Data directory <code>{storage.data_dir}</code> (only your user can read it).
+            Data directory <code>{storage.data_dir}</code> ({dataDirPrivacy(storage.data_dir)}).
           </p>
           <div className="kpis">
             {KINDS.map((k) => (

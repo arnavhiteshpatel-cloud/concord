@@ -80,9 +80,12 @@ async def test_cues_label_a_neural_stream_and_unrelated_signal_is_not_decodable(
     path = tmp_path / "rec" / f"{name}.concord.jsonl"
     import json
 
-    evs = [json.loads(line) for line in path.read_text().splitlines()[1:]]
+    evs = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()[1:]]
     assert not any(e["event_type"] == "recording.frame" for e in evs)
-    assert "Raw signal frames excluded" in json.loads(path.read_text().splitlines()[0])["note"]
+    assert (
+        "Raw signal frames excluded"
+        in json.loads(path.read_text(encoding="utf-8").splitlines()[0])["note"]
+    )
     marks = [e["payload"]["label"] for e in evs if e["event_type"] == "recording.annotation"]
     assert marks == task.markers
     model, report = calibrate([path], feature_source="concord.pipeline", gap_bins=5)

@@ -262,7 +262,7 @@ def test_legacy_files_load_through_the_family_registry(tmp_path: Path) -> None:
     legacy = {k: v for k, v in data.items() if k not in ("kind", "inputs", "manifest")}
     assert family_for(legacy).name == "ridge"
     p = tmp_path / "legacy.json"
-    p.write_text(json.dumps(legacy))
+    p.write_text(json.dumps(legacy), encoding="utf-8")
     loaded = models.load_model(p)
     assert isinstance(loaded, RidgeDecoder) and loaded.predict_counts(np.ones((3, 7))).shape == (
         3,
@@ -272,7 +272,7 @@ def test_legacy_files_load_through_the_family_registry(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="unknown model kind 'gru'"):
         family_for({"kind": "gru"})
     bad = {**legacy, "weights": legacy["weights"][:-1]}
-    p.write_text(json.dumps(bad))
+    p.write_text(json.dumps(bad), encoding="utf-8")
     with pytest.raises(ValueError, match="does not match channels/dims"):
         models.load_model(p)
 
@@ -342,11 +342,14 @@ def test_registry_lists_json_models_and_manifests_and_records_trust(tmp_path: Pa
     broken.write_text(
         json.dumps(
             {
-                **json.loads((tmp_path / "imported-onnx.manifest.json").read_text()),
+                **json.loads(
+                    (tmp_path / "imported-onnx.manifest.json").read_text(encoding="utf-8")
+                ),
                 "model_id": "broken",
                 "modalities": [],
             }
-        )
+        ),
+        encoding="utf-8",
     )
     reg = ModelRegistry(tmp_path)
     by = {r.model_id: r for r in reg.records()}
@@ -362,7 +365,9 @@ def test_registry_lists_json_models_and_manifests_and_records_trust(tmp_path: Pa
     _write_manifest(tmp_path, "imported-pickle", "pickle", b"other bytes")
     assert reg.trust_of(reg.get("imported-pickle")) is None  # type: ignore[arg-type]
     reg.set_trust("imported-pickle", False)
-    assert "imported-pickle" not in json.loads((tmp_path / "_trust.json").read_text())
+    assert "imported-pickle" not in json.loads(
+        (tmp_path / "_trust.json").read_text(encoding="utf-8")
+    )
     with pytest.raises(KeyError):
         reg.set_trust(m.model_id, True)  # only model files can be trusted
     # the NWB catalog ignores manifests and the trust file
@@ -403,8 +408,8 @@ def test_nwb_catalog_attaches_only_ridge_models_and_ignores_other_families_quiet
 def test_duplicate_model_ids_are_rejected(tmp_path: Path) -> None:
     m, _ = _ridge()
     m.save(tmp_path / f"{m.model_id}.json")
-    d = json.loads((tmp_path / f"{m.model_id}.json").read_text())
-    (tmp_path / "copy.json").write_text(json.dumps(d))
+    d = json.loads((tmp_path / f"{m.model_id}.json").read_text(encoding="utf-8"))
+    (tmp_path / "copy.json").write_text(json.dumps(d), encoding="utf-8")
     recs = [r for r in ModelRegistry(tmp_path).records() if r.model_id == m.model_id]
     assert [r.status for r in recs].count("rejected") == 1
 

@@ -83,7 +83,8 @@ def kill_mid_stream(
     t_kill = time.monotonic()
     killed = True
     try:
-        os.kill(pid, signal.SIGKILL)
+        # SIGKILL; Windows has none, and os.kill there ends the process (TerminateProcess)
+        os.kill(pid, getattr(signal, "SIGKILL", signal.SIGTERM))
     except ProcessLookupError:
         killed = False
     finished = done.wait(read_timeout_s + grace_s + 5.0)

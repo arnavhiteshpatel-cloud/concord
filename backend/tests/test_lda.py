@@ -95,7 +95,7 @@ def test_model_file_round_trip_and_registry_dispatch(tmp_path: Path) -> None:
     x, y = _blobs(300)
     m = _fit(x, y)
     p = m.save(tmp_path / f"{m.model_id}.json")
-    data = json.loads(p.read_text())
+    data = json.loads(p.read_text(encoding="utf-8"))
     assert data["schema"] == "concord.model/1" and data["kind"] == "lda"
     assert data["input"] == INPUT and data["source"]["identity"] == "test"
     loaded = models.load_model(p)
@@ -125,7 +125,7 @@ def test_model_file_round_trip_and_registry_dispatch(tmp_path: Path) -> None:
     assert isinstance(models.load_model(tmp_path / "r1.json"), RidgeDecoder)
     assert models.output_classes(models.load_model(tmp_path / "r1.json")) is None
     bad = dict(data, coef=data["coef"][:2])
-    (tmp_path / "bad.json").write_text(json.dumps(bad))
+    (tmp_path / "bad.json").write_text(json.dumps(bad), encoding="utf-8")
     with pytest.raises(ValueError, match="shapes"):
         models.load_model(tmp_path / "bad.json")
     assert sorted(x.model_id for x in models.list_models(tmp_path)) == sorted([m.model_id, "r1"])
@@ -211,7 +211,7 @@ def _recording(path: Path, rows: list[tuple[list[float], float]], dims: list[str
                 },
             }
         )
-    path.write_text("\n".join(json.dumps(x) for x in lines))
+    path.write_text("\n".join(json.dumps(x) for x in lines), encoding="utf-8")
 
 
 def test_classifier_calibration_refusals(tmp_path: Path) -> None:

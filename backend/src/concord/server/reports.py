@@ -86,7 +86,7 @@ def _parse_junit(name: str, path: Path) -> TestReport:
 def _parse_e2e(path: Path) -> TestReport:
     name = "end-to-end demo (playwright)"
     try:
-        data = json.loads(path.read_text())
+        data = json.loads(path.read_text(encoding="utf-8"))
         steps = data["steps"]
         cases = [
             TestCaseResult(
