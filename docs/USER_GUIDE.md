@@ -38,7 +38,8 @@ Conventions:
 - A linked technical term, such as [held-out](GLOSSARY.md#held-out), leads to a plain-language
   explanation in the [glossary](GLOSSARY.md).
 - "The data folder" is the folder where Concord keeps your data. Its exact path is at the top of
-  **Advanced → Stored data** and in [section 16](#16-data-folders-ports-and-network).
+  **Advanced → Stored data** (shown as *Data directory …*) and in
+  [section 16](#16-data-folders-ports-and-network).
 
 ## Contents
 
@@ -73,20 +74,23 @@ when Concord starts (the browser tab is called *Concord Runtime Console*).
 | # | Area | What it is for | Section |
 | --- | --- | --- | --- |
 | 1 | **Title bar** | Concord's version, the connected source, its state, *· Recording*, and **Stop control** | [2](#2-the-title-bar-and-its-states) |
-| 2 | **Session strip** | The research session (**New session**, **Session and export…**) and **Safe stop & disconnect** | [3](#3-research-sessions-and-export-the-session-strip) |
-| 3 | **Acquisition source** | Where the data comes from: connect, change, pause or disconnect a source | [4](#4-acquisition-source) |
+| 2 | **Session strip** | The [research session](GLOSSARY.md#research-session) (**New session**, **Session and export…**) and **Safe stop & disconnect** | [3](#3-research-sessions-and-export-the-session-strip) |
+| 3 | **Acquisition source** | Where the data comes from: connect, change, pause or disconnect a [source](GLOSSARY.md#acquisition-source) | [4](#4-acquisition-source) |
 | 4 | **Signal integrity** | Whether data arrives complete and on time | [5](#5-signal-integrity) |
-| 5 | **Decoder** | Processing and decoding: **Start decoding**, **Calibrate…** | [6](#6-decoder) |
-| 6 | **Command output** | Whether decoded output may reach applications, its settings, and the applications you authorize | [7](#7-command-output) |
+| 5 | **Decoder** | Processing and [decoding](GLOSSARY.md#decoder): **Start decoding**, **Calibrate…** | [6](#6-decoder) |
+| 6 | **Command output** | Whether decoded output may reach applications ([command output](GLOSSARY.md#command-output)), its settings, and the applications you [authorize](GLOSSARY.md#authorize-revoke) | [7](#7-command-output) |
 | 7 | **Session log** | What happened, newest first | [8](#8-the-session-log) |
 | 8 | **Advanced** | Twelve sections of details and tools (thirteen while Simulated Profile A or B is connected) | [10](#10-advanced) |
 
 Things that work the same everywhere in the console:
 
-- **Buttons appear only when they can be used.** For example, **Start decoding** and
-  **Calibrate…** appear once a source is connected. A button that exists but cannot be used now is
-  greyed out; hover over it to see why, or read the grey line under the row's heading (for
-  example *Connect a source first.* or *Start decoding with a model first.*).
+- **Most buttons appear only when they can be used.** For example, **Start decoding** and
+  **Calibrate…** appear once a source is connected. Some buttons are always shown and are greyed
+  out while they cannot be used: **Stop control**, **Safe stop & disconnect**, and buttons inside
+  panels such as **Start session**, **Start recording**, **Check labels** or **Add source**. The
+  reason is usually a grey line next to the button or under the row's heading (for example
+  *Connect a source first.* or *Start decoding with a model first.*); some buttons also show it
+  when you hover over them.
 - **Panels that slide in from the right** (called [sheets](GLOSSARY.md#sheet): **Connect a
   source**, **Start decoding**, **Calibrate a decoder**, **New research session**,
   **Session · …**) close with their **Close** button, with the Escape key, or by clicking the grey
@@ -99,7 +103,8 @@ Things that work the same everywhere in the console:
   *device_error:*. It is also written to the session log as *Refused: …*.
 - **Errors are not shown in red.** Errors and refusals appear as dark text in a light-grey box.
   Look for that box, not for red text. Red marks only the stop buttons (**Stop control** while
-  command output is on, **Safe stop & disconnect** while something runs), the final **Delete**
+  command output is on; **Safe stop & disconnect**, filled red while something runs and greyed
+  with a red outline otherwise), the final **Delete**
   and **End session now** confirmations, and the dots (title bar, session log) of a source that
   stopped with an error.
 - **There is one Concord, shared by every window.** All console tabs and every board window show
@@ -118,12 +123,12 @@ Things that work the same everywhere in the console:
 | Version (for example *0.3.1*) | The version of the Concord that serves this console | Once the console is connected | Hover: *The version of the Concord that serves this console*. Use it to spot an old copy that is still running. |
 | **Research use only** | A reminder | Always | Hover: *Not a medical device. Read-only: Concord never writes to or stimulates a device.* |
 | Source name | The connected source's name | While a source is connected | Long names end in "…"; hover for the full name. Several files share one name (below the table). |
-| Coloured dot and state | What Concord is doing now | Always | Every state is listed in [2.2](#22-every-state-the-title-bar-can-show). Hover over it for a description of the data kind. |
+| Coloured dot and state | What Concord is doing now | Always | Every state is listed in [2.2](#22-every-state-the-title-bar-can-show). Hover over it for a description of the [data kind](GLOSSARY.md#data-kind). |
 | *· Recording* | A recording is being written | While recording | See [10.5](#105-recording). |
-| **Stop control** | Turns command output off at once: no decoded command reaches any application after this | Always | Greyed out (hover: *Command output is off*) while command output is off; red while it is on. It changes nothing else: decoding, the source and recordings keep running. The row then says *Last stopped: stopped by operator (console).* |
+| **Stop control** | Turns command output off at once: no decoded command reaches any application after this | Always | Greyed out (hover: *Command output is off*) while command output is off; red while it is on. It changes nothing else: decoding, the source and recordings keep running. While decoding keeps running, the **Command output** row then says *Last stopped: stopped by operator (console).* |
 
-Shared source names: both FALCON files are called *Recorded Human Intracranial Data — Offline
-Replay*, and all four T15 blocks *Recorded Human Intracortical Data (cursor + click) — Offline
+Shared source names: both [FALCON H1](GLOSSARY.md#falcon-h1) files are called *Recorded Human
+Intracranial Data — Offline Replay*, and all four [T15](GLOSSARY.md#t15) blocks *Recorded Human Intracortical Data (cursor + click) — Offline
 Replay*. The **Acquisition source** row says which file is playing.
 
 ### 2.2 Every state the title bar can show
@@ -196,7 +201,7 @@ exported as one zip file. Concord works without one; a session is for keeping a 
 | **New session** | Opens *New research session* ([3.2](#32-new-research-session)) | No session | |
 | *Research session* · name · operator · *started HH:MM:SS* · *N recordings* · *N models* | The active session | A session is active | Counts include recordings and models made during the session. |
 | **Session and export…** | Opens the session panel ([3.3](#33-session-and-export)) | A session is active | **End session…** is inside this panel. |
-| **Safe stop & disconnect** | Turns command output off, closes the recording, stops decoding and disconnects the source, in that order | Always; red when something runs | Greyed out (hover: *Nothing is running*) when nothing runs. No confirmation is asked. The research session stays open. Logged as *Safe stop: stopped decoding, source* (what it actually stopped). |
+| **Safe stop & disconnect** | Turns command output off, closes the recording, stops decoding and disconnects the source, in that order | Always; filled red when something runs | Greyed out with a red outline (hover: *Nothing is running*) when nothing runs. No confirmation is asked. The research session stays open. Logged as *Safe stop: stopped decoding, source* (what it actually stopped); the session log may list the other resulting entries in a different order, and that *Safe stop: …* line is the summary. |
 
 ### 3.2 New research session
 
@@ -207,7 +212,7 @@ exported as one zip file. Concord works without one; a session is for keeping a 
 | **Session name** | The session's name | Always | Required (up to 80 characters); **Start session** stays grey until it is filled. Do not enter participant identifiers. |
 | **Operator (optional)** | Who runs the session | Always | Up to 80 characters. |
 | **Notes (optional)** | Free text | Always | Up to 4000 characters. See the note below the table. |
-| **Start session** | Creates the session folder and starts logging | A name is entered | Logged as *Research session started: \<name>*. |
+| **Start session** | Creates the session folder and starts logging | Always; greyed out until **Session name** is filled | Logged as *Research session started: \<name>*. |
 | **Close** | Closes without starting | Always | |
 
 Operator and notes stay in the session folder. They never go into logs or support reports, and
@@ -231,7 +236,7 @@ logged either way.
 | **Create export bundle** | Writes the zip | Always | Logged as *Session exported: \<file>*. |
 | Result box | The zip's name (a download link), size, number of files, its [SHA-256](GLOSSARY.md#sha-256), *Recordings included: …* | After an export | |
 | Export list | Every export of this session, with download links | After an export | The newest export therefore appears twice: in the result box and in the list. |
-| **Session log** | The last 12 entries of the session's own log, and *N entries in the session folder* | Always | Entries such as *Source sim-a: streaming*, *pipeline start*, *router*, *Recording started: …*; *(refused 409)* marks refused actions. |
+| **Session log** | The last 12 entries of the session's own log, oldest first, and *N entries in the session folder* | Always | Short technical notes such as *Source sim-a: streaming*, *pipeline start*, *router*, *Recording started: …* or *POST /api/v1/calibration/check* (a request the console made); *(refused 409)* marks refused actions. |
 | **End session…** | Asks for confirmation | Always | *Ending turns command output off, closes any recording, stops decoding and disconnects the source.* |
 | **End session now** (red) / **Cancel** | Ends the session (after a safe stop) / keeps it | After **End session…** | Logged as *Research session ended: \<name>*. |
 
@@ -256,7 +261,7 @@ The zip (the [export bundle](GLOSSARY.md#export-bundle)) contains:
 | `recordings/…` | Only if you ticked **Include the session's recordings** |
 | `REPRODUCE.md` | How to install the same Concord version, and the exact commands to check and re-run the session (see below) |
 
-Public dataset files are never included (DANDI terms forbid redistribution); they are referenced
+Public dataset files are never included (the [DANDI](GLOSSARY.md#dandi) terms forbid redistribution); they are referenced
 by SHA-256. The application log and support reports are not included either.
 
 **Reproducible** means: someone with the zip and the same Concord version can check that no file
@@ -289,7 +294,7 @@ It prints one line per check, then a result. Each check starts with a tag of fou
 
 | Line | Meaning |
 | --- | --- |
-| `[OK  ] integrity: N files verified against manifest.json` | Every file matches the SHA-256 and size listed in the manifest. |
+| `[OK  ] integrity: N files verified against manifest.json` | Every file matches the SHA-256 and size listed in the manifest. N does not include `manifest.json` itself, so it is one less than the number of files in the export's result box. |
 | `[OK  ] calibration <model>: re-fitted from N recording(s): … r2 0.915294 -> 0.915294, …` | A decoder trained in the session was fitted again. Each score is shown as original -> re-fitted; they agree to 1e-6. |
 | `[OK  ] decoded_output <model>: N decoded outputs recomputed from recorded features, max relative difference 0 (…)` | The decoded output recorded in the session was computed again and matches. The first few bins (warm-up) are not compared. |
 | `[skip] calibration <model>: recordings not in the bundle: <file>` | That decoder cannot be re-fitted: its recordings were not exported. |
@@ -322,7 +327,7 @@ Where the data comes from. One [source](GLOSSARY.md#acquisition-source) is conne
 | Source name (first line) | The source's name | Connected | Same as in the title bar. |
 | Which file is playing (second line) | Names the file or session being replayed | FALCON, AJILE12 and T15 files | For example *Session 19250108T111022 · DANDI 000954 · held-in-calib*, or *Cursor + click · Day 468 · block 3 · grid evaluation*. |
 | Kind and shape line | What kind of data it is, how many channels, its rate | Connected | For example *Simulated data · 32 channels · 1,000 Hz*, or *Recorded human data, offline replay · 176 channels · 20 ms bins*. Raw sources show a sample rate in Hz; sources that deliver binned features show the [bin](GLOSSARY.md#bin) length. |
-| Position (end of the kind line) | Where the replay is: *0:15.0 of 2:15.7*, followed by the speed when it is not 1× (*· 4×*) | FALCON and AJILE12 files, session recordings | Minutes:seconds. The length shows *—* when Concord cannot tell it. T15 blocks show no position. |
+| Position (end of the kind line) | Where the replay is: *0:15.0 of 2:15.7*, followed by the speed when it is not 1× (*· 4×*) | FALCON and AJILE12 files, session recordings | Minutes:seconds. The length shows *—* when Concord cannot tell it: session recordings always show *of —*, so their progress bar stays empty. T15 blocks show no position. |
 | Modality tag (last line) | The kind of recording, as the source declares it: *Intracortical, implanted*, *ECoG, implanted*, *EEG, noninvasive*, … | Sources that declare a [modality](GLOSSARY.md#modality), and every plugin | Concord shows what the source says; it cannot check it. A plugin that declares nothing shows *modality not declared*. |
 | Plugin line | *Plugin · package@version · isolated* before the modality | Plugin sources | *isolated*: the plugin runs in its own process, separate from Concord ([isolated](GLOSSARY.md#isolated)). |
 | Error text (grey box) | Why the source stopped, for example *link lost; 3 reconnect attempts failed: …* or *connect failed: open timed out* | After an error | See [2.3](#23-source-stopped-with-an-error-and-reset). |
@@ -333,8 +338,10 @@ Where the data comes from. One [source](GLOSSARY.md#acquisition-source) is conne
 | **0.5× 1× 2× 4× 8×** | Replay speed | **Playback** only | Default 1×. The highlighted button is the current speed. T15 blocks have no speed control. |
 | Progress bar | How far the replay is | **Playback** only | Display only: you cannot drag it to move in the file. Replays loop: at the end they start again from the beginning, without a log entry. |
 
-When a source has a modality tag, it is the last line of the row: the fourth line for FALCON and
-T15 files (which also have a file line), the third for other sources. "Intracranial" in the FALCON source name is the
+When a source declares a modality, the tag is the last line of text above **Options** or
+**Playback**: the fourth line for FALCON and T15 files (which also have a file line), the third
+for other sources. On a plugin it ends the plugin line (for example *Plugin ·
+concord-brainflow@0.1.0 · isolated · modality not declared*). "Intracranial" in the FALCON source name is the
 general term (inside the skull); *Intracortical* is the specific modality (electrodes inside the
 cortex). See [intracortical, intracranial](GLOSSARY.md#intracortical-intracranial).
 
@@ -363,7 +370,7 @@ when nothing is connected and **Change source** otherwise.
 | **Close** | Closes the panel | Always | So do Escape and clicking beside the panel. |
 | **Connect** | Connects that source and closes the panel | Nothing connected | If the connection fails, the panel stays open and shows why. |
 | **Switch** | Replaces the connected source with this one | A source is connected | Same button, renamed. |
-| *Connected* | Marks the source that is connected now | Next to the active source | |
+| *Connected* | Marks the current source, also when it has stopped with an error | Next to the current source | After an error, click **Reset** in the row, or **Switch** to another source. |
 | Hover on a row | Shows the source's description | Always | What it contains depends on the source: see the list below the table. |
 | Grey box at the top | Why the last connect or remove failed or was refused, for example *device_error: open timed out* | After a failure or refusal | |
 
@@ -374,6 +381,9 @@ What the hover shows:
 - T15 blocks: the file name, dataset, block, task, *includes computer assistance* or *fully neural*, the duration, and that the SHA-256 is verified when the file is opened.
 - Session recordings: *Replay of a recording from \<source> (\<source id>). Events are marked replayed.*
 - LSL sources: the stream name, the host and the `source_id`.
+- Open Ephys sources: that Concord cannot tell whether the GUI reads hardware, a file or a
+  simulator.
+- Plugin devices: no hover; their description is printed on the row.
 
 ### 4.4 Simulated profiles
 
@@ -396,8 +406,9 @@ decoded output needs them ([7.1](#71-when-commands-reach-an-application)).
 *Verified files from a public dataset, replayed. Not a live implant.* Files appear here as soon
 as they are in the data folder's `datasets` folder (or any folder inside it) and you reload the
 page. How to download them: [Getting started](GETTING_STARTED.md) and [Datasets](DATASETS.md).
-The datasets: [FALCON H1](GLOSSARY.md#falcon-h1), [AJILE12](GLOSSARY.md#ajile12) and
-[T15](GLOSSARY.md#t15).
+The datasets: [FALCON H1](GLOSSARY.md#falcon-h1) and [AJILE12](GLOSSARY.md#ajile12) (both
+[NWB](GLOSSARY.md#nwb) files from the [DANDI](GLOSSARY.md#dandi) archive), and
+[T15](GLOSSARY.md#t15) (`.mat` files from [Dryad](GLOSSARY.md#dryad)).
 
 ![FALCON and T15 files in the source list](images/13-t15-sources.png)
 
@@ -435,8 +446,11 @@ every recording made while decoding runs, including every recording made from th
 **Calibrate…** panel. On replay:
 
 - the session log fills with *Undeclared capability: adapter emitted features.binned* (or
-  *features.vector*) *but did not declare neural_features*;
-- **Advanced → Diagnostics → Contract violations** keeps rising;
+  *features.vector*) *but did not declare neural_features*, and, if a model was running while
+  you recorded, the same for *intent.kinematics* and *intent.pointer*;
+- **Advanced → Diagnostics → Contract violations** keeps rising (a
+  [contract violation](GLOSSARY.md#contract-violation) means the source sent something it had not
+  declared);
 - if it was recorded with **Features and labels only**, the console also shows *No signal*.
 
 Use such recordings to train a decoder ([6.5](#65-the-calibrate-panel)). To make a recording for
@@ -448,8 +462,11 @@ installation and then not shown.
 ### 4.7 Live streams: LSL
 
 *Lab Streaming Layer or Open Ephys. Concord only receives; nothing is sent to the acquisition
-system.* ([LSL](GLOSSARY.md#lsl-lab-streaming-layer) is a common way to stream data between
-programs on a lab network.) Setting up your own equipment:
+system.* (One exception: an Open Ephys source sends a short
+[heartbeat](GLOSSARY.md#heartbeat), a "still listening" message, to the GUI's plugin; see
+[4.8](#48-live-streams-open-ephys). Nothing is ever sent to an LSL stream.)
+([LSL](GLOSSARY.md#lsl-lab-streaming-layer) is a common way to stream data between programs on a
+lab network.) Setting up your own equipment:
 [Connect your equipment](CONNECT_YOUR_EQUIPMENT.md) and [Lab guide](LAB_GUIDE.md). To rehearse
 without hardware, start a [test stream](GLOSSARY.md#test-stream) with
 `concord publish lsl-ephys` or `concord publish falcon <file>`
@@ -469,6 +486,8 @@ a restart, search again.
 2. The results table lists every stream found. **At the same time, every stream that can be a
    signal is added to the list of live sources above, ready to connect.** For a signal stream
    without attachments, just click **Connect** (or **Switch**) on its row. You are done.
+   Behavior streams are added as rows too (named *… (Behavior)*); connect the signal stream's
+   row, not theirs.
 3. To attach a [behavior stream](GLOSSARY.md#behavior-stream) (calibration labels) or a
    [marker stream](GLOSSARY.md#marker-stream): click **Use** on the signal stream, pick the
    **Behavior stream (optional)** and **Marker stream (optional)**, and click **Add source**.
@@ -542,8 +561,12 @@ your own: [ADAPTER_SDK.md](ADAPTER_SDK.md).
 | *No plugins installed. Install an adapter package into Concord's Python environment, then search again.* | Nothing installed | No plugin | |
 | **Search again** | Looks again for installed plugins | Always | Next to it: *Last search 4 min ago · adapter SDK 1.0* (the plugin-interface version this Concord supports). Concord also searches by itself at start. |
 
-Plugin **Options**: their labels explain them, and *(required)* marks fields you must fill. Only
-values you change are sent; the plugin checks them when you connect. The BCI2000 plugin's options
+Plugin **Options**: each field is labelled with the plugin's own description of it, and the
+device's description says which fields it needs. For example, *BrainFlow playback file* says
+*Needs options 'file' and 'master_board'*: these are the fields *BrainFlowInputParams.file …*
+and *PLAYBACK_FILE_BOARD / STREAMING_BOARD only: BoardIds name of the board that produced the
+data …*. A plugin may also mark fields *(required)*; the BrainFlow and BCI2000 plugins do not.
+Only values you change are sent; the plugin checks them when you connect. Both plugins' options
 are explained in [ECOSYSTEMS.md](ECOSYSTEMS.md).
 
 ---
@@ -606,7 +629,7 @@ optionally, a [decoder](GLOSSARY.md#decoder) model. What decoders are and how th
 | *Unavailable: …* | Decoding cannot run in this installation, with the reason | Rare | |
 | *Running · \<processing>* | Decoding runs with that [processing preset](GLOSSARY.md#processing-preset) | Decoding | Green dot. |
 | *No model: features only.* | Only features are computed; nothing can become a command | Decoding without a model | Useful for watching or recording features. |
-| *Model \<id> · offline held-out R² 0.xxx* | The running model and its [offline held-out score](GLOSSARY.md#offline-held-out-score), as reported by the model file | Decoding with a movement model | Classifiers and click models show other scores (below the table). |
+| *Model \<id> · offline held-out R² 0.xxx* | The running model and its [offline held-out score](GLOSSARY.md#offline-held-out-score) ([R²](GLOSSARY.md#r-squared)), as reported by the model file | Decoding with a movement model | [Classifiers](GLOSSARY.md#classifier) and click models show other scores (below the table). |
 | Origin line | For example *Concord-trained · ridge regression · in Concord · compatible with this source* | With a model | The possible values are below the table. |
 | *Trained on …* | The recording(s) the model was fitted on | With a model | |
 | *Historical decoder replay (original research system): t15-historical-velocity → vx, vy (velocity, 271 received)* | A decoder output the source carries, passed through unchanged; the count is how many outputs arrived since decoding started | **Source decoder outputs (passthrough)** | One line per decoder output; T15 has two (velocity and click). See [historical](GLOSSARY.md#historical-model-origin). |
@@ -616,7 +639,7 @@ optionally, a [decoder](GLOSSARY.md#decoder) model. What decoders are and how th
 | *Cross-source override: decoded output is marked as reduced quality.* (amber) | You allowed a model trained on another source ([cross-source model](GLOSSARY.md#cross-source-model)) | After **Allow a model trained on a different source** | |
 | Compatibility warnings (amber) | Differences between the model and the source that do not prevent running | With a model | |
 | *Decoder stopped: …* (grey box) | The decoder failed; command output turned off | After a decoder failure | Check the reason; start decoding again. |
-| *This recording carries the replayed output of an offline decoder (\<model>); it is not used for control.* | The file contains a decoder's recorded output (T15: the original research system's decoders) | Such a file, decoding off | It reaches command output only if you choose **Source decoder outputs (passthrough)** and start control ([7.7](#77-example-the-t15-recorded-decoder-on-the-board)). |
+| *This recording carries the replayed output of an offline decoder (\<model>); it is not used for control.* | The file contains a decoder's recorded output (T15: the original research system's decoders) | Such a file, decoding off | It reaches command output only if you choose **Source decoder outputs ([passthrough](GLOSSARY.md#passthrough))** and start control ([7.7](#77-example-the-t15-recorded-decoder-on-the-board)). Only one of the recording's decoders is named: T15 carries two (velocity and click), and passthrough passes both. |
 
 - **Other scores.** A classifier shows *classes … · offline held-out balanced accuracy …
   (chance …)* ([balanced accuracy](GLOSSARY.md#balanced-accuracy),
@@ -632,7 +655,7 @@ optionally, a [decoder](GLOSSARY.md#decoder) model. What decoders are and how th
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
 | **Processing** | Chooses how features are made from the source ([6.3](#63-processing-presets)) | Always | Preselected for the source. A one-paragraph description of the chosen preset appears below it. |
-| **Bin (ms)** | Length of one feature [bin](GLOSSARY.md#bin) | Spike-band, High-gamma, Band power | Leave empty for the default: 20 ms (spike-band) or 50 ms (high-gamma, band power). Must be a number above 0 and up to 1000. |
+| **Bin (ms)** | Length of one feature [bin](GLOSSARY.md#bin) | Spike-band, High-gamma, Band power | Leave empty for the default: 20 ms (spike-band) or 50 ms (high-gamma, band power). Must be a number above 0 and up to 1000. Another value is refused with a technical message such as *protocol_error: invalid processing spec: … bin_ms Input should be greater than 0 …*. |
 | **Threshold (× RMS)** | Spike detection threshold, in multiples of each channel's noise level ([RMS](GLOSSARY.md#rms)) | Spike-band only | Default −4.5 (negative: crossings below the noise). Allowed −20 to just below 0. |
 | **Band low (Hz)**, **Band high (Hz)** | The frequency band whose power is computed | Band power only | No default: fill both, or the panel says *band_power needs a low and a high band edge*. |
 | **Decoder model** | **None (features only)** or a model ([6.4](#64-decoder-models)) | Every preset except Source decoder outputs | Each model is marked *(compatible)* or *(incompatible)* with what this processing will produce. Models Concord refuses are greyed out. |
@@ -922,11 +945,11 @@ open: all windows of one application share one authorization.
 | --- | --- |
 | *Not authorized. Asks for pointer movement, discrete actions, navigation, text; command output does not provide it now.* | Command output is off, and it is not authorized. |
 | *Not authorized. Would receive pointer movement, discrete actions.* | Command output is on: authorize it and it receives these. |
-| *Receiving pointer movement, discrete actions.* | It receives these now. With a simulated profile this is simulated input, which needs no authorization ([7.1](#71-when-commands-reach-an-application)). |
+| *Receiving pointer movement, discrete actions.* | The current source (simulated input) or command output provides these to it. Simulated input needs no authorization ([7.1](#71-when-commands-reach-an-application)). With a simulated profile the sentence stays the same while the profile is paused or has stopped with an error: look at the title bar to see whether input is actually flowing. |
 | *Authorized for … .* | Authorized; it will receive commands when command output provides them. |
 | *Authorized for … . Nothing to receive now.* | Authorized, but command output is off or provides none of these. |
 | *… It cannot run without …, which command output does not provide now.* | A capability it requires is missing. |
-| *Not connected. Authorized for … .* | Authorized, but no window of it is open. |
+| *Not connected. Authorized for … .* | Authorized, but no window of it is open. (For the Communication Board you will not see this while a console tab is open: each console tab contains a board, see [10.9](#109-communication-board-embedded).) |
 
 **Why you may see "2 (or 3) applications connected" before opening anything.** Every console tab
 contains an embedded copy of the communication board (**Advanced → Communication board**), which
@@ -964,7 +987,9 @@ The [T15](GLOSSARY.md#t15) blocks carry the original research system's decoder o
 board:
 
 1. Connect **Cursor + click · Day 468 · block 3 · grid evaluation**.
-2. On the board, set the 14 × 14 task grid ([11.6](#116-the-task-grid)).
+2. Click **Open participant screen** (in the **Command output** row). In the board window, click
+   **Settings**, set **Layout** to **Task grid (N × N words)** (**Grid size N** is 14 by default),
+   then **Close** ([11.6](#116-the-task-grid)).
 3. **Start decoding** → **Processing**: **Source decoder outputs (passthrough)** → **Start
    decoding**.
 4. **Command output → Settings**: **Gain** 1.09 (1 / 0.92: the original decoder's units are
@@ -996,7 +1021,7 @@ When you are done: **Stop control** (title bar), **Revoke**, **Stop decoding**.
 | Dot colours | What kind of entry it is | Always | See the list below the table. |
 | **Show all (N)** | Shows every entry | More than 8 entries | |
 | **Show latest only** | Back to the latest 8 | After **Show all** | |
-| *Nothing yet.* | Says the log is empty | Empty log | |
+| *Nothing yet.* | Says the log is empty | Only before the console has connected to Concord | The log then starts with *Console connected to Concord*. |
 
 The dot colours:
 
