@@ -180,7 +180,7 @@ def test_session_safe_stop_export_and_reproduce(
     decoded = [c for c in result["checks"] if c["check"] == "decoded_output"]
     # dec-1 is compared; the short left-open recording may hold only warm-up bins (skipped)
     by_rec = {c["recording"]: c for c in decoded}
-    assert by_rec["dec-1.concord.jsonl"]["ok"] is True
+    assert by_rec["dec-1.concord.jsonl"]["ok"] is True, by_rec["dec-1.concord.jsonl"]
     assert all(c["ok"] is not False for c in decoded)
     assert sum(c["compared"] for c in decoded) > 200
     assert max(c["max_abs_diff"] for c in decoded) == 0.0

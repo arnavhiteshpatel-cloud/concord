@@ -497,9 +497,13 @@ def test_windows_command_hint_with_spaces_uses_the_powershell_call_operator(
     monkeypatch.setattr(sys, "frozen", True, raising=False)
     monkeypatch.setattr(oscompat, "is_windows", lambda: True)
     monkeypatch.setattr(sys, "executable", "C:/My Apps/Concord/Concord.exe")
-    assert config.command_hint("stop") == '& "C:/My Apps/Concord/concord-cli.exe" stop'
+    cli = Path("C:/My Apps/Concord/concord-cli.exe")  # backslashes when run on Windows
+    assert config.command_hint("stop") == f'& "{cli}" stop'
     monkeypatch.setattr(sys, "executable", "C:/Users/me/Downloads/Concord/Concord.exe")
-    assert config.command_hint("stop") == "C:/Users/me/Downloads/Concord/concord-cli.exe stop"
+    assert (
+        config.command_hint("stop")
+        == f"{Path('C:/Users/me/Downloads/Concord/concord-cli.exe')} stop"
+    )
 
 
 def test_python_m_tools_are_protected_on_windows_too(tmp_path: Path) -> None:

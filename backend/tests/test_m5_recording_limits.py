@@ -124,7 +124,7 @@ def test_header_keeps_a_plain_json_source_metadata_snapshot(tmp_path: Path) -> N
     assert header["source_metadata"] == {
         "protocol": "lsl",
         "streams": [{"uid": "u-1", "source_id": "s-1", "time_correction_s": None}],
-        "nested": {"values": [1, 2.5, None], "path": "/x"},
+        "nested": {"values": [1, 2.5, None], "path": str(Path("/x"))},
         "3": "non-string key",
     }
     assert "first + i / sample_rate_hz" in header["timing"]

@@ -165,6 +165,10 @@ def test_messages_name_the_desktop_apps_own_program(monkeypatch: pytest.MonkeyPa
     assert command_hint("stop") == "concord stop"
     monkeypatch.setattr(sys, "frozen", True, raising=False)
     monkeypatch.setattr(sys, "executable", "/home/me/Downloads/Concord/Concord")
-    assert command_hint("stop") == "/home/me/Downloads/Concord/Concord stop"
+    # Path spelling of the platform running the test (backslashes on Windows)
+    assert command_hint("stop") == f"{Path('/home/me/Downloads/Concord/Concord')} stop"
     monkeypatch.setattr(sys, "executable", "/Users/me/My Apps/Concord.app/Contents/MacOS/Concord")
-    assert command_hint("stop") == '"/Users/me/My Apps/Concord.app/Contents/MacOS/Concord" stop'
+    assert (
+        command_hint("stop")
+        == f'"{Path("/Users/me/My Apps/Concord.app/Contents/MacOS/Concord")}" stop'
+    )
