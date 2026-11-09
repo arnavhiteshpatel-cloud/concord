@@ -136,6 +136,9 @@ When connection fails, `open()` reports which of these cases applies:
 - Tested against the real GUI only with its File Reader (Linux, headless); never with
   acquisition hardware. Concord cannot tell whether the GUI is reading hardware, a file or a
   simulator.
+- The protocol has no way to declare data synthetic or prerecorded (LSL streams can declare it
+  in their description). Every Open Ephys source is therefore shown as *Live stream, origin
+  unverified*, including Concord's own synthetic test stream (`concord publish openephys`).
 - The plugin's sample rate and channel count must fit the contract: ≤ 100 kHz and
   ≤ 1024 channels.
 - Only the plugin's selected stream is sent. TTLs from other streams are filtered out by the

@@ -4,16 +4,22 @@ Three independent roles, three independent installs. None of them requires Conco
 private implementation; each flow below is run in fresh virtual environments from built
 wheels by `make dist-check` (and in CI), so these instructions are tested.
 
-> Packages are not published to PyPI yet. Build the wheels from this repository
-> (`uv build --wheel -o dist packages/concord-adapter-sdk backend packages/concord-certify`)
-> and add `--find-links dist` to the `pip install` commands below.
+> **None of these packages is on PyPI.** Each GitHub release ships them as wheels (from 0.3.1:
+> `concordos`, `concord_adapter_sdk`, `concord_decoder_sdk`, `concord_certify`, `concord_hwval`,
+> `concord_brainflow`, `concord_bci2000`). Download all `.whl` files of the
+> [release](https://github.com/arnavhiteshpatel-cloud/concord/releases/latest) into one folder and
+> pass it to pip with `--find-links <folder>`, as in the commands below. Third-party
+> dependencies (numpy, fastapi, brainflow, …) come from PyPI. To build the wheels yourself from
+> this repository: `uv build --wheel -o dist packages/concord-adapter-sdk backend
+> packages/concord-certify` (and the other packages), then `--find-links dist`.
 
 | Package | For | Depends on |
 | --- | --- | --- |
 | `concord-adapter-sdk` | writing a source plugin (device integration); `concord-adapter` CLI | numpy |
-| `concord-certify` | testing a plugin and producing a compatibility report | concord-adapter-sdk, jsonschema (+ `concord` for the runtime phase) |
-| `concord` | writing an application (Python SDK) | pydantic, httpx, websockets |
+| `concord-certify` | testing a plugin and producing a compatibility report | concord-adapter-sdk, jsonschema (+ `concordos` for the runtime phase) |
+| `concordos` (import name `concord`) | writing an application (Python SDK) | pydantic, httpx, websockets |
 | `concordos[server]` | running Concord (runtime server, console, plugin hosting) | + fastapi, uvicorn, concord-adapter-sdk |
+| `concordos[lab]` | `[server]` plus processing, NWB, LSL and Open Ephys | + numpy, scipy, pynwb, pylsl, pyzmq |
 | `concord-brainflow`, `concord-bci2000` | ecosystem integrations (plugins) | concord-adapter-sdk (+ brainflow) |
 
 ## 1. Integrate a device (adapter developer)
@@ -22,14 +28,16 @@ wheels by `make dist-check` (and in CI), so these instructions are tested.
 python -m venv .venv && . .venv/bin/activate
 ```
 ```bash
-pip install concord-adapter-sdk
+pip install --find-links <wheels folder> concord-adapter-sdk
 ```
 ```bash
 concord-adapter new my-amp --display "My amplifier"
 ```
 ```bash
-pip install -e concord-my-amp
+pip install --find-links <wheels folder> -e concord-my-amp
 ```
+
+(Installing the scaffold builds it with `hatchling`, which pip downloads from PyPI.)
 ```bash
 concord-adapter check my-amp
 ```
@@ -49,7 +57,7 @@ send anything to a device and cannot emit application commands.
 ## 2. Certify it
 
 ```bash
-pip install concord-certify
+pip install --find-links <wheels folder> concord-certify
 ```
 ```bash
 concord-certify my-amp --duration 20 --out reports/
@@ -64,23 +72,28 @@ software. See [CERTIFICATION.md](CERTIFICATION.md) and [COMPATIBILITY.md](COMPAT
 ## 3. Run Concord with the plugin (lab)
 
 ```bash
-pip install "concordos[server]" concord-my-amp
+pip install --find-links <wheels folder> "concordos[lab]" concord-my-amp
 ```
 ```bash
-concord-server
+concord start
 ```
 
-Open http://127.0.0.1:8000 → **Connect a source → Plugins**: the plugin is listed with its
-validation result; choose the device, fill in its options, connect. The source row shows
+(`concord-server` runs the same server in the foreground.) Open http://127.0.0.1:8000 →
+**Connect a source → Plugins** (**Search again** if Concord was already running): the plugin is
+listed with its validation result; open the device's **Options**, fill them in, **Connect**.
+The form labels are your options' descriptions. The source row shows
 `Plugin · <package>@<version> · isolated` and the declared modality. Everything downstream
-(signal integrity, recording, pipeline, decoders, calibration, command output) works
-unchanged. (From a repository checkout, `make setup && make run` does the same and also
-installs the BrainFlow and BCI2000 integrations.)
+(signal integrity, recording, pipeline, decoders, calibration, command output) works unchanged;
+in 0.3.1 the console does not show a plugin's own counters (**Advanced → Acquisition details**
+says *No telemetry*), they are in `GET /api/v1/devices/{id}/source`. The desktop app cannot load
+additional plugins (it includes only BCI2000's); use a Python installation. (From a repository
+checkout, `make setup && make run` does the same and also installs the BrainFlow and BCI2000
+integrations.) Researcher-facing steps: [Connect your equipment §4.5](CONNECT_YOUR_EQUIPMENT.md#45-your-own-device-a-source-plugin).
 
 ## 4. Build an application (app developer)
 
 ```bash
-pip install concordos
+pip install --find-links <wheels folder> concordos
 ```
 
 ```python
@@ -101,7 +114,8 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
-The base `concord` package is only the SDK and the event contracts — no server, no numpy.
+The base `concordos` distribution (imported as `concord`) is only the SDK and the event
+contracts — no server, no numpy.
 Apps never name a device: they declare capabilities and adapt to what is granted. Decoded
 commands (pointer, select / activate / cancel, text) reach an app only after the operator
 authorizes it; until then negotiation says `not_authorized`. Use the SDK's `CommandGuard`

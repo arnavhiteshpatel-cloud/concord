@@ -102,6 +102,9 @@ class Runtime:
         self.bus = EventBus()
         # serialized only for envelopes the recorder writes (M5-E: lazy JSON)
         self.bus.add_tap(recorder.on_event, when=recorder.wants)
+        # A recording can also stop by itself (time / size / disk limit, write error): tell the
+        # consoles at once, or they keep showing "Recording" for a recording that has ended.
+        recorder.listeners.append(self._on_recording_change)
         # Operator authorizations for decoded commands: in memory, empty on every start,
         # kept across source switches (the router itself is off after any source change).
         self.authorizations = AuthorizationStore()
@@ -427,6 +430,10 @@ class Runtime:
         return [
             s for s in self.bus.subscribers if COMMAND_CAPABILITIES & {*s.required, *s.optional}
         ]
+
+    def _on_recording_change(self, kind: str, name: str, details: dict[str, Any]) -> None:
+        if kind in ("started", "stopped"):
+            self._broadcast_runtime()
 
     def _broadcast_runtime(self) -> None:
         self.bus.broadcast_control(

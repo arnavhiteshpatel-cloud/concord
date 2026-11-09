@@ -190,6 +190,18 @@ These are known and documented in the guides; none affects what Concord receives
   features.binned …*, because the replay declares the original device's capabilities, not the
   pipeline's features it also contains. Training a decoder from such a recording works; only
   replaying it as a source is affected.
+- **Plugin sources show no counters** in Acquisition details, and their losses do not change the
+  Signal integrity verdict; *Data received (%)* shows "—" for them.
+- **BCI2000 connect, untested against BCI2000 itself:**
+  - The plugin host gives `open` 4 s, whatever the plugin's own timeout.
+  - Connecting opens the receiver twice, leaving a fraction of a second when nothing listens.
+  - BCI2000 stops sending for the rest of a run if nothing receives its data for about 1 s, so
+    start Concord's source before the BCI2000 run.
+  - For a BCI2000 source, **Start decoding** preselects *Band power*; choose *Source decoder
+    outputs (passthrough)* yourself.
+- **LSL Behavior and Marker menus show stream names only**, so two streams with the same name cannot
+  be told apart there; the Marker menu also offers numeric streams it then refuses.
+- *Last stopped: …* under Command output can show the reason from an earlier decoder or source.
 - **The T15 plot in Acquisition details** draws the recorded cursor and target *positions* under a
   selector labelled *Velocity dimension*. Its dashed line is whichever historical decoder output
   arrived last (often the click), not necessarily the velocity decoder.

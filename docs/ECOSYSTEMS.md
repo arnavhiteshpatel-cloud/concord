@@ -4,6 +4,11 @@ Milestone 4, workstream B. Two source plugins built on the public adapter SDK
 (`concord_adapter_sdk.api`, API 1.0). They import only `concord_adapter_sdk` (never
 `concord`), run in the plugin host, and are **receive-only**.
 
+This page documents what each interface provides, how it is mapped and what was tested. To set
+one up in the console, see [Connect your equipment](CONNECT_YOUR_EQUIPMENT.md) (§4.3 BrainFlow,
+§4.4 BCI2000). Neither plugin is on PyPI: install them from the GitHub release's wheels; the
+desktop app includes the BCI2000 plugin, not BrainFlow.
+
 | | `concord-brainflow` | `concord-bci2000` |
 | --- | --- | --- |
 | Entry point (`concord.sources`) | `brainflow` | `bci2000` |
@@ -191,17 +196,30 @@ higher latency.
 
 ### Researcher setup
 
-1. `pip install concord-brainflow` (pulls `brainflow` and `concord-adapter-sdk`).
-2. In the Concord console, open the BrainFlow plugin, choose `board` and set the
-   connection options BrainFlow's "Supported Boards" page lists for your board (e.g.
-   `serial_port=/dev/ttyUSB0` for a Cyton). Try `synthetic` first.
-3. To replay a recording: device `playback`, `file=<BrainFlow file>`,
-   `master_board=<board that recorded it>`. To share one board between programs: in the
-   process that owns the board call `add_streamer("streaming_board://225.1.1.1:6677")`
-   and open device `streaming` with `ip_address=225.1.1.1`, `ip_port=6677`,
-   `master_board=<board>`.
-4. If your board's package counter is not 0-255, set `package_num_modulus` (or 0 to turn
-   loss inference off).
+Step by step, with what you should see: [Connect your equipment §4.3](CONNECT_YOUR_EQUIPMENT.md#43-brainflow-boards).
+
+1. **Install** (Python installation only; the desktop app does not include BrainFlow). The
+   plugin is not on PyPI: download all `.whl` files of the GitHub release into one folder, then
+   `pip install --find-links <folder> "concordos[lab]" concord-brainflow`. This pulls
+   `concord-adapter-sdk` from the folder and `brainflow` from PyPI (the newest BrainFlow; 5.24.0
+   when Concord 0.3.1 was released; the measurements above used 5.23.0). Start Concord, or click
+   **Search again** under **Connect a source → Plugins** if it was already running.
+2. In the console, **Connect a source → Plugins → BrainFlow** lists four entries: **BrainFlow
+   synthetic board**, **BrainFlow playback file**, **BrainFlow streaming board** and
+   **Configure a BrainFlow board**. Try the synthetic board first (**Connect**).
+3. For your board: **Configure a BrainFlow board → Options**. The form's labels are the option
+   descriptions; hovering over a field shows the option name used above. Choose the board in
+   *BrainFlow board id (BoardIds name)…* (`board`) and fill in the connection fields
+   BrainFlow's "Supported Boards" page lists for it, e.g.
+   *BrainFlowInputParams.serial_port, e.g. /dev/ttyUSB0* (`serial_port`) for a Cyton. Then
+   **Connect**.
+4. To replay a recording: **BrainFlow playback file** with `file` (*BrainFlowInputParams.file*)
+   and `master_board` (*PLAYBACK_FILE_BOARD / STREAMING_BOARD only: …*) set to the board that
+   recorded it. To share one board between programs: in the process that owns the board call
+   `add_streamer("streaming_board://225.1.1.1:6677")` and open **BrainFlow streaming board**
+   with `ip_address=225.1.1.1`, `ip_port=6677`, `master_board=<board>`.
+5. If your board's package counter is not 0-255, set `package_num_modulus` (*Range of the
+   board's package counter…*; 0 turns loss inference off).
 
 ---
 
@@ -389,14 +407,32 @@ sequence (a 62 ms step followed by ~0 ms).
 
 ### Researcher setup
 
-1. `pip install concord-bci2000`.
+Step by step, with what you should see: [Connect your equipment §4.4](CONNECT_YOUR_EQUIPMENT.md#44-bci2000).
+
+1. **Install:** the desktop app includes the plugin. For the Python installation it is not on
+   PyPI: install the `concord_bci2000` wheel from the GitHub release
+   (`pip install --find-links <folder> "concordos[lab]" concord-bci2000`).
 2. In BCI2000 (Operator → Config → Connector, or a batch script):
    `Set parameter ConnectorOutputAddress localhost:20321` (or `<Concord machine>:20321` with
    the plugin's `address` set to that machine's address). Leave `ConnectorInputAddress`
    empty: Concord never sends.
-3. In Concord, open the BCI2000 App Connector device (address/port as above). Optionally
-   enter BCI2000's `SamplingRate` and `SampleBlockSize` for a nominal rate, choose
-   `behavior_states`/`marker_states` (comma-separated BCI2000 state names), and tick
-   `declare_synthetic`/`declare_prerecorded` if BCI2000 runs SignalGenerator or FilePlayback.
-4. Start a BCI2000 run; `open()` waits up to `open_timeout_s` for the first blocks (BCI2000
-   sends only while running).
+3. In Concord, **Connect a source → Plugins → BCI2000 App Connector → Options** under **BCI2000
+   App Connector (UDP)**. The labels are the option descriptions (hover shows the option name):
+   `address` (*Local address to receive on…*) and `port` (*Local UDP port…*) as above.
+   Optionally enter BCI2000's `SamplingRate` and `SampleBlockSize` for a nominal rate (both or
+   neither), choose `behavior_states`/`marker_states` (comma-separated BCI2000 state names), and
+   tick `declare_synthetic`/`declare_prerecorded` (*Set when BCI2000's source module generates
+   data…* / *Set when BCI2000 replays a recording…*) if BCI2000 runs SignalGenerator or
+   FilePlayback.
+4. Click **Connect**, then start the BCI2000 run right away. BCI2000 sends only while running,
+   and in Concord 0.3.1 the console's **Connect** waits about 4 s for the first blocks, whatever
+   `open_timeout_s` says (the plugin host's limit for `open`; otherwise the message is
+   `plugin did not answer 'open' within 4 s; host stopped`). **Connect** opens the receiver
+   twice, once to learn the streams and once for the connection, about 0.1 s apart (measured
+   with the recorded capture; never tried against a live BCI2000 run). Given the behaviour in
+   "Receiver restarts stop BCI2000's output until the next run" above, if data stops after
+   connecting, stop and start the run.
+5. Signal integrity shows *Waiting for data* / *No signal*: expected, the plugin delivers a
+   control signal, not a signal or features. **Start decoding** with **Source decoder outputs
+   (passthrough)** (in 0.3.1 the preset menu starts on *Band power*) shows the control signal
+   (`Signal(ch,el)`) and offers it to **Command output**.

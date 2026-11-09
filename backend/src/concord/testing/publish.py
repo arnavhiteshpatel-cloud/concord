@@ -4,9 +4,14 @@ Each speaks a real protocol (liblsl outlets, or the Open Ephys ZMQ Interface wir
 Concord — or any other LSL / Open Ephys client — can be exercised without acquisition
 hardware. Every stream is declared for what it is (synthetic, or prerecorded).
 
-    python -m concord.testing.publish lsl-ephys --channels 32 --rate 30000
-    python -m concord.testing.publish falcon data/datasets/dandi-000954/<file>.nwb --speed 1
-    python -m concord.testing.publish openephys --port 5556 --channels 64
+    concord publish lsl-ephys --channels 32 --rate 30000
+    concord publish falcon <data folder>/datasets/<file>.nwb --speed 1
+    concord publish openephys --port 5556 --channels 64
+
+In the desktop app the command is the app's own program: on a Mac
+/Applications/Concord.app/Contents/MacOS/Concord publish ..., in the Linux bundle
+./Concord/Concord publish ... (also: python -m concord.testing.publish ...).
+The data folder is shown in the console under Advanced -> Stored data.
 
 Stop with Ctrl-C (or ``--seconds``).
 """
@@ -34,7 +39,9 @@ def _wait(seconds: float | None, done: threading.Event | None = None) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    ap = argparse.ArgumentParser(
+        prog="concord publish", description=__doc__, formatter_class=argparse.RawTextHelpFormatter
+    )
     sub = ap.add_subparsers(dest="kind", required=True)
 
     e = sub.add_parser("lsl-ephys", help="synthetic broadband ephys over LSL (declared synthetic)")

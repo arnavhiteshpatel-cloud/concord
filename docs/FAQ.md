@@ -168,7 +168,7 @@ presented to applications as a person's live intention.
 A recording stops cleanly when it reaches a limit: by default 5 minutes or 200 MiB with the raw
 signal (1 hour with *Features and labels only*), or when less than 256 MiB of disk space is left.
 The file is complete. Raise the limits in the `[recording]` section of the configuration file
-(up to 24 hours / 100 GiB), see [USER_GUIDE.md](USER_GUIDE.md#configuration-file).
+(up to 24 hours / 100 GiB), see [USER_GUIDE.md](USER_GUIDE.md#15-configuration-file).
 
 ## Decoding and control
 

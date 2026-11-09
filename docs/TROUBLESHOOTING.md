@@ -15,6 +15,7 @@ Support report** in the console.) Logs are in `<data directory>/logs/`: `concord
 
 | Symptom | Cause and fix |
 | --- | --- |
+| `No matching distribution found for concord-brainflow` (or another `concord…` package) | None of Concord's packages is on PyPI. Download the wheels from the release page into one folder and install with `pip install --find-links <folder> "concordos[lab]" concord-brainflow` ([Connect your equipment](CONNECT_YOUR_EQUIPMENT.md)). |
 | `The Concord server is not installed` | The base `concord` package is the application SDK only. `pip install "concordos[lab]"` (or `concordos[server]`). |
 | `concord: refusing to listen on '0.0.0.0'` | Non-loopback addresses are refused (no authentication). Remove `host` from the config file / `CONCORD_HOST`. To use the console from another computer, use an SSH tunnel (docs/SECURITY.md). |
 | `port 8000 is in use by another program` | `concord start --port 8010`, or `[server] port` in the config file. `concord doctor` shows who answers on the port. |
@@ -45,6 +46,7 @@ Support report** in the console.) Logs are in `<data directory>/logs/`: `concord
 | `arbitrary` units | A channel lacks a voltage unit in the LSL metadata, or the Open Ephys unit was left *unknown*. Concord never guesses units. |
 | Open Ephys: "answered the heartbeat but sent no data" | Acquisition not running, or no channels selected in the ZMQ Interface. |
 | Open Ephys: "did not answer" | Host/port/firewall (TCP 5556 and 5557 on the GUI computer). |
+| BCI2000: `plugin did not answer 'open' within 4 s` | Nothing reached Concord's receiver in time: start Concord's source first, then the BCI2000 run, and check `ConnectorOutputAddress` and the firewall (next row). |
 | BCI2000: no data | BCI2000's `ConnectorOutputAddress` must point to this computer and port (default 20321); inbound UDP allowed; `concord doctor` shows whether the port is free. |
 | *Recorded human data* is empty ("No recorded datasets yet") | Put the downloaded files in the folder the message names: `<data folder>/datasets` (Getting started §4.2), then reload the console. Or download and verify FALCON H1 with one command: `concord dataset` (app: `/Applications/Concord.app/Contents/MacOS/Concord dataset`; Linux bundle: `./Concord/Concord dataset`). |
 | A downloaded file is not listed | Check the console's data folder (**Advanced → Stored data**: *Data directory*); another running copy of Concord may use another folder. A browser duplicate (`… (1).mat`, `… (1).nwb`) is skipped, because the same block cannot be listed twice: delete the duplicate. The reason for any skipped file is in `<data folder>/logs/concord.log` ("not offered"). |

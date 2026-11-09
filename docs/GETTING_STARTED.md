@@ -536,7 +536,7 @@ settings and a log, in one folder you can export as a zip file.
    - A recording with raw samples stops by itself after 5 minutes or 200 MB.
    - Tick **Features and labels only (for calibration)** to leave out the raw samples; such a
      recording can run for an hour.
-   - Both limits can be changed in the [configuration file](USER_GUIDE.md#configuration-file).
+   - Both limits can be changed in the [configuration file](USER_GUIDE.md#15-configuration-file).
    - Recorded datasets (sections 4–6) cannot be recorded: they already are recordings.
 
    ![A session with a recording in progress](images/07-session-recording.png)
