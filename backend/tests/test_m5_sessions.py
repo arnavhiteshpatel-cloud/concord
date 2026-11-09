@@ -207,8 +207,11 @@ def test_session_safe_stop_export_and_reproduce(
     inputs = [ln for ln in lines if '"intent.kinematics"' not in ln]
     rec_path.write_text(header + "".join(inputs + outputs), encoding="utf-8", newline="")
     (lagged,) = [c for c in check_decoded_output(root, rec_path) if c["model_id"] == model_id]
-    assert lagged["ok"] is True and lagged["unmatched"] == 0, json.dumps(lagged)
-    assert lagged["compared"] == dec["compared"]
+    # same result as the unshuffled recording: outputs whose inputs came before the recording
+    # started (a lagging decoder) are unmatched in both
+    assert lagged["ok"] is True, json.dumps(lagged)
+    assert lagged["unmatched"] == dec["unmatched"], json.dumps([lagged, dec])
+    assert lagged["compared"] == dec["compared"], json.dumps([lagged, dec])
 
     # a tampered bundle fails integrity
     tampered = tmp_path / "tampered.zip"
