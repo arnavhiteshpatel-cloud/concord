@@ -1,0 +1,4 @@
+# Text files keep LF line endings on every platform, Windows included: plugin sources are
+# identified by SHA-256 of their bytes (concord-certify, compat/registry.json), and a CRLF
+# checkout would change those hashes.
+* text=auto eol=lf

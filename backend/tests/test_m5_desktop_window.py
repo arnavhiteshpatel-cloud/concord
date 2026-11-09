@@ -100,7 +100,16 @@ CLOSES = {
 }
 
 
-@pytest.mark.parametrize("how", list(CLOSES))
+@pytest.mark.parametrize(
+    "how",
+    [
+        # Windows: os.kill(own pid, SIGTERM) is TerminateProcess, it would end the test run
+        pytest.param(h, marks=pytest.mark.skipif(sys.platform == "win32", reason="no SIGTERM"))
+        if h == "sigterm_signal"
+        else h
+        for h in CLOSES
+    ],
+)
 def test_other_copy_window_explains_and_offers_its_console(how: str) -> None:
     """Another copy of Concord answers on the app's address: the window says so, with its
     version and process ID, offers that copy's console, and every way to close it works."""
