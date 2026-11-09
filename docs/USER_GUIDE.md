@@ -1080,7 +1080,7 @@ its envelope.*).
 | **Freeze view** | Stops the list from moving so you can read it | Always | Concord keeps running; only this view is frozen. |
 | **Resume view** | Shows live events again | While frozen | |
 | Event-type checkboxes | Show or hide each type | Always | The 13 types are in the table below. |
-| **Seq** | The event's sequence number in this connection | Always | |
+| **Seq** | The event's sequence number within this source connection | Always | It starts again each time a source is connected. |
 | **Type** | Event type | Always | |
 | **Device** | The source's id | Always | |
 | **Provenance** | The data kind ([provenance](GLOSSARY.md#provenance)): `raw_signal`, `processed_feature`, `behavioral_label`, `simulated_intent`, `decoded_intent`, `device_report`, `runtime` | Always | **↺** after it means the event was [replayed](GLOSSARY.md#replayed) from a recording. Hover: the model id (decoded events) or the adapter. |
@@ -1220,7 +1220,7 @@ pipeline computes from a raw source). Band-power features are not drawn here.
 
 | Control | What it does | Notes |
 | --- | --- | --- |
-| Raster | Each row a channel, each column a bin; brighter = more counts | The header gives channels, bin length, feature and time span (last 5 s at 20 ms bins). |
+| Raster | Each row a channel, each column a bin; brighter = more counts | The header gives channels, bin length, feature and time span (for example *last 5 s* for FALCON's 20 ms bins, *last 3 s* for T15's 10 ms bins). |
 | **Velocity dimension** | Chooses which behavior dimension the lines show ([velocity dimension](GLOSSARY.md#velocity-dimension)) | FALCON: `tx … g3`; T15: `x`, `y`. |
 | *Solid: recorded behavior (ground truth, valid samples)* | The recorded behavior of that dimension | |
 | *Dashed: decoded (\<model>)* | The output of the decoder named, if one runs or the file carries one | Lines are scaled to fit; there is no unit axis. |
@@ -1331,7 +1331,7 @@ To make a recording for replay, record with decoding off.
 
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
-| **Start recording** | Starts a recording named `<source>-<date>-<time>` | A simulated or live source is streaming or paused | Greyed out for FALCON, AJILE12, T15 and session recordings: *Local file replays cannot be recorded* (they already are recordings). Logged as *Recording started: \<name>*; the title bar adds *· Recording*. |
+| **Start recording** | Starts a recording named `<source>-<date>-<time>` | A simulated or live source is streaming or paused | Greyed out for FALCON, AJILE12, T15 and session recordings (they already are recordings; the description under the button says *Local file replays cannot be recorded.*). Logged as *Recording started: \<name>*; the title bar adds *· Recording*. |
 | **Stop recording** | Ends it | While recording | Logged as *Recording stopped: \<name>*. |
 | **Features and labels only (for calibration)** | Records everything except raw sample frames | Before starting | Off by default. Raw frames are large: a 32-channel stream at 30 kHz reaches the default 200 MiB size limit within seconds. Use this with high-rate sources, and for calibration. |
 | Recordings list | The 8 newest recordings: name, size, age (*recording* while active) | Recordings exist | *· incomplete* marks one recovered after Concord stopped unexpectedly. |
@@ -1360,7 +1360,7 @@ recordings, the dataset files (FALCON before T15), then the registered live sour
 quite the order of the **Connect a source** panel, which lists session recordings after the
 dataset files. *Yes* plus its details means the source declares it; *—* means it does not.
 Several columns can have the same heading (for example the FALCON files); tell them apart by
-their order.
+their order. A connected plugin source is added as the last column.
 
 | Detail | Meaning |
 | --- | --- |
@@ -1369,6 +1369,7 @@ their order.
 | `frame_samples`, `frame_rate_hz` | Samples per raw data block, and blocks per second |
 | `unit` | `uV` (microvolts), `count`, `arbitrary` (no physical unit), … |
 | `channel_labels` | Channel names, separated by vertical bars |
+| `channel_units` | Unit of each channel, separated by vertical bars |
 | `stream_type`, `channel_format` | LSL stream type and number format |
 | `annotations_only` | The source delivers only markers under `recording`, no samples |
 | `rate_hz` | Events per second |
@@ -1422,7 +1423,7 @@ synthetic board: nothing can be simulated or injected there.
 
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
-| Pad | **A joystick**: pull the dot away from the centre and the board's cursor keeps moving in that direction, faster the further you pull; let go and it springs back and the cursor stops | Profile A | Use small, short pulls: holding the dot off-centre makes the cursor overshoot. *Simulated Profile B has no pointer intent* on Profile B. |
+| Pad | **A joystick**: pull the dot away from the centre and the board's cursor keeps moving in that direction, faster the further you pull; let go and it springs back. Profile A adds a little random jitter to every movement, like a real decoder, so even at rest the cursor drifts slowly | Profile A | Use small, short pulls: holding the dot off-centre makes the cursor overshoot. *Simulated Profile B has no pointer intent* on Profile B. |
 | **Select** | Sends one select action | Both profiles | On the board this chooses (Pointer and click, Scanning) or moves (Direct selection). |
 | Keyboard | Arrow keys or W A S D move (like the dot pulled 60 % of the way); Space or Enter selects | While this section is open and the console window has focus | Not while typing in a text field. While this section is open, Space and Enter send **Select** even if a console button has keyboard focus. |
 | *Velocity 0.00, 0.00 · N sent* | The current joystick velocity, and how many selections and texts were sent | Always | *sent* does not count movements. |
@@ -1491,16 +1492,16 @@ What Concord keeps in the data folder, and deletion.
 | *Data directory \<path> (only your user can read it).* | Where the data folder is | Always | Select the path to copy it. |
 | **recordings**, **models**, **sessions**, **exports** | Count and total size of each | Always | Dataset files are not listed or counted here: delete them from the `datasets` folder yourself. |
 | Retention line | *No retention policy: data is kept until you delete it ([retention] in the config file).*, or the policy and what it deleted at this start | Always | [15](#15-configuration-file). |
-| **Recordings** list | Name, size, age; *· incomplete (N events kept)* for a recovered recording | Recordings exist | |
-| **Decoder models** list | Model id and creation time | Models exist | |
-| **Research sessions** list | Name (id), *active* / *closed* / *interrupted*, age | Sessions exist | The active session has no **Delete**. |
+| **Recordings** list | Name, size, age; *· incomplete (N events kept)* for a recovered recording | Always (*No recordings.* when empty) | |
+| **Decoder models** list | Model id and creation time | Always (*No models.* when empty) | |
+| **Research sessions** list | Name (id), *active* / *closed* / *interrupted*, age | Always (*No research sessions.* when empty) | The active session has no **Delete**. |
 | **with its N recording(s)** | Also deletes that session's recordings | A session with recordings | Off by default. |
 | **Delete** | Asks *Delete \<name> permanently?* | Each item | An active recording and the active session have no **Delete**; Concord refuses to delete anything else in use. |
 | **Delete** (red) / **Cancel** | Deletes / keeps | After **Delete** | Logged as *Deleted … (size)*. |
 
 The lists are read when you open the section; fold and open it again to refresh. *Deleting
 removes the files from the data directory. It does not erase copies elsewhere: exports you
-shared, backups or snapshots* ([SECURITY.md](SECURITY.md)).
+shared, backups or snapshots.* More on what is and is not protected: [SECURITY.md](SECURITY.md).
 
 ### 10.13 Support report
 
@@ -1619,7 +1620,7 @@ A 6 × 6 page:
 | **Space** | Adds a space (not at the start, not after another space) |
 | **Delete** | Removes the last character |
 | **Phrases** | Back to the phrases page |
-| Prediction tiles | Up to three words that complete the word being typed; choosing one replaces the partial word with the whole word and adds a space |
+| Prediction tiles | Up to three words that complete the word being typed; choosing one replaces the partial word with the whole word and adds a space. The word is inserted as it appears on the tile, in lower case, even at the start of a sentence. |
 | **Undo**, **Clear**, **Speak** / **Save** | As on the phrases page |
 
 **How predictions are chosen:** the board takes the letters typed since the last space and lists,
@@ -1659,7 +1660,7 @@ as choosing cued words (like the T15 grid task). **Grid size N**: 2 to 20, defau
 | Round cursor ring | The pointer position (pointer methods). It starts in the centre and stops at the edges. |
 | Red dashed cursor ring | Input stopped while a pointer method was in use; the cursor is frozen |
 | Bar filling along the bottom of a tile | Dwell progress: when it is full, the tile is chosen |
-| Thick dashed outline and *select again to confirm* | Confirmation is on and this tile waits for its second selection |
+| Thick amber dashed outline and *select again to confirm* | Confirmation is on and this tile waits for its second selection |
 | Short green flash | The tile was just chosen; with **Audio tick on every selection**, a short tick sounds |
 
 ### 11.8 Input methods
@@ -1676,7 +1677,9 @@ The board picks the first method the source supports, in this order, unless you 
 | **Scanning** | discrete actions (`selection`) | The board highlights tiles in turn (every **Scan interval**); any select or activate chooses the highlighted one. Details below the table. | Simulated Profile B; any source with only a select |
 
 - **Pointer with dwell selection**: dwell starts only after the cursor has moved since input
-  became active, and after a choice you must leave the tile before it can be chosen again.
+  became active, and after a choice you must leave the tile before it can be chosen again. With
+  Simulated Profile A, its built-in jitter counts as movement: the board can choose a tile by
+  itself within a few seconds. Use **Pointer and click** when you are not demonstrating dwell.
 - **Scanning**: with **Row, then column**, rows are highlighted first; select a row, then the
   tiles in it are highlighted (after two passes without a choice it returns to rows). After a
   choice, scanning starts again at the first tile.
@@ -1751,7 +1754,7 @@ The full reference for evaluation harnesses: [APPLICATIONS.md](APPLICATIONS.md).
 
 | You see | Why | What to do |
 | --- | --- | --- |
-| An application listed before you opened one; "2 applications connected" | Each console tab contains the embedded board | Normal ([7.5](#75-authorized-applications)). Close console tabs you don't use. |
+| A *Communication Board* is listed under **Authorized applications**, and *1 application connected* shows before you opened any board (one more per extra console tab or participant screen) | Each console tab contains the embedded board, which counts as one application | Normal ([7.5](#75-authorized-applications)). Close console tabs you don't use. |
 | *Receiving pointer movement, discrete actions.* next to **Authorize** | A simulated profile drives the board without authorization | Normal ([7.1](#71-when-commands-reach-an-application)). |
 | **Stop control** is grey | Command output is off | Nothing to stop. |
 | **Data received (%)** shows *—* | Only LSL and Open Ephys report losses | Normal for other sources. |
@@ -1848,29 +1851,26 @@ Every setting has a safe default, so the file is optional.
 
 Concord refuses a file that other users can change.
 
-| Section and key | Default | Meaning |
-| --- | --- | --- |
-| `[server] host` | `127.0.0.1` | Interface to listen on; keep 127.0.0.1 (Concord has no authentication or encryption) |
-| `[server] port` | `8000` | Port of the console and its programming interface |
-| `[server] allow_remote` | `false` | Required for any other host (not recommended; use an SSH tunnel) |
-| `[server] open_browser` | `true` | Open the console when Concord starts |
-| `[server] log_level` | `INFO` | DEBUG, INFO, WARNING or ERROR |
-| `[storage] data_dir` | see [16](#16-data-folders-ports-and-network) | Datasets, recordings, models, sessions, exports, logs |
-| `[storage] reports_dir` | `reports` next to the data folder | Test and calibration reports |
-| `[retention] recordings_days`, `sessions_days`, `exports_days`, `models_days` | `0` (keep) | Delete items older than this many days when Concord starts; items in use are never deleted |
-| `[recording] max_duration_s` | `300` | A recording with raw frames stops after this many seconds (at most 86400) |
-| `[recording] max_duration_no_raw_s` | `3600` | A features-and-labels-only recording stops after this many seconds (at most 86400) |
-| `[recording] max_size_mb` | `200` | A recording stops at this size in MiB (at most 102400) |
-| `[recording] min_free_mb` | `256` | A recording does not start, or stops cleanly, below this much free disk space |
-| `[simulation] enabled` | `true` | Offer the simulated profiles and simulator controls |
-| `[plugins] discover` | `true` | Look for installed source plugins at start |
+| Section and key | Default | Meaning | Environment variable |
+| --- | --- | --- | --- |
+| `[server] host` | `127.0.0.1` | Interface to listen on; keep 127.0.0.1 (Concord has no authentication or encryption) | `CONCORD_HOST` |
+| `[server] port` | `8000` | Port of the console and its programming interface | `CONCORD_PORT` |
+| `[server] allow_remote` | `false` | Required for any other host (not recommended; use an SSH tunnel) | `CONCORD_ALLOW_REMOTE` |
+| `[server] open_browser` | `true` | Open the console when Concord starts | `CONCORD_OPEN_BROWSER` |
+| `[server] log_level` | `INFO` | DEBUG, INFO, WARNING or ERROR | `CONCORD_LOG_LEVEL` |
+| `[storage] data_dir` | see [16](#16-data-folders-ports-and-network) | Datasets, recordings, models, sessions, exports, logs | `CONCORD_DATA_DIR` |
+| `[storage] reports_dir` | `reports` next to the data folder | Test and calibration reports | `CONCORD_REPORTS_DIR` |
+| `[retention] recordings_days`, `sessions_days`, `exports_days`, `models_days` | `0` (keep; `concord config show` prints `null`) | Delete items older than this many days when Concord starts; items in use are never deleted | none |
+| `[recording] max_duration_s` | `300` | A recording with raw frames stops after this many seconds (at most 86400) | `CONCORD_RECORDING_MAX_S` |
+| `[recording] max_duration_no_raw_s` | `3600` | A features-and-labels-only recording stops after this many seconds (at most 86400) | `CONCORD_RECORDING_MAX_NO_RAW_S` |
+| `[recording] max_size_mb` | `200` | A recording stops at this size in MiB (at most 102400) | `CONCORD_RECORDING_MAX_MB` |
+| `[recording] min_free_mb` | `256` | A recording does not start, or stops cleanly, below this much free disk space | `CONCORD_RECORDING_MIN_FREE_MB` |
+| `[simulation] enabled` | `true` | Offer the simulated profiles and simulator controls | `CONCORD_ENABLE_SIM` |
+| `[plugins] discover` | `true` | Look for installed source plugins at start | `CONCORD_PLUGINS` |
 
-Environment variables override the file: `CONCORD_HOST`, `CONCORD_PORT`, `CONCORD_ALLOW_REMOTE`,
-`CONCORD_OPEN_BROWSER`, `CONCORD_LOG_LEVEL`, `CONCORD_DATA_DIR`, `CONCORD_REPORTS_DIR`,
-`CONCORD_ENABLE_SIM`, `CONCORD_PLUGINS`, `CONCORD_RECORDING_MAX_S`,
-`CONCORD_RECORDING_MAX_NO_RAW_S`, `CONCORD_RECORDING_MAX_MB`, `CONCORD_RECORDING_MIN_FREE_MB`,
-and `CONCORD_CONFIG` (which configuration file to read). For plugins and development:
-`CONCORD_PLUGIN_PYTHON`, `CONCORD_PLUGIN_PATH`, `CONCORD_STATIC_DIR`, `CONCORD_COMPAT_REGISTRY`.
+An environment variable overrides the file's setting. `CONCORD_CONFIG` chooses which
+configuration file to read. For plugins and development there are also `CONCORD_PLUGIN_PYTHON`,
+`CONCORD_PLUGIN_PATH`, `CONCORD_STATIC_DIR` and `CONCORD_COMPAT_REGISTRY`.
 Command-line options (`--port`, `--data-dir`, …) override both for one run.
 
 ---
@@ -1974,7 +1974,7 @@ explains it. Labels that appear in several places list each section.
 | **Client p50**, **Client p95** | Advanced → Diagnostics | [10.4](#104-diagnostics) |
 | **Clock offset** | Advanced → Acquisition details (Open Ephys) | [10.3](#103-acquisition-details) |
 | **Clock regression** | Advanced → Simulator controls | [10.8](#108-simulator-controls) |
-| **Close** | Every panel that slides in; Board settings | [1](#1-the-console-at-a-glance), [4.3](#43-the-connect-a-source-panel), [11.9](#119-board-settings) |
+| **Close** | Every panel that slides in; Board settings; Event stream envelope | [1](#1-the-console-at-a-glance), [4.3](#43-the-connect-a-source-panel), [11.9](#119-board-settings), [10.1](#101-event-stream) |
 | **Command output** | Area 6 | [7](#7-command-output) |
 | **Command router** | Advanced → Pipeline details | [10.2](#102-pipeline-details) |
 | **commands out** | Advanced → Pipeline details | [10.2](#102-pipeline-details) |
@@ -2012,6 +2012,7 @@ explains it. Labels that appear in several places list each section.
 | **Delivery p95** | Advanced → Diagnostics | [10.4](#104-diagnostics) |
 | **Device** | Advanced → Event stream | [10.1](#101-event-stream) |
 | **Device switches** | Advanced → Diagnostics | [10.4](#104-diagnostics) |
+| **Device telemetry** | Advanced → Acquisition details (simulated profiles, session recordings, plugins) | [10.3](#103-acquisition-details) |
 | **Diagnostics** | Advanced | [10.4](#104-diagnostics) |
 | **Direct selection** | Board settings → Input method | [11.8](#118-input-methods) |
 | **Directional navigation** | Board settings → Input method | [11.8](#118-input-methods) |
@@ -2033,11 +2034,13 @@ explains it. Labels that appear in several places list each section.
 | **Evidence** | Advanced → Compatibility | [10.11](#1011-compatibility) |
 | **Expects** | Start decoding panel → model details | [6.4](#64-decoder-models) |
 | **Extract** | Advanced → Acquisition details (AJILE12) | [10.3](#103-acquisition-details) |
+| **Fault injection** | Advanced → Simulator controls | [10.8](#108-simulator-controls) |
 | **Feature source** | Calibrate a decoder | [6.5](#65-the-calibrate-panel) |
 | **Features and labels only (for calibration)** | Advanced → Recording | [10.5](#105-recording) |
 | **Features computed by the Concord pipeline** | Calibrate a decoder → Feature source | [6.5](#65-the-calibrate-panel) |
 | **Features delivered by an LSL stream** | Calibrate a decoder → Feature source | [6.5](#65-the-calibrate-panel) |
 | **features out** | Advanced → Pipeline details | [10.2](#102-pipeline-details) |
+| **Feedback and speech** | Board settings (group) | [11.9](#119-board-settings) |
 | **File** | Advanced → Acquisition details (FALCON, AJILE12) | [10.3](#103-acquisition-details) |
 | **Find LSL streams** | Connect a source panel → Live streams | [4.7](#47-live-streams-lsl) |
 | **Freeze view** | Advanced → Event stream | [10.1](#101-event-stream) |
@@ -2086,6 +2089,7 @@ explains it. Labels that appear in several places list each section.
 | **Mark this file trusted** | Start decoding panel | [6.2](#62-the-start-decoding-panel) |
 | **Marker stream (optional)** | Find LSL streams, after Use | [4.7](#47-live-streams-lsl) |
 | **Max speed** | Command output → Settings | [7.3](#73-settings-for-movement-decoders) |
+| **Measured** | Advanced → Pipeline details (latency table) | [10.2](#102-pipeline-details) |
 | **Metadata notes (N): corrections and what the file does not provide** | Advanced → Acquisition details | [10.3](#103-acquisition-details) |
 | **Minimum confidence** | Command output → Settings | [7.3](#73-settings-for-movement-decoders) |
 | **Move to next**, **Move to previous**, **Move up**, **Move down**, **Move left**, **Move right** | Command output → Settings → When \<class> is held | [7.4](#74-settings-for-classifiers) |
@@ -2120,7 +2124,9 @@ explains it. Labels that appear in several places list each section.
 | **Phrases** | Board letters page (tile) | [11.5](#115-the-letters-page-and-word-prediction) |
 | **Phrases and letters** | Board settings → Layout | [11.4](#114-the-phrases-page) |
 | **Pipeline details** | Advanced | [10.2](#102-pipeline-details) |
+| **Pipeline features** | Advanced → Acquisition details (plot) | [10.3](#103-acquisition-details) |
 | **Playback** | Acquisition source row (file replays) | [4.1](#41-the-row) |
+| **Plugins** | Connect a source panel (group) | [4.9](#49-plugins) |
 | **Pointer and click** | Board settings → Input method | [11.8](#118-input-methods) |
 | **Pointer with dwell selection** | Board settings → Input method | [11.8](#118-input-methods) |
 | **Process** | Advanced → Diagnostics | [10.4](#104-diagnostics) |
@@ -2135,7 +2141,9 @@ explains it. Labels that appear in several places list each section.
 | **Received** | Advanced → Acquisition details (LSL stream table) | [10.3](#103-acquisition-details) |
 | **Recent errors** | Advanced → Diagnostics | [10.4](#104-diagnostics) |
 | **Reconnects ok / tried** | Advanced → Diagnostics | [10.4](#104-diagnostics) |
+| **Recorded data source** | Advanced → Acquisition details (heading of the dataset panel) | [10.3](#103-acquisition-details) |
 | **Recorded human data (offline replay)** | Connect a source panel (group) | [4.5](#45-recorded-human-data-offline-replay) |
+| **Recorded neural activity (offline replay)** | Advanced → Acquisition details (plot) | [10.3](#103-acquisition-details) |
 | **Recording** | Acquisition details (FALCON, AJILE12); Advanced | [10.3](#103-acquisition-details), [10.5](#105-recording) |
 | **Recordings** | Session panel; Advanced → Stored data | [3.3](#33-session-and-export), [10.12](#1012-stored-data) |
 | **recordings**, **models**, **sessions**, **exports** | Advanced → Stored data | [10.12](#1012-stored-data) |
@@ -2182,12 +2190,14 @@ explains it. Labels that appear in several places list each section.
 | **Show N test cases** | Advanced → Tests (source installation) | [10.10](#1010-tests) |
 | **Signal** | Advanced → Acquisition details (FALCON, AJILE12) | [10.3](#103-acquisition-details) |
 | **Signal integrity** | Area 4 | [5](#5-signal-integrity) |
+| **Simulated intention** | Advanced → Simulator controls | [10.8](#108-simulator-controls) |
 | **Simulated Profile A** | Connect a source panel | [4.4](#44-simulated-profiles) |
 | **Simulated Profile B** | Connect a source panel | [4.4](#44-simulated-profiles) |
 | **Simulated profiles** | Connect a source panel (group) | [4.4](#44-simulated-profiles) |
 | **Simulator controls** | Advanced (Simulated Profile A or B only) | [10.8](#108-simulator-controls) |
 | **Source** | Model details; calibration report; Acquisition details | [6.4](#64-decoder-models), [6.5](#65-the-calibrate-panel), [10.3](#103-acquisition-details) |
 | **Source decoder outputs (passthrough)** | Start decoding panel → Processing | [6.3](#63-processing-presets) |
+| **Source features** | Advanced → Acquisition details (plot) | [10.3](#103-acquisition-details) |
 | **Source features (passthrough)** | Start decoding panel → Processing | [6.3](#63-processing-presets) |
 | **Space** | Board letters page (tile) | [11.5](#115-the-letters-page-and-word-prediction) |
 | **Speak** | Board phrases and letters pages (tile) | [11.4](#114-the-phrases-page) |
@@ -2218,6 +2228,7 @@ explains it. Labels that appear in several places list each section.
 | **Tile by tile** | Board settings → Scan pattern | [11.9](#119-board-settings) |
 | **Tile size (phrase page)** | Board settings | [11.4](#114-the-phrases-page), [11.9](#119-board-settings) |
 | **Time correction** | Advanced → Acquisition details (LSL stream table) | [10.3](#103-acquisition-details) |
+| **Timing** | Board settings (group) | [11.9](#119-board-settings) |
 | **Title bar** | Top of the console (area 1) | [2](#2-the-title-bar-and-its-states) |
 | **Train decoder** | Calibrate a decoder | [6.5](#65-the-calibrate-panel) |
 | **Train fraction** | Calibrate a decoder | [6.5](#65-the-calibrate-panel) |

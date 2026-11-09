@@ -240,7 +240,8 @@ here, **Select** in the simulator.)
 
 2. The square pad works like a **joystick**: drag the dot away from the centre and the board's
    cursor *keeps moving* in that direction, faster the further you drag; let go and the dot
-   springs back and the cursor stops. Use small, short movements.
+   springs back and the cursor almost stops. (Profile A adds a little random jitter, like a real
+   decoder, so the cursor keeps drifting slowly.) Use small, short movements.
 
    With the keyboard: click once on an empty part of the console page, then press and hold an
    arrow key (or W, A, S, D) **briefly**: about a quarter of a second moves the cursor about one

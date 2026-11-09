@@ -1,7 +1,7 @@
 # Glossary
 
 Every term you meet in Concord's console, on the communication board and in these documents, in
-plain language, A to Z. Each entry links to where the [user guide](USER_GUIDE.md) explains it.
+plain language, A to Z. Most entries link to where the [user guide](USER_GUIDE.md) explains them.
 The ideas behind them are explained in [How Concord works](CONCEPTS.md).
 
 Terms written `like this` are shown that way on screen (they are names Concord uses
@@ -50,8 +50,10 @@ replays two verified extracts, shown as *Session 5* and *Session 6*.
 
 ### Application
 
-Also *app*. A program that receives data from Concord, such as the communication board. Each
-console tab also counts as one. [Guide 10.7](USER_GUIDE.md#107-connected-applications)
+Also *app*. A program that receives data from Concord, such as the communication board. The
+board embedded in each console tab counts as one application. The console tab itself is listed
+under **Connected applications** (as `console`) but is not counted in *N applications
+connected*. [Guide 10.7](USER_GUIDE.md#107-connected-applications)
 
 ### Arbitrary (unit)
 
@@ -67,7 +69,7 @@ not authorized by default; an authorization lasts until you revoke it or Concord
 
 ### Automatic (input method)
 
-The board picks the best input method the source supports.
+The board uses the first input method the source supports, in the order listed in the guide.
 [Guide 11.8](USER_GUIDE.md#118-input-methods)
 
 ## B
@@ -121,8 +123,9 @@ that the source provides. [Guide 10.6](USER_GUIDE.md#106-capability-contract)
 
 ### Capability contract
 
-Also *capability matrix*. The **Advanced** section listing every source's capabilities and their
-details. [Guide 10.6](USER_GUIDE.md#106-capability-contract)
+The **Advanced** section that lists every source's capabilities (the **Capability matrix**),
+what each capability means (**Capability vocabulary**), and which data kinds can reach an
+application (**Provenance separation**). [Guide 10.6](USER_GUIDE.md#106-capability-contract)
 
 ### Chance
 
