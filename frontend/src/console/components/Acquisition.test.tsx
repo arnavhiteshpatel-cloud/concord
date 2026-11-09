@@ -230,6 +230,14 @@ describe("SourcePicker", () => {
     expect(screen.getByTestId("no-datasets").textContent).not.toContain("make");
   });
 
+  it("says it is checking, not that there are no datasets, until the first device list arrives", () => {
+    const calls = stubFetch({ ...lslIdle });
+    render(<SourcePicker devices={[devices[0]!]} devicesLoaded={false} runtime={null} onClose={vi.fn()} onSourcesChanged={vi.fn()} />);
+    expect(screen.getByTestId("datasets-loading").textContent).toContain("Checking the recorded datasets");
+    expect(screen.queryByTestId("no-datasets")).toBeNull();
+    expect(calls.some((c) => c.path === "/datasets")).toBe(false);
+  });
+
   it("connects when idle, switches when connected, and closes on success", async () => {
     const calls = stubFetch({ ...lslIdle, "POST /runtime/connect": () => ({}), "POST /runtime/switch": () => ({}) });
     const onClose = vi.fn();

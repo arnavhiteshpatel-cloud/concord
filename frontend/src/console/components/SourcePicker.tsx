@@ -45,11 +45,14 @@ export function groupSources(devices: DeviceDescriptor[]) {
 
 export function SourcePicker({
   devices,
+  devicesLoaded = true,
   runtime,
   onClose,
   onSourcesChanged,
 }: {
   devices: DeviceDescriptor[];
+  /** false while the first device list is still being fetched */
+  devicesLoaded?: boolean;
   runtime: RuntimeSnapshot | null;
   onClose: () => void;
   onSourcesChanged: () => void;
@@ -60,7 +63,7 @@ export function SourcePicker({
   const { simulated, datasets, cursorClick, recordings, live, plugins, other } = groupSources(devices);
   // where dataset files go, so the empty-state message can name the real folder (asked only
   // when there are no files: the dataset listing scans the folder)
-  const noFiles = datasets.length === 0 && cursorClick.length === 0;
+  const noFiles = devicesLoaded && datasets.length === 0 && cursorClick.length === 0;
   const [datasetsDir, setDatasetsDir] = useState<string | null>(null);
   useEffect(() => {
     if (!noFiles) return;
@@ -173,6 +176,10 @@ export function SourcePicker({
               </ul>
             )}
           </>
+        ) : !devicesLoaded ? (
+          <p className="value-muted" data-testid="datasets-loading">
+            Checking the recorded datasets… The first time after Concord starts, this takes a few seconds.
+          </p>
         ) : (
           <p className="value-muted" data-testid="no-datasets">
             No recorded datasets yet. Put downloaded dataset files in{" "}

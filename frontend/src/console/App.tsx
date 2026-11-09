@@ -27,6 +27,9 @@ export function App() {
   const { runtime } = data;
   const log = useSessionLog();
   const [devices, setDevices] = useState<DeviceDescriptor[]>([]);
+  // false until the first list arrives: the first listing after Concord starts verifies every
+  // dataset file and can take seconds, and an empty list then does not mean "no files"
+  const [devicesLoaded, setDevicesLoaded] = useState(false);
   const [recordings, setRecordings] = useState<RecordingInfo[]>([]);
   const [diag, setDiag] = useState<DiagnosticsSnapshot | null>(null);
   const [picker, setPicker] = useState(false);
@@ -36,7 +39,10 @@ export function App() {
   const refreshLists = useCallback(() => {
     runtimeApi
       .devices()
-      .then(setDevices)
+      .then((d) => {
+        setDevices(d);
+        setDevicesLoaded(true);
+      })
       .catch(() => {});
     consoleApi
       .recordings()
@@ -221,7 +227,7 @@ export function App() {
           />
         </main>
         {picker && (
-          <SourcePicker devices={devices} runtime={runtime} onClose={closePicker} onSourcesChanged={refreshLists} />
+          <SourcePicker devices={devices} devicesLoaded={devicesLoaded} runtime={runtime} onClose={closePicker} onSourcesChanged={refreshLists} />
         )}
       </div>
     </LogContext.Provider>
