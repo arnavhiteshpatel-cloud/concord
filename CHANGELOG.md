@@ -6,7 +6,63 @@ interfaces. Each entry links to the documents that describe the change in depth.
 Every release is software- and protocol-tested only: **no version has been used with
 acquisition hardware or with a participant** ([validation levels](docs/VALIDATION_LEVELS.md)).
 
-## Unreleased
+## 0.3.1 — fixes found by a first-time walkthrough, and the guides rewritten
+
+Two independent reviews followed the documentation as a first-time researcher would. They found
+documented workflows that did not work in the app, and steps the guides never explained. This
+release fixes both. Nothing about how data is received, processed or decoded changed.
+
+**Fixed in the app**
+
+- **Recording a live source works.** Recording or calibrating from LSL, Open Ephys or a plugin
+  failed with "invalid recording name", because the default name was built from the source's
+  id (which contains ":"). Default names are now always valid. Recorded files (session
+  recordings, NWB datasets, T15 blocks) are refused with a plain reason: they already are
+  recordings.
+- **A decoder's click can reach the board.** In Command output → Settings, **Click from** offered
+  only the first running decoder's outputs. A cursor + click chain runs two decoders (movement
+  and click), so the click could never be routed from the console. It now lists every running
+  decoder's outputs and pre-selects a click output when there is one.
+- **Invert y** is ticked automatically when the decoder declares +y up (the only valid choice).
+  The error message names the checkbox.
+- **The four T15 cursor + click blocks have their own names**
+  ("Cursor + click · Day 468 · block 3 · grid evaluation") and are listed with the recorded human
+  data. Before, all four had the same title and only a hover tooltip told them apart.
+- **The source card says which file or session is playing.**
+- **The empty source list names your real datasets folder**, instead of a developer command
+  (`make dataset`).
+- **The communication board's "Input: …" label** is cleared when the source changes, so it no
+  longer says "simulated input" after you switch to recorded human data.
+- **The console shows its version** next to "Concord", so you can tell at a glance that an older
+  copy is not the one running.
+- **Advanced → Compatibility** works in installed copies: the registry now ships with the app
+  and the wheel. **Advanced → Tests** explains why an installed copy has no test results.
+- **Delay to this screen** no longer shows negative values. The provenance table in
+  **Capability contract** and a caption in **Acquisition details** were out of date and are
+  rewritten.
+
+**New**
+
+- **`concord publish lsl-ephys | falcon <file> | openephys`**: hardware-free test streams for
+  rehearsing a lab setup. They are also available from the desktop app's own program
+  (`/Applications/Concord.app/Contents/MacOS/Concord publish …`, `./Concord/Concord publish …`).
+- **The release ships the BrainFlow, BCI2000 and certification plugins as wheels**, next to the
+  others. None of Concord's packages is on PyPI; install from the release files.
+
+**Documentation**
+
+- [Getting started](docs/GETTING_STARTED.md) is rewritten from the walkthrough's findings.
+  Every step says what to click and what you should see, and it now ends with a recorded
+  decoder driving the communication board (T15). All screenshots were retaken on a fresh
+  installation.
+- New: [How Concord works](docs/CONCEPTS.md) explains sources, data kinds, capabilities,
+  decoders and command output in plain language.
+- New: [Connect your equipment](docs/CONNECT_YOUR_EQUIPMENT.md) covers LSL, Open Ephys, BrainFlow,
+  BCI2000 and your own device, including rehearsal without hardware.
+- The [user guide](docs/USER_GUIDE.md) is now a complete reference of every control, state and
+  message in the console and on the board. The [glossary](docs/GLOSSARY.md) is completed.
+
+## 0.3.0 — renamed to Concord
 
 **The project is now called Concord.** Every name changed with it; nothing else did.
 

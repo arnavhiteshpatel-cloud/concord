@@ -17,7 +17,7 @@ Put downloaded files in the `datasets` folder inside Concord's data folder (any 
 `~/Library/Application Support/Concord/data/datasets` for the Mac app,
 `~/.local/share/concord/data/datasets` for the Linux bundle, `data/datasets` in a source
 checkout. **Advanced → Stored data** in the console shows the exact data folder of the
-Concord you are running. Step by step: [GETTING_STARTED.md §4](GETTING_STARTED.md#4-replay-real-human-recordings-10-minutes).
+Concord you are running. Step by step: [GETTING_STARTED.md §4](GETTING_STARTED.md#4-replay-a-real-human-recording-falcon-h1).
 From a source checkout, `make dataset`, `make dataset-ecog` and `make dataset-t15` download and
 verify them.
 

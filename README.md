@@ -63,7 +63,7 @@ No data or hardware needed:
    pad to move the board's cursor, and click **Select** to choose a word.
 4. Try **Advanced → Simulator controls → Link drop** and watch Concord reconnect on its own.
 
-Then replay real human recordings: [Getting started, section 4](docs/GETTING_STARTED.md#4-replay-real-human-recordings-10-minutes).
+Then replay real human recordings ([Getting started, section 4](docs/GETTING_STARTED.md#4-replay-a-real-human-recording-falcon-h1)) and let a recorded decoder drive the board ([section 5](docs/GETTING_STARTED.md#5-let-a-recorded-decoder-drive-the-board-t15-cursor--click)).
 
 ## Test datasets
 
@@ -73,9 +73,9 @@ downloaded from the original archives, never redistributed here.
 
 | Dataset | What it contains | Size | License | How to get it |
 | --- | --- | --- | --- | --- |
-| **FALCON H1** ([DANDI 000954](https://dandiarchive.org/dandiset/000954/draft)) | Intracortical spiking from two 96-channel motor-cortex arrays (176 channels, 20 ms bins) with cued reach-and-grasp kinematics; one participant | 2 files, 8.7 MiB | CC-BY-4.0 + Data Use Agreement | **In the browser:** [file 1](https://api.dandiarchive.org/api/assets/e40a2eca-883d-4c80-81e3-4203a49506b5/download/), [file 2](https://api.dandiarchive.org/api/assets/98f1e471-ad68-4006-b090-9a3e347852e6/download/) → put them in the [datasets folder](docs/GETTING_STARTED.md#41-intracortical-spiking-falcon-h1-about-9-mb-no-account-needed) |
-| **T15 cursor + click** ([Dryad](https://datadryad.org/dataset/doi:10.5061/dryad.prr4xgxzq)) | Speech-motor-cortex recordings (256 electrodes) of a participant controlling a cursor and clicking, with the original decoders' outputs | 4 files, 92 MiB (demo) | CC0 | **In the browser** from the Dryad page (free account) → [datasets folder](docs/GETTING_STARTED.md#42-cursor-control-and-click-t15-about-96-mb-free-dryad-account) |
-| **AJILE12 ECoG** ([DANDI 000055](https://dandiarchive.org/dandiset/000055/0.220127.0436)) | Raw ECoG (64-electrode grid, 500 Hz) with pose and curated reach events; one participant | 2 slices, ~157 MiB | CC-BY-4.0 | One command: `concord dataset ajile12` ([how](docs/GETTING_STARTED.md#43-human-ecog-ajile12-about-157-mb)) |
+| **FALCON H1** ([DANDI 000954](https://dandiarchive.org/dandiset/000954/draft)) | Intracortical spiking from two 96-channel motor-cortex arrays (176 channels, 20 ms bins) with cued reach-and-grasp kinematics; one participant | 2 files, 8.7 MiB | CC-BY-4.0 + Data Use Agreement | **In the browser:** [file 1](https://api.dandiarchive.org/api/assets/e40a2eca-883d-4c80-81e3-4203a49506b5/download/), [file 2](https://api.dandiarchive.org/api/assets/98f1e471-ad68-4006-b090-9a3e347852e6/download/) → put them in the [datasets folder](docs/GETTING_STARTED.md#42-put-them-in-concords-datasets-folder) |
+| **T15 cursor + click** ([Dryad](https://datadryad.org/dataset/doi:10.5061/dryad.prr4xgxzq)) | Speech-motor-cortex recordings (256 electrodes) of a participant controlling a cursor and clicking, with the original decoders' outputs | 4 files, 92 MiB (demo) | CC0 | **In the browser** from the Dryad page (free account) → [datasets folder](docs/GETTING_STARTED.md#51-download-the-four-files) |
+| **AJILE12 ECoG** ([DANDI 000055](https://dandiarchive.org/dandiset/000055/0.220127.0436)) | Raw ECoG (64-electrode grid, 500 Hz) with pose and curated reach events; one participant | 2 slices, ~157 MiB | CC-BY-4.0 | One command: `concord dataset ajile12` ([how](docs/GETTING_STARTED.md#6-human-ecog-ajile12-optional)) |
 | **Simulated Profile A / B** | Synthetic signals and intents built into Concord (not brain data) | — | — | Built in |
 
 Details, verification and known pitfalls of each dataset: [DATASETS.md](docs/DATASETS.md),
@@ -100,16 +100,18 @@ Details, verification and known pitfalls of each dataset: [DATASETS.md](docs/DAT
 ## Using Concord with your lab's equipment
 
 Concord connects to acquisition software you already use; it only receives data.
+**[Connect your equipment](docs/CONNECT_YOUR_EQUIPMENT.md)** walks you through every route step by
+step, including how to rehearse without any hardware (`Concord publish …` test streams).
 
 | Your acquisition system | How Concord connects | Guide |
 | --- | --- | --- |
-| Anything with a **Lab Streaming Layer** outlet (amplifier vendors' LSL apps, OpenBCI GUI, BCI2000/OpenViBE LSL output, task software) | built in | [Lab guide §2](docs/LAB_GUIDE.md#2-connect-an-lsl-source) |
-| **Open Ephys GUI** with the ZMQ Interface plugin | built in | [Open Ephys](docs/OPEN_EPHYS.md), [Lab guide §3](docs/LAB_GUIDE.md#3-connect-open-ephys) |
-| A board supported by **BrainFlow** | plugin (Python installation) | [Ecosystems](docs/ECOSYSTEMS.md) |
-| **BCI2000** | plugin (included in the app) | [Ecosystems](docs/ECOSYSTEMS.md) |
+| Anything with a **Lab Streaming Layer** outlet (amplifier vendors' LSL apps, OpenBCI GUI, BCI2000/OpenViBE LSL output, task software) | built in | [Connect your equipment](docs/CONNECT_YOUR_EQUIPMENT.md) |
+| **Open Ephys GUI** with the ZMQ Interface plugin | built in | [Connect your equipment](docs/CONNECT_YOUR_EQUIPMENT.md), [Open Ephys](docs/OPEN_EPHYS.md) |
+| A board supported by **BrainFlow** | plugin (Python installation; wheel on the release page) | [Connect your equipment](docs/CONNECT_YOUR_EQUIPMENT.md), [Ecosystems](docs/ECOSYSTEMS.md) |
+| **BCI2000** | plugin (included in the app) | [Connect your equipment](docs/CONNECT_YOUR_EQUIPMENT.md), [Ecosystems](docs/ECOSYSTEMS.md) |
 | Something else | write a source plugin | [Adapter SDK](docs/ADAPTER_SDK.md) |
 
-Start with [Lab setup](docs/LAB_SETUP.md) (network layout, ports, configuration), then follow
+For a whole lab, read [Lab setup](docs/LAB_SETUP.md) (network layout, ports, configuration), then follow
 the [first lab session protocol](docs/FIRST_LAB_SESSION.md). Before trusting Concord with your
 equipment, verify it: the **[hardware validation protocol](docs/HARDWARE_VALIDATION.md)** and the
 `concord-hwval` toolkit compare Concord's recording with your reference software's recording of
@@ -136,8 +138,8 @@ Concord.
 
 | If you are… | Start with |
 | --- | --- |
-| **New to Concord** | [Getting started](docs/GETTING_STARTED.md) → [User guide](docs/USER_GUIDE.md) → [FAQ](docs/FAQ.md) → [Glossary](docs/GLOSSARY.md) |
-| **Setting up a lab** | [Lab setup](docs/LAB_SETUP.md) → [Lab guide](docs/LAB_GUIDE.md) → [First lab session](docs/FIRST_LAB_SESSION.md) → [Hardware validation](docs/HARDWARE_VALIDATION.md) |
+| **New to Concord** | [Getting started](docs/GETTING_STARTED.md) → [How Concord works](docs/CONCEPTS.md) → [User guide: every button](docs/USER_GUIDE.md) → [FAQ](docs/FAQ.md) → [Glossary](docs/GLOSSARY.md) |
+| **Setting up a lab** | [Connect your equipment](docs/CONNECT_YOUR_EQUIPMENT.md) → [Lab setup](docs/LAB_SETUP.md) → [First lab session](docs/FIRST_LAB_SESSION.md) → [Hardware validation](docs/HARDWARE_VALIDATION.md) |
 | **Evaluating the science** | [Validation levels](docs/VALIDATION_LEVELS.md), [Limitations](LIMITATIONS.md), [Datasets](docs/DATASETS.md), [Decoding results](docs/DECODING.md), [Cursor + click](docs/CURSOR_CLICK.md), [Neural-to-communication](docs/NEURAL_COMMUNICATION.md), [ECoG](docs/ECOG.md) |
 | **A developer** | [Developers](docs/DEVELOPERS.md), [SDK](docs/SDK.md), [Adapter SDK](docs/ADAPTER_SDK.md), [Decoder SDK](docs/DECODER_SDK.md), [Architecture](ARCHITECTURE.md), [Guided demos](docs/DEMOS.md), [Contributing](CONTRIBUTING.md) |
 

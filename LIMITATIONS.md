@@ -171,6 +171,24 @@ the PR description and delete it here.
 - The board is **not keyboard/mouse operable by design** (it is driven only by runtime
   events). It is not an accessibility-certified AAC product.
 
+## Console rough edges (0.3.1)
+
+These are known and documented in the guides; none affects what Concord receives or decodes.
+
+- **T15 cursor + click blocks have no dataset panel** in Advanced → Acquisition details. Their
+  checksum is verified when you connect, but the console shows no checksum line, license or
+  citation for them (FALCON and AJILE12 have it). The citation is in docs/DATASETS.md.
+- **T15 blocks have no playback speed or position**, only Pause and Resume (under *Options*). They
+  replay at real speed.
+- **Replays loop** at the end of the file, without a log entry.
+- **The board preview in Advanced counts as a connected application.** The console therefore
+  lists a *Communication Board* before you open the participant screen, and two once you have.
+  Both share one authorization.
+- **Stored data does not list downloaded datasets**; delete them from the datasets folder.
+- The FALCON source is named *Recorded Human Intracranial Data* while its sub-line says
+  *Intracortical*: intracortical recordings are intracranial ones, but the two words are not
+  used consistently.
+
 ## Engineering gaps
 
 - The Open Ephys conformance test downloads the official GPL client from GitHub at test
@@ -395,8 +413,9 @@ See docs/APPLICATIONS.md.
 - **Unsigned and not notarized** (ad-hoc signature only): Gatekeeper blocks the first launch
   until the user allows it (docs/INSTALL_MAC.md). No auto-update.
 - The app bundles Concord's built-in sources and the BCI2000 plugin. BrainFlow and other
-  plugins need the pip installation (a frozen app cannot install packages). Test publishers
-  (`python -m concord.testing.publish`) are not available from the app.
+  plugins need the pip installation (a frozen app cannot install packages); their wheels are on
+  the release page. The test publishers are available from the app's own program since 0.3.1
+  (`Concord publish …`).
 - The status window needs Tk; where no window can be created the app runs without it (quit
   with `Concord stop`). The Apple Event quit is tested on CI only if the runner permits
   sending Apple Events; otherwise the job falls back to SIGTERM and says so.

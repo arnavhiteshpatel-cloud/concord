@@ -153,7 +153,8 @@ pip install --find-links dist "concordos[lab]"
 ```
 
 `concordos[lab]` is the server with signal processing, NWB datasets, LSL and Open Ephys support.
-Plugins go into the same environment (`pip install concord-brainflow …`).
+Plugins go into the same environment, from the same folder of release wheels, for example
+`pip install --find-links dist concord-brainflow` ([Connect your equipment](CONNECT_YOUR_EQUIPMENT.md)).
 
 ## Configuration
 

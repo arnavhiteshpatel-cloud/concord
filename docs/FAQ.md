@@ -146,7 +146,7 @@ requires it.
 ### How do I get the test datasets?
 
 See the [dataset table in the README](../README.md#test-datasets) and
-[GETTING_STARTED.md §4](GETTING_STARTED.md#4-replay-real-human-recordings-10-minutes). The
+[GETTING_STARTED.md §4](GETTING_STARTED.md#4-replay-a-real-human-recording-falcon-h1). The
 FALCON and T15 recordings can be downloaded in a browser and dropped into the data folder's
 `datasets` subfolder; the ECoG slices need one command. The files are never redistributed in this
 repository: the archives' terms apply.

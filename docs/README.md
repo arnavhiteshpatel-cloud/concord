@@ -7,8 +7,9 @@ first three rows in order.
 
 | Document | What it covers |
 | --- | --- |
-| [Getting started](GETTING_STARTED.md) | Install, first launch, a simulated device, real human recordings, a research session; no terminal |
-| [User guide](USER_GUIDE.md) | Every part of the console and the communication board, the configuration file and the `concord` command |
+| [Getting started](GETTING_STARTED.md) | Step by step: install, a tour of the console, a simulated device and the communication board, real human recordings, a recorded decoder driving the board, a research session |
+| [How Concord works](CONCEPTS.md) | The ideas in plain language: sources, data kinds, capabilities, decoders, command output, stopping safely |
+| [User guide](USER_GUIDE.md) | Every button, field, state and message of the console and the communication board; the configuration file and the `concord` command |
 | [FAQ](FAQ.md) | Short answers to common questions |
 | [Glossary](GLOSSARY.md) | The terms used in the console and these documents |
 | [Troubleshooting](TROUBLESHOOTING.md) | Symptoms and fixes |
@@ -18,6 +19,7 @@ first three rows in order.
 
 | Document | What it covers |
 | --- | --- |
+| [Connect your equipment](CONNECT_YOUR_EQUIPMENT.md) | Step by step for LSL, Open Ephys, BrainFlow, BCI2000 and your own device; rehearsing without hardware; troubleshooting |
 | [Lab setup](LAB_SETUP.md) | Which adapter for which acquisition system, network layout and ports, installation, a research session step by step, data handling |
 | [Lab guide](LAB_GUIDE.md) | Connecting LSL and Open Ephys sources, processing pipelines, calibrating a decoder, routing commands to applications |
 | [First lab session](FIRST_LAB_SESSION.md) | A validation protocol for the first session with real equipment (a protocol, not a result) |
