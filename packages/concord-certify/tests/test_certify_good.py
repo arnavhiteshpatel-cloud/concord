@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -13,6 +14,9 @@ from concord_certify.report import NOTICE, to_markdown, validate_report
 from concord_certify.runtime_phase import RUNTIME_CHECKS, concord_available
 
 HAVE_CONCORD = concord_available()[0]
+# the plugin host's CPU and memory are read from Linux /proc; elsewhere (Windows) that check
+# reports itself as not applicable instead of passing
+HAVE_PROC = Path("/proc/self/stat").exists()
 
 
 def test_every_check_passes_or_is_not_applicable(good_report: dict[str, Any]) -> None:
@@ -22,6 +26,8 @@ def test_every_check_passes_or_is_not_applicable(good_report: dict[str, Any]) ->
     assert by_status["manifest.entry_point"] == "warn"
     assert by_status["manifest.distribution"] == "warn"
     not_applicable = {"performance.latency"}  # 'source' clock: no relation to a host clock
+    if not HAVE_PROC:
+        not_applicable.add("performance.host_resources")
     for cid, status in by_status.items():
         if cid in ("manifest.entry_point", "manifest.distribution"):
             continue
@@ -44,8 +50,12 @@ def test_measured_evidence(good_report: dict[str, Any]) -> None:
     assert {"p50", "p95", "p99", "max"} <= set(jit["arrival_interval_ms"])
     idx = check(good_report, "integrity.sample_index")["evidence"]
     assert idx["gaps"] == 0 and idx["lost_samples"] == 0 and idx["samples"] > 0
-    res = check(good_report, "performance.host_resources")["evidence"]
-    assert res["cpu_s"] is not None and res["rss_mib_peak"] > 0
+    if HAVE_PROC:
+        res = check(good_report, "performance.host_resources")["evidence"]
+        assert res["cpu_s"] is not None and res["rss_mib_peak"] > 0
+    else:
+        hr = check(good_report, "performance.host_resources")
+        assert hr["status"] == "not_run" and "/proc is not available" in hr["reason"]
     kill = check(good_report, "reconnect.host_killed")["evidence"]
     assert kill["kill"]["detected_as"] == "HostDied" and kill["kill"]["killed"]
     assert kill["kill"]["detect_s"] < 2.0

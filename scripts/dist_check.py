@@ -43,7 +43,9 @@ UV = shutil.which("uv")
 
 def run(cmd: list[str], **kw: object) -> subprocess.CompletedProcess[str]:
     print("$", " ".join(str(c) for c in cmd), flush=True)
-    r = subprocess.run(cmd, text=True, capture_output=True, **kw)  # type: ignore[call-overload]
+    r = subprocess.run(  # type: ignore[call-overload]
+        cmd, text=True, encoding="utf-8", errors="replace", capture_output=True, **kw
+    )
     if r.returncode != 0:
         print(r.stdout[-4000:], r.stderr[-4000:], sep="\n")
         raise SystemExit(f"FAILED: {' '.join(str(c) for c in cmd)}")
@@ -202,6 +204,8 @@ def main() -> int:
             [str(script(lab, "concord-server"))],
             env=env,
             text=True,
+            encoding="utf-8",
+            errors="replace",  # Windows pipes use the ANSI code page: never fail on decoding
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
         )
@@ -242,7 +246,13 @@ def main() -> int:
         (tmp / "app.py").write_text(APP, encoding="utf-8")
         out = run([str(app), str(tmp / "app.py"), base, device_id]).stdout.strip()
         print(f"3. app developer (SDK only, deps: pydantic/httpx/websockets): {out}")
-        r = subprocess.run([str(script(app, "concord-server"))], text=True, capture_output=True)
+        r = subprocess.run(
+            [str(script(app, "concord-server"))],
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            capture_output=True,
+        )
         assert r.returncode != 0 and "concordos[server]" in (r.stderr + r.stdout), r
         print("   concord-server without the server extra: clear install hint")
 
