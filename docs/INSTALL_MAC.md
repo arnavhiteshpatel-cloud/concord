@@ -52,7 +52,7 @@ You do this once per installed copy. (Command-line alternative, only for a build
 
 When Concord starts:
 
-- a small **Concord** window shows "Concord is running at http://127.0.0.1:8000";
+- a small **Concord** window shows *Concord is running* and, below it, `http://127.0.0.1:8000`;
 - the console opens in your default browser (if it does not, click **Open console**).
 
 To **quit**: Concord → Quit (⌘Q), Dock → Quit, close the Concord window, or **Stop and

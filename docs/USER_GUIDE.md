@@ -90,8 +90,8 @@ Things that work the same everywhere in the console:
   - **Stop control** and **Safe stop & disconnect**: hover over them to see why (*Command output
     is off*, *Nothing is running*).
   - Buttons inside panels: **Start session** (until a session name is typed), **Start
-    recording** (until a recordable source streams), **Check labels** (until a recording is
-    chosen), **Add source** (until the form is complete).
+    recording** (until a recordable source streams), **Check labels** and **Train decoder** (until
+    a recording is chosen), **Add source** (until the form is complete).
   - Rows that cannot act yet say why in a grey line under the row's heading, for example
     *Connect a source first.* or *Start decoding with a model first.*
 - **Panels that slide in from the right** (called [sheets](GLOSSARY.md#sheet): **Connect a
@@ -290,7 +290,8 @@ concord reproduce concord-session-<id>-<time>.zip
 ```
 
 With the desktop app: `/Applications/Concord.app/Contents/MacOS/Concord reproduce <file>` (Mac)
-or `./Concord/Concord reproduce <file>` (Linux, from the folder where you extracted Concord).
+or `./Concord/Concord reproduce <file>` (Linux, from the folder where you extracted Concord), or
+`.\concord-cli.exe reproduce <file>` (Windows, in PowerShell in the `Concord` folder).
 
 It prints one line per check, then a result. Each check starts with a tag of four characters:
 `[OK  ]` (passed), `[skip]` (could not be run) or `[FAIL]` (failed).
@@ -425,6 +426,7 @@ The datasets: [FALCON H1](GLOSSARY.md#falcon-h1) and [AJILE12](GLOSSARY.md#ajile
 | *Cursor + click · Day 468 · block 1 · radial-8 calibration* | T15 block 1: fully neural calibration, 70 s | T15 files in `datasets/` | |
 | *Cursor + click · Day 468 · block 2 · radial-8 calibration* | T15 block 2: fully neural calibration, 180 s | T15 files in `datasets/` | |
 | *Cursor + click · Day 468 · block 3 · grid evaluation* | T15 block 3: choosing targets on a grid, fully neural, 180 s | T15 files in `datasets/` | The block to use with the board ([7.7](#77-example-the-t15-recorded-decoder-on-the-board)). |
+| *Checking the recorded datasets… The first time after Concord starts, this takes a few seconds.* | Concord is still verifying the files | Right after Concord starts | Wait; the list replaces it. |
 | *No recorded datasets yet. Put downloaded dataset files in `<folder>` (create the folder if needed; Getting started, section 4), then reload this page.* | Tells you where the files go | No dataset file found | The message names the real folder on your computer. |
 
 A FALCON file's name is the recording's session time stamp; the dataset shifted the dates to 1925
@@ -661,7 +663,7 @@ optionally, a [decoder](GLOSSARY.md#decoder) model. What decoders are and how th
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
 | **Processing** | Chooses how features are made from the source ([6.3](#63-processing-presets)) | Always | Preselected for the source. A one-paragraph description of the chosen preset appears below it. |
-| **Bin (ms)** | Length of one feature [bin](GLOSSARY.md#bin) | Spike-band, High-gamma, Band power | Leave empty for the default: 20 ms (spike-band) or 50 ms (high-gamma, band power), rounded to a whole number of samples (for example 48 ms at 250 Hz). Must be a number above 0 and up to 1000. Otherwise **Start decoding** stays grey and an amber line below it says *Bin (ms) must be above 0 and at most 1000* (or *bin_ms must be a number*). |
+| **Bin (ms)** | Length of one feature [bin](GLOSSARY.md#bin) | Spike-band, High-gamma, Band power | Leave empty for the default: 20 ms (spike-band) or 50 ms (high-gamma, band power), rounded to a whole number of samples (for example 48 ms at 250 Hz). Must be a number above 0 and up to 1000. Otherwise **Start decoding** stays grey and an amber line below it says *Bin (ms) must be above 0 and at most 1000* (or *bin_ms must be a number*). A value you type must also be a whole number of samples (at 250 Hz: a multiple of 4 ms, for example 48 or 52); otherwise **Start decoding** is refused with *capability_unsupported: bin of N ms is not a whole number of samples at F Hz*. |
 | **Threshold (× RMS)** | Spike detection threshold, in multiples of each channel's noise level ([RMS](GLOSSARY.md#rms)) | Spike-band only | Default −4.5 (negative: crossings below the noise). Allowed −20 to just below 0. |
 | **Band low (Hz)**, **Band high (Hz)** | The frequency band whose power is computed | Band power only | No default: fill both, or the panel says *band_power needs a low and a high band edge*. |
 | **Decoder model** | **None (features only)** or a model ([6.4](#64-decoder-models)) | Every preset except Source decoder outputs | Each model is marked *(compatible)* or *(incompatible)* with what this processing will produce. Models Concord refuses are greyed out. |
@@ -1497,7 +1499,7 @@ What Concord keeps in the data folder, and deletion.
 
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
-| *Data directory \<path> (only your user can read it).* On Windows: *(inside your Windows user profile: other users of this PC cannot open it)*, or *(outside your Windows user profile: other users of this PC may be able to read it)* | Where the data folder is, and who can read it ([16](#16-data-folders-ports-and-network)) | Always | Select the path to copy it. |
+| *Data directory \<path> (only your user can read it).* On Windows: *(inside your Windows user profile: other users of this PC cannot open it)*, or *(outside your Windows user profile: other users of this PC may be able to read it)* | Where the data folder is, and who can read it ([16](#16-data-folders-ports-and-network)) | Always | Select the path to copy it. On Windows, a folder under `C:\Users\<name>\` counts as inside a user profile; the shared `C:\Users\Public` (and `Default`, `All Users`) and any folder outside `C:\Users` count as outside. |
 | **recordings**, **models**, **sessions**, **exports** | Count and total size of each | Always | Dataset files are not listed or counted here: delete them from the `datasets` folder yourself. |
 | Retention line | *No retention policy: data is kept until you delete it ([retention] in the config file).*, or the policy and what it deleted at this start | Always | [15](#15-configuration-file). |
 | **Recordings** list | Name, size, age; *· incomplete (N events kept)* for a recovered recording | Always (*No recordings.* when empty) | |
@@ -1802,13 +1804,16 @@ recording and disconnects the source.*
   window); `concord-cli.exe` answers the `concord` commands in PowerShell or Command Prompt
   ([14.1](#141-commands)). The app is unsigned: the first time, SmartScreen says *Windows
   protected your PC*; click **More info → Run anyway** ([INSTALL_WINDOWS.md](INSTALL_WINDOWS.md)).
+  If Windows says *Smart App Control blocked…*, there is no override for unsigned apps: use the
+  Python installation ([INSTALL_WINDOWS.md](INSTALL_WINDOWS.md#b-with-python-pip)).
 - If the server stops unexpectedly, the window says *The server stopped unexpectedly; see the log
   in the data folder.*
 - After a crash or power loss, the next start keeps the complete part of an interrupted
   recording, marks it *incomplete*, and marks an open research session *interrupted*; the session
   log says so when you open or reload the console ([8](#8-the-session-log)).
 - Options when started from a terminal: `--no-browser`, `--headless` (no window), `--port`,
-  `--data-dir`, `--config`.
+  `--data-dir`, `--config`. On Windows, `Concord.exe --headless` runs invisibly, with no window
+  and no terminal output, so Ctrl-C cannot reach it: stop it with `.\concord-cli.exe stop`.
 
 Installation: [Getting started](GETTING_STARTED.md), [INSTALL_MAC.md](INSTALL_MAC.md) and
 [INSTALL_WINDOWS.md](INSTALL_WINDOWS.md).
@@ -1824,7 +1829,10 @@ Installed with the Python package. The desktop app's own program answers the sam
 - Mac: `/Applications/Concord.app/Contents/MacOS/Concord <command>`
 - Windows: `.\concord-cli.exe <command>` in PowerShell, from the `Concord` folder (in Command
   Prompt without the `.\`). Messages that name a command (for example *stop it with: …*) show
-  its full path.
+  its full path, ready to paste: `C:\Users\you\Downloads\…\concord-cli.exe stop`. If the path
+  contains a space, the message puts it in quotes after `&` (PowerShell's call operator), for
+  example `& "C:\My Apps\Concord\concord-cli.exe" stop`; that form works in PowerShell only (in
+  Command Prompt, leave out the `&` and the space after it).
 - Linux: `./Concord/Concord <command>`, from the folder where you extracted Concord
 
 | Command | What it does | Main options |
@@ -1864,7 +1872,8 @@ recipes: [LAB_SETUP.md](LAB_SETUP.md) and [Connect your equipment](CONNECT_YOUR_
 
 Every setting has a safe default, so the file is optional.
 
-- `concord config init` creates it: a commented file readable only by you.
+- `concord config init` creates it: a commented file, readable only by you on macOS and Linux
+  (it prints *wrote \<path> (mode 600)*; on Windows just *wrote \<path>*).
 - `concord config path` shows where it is.
 - `concord config show` shows the settings in effect. The `[recording]` limits are not listed
   there; `concord config template` shows their defaults.
@@ -1926,7 +1935,8 @@ Windows, `concord.stop` may appear there for a moment: it is how `concord-cli.ex
 app to quit. On macOS and Linux the data folder is readable only by your user account (folders
 0700, files 0600). Windows has no such permission bits; there the default folder is private
 because it is inside your user profile, and a folder you configure elsewhere keeps the
-permissions Windows gives it. Nothing is encrypted by Concord. What is and is not protected:
+permissions Windows gives it. `C:\Users\Public` is not private: every user of the PC can open
+it. Nothing is encrypted by Concord. What is and is not protected:
 [SECURITY.md](SECURITY.md).
 
 **Network.** Concord listens only on this computer, at http://127.0.0.1:8000. Concord has no
@@ -1941,14 +1951,17 @@ passwords, so it protects itself from web pages open in your browser:
   use Concord's programming interface. Any program on this computer could do so anyway: see
   [SECURITY.md](SECURITY.md).
 
-On Windows, listening on this computer does not make the firewall ask anything; it may ask once
-when an LSL or BCI2000 source listens for data: allow *Private networks* only if the acquisition
-system is on another computer.
+Concord contacts other computers only when you ask: LSL discovery and streams
+([multicast](GLOSSARY.md#multicast) and TCP on your local network), an Open Ephys GUI (its data
+port, and heartbeats to the next port), BCI2000 (UDP 20321 by default), and dataset downloads.
+Ports and topology for a lab: [LAB_SETUP.md](LAB_SETUP.md#2-network-topology).
 
-It contacts other computers only when you
-ask: LSL discovery and streams ([multicast](GLOSSARY.md#multicast) and TCP on your local network), an Open Ephys GUI (its
-data port, and heartbeats to the next port), BCI2000 (UDP 20321 by default), and dataset
-downloads. Ports and topology for a lab: [LAB_SETUP.md](LAB_SETUP.md#2-network-topology).
+On Windows, listening on this computer does not make the firewall ask anything. It may ask once
+when an LSL source looks for streams, or when a BCI2000 source receives on a network address
+(by default it receives on `127.0.0.1`, which does not make it ask). Allow **Private networks**
+only if your acquisition system runs on another computer; otherwise click **Cancel** (sources
+on this computer keep working). The prompt may name `Concord.exe` or `concord-cli.exe`; both are
+Concord.
 
 ---
 

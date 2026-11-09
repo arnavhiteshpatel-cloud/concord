@@ -45,11 +45,12 @@ Support report** in the console.) Logs are in `<data directory>/logs/`: `concord
 | Symptom | Cause and fix |
 | --- | --- |
 | "Windows protected your PC" | The app is not signed. Click **More info**, check that the app is `Concord.exe`, then **Run anyway** ([INSTALL_WINDOWS.md](INSTALL_WINDOWS.md)). |
+| "Smart App Control blocked…" | Smart App Control (Windows 11) blocks unsigned apps and has no override for them. Use the Python installation ([INSTALL_WINDOWS.md](INSTALL_WINDOWS.md#b-with-python-pip)). |
 | Double-clicking `Concord.exe` does nothing, or Windows says a file is missing | Concord was started from inside the zip, or `Concord.exe` was copied without the `_internal` folder next to it. Extract the whole zip (**Extract All…**) and start `Concord.exe` from the extracted `Concord` folder. |
 | Your antivirus quarantines `Concord.exe` or `concord-cli.exe` | Some antivirus programs distrust programs built with PyInstaller. Restore it only if you downloaded it from this repository's release page (check `SHA256SUMS.txt`). |
 | `.\concord-cli.exe` prints nothing, or "is not recognized" | Run it from the `Concord` folder (`cd` there first; in Command Prompt type `concord-cli.exe` without `.\`). `Concord.exe` given a command prints after the prompt has returned: use `concord-cli.exe` for commands. |
 | No Concord window opens, or the console shows an older version | Another copy of Concord answers on port 8000 (see the macOS row above). `netstat -ano \| findstr :8000` in PowerShell shows its process ID; Task Manager → Details shows the program. Quit it (`.\concord-cli.exe stop`), then open Concord again. |
-| Windows asks whether Concord may communicate on networks | Concord's console does not need it. The LSL and BCI2000 sources listen for data: allow **Private networks** only if your acquisition system is on another computer. |
+| Windows asks whether Concord may communicate on networks | Concord's console does not need it. An LSL source, or a BCI2000 source receiving on a network address (not the default `127.0.0.1`), can make Windows ask. Allow **Private networks** only if your acquisition system runs on another computer; otherwise click **Cancel** (sources on this computer keep working). The prompt may name `Concord.exe` or `concord-cli.exe`; both are Concord. |
 | Deleting a recording or session says it is open | Windows cannot delete a file another program has open (a replay of that recording, an editor, a backup or antivirus scan). Disconnect the replay or close the program, then delete again. |
 | BrainFlow or another plugin is missing | The app includes only the BCI2000 plugin. Use the Python installation for other plugins ([INSTALL_WINDOWS.md](INSTALL_WINDOWS.md#b-with-python-pip)). |
 

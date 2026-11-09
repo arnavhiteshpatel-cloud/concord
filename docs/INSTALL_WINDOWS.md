@@ -33,9 +33,30 @@ is built and smoke-tested by this repository's release workflow (`.github/workfl
 Get-FileHash $HOME\Downloads\Concord-windows-x86_64.zip -Algorithm SHA256
 ```
 
+`Get-FileHash` prints the hash in capitals and `SHA256SUMS.txt` lists it in lower case: compare
+the letters, not their case.
+
 The app is unsigned (no Authenticode certificate), so Windows cannot tell you who made it: use
-only a release from this repository or a build you made yourself (`python packaging/build_app.py
---build-console --zip` on Windows, output `packaging\dist\Concord-<version>-windows-x86_64.zip`).
+only a release from this repository or a build you made yourself.
+
+**Building it yourself** needs a Windows PC with a checkout of this repository (`git clone`, as
+in *From a checkout* below), Python 3.12 (64-bit) and Node 20+. In PowerShell, in the checkout,
+with a Python 3.12 environment active, install Concord and the pinned build tools, then build
+(`--build-console` also builds the console with npm):
+
+```powershell
+python -m pip install -e packages/concord-adapter-sdk -e packages/concord-decoder-sdk -e "backend[lab]" -e packages/concord-bci2000
+```
+
+```powershell
+python -m pip install -r packaging/requirements.txt
+```
+
+```powershell
+python packaging/build_app.py --build-console --zip
+```
+
+The output is `packaging\dist\Concord-<version>-windows-x86_64.zip`.
 
 ### Install
 
@@ -63,18 +84,23 @@ You do this once per extracted copy. Some antivirus programs distrust programs b
 PyInstaller (which Concord's app is); if yours quarantines `Concord.exe`, restore it only if you
 downloaded it from this repository's release page.
 
+If Windows says *Smart App Control blocked…*, there is no override for unsigned apps: use the
+Python installation ([B](#b-with-python-pip)).
+
 Concord's window and console use only `127.0.0.1` (this computer), which does not make the
-Windows firewall ask anything. The LSL and BCI2000 sources listen for data on the network; if
-Windows asks whether Concord may communicate on networks when you use them, allow **Private
-networks** only, and only if your acquisition system runs on another computer of your lab
-network ([LAB_SETUP.md](LAB_SETUP.md)).
+Windows firewall ask anything. Windows may ask whether Concord may communicate on networks when
+an LSL source looks for streams, or when a BCI2000 source receives on a network address (by
+default it receives on `127.0.0.1`, which does not make it ask). Allow **Private networks** only
+if your acquisition system runs on another computer of your lab network
+([LAB_SETUP.md](LAB_SETUP.md)); otherwise click **Cancel** (sources on this computer keep
+working). The prompt may name `Concord.exe` or `concord-cli.exe`; both are Concord.
 
 ### Use
 
 When Concord starts:
 
-- a small **Concord** window shows "Concord is running at http://127.0.0.1:8000" (with the
-  Concord icon in the taskbar);
+- a small **Concord** window shows *Concord is running* and, below it,
+  `http://127.0.0.1:8000` (with the Concord icon in the taskbar);
 - the console opens in your default browser (if it does not, click **Open console**).
 
 To **quit**: **Stop and quit**, or close the Concord window (the **X**). Quitting first performs
@@ -92,7 +118,7 @@ To open the data folder: in File Explorer click the address bar, type
 `%LOCALAPPDATA%\Concord\data` and press Enter.
 
 **Commands.** `concord-cli.exe` answers the `concord` commands. In PowerShell (Start menu → type
-*PowerShell*), go to the `Concord` folder first:
+*PowerShell*), go to the `Concord` folder first (or the folder you moved it to):
 
 ```powershell
 cd $HOME\Downloads\Concord-windows-x86_64\Concord
@@ -138,7 +164,9 @@ see [SECURITY.md](SECURITY.md) on deletion).
 Packages are not on PyPI yet.
 
 1. Install **Python 3.12 (64-bit)** from [python.org](https://www.python.org/downloads/windows/)
-   (tick *Add python.exe to PATH*), or with `winget install Python.Python.3.12`.
+   (tick *Add python.exe to PATH*), or with `winget install Python.Python.3.12`. Not the
+   Microsoft Store version: it can redirect files written under `%LOCALAPPDATA%` into its own
+   package folder, so Concord's data folder would not be where this guide says.
 2. Download the wheels (`.whl` files) from the
    [Releases page](https://github.com/arnavhiteshpatel-cloud/concord/releases/latest) into one
    folder, for example `$HOME\Downloads\concord-wheels`.
@@ -234,8 +262,11 @@ override the file; in PowerShell: `$env:CONCORD_PORT = "8010"`.
 (folders 0700, files 0600) and refuses a config file other users can change. Windows has no
 such mode bits: Concord relies on Windows' own permissions, under which the default folder,
 inside your user profile (`%LOCALAPPDATA%`), cannot be opened by other standard users of the
-PC. If you set `data_dir` to a folder outside your profile (e.g. `C:\data`), other users of
-the PC may be able to read it; keep neural data inside your profile ([SECURITY.md](SECURITY.md)).
+PC. If you set `data_dir` to a folder outside your profile (e.g. `C:\data`, or the shared
+`C:\Users\Public`), other users of the PC may be able to read it; keep neural data inside your
+profile ([SECURITY.md](SECURITY.md)). **Advanced → Stored data** says which: it counts a folder
+under `C:\Users\<name>\` as inside a user profile, and `C:\Users\Public` (and `Default`,
+`All Users`) as outside.
 
 ## Troubleshooting
 
