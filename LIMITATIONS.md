@@ -185,6 +185,14 @@ These are known and documented in the guides; none affects what Concord receives
   lists a *Communication Board* before you open the participant screen, and two once you have.
   Both share one authorization.
 - **Stored data does not list downloaded datasets**; delete them from the datasets folder.
+- **Replaying a "Features and labels only" recording** (every recording made from **Calibrate…**)
+  shows *No signal*. The session log fills with *Undeclared capability: adapter emitted
+  features.binned …*, because the replay declares the original device's capabilities, not the
+  pipeline's features it also contains. Training a decoder from such a recording works; only
+  replaying it as a source is affected.
+- **The T15 plot in Acquisition details** draws the recorded cursor and target *positions* under a
+  selector labelled *Velocity dimension*. Its dashed line is whichever historical decoder output
+  arrived last (often the click), not necessarily the velocity decoder.
 - The FALCON source is named *Recorded Human Intracranial Data* while its sub-line says
   *Intracortical*: intracortical recordings are intracranial ones, but the two words are not
   used consistently.
@@ -351,9 +359,10 @@ See docs/APPLICATIONS.md.
   technology. No usability, accessibility or clinical evaluation was done.
 - `control.state` reasons are text for people; apps must not parse them. Notices are per
   connection and are not stored in session recordings.
-- Feeding a source's own recorded decoder outputs (`model_origin: historical`) or an external
-  live decoder's outputs into the command router is not wired: the router takes only the
-  running pipeline decoder's output. Apps already label historical / external provenance.
+- A source's own decoder outputs (`model_origin: historical`, or an external live decoder) reach
+  the command router only through the *Source decoder outputs (passthrough)* preset, unchanged:
+  Concord does not rescale them. Their pointer scale is whatever the source used ("no declared
+  output scale"), so the operator sets **Gain** and **Dead-zone** in those units.
 - The router's click rule needs a decoder output that is a click probability or a 0/1
   decision; Concord does not check that a continuous output really is one.
 - Board: word prediction is a fixed 200-word list (no language model); speech is the

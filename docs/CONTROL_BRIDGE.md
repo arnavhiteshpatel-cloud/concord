@@ -331,9 +331,12 @@ board's unit-square workspace (y down).
 
 The router accepts the configured model's `intent.kinematics` + `decoded_intent` whatever its
 `model_origin` and copies the provenance (incl. `model_origin` and `replayed`) to every
-command, so apps can say "historical decoder replay (original research system)". Feeding a
-*source's* recorded decoder output (rather than the pipeline's decoder) into the router is not
-wired in this workstream (LIMITATIONS.md).
+command, so apps can say "historical decoder replay (original research system)". A *source's*
+own decoder outputs (a recording's historical decoder, an external system's live decoder) reach
+the router through the processing preset **Source decoder outputs (passthrough)**
+(`decoded_passthrough`): they are forwarded unchanged with their model id and origin, and the
+console's **Click from** lists every running decoder's outputs (0.3.1). Getting started §5 walks
+through it with the T15 grid block.
 
 ### Desktop control bridge
 

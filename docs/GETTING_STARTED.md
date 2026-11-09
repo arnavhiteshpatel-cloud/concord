@@ -392,9 +392,7 @@ your browser makes. Concord skips duplicates, because the same block cannot be l
 **What you should see:**
 - The title bar says **Streaming · Recorded human data, offline replay**.
 - The Decoder row notes that the recording carries the original decoder's output.
-- **Advanced → Acquisition details** shows the replayed activity and the participant's cursor
-  velocity: the solid line is the recorded velocity, the dashed line the original decoder's
-  output.
+- **Signal integrity** shows the threshold crossings of the most active channels.
 
 The file's checksum is verified when you connect; a file that does not match is refused. The
 citation is in [DATASETS.md](DATASETS.md).
@@ -440,8 +438,9 @@ A note says the velocity has "no declared output scale"; the next step sets the 
 
 2. Check or set:
    - **Horizontal (x) from**: `vx`, and **Vertical (y) from**: `vy`.
-   - **Gain**: `1.09`. The recorded velocity is in units of the task's grid, which covered 0.92
-     of the screen height, so 1 / 0.92 makes the board's grid match it.
+   - **Gain**: `1.09`. The recorded velocity is in screen heights per second, and the task's
+     targets filled a square 0.92 screen heights wide. Multiplying by 1 / 0.92 = 1.09 makes the
+     board's square match that grid.
    - **Dead-zone**: `0` (don't ignore small movements).
    - **Max speed**: `10` (don't cap the recorded movements).
    - **Invert y**: ticked. It is ticked for you, because the decoder counts "up" as positive y

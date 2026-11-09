@@ -90,3 +90,12 @@ def test_publish_command_hands_its_arguments_to_the_test_publishers(
     assert exc.value.code == 0
     out = capsys.readouterr().out
     assert "lsl-ephys" in out and "openephys" in out and "falcon" in out
+
+
+def test_dataset_command_explains_an_unknown_dataset(capsys: pytest.CaptureFixture[str]) -> None:
+    """Regression (0.3.1): `concord dataset t15` crashed with a KeyError traceback."""
+    from concord.cli import main
+
+    assert main(["dataset", "t15", "--list"]) == 2
+    err = capsys.readouterr().err
+    assert "unknown dataset 't15'" in err and "falcon-h1" in err and "Dryad" in err

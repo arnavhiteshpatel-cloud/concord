@@ -323,7 +323,19 @@ def cmd_dataset(args: argparse.Namespace) -> int:
     from concord.datasets import fetch, manifest
 
     s = _settings(args)
-    m = manifest(args.dataset)
+    try:
+        m = manifest(args.dataset)
+    except KeyError:
+        from concord.datasets import manifests
+
+        known = ", ".join(x.id for x in manifests())
+        print(
+            f"concord dataset: unknown dataset {args.dataset!r}. This command downloads: {known}. "
+            "The T15 cursor + click files are downloaded in a browser from their Dryad page "
+            "(free account): see docs/GETTING_STARTED.md, section 5.",
+            file=sys.stderr,
+        )
+        return 2
     dest = s.datasets_dir / f"dandi-{m.dandiset}"
     argv = [args.dataset, "--dest", str(dest)]
     if args.all_calib:
