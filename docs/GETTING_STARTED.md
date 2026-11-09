@@ -69,8 +69,9 @@ Intel Macs and macOS 13 or older: use the Python installation in [INSTALL_MAC.md
 2. Extract it (right-click → *Extract Here* in most file managers). This creates a folder named
    `Concord`.
 3. Start it:
-   - by double-clicking `Concord/Concord` if your file manager runs programs;
-   - or in a terminal, from the folder that *contains* the `Concord` folder, by running:
+   - by double-clicking `Concord/Concord`. If nothing happens (many file managers do not start
+     programs this way), use the terminal:
+   - in a terminal, from the folder that *contains* the `Concord` folder, run:
 
      ```bash
      ./Concord/Concord
@@ -112,8 +113,8 @@ A small window titled **Concord** opens, with your browser behind it:
 >
 > **Fix:**
 > 1. Quit the other copy: its window → **Stop and quit**, or Ctrl-C in its terminal.
-> 2. On a Mac, if you can't find it, run `lsof -nP -iTCP:8000 -sTCP:LISTEN` in Terminal to see
->    which program holds the console's address.
+> 2. If you can't find it, see which program holds the console's address. On a Mac, run
+>    `lsof -nP -iTCP:8000 -sTCP:LISTEN` in Terminal. On Linux, run `ss -ltnp 'sport = :8000'`.
 > 3. Open Concord again.
 
 ---
@@ -140,7 +141,9 @@ top to bottom:
 already lists a **Communication Board** with an **Authorize** button, and says
 "1 application connected · Communication Board waiting for: a source". That board is the
 preview built into **Advanced → Communication board**. **Do not click Authorize yet**:
-section 5 explains when you need it.
+section 5 explains when you need it. Once you open the participant screen (section 3.2), it
+says **2 applications connected** and lists the board twice: the preview and the board window.
+That is normal.
 
 Every control is explained in the [user guide](USER_GUIDE.md).
 
@@ -191,8 +194,8 @@ What is on the board:
 - **Header:** *Communication board*, *Research use only*, the input method in use (here
   *Pointer and click*), and **Settings**.
 - **Input line:** where the input comes from, here *Input: simulated input · synthetic data*.
-- **Message bar:** the message being composed. Under it, a label says where the words came
-  from: *simulated input — no participant*.
+- **Message bar:** the message being composed. Once a word is chosen, a label under it says
+  where the words came from: *simulated input — no participant*.
 - **Tiles:** phrases (*Yes*, *No*, *Hello*, *Thank you*, *Help*…), **Letters** (a keyboard page
   with word prediction), **Delete word**, **Undo**, **Clear** and **Speak** (reads the message
   aloud with ordinary computer speech, not neural speech decoding).
@@ -200,7 +203,8 @@ What is on the board:
 
 **You cannot click the tiles with the mouse.** The board reacts only to input from Concord,
 because that is how a participant would use it. In this section the input comes from you,
-through the simulator.
+through the simulator. (The board's hint *click to choose it* means the participant's click:
+here, **Select** in the simulator.)
 
 ### 3.3 Move the cursor and choose a word
 
@@ -213,8 +217,10 @@ through the simulator.
    cursor *keeps moving* in that direction, faster the further you drag; let go and the dot
    springs back and the cursor stops. Use small, short movements.
 
-   With the keyboard: click once on an empty part of the console page, then **hold** an arrow
-   key (or W, A, S, D). The keys work only while the console window is in front.
+   With the keyboard: click once on an empty part of the console page, then press and hold an
+   arrow key (or W, A, S, D) **briefly**: about a quarter of a second moves the cursor about one
+   tile, and a one-second hold crosses the whole board. The keys work only while the console
+   window is in front.
 3. When the cursor (a ring) is on a tile, click **Select** (or press Space).
 
 **What you should see:** the tile's word appears in the board's message bar, labelled
@@ -227,12 +233,13 @@ data never does: it needs **Start control** and **Authorize** (section 5).
 ### 3.4 Try a fault (optional)
 
 Under **Fault injection**, each button makes the simulated device misbehave, so you can see how
-Concord reacts:
+Concord reacts. Each fault is also counted in **Advanced → Diagnostics → Counters** (*link
+errors*, *decode errors*, *timestamp regressions*).
 
 | Button | What it simulates | What you should see |
 | --- | --- | --- |
 | **Link drop** | A brief loss of connection | The session log shows *Link lost, reconnecting*, then *Streaming (reconnected after 1 attempt(s))*. It takes a fraction of a second, so the title bar barely changes. The counts are in **Advanced → Diagnostics** (*Reconnects ok / tried*). |
-| **Link failure** | A connection that cannot be restored | The title bar says *Source stopped with an error*; the source row shows the error and a **Reset** button. Click **Reset**, then **Connect a source** again. |
+| **Link failure** | A connection that cannot be restored | The title bar says *Source stopped with an error*; the source row shows the error and a **Reset** button. Click **Reset**, then **Connect a source → Connect** next to **Simulated Profile A**, and reopen **Advanced → Simulator controls** to try the next fault. |
 | **Malformed packet** | A corrupted data packet | The session log shows *Decode error: CRC mismatch*; the bad packet is dropped and counted. |
 | **Clock regression** | A timestamp that goes backwards | The session log shows *Timestamp regression*; the event is flagged in its quality. |
 
@@ -281,6 +288,7 @@ Concord keeps everything in one **data folder**. Recordings you download go in a
    | --- | --- |
    | Mac app | `~/Library/Application Support/Concord/data` |
    | Linux bundle | `~/.local/share/concord/data` |
+   | Python install (`concord start`) | Mac: `~/Library/Application Support/Concord/data`; Linux: `~/.local/share/concord/data` |
    | From the source code (`make setup`) | `data/` inside the repository |
 
    (`~` is your home folder.) If **Stored data** shows a different folder, or this folder does not
@@ -303,11 +311,14 @@ Concord keeps everything in one **data folder**. Recordings you download go in a
 
 ### 4.3 Connect a recording
 
-1. Reload the console page (⌘R or Ctrl+R), then click **Connect a source**.
+1. Reload the console page (⌘R or Ctrl+R), then click **Connect a source**. (Reloading clears
+   the on-screen Session log; what happened is still in Concord's log files and, during a
+   research session, in the session's log.)
 2. Under **Recorded human data (offline replay)** you now see **Session 19250108T110520** and
    **Session 19250108T111022**, each with "DANDI 000954 · held-in-calib · 176 channels · 20 ms
-   bins". They are two blocks from the same day; either works. (*held-in-calib* is the name the
-   FALCON benchmark gives this part of its data.)
+   bins". They are two blocks from the same day; either works. The numbers are the recording's
+   date and time, which the dataset shifted to 1925 to protect the participant's identity, and
+   *held-in-calib* is the name the FALCON benchmark gives this part of its data.
 3. Click **Connect** next to one of them.
 
 **What you should see:**
@@ -339,8 +350,8 @@ Open **Advanced → Acquisition details**:
 - **Dataset** (with a link), **File**, and a green **SHA-256 matches DANDI 000954 asset …**: the
   file is exactly the published one.
 - **Recording**, **Signal**, **Behavior** and **Session**: what was recorded and how.
-- **Decoder**: *None attached* in the desktop app. A decoder trained on the *other* block appears
-  here only in a source installation (`make model`).
+- **Decoder**: *None attached*. Concord does not ship a decoder for this file; developers who
+  build Concord from its source code can train one ([DECODING.md](DECODING.md)).
 - **Citation**: how to cite the dataset if you use it.
 - **Metadata notes**: corrections Concord applied and what the file does not provide.
 - Below these, **Recorded neural activity** plots the replayed spike counts of all 176 channels
@@ -385,13 +396,17 @@ your browser makes. Concord skips duplicates, because the same block cannot be l
    - **Cursor + click · Day 468 · block 3 · grid evaluation**.
 
    Each has "Dryad T15 · 256 channels · 10 ms bins".
+
+   ![The T15 blocks in the source list](images/13-t15-sources.png)
 3. Click **Connect** (or **Switch**) next to **block 3 · grid evaluation**.
 
-![The T15 blocks in the source list](images/13-t15-sources.png)
 
 **What you should see:**
 - The title bar says **Streaming · Recorded human data, offline replay**.
-- The Decoder row notes that the recording carries the original decoder's output.
+- The Decoder row says the recording carries the replayed output of a decoder and that *it is
+  not used for control*. That is the starting state: in 5.4 you choose to pass this recorded
+  output on, and only **Start control** in 5.5 lets it move the board. (The row names only
+  *t15-historical-click*; the velocity decoder appears in 5.4.)
 - **Signal integrity** shows the threshold crossings of the most active channels.
 
 The file's checksum is verified when you connect; a file that does not match is refused. The
@@ -409,8 +424,12 @@ The participant chose among targets on a 14 × 14 grid, so the board should show
 
    ![Board settings](images/14-board-settings.png)
 
-3. Under **Layout**, choose **Task grid (N × N words)**, and set **Grid size N** to **14**.
-4. Leave **Input method** on **Automatic**. Click **Close**.
+3. Under **Layout**, choose **Task grid (N × N words)**. **Grid size N** shows **14** (set it to
+   14 if not).
+4. Leave **Input method** on **Automatic**. For now it reads *Automatic (nothing available now)*
+   and the other methods say *not offered by the current source*. That is expected: no command
+   output reaches the board yet. After 5.5 it reads *Automatic (now: Pointer and click)*, as in
+   the picture. Click **Close**.
 
 **What you should see:** the board shows 196 word tiles. It says *Paused — no command output
 for this application*, because no decoded data may reach it yet. Settings are saved in this
@@ -422,7 +441,8 @@ browser, so the board keeps them next time.
 2. Under **Processing**, choose **Source decoder outputs (passthrough)**. This option exists only
    for sources that carry a decoder's output. It forwards that output unchanged, labelled
    *historical*. No model of yours is involved.
-3. Click **Start decoding** at the bottom of the panel.
+3. Click the **Start decoding** button under *Processing* in this panel (not the one in the
+   Decoder row).
 
 **What you should see:** the Decoder row says *Running* and lists two decoders:
 - **t15-historical-velocity**, with outputs **vx, vy**: the cursor velocity;
@@ -450,6 +470,8 @@ A note says the velocity has "no declared output scale"; the next step sets the 
 3. Click **Start control**.
 4. Under **Authorized applications**, click **Authorize** next to **Communication Board**.
 
+If you change a value later, click **Apply settings** under the fields.
+
 **What you should see:**
 - **Command output** says *On · x ← vx, y ← vy (inverted), gain 1.09; click ← click*.
 - The title bar's **Stop control** button turns red.
@@ -465,7 +487,9 @@ A note says the velocity has "no declared output scale"; the next step sets the 
 recording. The participant was using it live, so the board's selections land on the cued word
 roughly half of the time; in the published comparison, 39 of 70 clicks did
 ([NEURAL_COMMUNICATION.md](NEURAL_COMMUNICATION.md)). The replay is open loop: the recording
-cannot react to the board, so the cursor can drift where the original screen differed.
+cannot react to the board, so the cursor can drift where the original screen differed. The
+board does not show which word was cued, so you cannot check the 39 of 70 on screen; the
+comparison is in [NEURAL_COMMUNICATION.md](NEURAL_COMMUNICATION.md).
 
 ### 5.6 Stop and tidy up
 
@@ -474,6 +498,12 @@ cannot react to the board, so the cursor can drift where the original screen dif
 2. Under **Authorized applications**, click **Revoke**. Authorization lasts until you revoke it,
    even if you change source or session.
 3. **Stop decoding**, then **Disconnect**.
+
+**What you should see:** the board says *Paused — device disconnected (operator disconnect)*.
+
+4. On the board, open **Settings → Layout → Phrases and letters** to get the normal board back
+   (the setting is saved in this browser), and select **Clear** or close the window to remove
+   the message.
 
 Want Concord's *own* decoders on this recording? A Kalman cursor decoder and a click decoder
 fitted on blocks 0–2 are evaluated in [CURSOR_CLICK.md](CURSOR_CLICK.md). Fitting them needs a
@@ -509,8 +539,8 @@ running while you run it.
 Then:
 1. Reload the console and click **Connect a source**.
 2. **Recorded human data** now also lists **Session 5** and **Session 6** ("DANDI 000055 ·
-   64 channels · 500 Hz"). Connect one: the title bar says *Recorded Human ECoG — Offline
-   Replay*.
+   64 channels · 500 Hz"). Connect one: the source row says *Recorded Human ECoG — Offline
+   Replay* and the title bar *Streaming · Recorded human data, offline replay*.
 
 Background and decoding results: [ECOG.md](ECOG.md).
 
@@ -533,9 +563,13 @@ settings and a log, in one folder you can export as a zip file.
    something is connected). Source changes are written to the session's log.
 3. Record: open **Advanced → Recording** and click **Start recording**. The title bar adds
    **· Recording**.
-   - A recording with raw samples stops by itself after 5 minutes or 200 MB.
-   - Tick **Features and labels only (for calibration)** to leave out the raw samples; such a
-     recording can run for an hour.
+   - Leave **Features and labels only** unticked for this exercise. A recording with raw samples
+     stops by itself after 5 minutes or 200 MB. Simulated Profile A writes about 15 MB a minute,
+     so a one-minute recording is fine. (The panel's warning that raw frames "reach the size cap
+     in seconds" applies to high-channel-count live sources.)
+   - With **Features and labels only (for calibration)** ticked, the raw samples are left out
+     and a recording can run for an hour.
+   - The size shown in the list of recordings updates when the recording stops.
    - Both limits can be changed in the [configuration file](USER_GUIDE.md#15-configuration-file).
    - Recorded datasets (sections 4–6) cannot be recorded: they already are recordings.
 
@@ -544,10 +578,12 @@ settings and a log, in one folder you can export as a zip file.
 4. After a minute, click **Safe stop & disconnect**. It stops command output, closes the
    recording, stops decoding and disconnects the source, in that order. The session stays open.
 5. Click **Session and export…** in the session strip:
-   1. Tick **Include the session's recordings** if you want the export to contain the data
-      needed to re-run the evaluation.
+   1. For this exercise, tick **Include the session's recordings** (the data needed to re-run an
+      evaluation). Leave **Include the operator name and notes** unticked unless the people you
+      share the zip with should see them.
    2. Click **Create export bundle**.
-   3. **Download the zip from the link that appears now**, before you end the session.
+   3. **Download the zip from the link that appears now** (the same file is also listed just
+      below it), before you end the session. Your browser saves it in your Downloads folder.
 
    ![Session details and export](images/08-session-export.png)
 
@@ -560,12 +596,19 @@ settings and a log, in one folder you can export as a zip file.
    - `manifest.json` (checksums) and `REPRODUCE.md`.
 6. At the bottom of the same panel, click **End session…** and then **End session now**.
 
-**Reproducing an export:** `concord reproduce <file>.zip` checks every file against
-`manifest.json` and re-runs the session's decoder evaluation. A session without a decoder (like
-this one) has nothing to re-run; `reproduce` then reports *nothing_to_reproduce* after checking
-the files. In the desktop app the command is
-`/Applications/Concord.app/Contents/MacOS/Concord reproduce <file>.zip` (Linux:
-`./Concord/Concord reproduce <file>.zip`).
+   **What you should see:** the session strip returns to *No research session…*. The session's
+   folder stays in **Advanced → Stored data**.
+
+**Reproducing an export.** Your browser saved the zip in your Downloads folder. In a terminal,
+give its full path, for example:
+
+- Mac app: `/Applications/Concord.app/Contents/MacOS/Concord reproduce ~/Downloads/concord-session-….zip`
+- Linux bundle (from the folder that contains `Concord`): `./Concord/Concord reproduce ~/Downloads/concord-session-….zip`
+- Python install: `concord reproduce ~/Downloads/concord-session-….zip`
+
+It checks every file against `manifest.json` and re-runs the session's decoder evaluation. For
+this session, which has no decoder, it prints `[OK  ] integrity: 6 files verified against
+manifest.json` and `result: nothing_to_reproduce`. That is the expected result.
 
 ---
 
@@ -577,7 +620,8 @@ Downloaded datasets are not listed there: delete them from the `datasets` folder
 
 **Advanced → Support report → Create support report** checks the installation: versions,
 optional parts, ports, folder permissions, disk space and recent problems. It contains **no
-neural or personal data**. Download it as JSON or Markdown and attach it when you
+neural or personal data**. If you tried the faults in section 3.4, the report lists them under *Recent log problems* as
+warnings and errors; that is expected. Download it as JSON or Markdown and attach it when you
 [report a problem](https://github.com/arnavhiteshpatel-cloud/concord/issues/new/choose).
 
 ![Stored data and support report](images/12-stored-data-and-support.png)
@@ -587,7 +631,8 @@ neural or personal data**. Download it as JSON or Markdown and attach it when yo
 - **Linux:** click **Stop and quit**; or, if you started Concord in a terminal, press Ctrl-C there.
 
 Quitting performs a safe stop first, so recordings are closed properly. Afterwards the console
-and board tabs say *Connection to Concord lost*: close them. If Concord ever stops unexpectedly,
+says *Connection to Concord lost, reconnecting* and the board says *Reconnecting*: Concord has
+stopped, so close both tabs. If Concord ever stops unexpectedly,
 the next start keeps the complete part of an interrupted recording and marks it *incomplete*.
 
 ---
@@ -599,7 +644,7 @@ the next start keeps the complete part of an interrupted recording and marks it 
 | Understand the ideas: sources, data kinds, capabilities, decoders, command output | [How Concord works](CONCEPTS.md) |
 | Know what every button, field and message does | [User guide](USER_GUIDE.md) |
 | Connect your own equipment: LSL, Open Ephys, BrainFlow, BCI2000, your own device | [Connect your equipment](CONNECT_YOUR_EQUIPMENT.md) |
-| Calibrate a decoder from your own recordings | [User guide: Calibrate](USER_GUIDE.md) |
+| Calibrate a decoder from your own recordings | [User guide: Calibrate](USER_GUIDE.md#55-the-calibrate-panel) |
 | See every demo dataset, its license and how to cite it | [DATASETS.md](DATASETS.md) |
 | Fix a problem | [TROUBLESHOOTING.md](TROUBLESHOOTING.md), [FAQ.md](FAQ.md) |
 | Know what has been validated, and what has not | [VALIDATION_LEVELS.md](VALIDATION_LEVELS.md), [LIMITATIONS.md](../LIMITATIONS.md) |
