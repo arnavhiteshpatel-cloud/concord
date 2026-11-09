@@ -12,6 +12,7 @@
 }
 .titlebar-left { display: flex; align-items: center; gap: 20px; min-width: 0; }
 .wordmark { font-size: var(--fs-h); font-weight: 600; letter-spacing: 0; }
+.tb-version { font-size: var(--fs-sm); color: var(--bar-muted); margin-left: -6px; white-space: nowrap; }
 .tag {
   font-size: var(--fs-sm); color: var(--bar-muted);
   border: 1px solid #5a6167; border-radius: 4px; padding: 1px 7px; white-space: nowrap;

@@ -234,6 +234,7 @@ e2e/screenshots/
 # --- M5-D (packaging, release) ---
 # the built console staged into the package for wheels / the desktop app (packaging/stage_console.py)
 backend/src/concord/server/console/
+backend/src/concord/compat/registry.json
 # PyInstaller work and output directories
 packaging/build/
 packaging/dist/

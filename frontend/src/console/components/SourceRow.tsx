@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { runtimeApi, type PlaybackStatus, type RuntimeSnapshot } from "../../sdk";
-import { consoleApi, isDatasetFile } from "../api";
+import { consoleApi, cursorClickLabel, isCursorClickFile, isDatasetFile } from "../api";
 import { useLoggedAction } from "../context";
 import { integrationLine, modalityWords, shapeSummary, sourceKind } from "../wording";
+import { datasetLabel } from "./SourcePicker";
 import { Disclosure, Row } from "./ui";
 
 const SPEEDS = [0.5, 1, 2, 4, 8];
@@ -56,6 +57,14 @@ export function SourceRow({
   // modality in words for plugins (declared or "not declared") and for any source that declares it
   const modality = integration || device?.modality ? modalityWords(device) : null;
   const finished = state === "error" || state === "ended";
+  // which file is playing (the display name is the same for every file of a dataset)
+  const fileLine = !device
+    ? null
+    : isDatasetFile(device)
+      ? (({ file, where }) => [file, where].filter(Boolean).join(" · "))(datasetLabel(device))
+      : isCursorClickFile(device)
+        ? `Cursor + click · ${cursorClickLabel(device) ?? device.device_id}`
+        : null;
 
   if (!device) {
     return (
@@ -100,6 +109,11 @@ export function SourceRow({
       <p className="value" data-testid="source-name">
         {device.display_name}
       </p>
+      {fileLine && (
+        <p className="value-sub" data-testid="source-file">
+          {fileLine}
+        </p>
+      )}
       <p className="value-sub" title={kind?.title} data-testid="source-kind">
         {[kind?.text, shape].filter(Boolean).join(" · ")}
         {pb && (

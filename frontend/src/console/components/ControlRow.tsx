@@ -7,7 +7,16 @@ import type { ConnectedApp } from "../../sdk";
 import { labApi, type AppControl, type CommandCapability, type ControlStatus, type DiscreteAction, type DiscreteRule, type RouterSpec } from "../api";
 import { useLoggedAction, useLog } from "../context";
 import { usePoll } from "../hooks";
-import { actionLabel, controlOn, decoderClasses, mappingText, runningDecoder, type PipelineState } from "../pipeline";
+import {
+  actionLabel,
+  controlOn,
+  decoderClasses,
+  defaultClickOutput,
+  mappingText,
+  runningDecoder,
+  runningDecoders,
+  type PipelineState,
+} from "../pipeline";
 import { Disclosure, Dot, Row } from "./ui";
 
 interface Form {
@@ -216,6 +225,9 @@ export function ControlRow({ pipeline, apps }: { pipeline: PipelineState; apps: 
   const decoder = runningDecoder(st);
   const classes = decoderClasses(decoder);
   const dims = decoder?.dims ?? [];
+  // every running decoder's outputs: the click may come from a second decoder (cursor + click)
+  const decoders = runningDecoders(st);
+  const outputDims = [...new Set(decoders.flatMap((d) => d.dims))];
   const current = st?.router ?? null;
   const on = controlOn(st);
   const [form, setForm] = useState<Form>({ x_dim: "", y_dim: "", gain: "1", deadzone: "0.3", invert_y: false, max_speed: "2", click_dim: "" });
@@ -229,14 +241,17 @@ export function ControlRow({ pipeline, apps }: { pipeline: PipelineState; apps: 
   const modelId = decoder?.model_id ?? null;
   useEffect(() => {
     if (!modelId) return;
+    const x = current?.x_dim ?? dims[0] ?? "";
+    const y = current?.y_dim ?? dims[1] ?? dims[0] ?? "";
     setForm({
-      x_dim: current?.x_dim ?? dims[0] ?? "",
-      y_dim: current?.y_dim ?? dims[1] ?? dims[0] ?? "",
+      x_dim: x,
+      y_dim: y,
       gain: String(current?.gain ?? 1),
       deadzone: String(current?.deadzone ?? 0.3),
-      invert_y: current?.invert_y ?? false,
+      // a decoder whose +y points up needs y inverted for the screen (+y down): the only valid choice
+      invert_y: current?.invert_y ?? decoder?.y_axis === "up",
       max_speed: String(current?.max_speed ?? 2),
-      click_dim: current?.click?.output ?? "",
+      click_dim: current ? (current.click?.output ?? "") : defaultClickOutput(decoders, [x, y]),
       click_threshold: String(current?.click?.threshold ?? 0.5),
       click_min_confidence: String(current?.click?.min_confidence ?? 0),
       click_refractory_ms: String(current?.click?.refractory_ms ?? 300),
@@ -375,7 +390,7 @@ export function ControlRow({ pipeline, apps }: { pipeline: PipelineState; apps: 
               Click from
               <select value={form.click_dim ?? ""} onChange={(e) => set({ click_dim: e.target.value })} data-testid="router-click">
                 <option value="">No click</option>
-                {dims
+                {outputDims
                   .filter((d) => d !== form.x_dim && d !== form.y_dim)
                   .map((d) => (
                     <option key={d} value={d}>

@@ -195,7 +195,10 @@ def _optional() -> list[dict[str, Any]]:
             "BrainFlow (optional)",
             "ok" if ok else "info",
             v if ok else "not installed",
-            None if ok else "only needed for the BrainFlow plugin: pip install concord-brainflow",
+            None
+            if ok
+            else "only needed for the BrainFlow plugin: pip-install the concord_brainflow wheel "
+            "from the release page (docs/CONNECT_YOUR_EQUIPMENT.md)",
         )
     )
     bci = any(

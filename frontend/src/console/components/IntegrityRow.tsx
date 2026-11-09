@@ -99,7 +99,7 @@ export function IntegrityRow({
           />
           <Figure
             label="Delay to this screen (ms)"
-            value={f.delayMs === null ? "—" : fmt.num(f.delayMs, f.delayMs < 10 ? 1 : 0)}
+            value={f.delayMs === null ? "—" : fmt.num(Math.max(0, f.delayMs), f.delayMs < 10 ? 1 : 0)}
             title="Median time from the runtime receiving an event to this screen receiving it (last 1,000 events, measured in this browser)."
             testId="fig-delay"
           />

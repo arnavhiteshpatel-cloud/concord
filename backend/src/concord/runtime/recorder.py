@@ -22,6 +22,7 @@ import json
 import logging
 import math
 import os
+import re
 import shutil
 import time
 from collections.abc import Callable
@@ -58,6 +59,28 @@ LIMIT_MAX_DURATION_S = 24 * 3600.0
 LIMIT_MAX_BYTES = 100 * 1024**3
 MIN_FREE_BYTES = 256 * 1024 * 1024  # a recording stops cleanly before the disk is full
 FREE_SPACE_CHECK_BYTES = 32 * 1024 * 1024  # check free space every 32 MiB written
+
+# Local file players: session recordings, NWB datasets, T15 cursor + click blocks.
+FILE_REPLAY_PREFIXES = ("replay:", "nwb:", "t15:")
+
+
+def is_file_replay(device_id: str) -> bool:
+    """A source that plays a local file (it is already a recording and is not re-recorded)."""
+    return device_id.startswith(FILE_REPLAY_PREFIXES)
+
+
+def default_recording_name(device_id: str, when: float | None = None) -> str:
+    """``<device>-YYYYmmdd-HHMMSS`` as a valid recording name (see ``NAME_PATTERN``).
+
+    Device ids of live sources contain characters a file name may not ("lsl:…",
+    "openephys:127.0.0.1:5556", "plugin:pkg:device"); they become "-", and the device part is
+    shortened so the name fits the 48-character limit."""
+    stamp = time.strftime("%Y%m%d-%H%M%S", time.localtime(when))
+    base = re.sub(r"[^a-z0-9_-]+", "-", device_id.lower()).strip("-_") or "recording"
+    base = base[: 47 - len(stamp)].rstrip("-_") or "recording"
+    return f"{base}-{stamp}"
+
+
 # What a recording's timestamps can and cannot reconstruct (written into every header).
 TIMING_NOTE = (
     "recording.frame: device_timestamp_ns is the source-clock time of the frame's FIRST sample "
@@ -223,10 +246,13 @@ class Recorder:
             raise RecorderError(f"already recording {self._name!r}")
         # a local file player is its own recording; external streams (LSL, Open Ephys) that
         # declare prerecorded content are recorded, keeping their 'replayed' provenance
-        if device.device_id.startswith(("replay:", "nwb:")):
-            raise RecorderError("re-recording a local file replay is not supported")
+        if is_file_replay(device.device_id):
+            raise RecorderError(
+                "this source replays a recorded file, which is already a recording; it cannot be "
+                "recorded again. Record a simulated or live source instead."
+            )
         ensure_private_dir(self.directory)
-        name = name or time.strftime(f"{device.device_id}-%Y%m%d-%H%M%S").lower()
+        name = name or default_recording_name(device.device_id)
         try:
             path = recording_path(self.directory, name)
         except RecordingFormatError as exc:

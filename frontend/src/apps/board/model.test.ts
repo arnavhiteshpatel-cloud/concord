@@ -362,6 +362,28 @@ describe("provenance and the scientific limitation", () => {
     expect(inputLabel(HISTORICAL)).toBe("historical decoder replay (original research system)");
     expect(inputLabel(EXTERNAL)).toBe("decoded by bci2000 (external decoder)");
   });
+  // Regression (0.3.1): after switching from a simulated profile to recorded human data, the
+  // board kept saying "Input: simulated input · synthetic data" although nothing simulated was
+  // arriving any more.
+  it("forgets the input label when the source changes (not on a pause), and takes the next source's label", () => {
+    let s = boardReducer(board(["pointer_intent", "selection"]), { type: "source", key: "sim-a|ses_1" });
+    let t: number;
+    [s, t] = moveTo(s, 0, 0);
+    expect(s.lastInput?.kind).toBe("simulated_intent");
+    // a pause (nothing usable, same source) keeps the label
+    s = boardReducer(s, { type: "usable", caps: [], reason: "source paused" });
+    s = boardReducer(s, { type: "source", key: "sim-a|ses_1" });
+    expect(s.lastInput?.kind).toBe("simulated_intent");
+    // switching to recorded human data clears it until that source sends something
+    s = boardReducer(s, { type: "source", key: "t15:day00468-block03-grid-evaluation|ses_2" });
+    expect(s.lastInput).toBeNull();
+    s = boardReducer(s, { type: "usable", caps: ["pointer_intent", "selection"], reason: null });
+    s = run(s, pointer(0.1, 0, (t += 20), HISTORICAL));
+    expect(s.lastInput).toBe(HISTORICAL);
+    // disconnecting clears it too
+    s = boardReducer(s, { type: "source", key: null });
+    expect(s.lastInput).toBeNull();
+  });
   it("text composed from replayed recordings is never the participant's message", () => {
     expect(compositionLabel([HISTORICAL])).toBe(DEMONSTRATION_LABEL);
     expect(compositionLabel([{ ...CONCORD, replayed: true }])).toBe(DEMONSTRATION_LABEL);

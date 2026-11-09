@@ -22,6 +22,29 @@ export function usePipeline(): PipelineState {
 /** The running decoder, if the pipeline runs one. */
 export const runningDecoder = (s: PipelineStatus | null) => (s?.running ? s.decoder : null);
 
+/** Every running decoder, the main one first: the models Concord runs, or a source's own
+ *  decoder outputs (passthrough). A cursor + click chain runs two (movement and click). */
+export function runningDecoders(s: PipelineStatus | null): ModelSummary[] {
+  if (!s?.running) return [];
+  const seen = new Set<string>();
+  return [s.decoder, ...(s.decoders ?? []), ...(s.source_decoders ?? [])].filter((d): d is ModelSummary => {
+    if (!d || seen.has(d.model_id)) return false;
+    seen.add(d.model_id);
+    return true;
+  });
+}
+
+/** A decoder output that can drive the click: an event output (e.g. a click decision) of any
+ *  running decoder other than the one moving the pointer, else "" (no click). */
+export function defaultClickOutput(decoders: ModelSummary[], pointerDims: string[]): string {
+  for (const d of decoders) {
+    if (d.outputs?.type !== "event") continue;
+    const dim = d.dims.find((x) => !pointerDims.includes(x));
+    if (dim) return dim;
+  }
+  return "";
+}
+
 /** Class names if the decoder is a classifier (discrete decoding), else null. */
 export function decoderClasses(d: Pick<ModelSummary, "outputs"> | null | undefined): string[] | null {
   return d?.outputs?.type === "classes" ? d.outputs.classes : null;

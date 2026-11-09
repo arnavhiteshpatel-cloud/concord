@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { RuntimeSnapshot } from "../../sdk";
 import {
   consoleApi,
+  isFileReplay,
   isRecordable,
   labApi,
   type CalibrationResult,
@@ -155,7 +156,13 @@ function CalibrationSheet({
             </button>
           )}
           {runtime?.recording && <span className="hint">Recording {runtime.recording}</span>}
-          {!runtime?.recording && !canRecord && <span className="hint">This source cannot be recorded.</span>}
+          {!runtime?.recording && !canRecord && (
+            <span className="hint" data-testid="cal-rec-unavailable">
+              {isFileReplay(runtime?.device)
+                ? "A recorded file is already a recording and cannot be recorded again. Calibrate from a simulated or live source, or train on an earlier session recording below."
+                : "Connect a source that is streaming to record."}
+            </span>
+          )}
         </div>
         {action.error && <p className="error-text">{action.error}</p>}
       </section>

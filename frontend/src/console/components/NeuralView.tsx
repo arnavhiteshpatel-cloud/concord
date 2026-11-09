@@ -164,7 +164,7 @@ export function NeuralView({ neural, source }: { neural: NeuralBuffer; source: "
             : "Binned features computed by the Concord pipeline from the connected source"}{" "}
           (see the status line for what that source is). Solid: the source's behavior stream, if one is attached.{" "}
           {hasDecoded
-            ? "Dashed: decoded_intent from the loaded model — calibrated offline, not validated for closed-loop control."
+            ? "Dashed: the output of the decoder named in the legend (a model running in Concord, or a decoder output the source carries, e.g. a historical replay) — offline, not validated for closed-loop control."
             : "No decoder loaded."}
         </p>
       )}

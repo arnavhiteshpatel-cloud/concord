@@ -203,6 +203,33 @@ describe("SourcePicker", () => {
     expect(screen.getByTestId("dataset-list").querySelectorAll("li").length).toBe(6);
   });
 
+  // Regression (0.3.1): the four T15 blocks had identical names ("Recorded Human Intracortical
+  // Data (cursor + click) — Offline Replay"), so nobody could tell which one is the grid block.
+  it("lists T15 cursor + click blocks with recorded data, each named by day, block and task", () => {
+    stubFetch(lslIdle);
+    const t15 = (id: string): DeviceDescriptor => ({
+      ...liveDev(id),
+      kind: "replay" as const,
+      display_name: "Recorded Human Intracortical Data (cursor + click) — Offline Replay",
+    });
+    const blocks = [t15("t15:day00468-block00-radial8-calibration"), t15("t15:day00468-block03-grid-evaluation")];
+    render(<SourcePicker devices={[...devices, ...blocks]} runtime={null} onClose={vi.fn()} onSourcesChanged={vi.fn()} />);
+    const list = screen.getByTestId("cursorclick-list");
+    const names = [...list.querySelectorAll(".pick-name")].map((n) => n.textContent);
+    expect(names).toEqual(["Cursor + click · Day 468 · block 0 · radial-8 calibration", "Cursor + click · Day 468 · block 3 · grid evaluation"]);
+    expect(list.querySelector('[data-testid="device-t15:day00468-block03-grid-evaluation"]')).toBeTruthy();
+  });
+
+  it("an empty recorded-data group names the real datasets folder, not a developer command", async () => {
+    stubFetch({
+      ...lslIdle,
+      "GET /datasets": () => ({ nwb_support: true, unavailable_reason: null, datasets_dir: "/home/r/.local/share/concord/data/datasets", devices: [], problems: [], fetch_command: "" }),
+    });
+    render(<SourcePicker devices={[devices[0]!]} runtime={null} onClose={vi.fn()} onSourcesChanged={vi.fn()} />);
+    await waitFor(() => expect(screen.getByTestId("no-datasets").textContent).toContain("/home/r/.local/share/concord/data/datasets"));
+    expect(screen.getByTestId("no-datasets").textContent).not.toContain("make");
+  });
+
   it("connects when idle, switches when connected, and closes on success", async () => {
     const calls = stubFetch({ ...lslIdle, "POST /runtime/connect": () => ({}), "POST /runtime/switch": () => ({}) });
     const onClose = vi.fn();

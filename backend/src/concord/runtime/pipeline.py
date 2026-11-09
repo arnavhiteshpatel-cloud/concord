@@ -831,7 +831,7 @@ class PipelineManager:
                 raise PipelineError(
                     ErrorCode.PROTOCOL_ERROR,
                     f"decoder {t.model_id} declares +y up; the pointer workspace's +y is down: "
-                    "enable invert_y",
+                    "enable invert_y (console: Command output → Settings → Invert y)",
                 )
             subs[owner] = router.model_copy(update={"discrete": [], "click": None})
         if router.discrete:

@@ -98,6 +98,8 @@ export interface BoardState {
   lastChosen: { n: number; page: PageKind; tile: number; label: string } | null;
   speech: { n: number; text: string } | null;
   lastInput: InputTag | null;
+  /** the connected source and session the board last saw ("device|session"), or null */
+  sourceKey: string | null;
   counters: { debounced: number; pendingConfirmations: number; ignoredInactive: number; texts: number };
 }
 
@@ -115,7 +117,9 @@ export type BoardAction =
   | { type: "navigate"; direction: Direction; ref: EventRef; nowMs: number }
   | { type: "text"; text: string; mode: "character" | "word"; ref: EventRef; nowMs: number }
   | { type: "tick"; nowMs: number }
-  | { type: "clearHistory" };
+  | { type: "clearHistory" }
+  /** the connected source and session ("device|session"), or null when none is connected */
+  | { type: "source"; key: string | null };
 
 export const MAX_MESSAGE = 280;
 /** pointer integration: a longer gap between two pointer events does not teleport the cursor */
@@ -242,6 +246,7 @@ export function initialBoard(settings: BoardSettings = DEFAULT_SETTINGS): BoardS
     lastChosen: null,
     speech: null,
     lastInput: null,
+    sourceKey: null,
     counters: { debounced: 0, pendingConfirmations: 0, ignoredInactive: 0, texts: 0 },
   };
 }
@@ -418,6 +423,10 @@ export function boardReducer(s: BoardState, a: BoardAction): BoardState {
       return settle({ ...s, status: a.negotiation.status, granted: a.negotiation.granted });
     case "usable":
       return settle({ ...s, usable: a.caps, stopReason: a.reason, waiting: a.waiting ?? [] });
+    case "source":
+      // Another source (or session) is connected, or none: the "Input: …" label must not keep
+      // naming the previous source; it returns with that source's next input. A pause keeps it.
+      return a.key === s.sourceKey ? s : { ...s, sourceKey: a.key, lastInput: null };
     case "settings": {
       const layoutChanged = a.settings.layout !== s.settings.layout;
       const base: BoardState = { ...s, settings: a.settings };

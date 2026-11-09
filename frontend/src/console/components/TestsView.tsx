@@ -21,6 +21,14 @@ export function TestsView() {
 
   if (error) return <p className="error-text">{error}</p>;
   if (!reports) return <p className="value-muted">Loading test reports…</p>;
+  if (!reports.some((r) => r.available))
+    return (
+      <p className="hint" data-testid="tests-none">
+        No test results on this computer. This section shows the results of Concord&apos;s own test suite when it runs
+        from its source code (<code>make test</code>, <code>make e2e</code>); an installed Concord has none, and it
+        does not affect how Concord works. The results of each release are on the project&apos;s GitHub page.
+      </p>
+    );
   return (
     <div className="tests" data-testid="tests-view">
       <div className="btn-row">

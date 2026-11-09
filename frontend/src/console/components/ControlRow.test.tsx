@@ -268,6 +268,21 @@ describe("Schema 1.4 command output settings (M5-C)", () => {
     expect(routerSpec({ ...form, click_dim: "click", click_threshold: "2" }, true).problem).toMatch(/Check the click/);
     expect(routerSpec(form, true).spec?.click).toBeUndefined();
   });
+  // Regression (0.3.1): with a cursor + click chain the click comes from a SECOND decoder (T15
+  // historical replay: velocity decoder + click decoder). "Click from" offered only the first
+  // decoder's outputs, so a click could never be routed from the console.
+  it("offers and preselects a click output of a second running decoder, and inverts y for a +y-up decoder", () => {
+    const velocity = { model_id: "t15-historical-velocity", dims: ["vx", "vy"], outputs: { type: "continuous" as const }, y_axis: "up" as const };
+    const click = { model_id: "t15-historical-click", dims: ["click"], outputs: { type: "event" as const, events: ["click"] } };
+    const passthrough: PipelineStatus = { ...base, preset: "decoded_passthrough", decoder: velocity, decoders: [], source_decoders: [velocity, click] };
+    stubFetch({ "GET /control": () => control([], { router_on: false, router: null, model_id: null, provides: [] }) });
+    render(<ControlRow pipeline={state(passthrough)} apps={[]} />);
+    fireEvent.click(screen.getByTestId("control-settings-toggle"));
+    const options = [...(screen.getByTestId("router-click") as HTMLSelectElement).options].map((o) => o.value);
+    expect(options).toEqual(["", "click"]);
+    expect((screen.getByTestId("router-click") as HTMLSelectElement).value).toBe("click");
+    expect((screen.getByTestId("router-invert") as HTMLInputElement).checked).toBe(true);
+  });
   it("labels navigate actions and keeps them out of the selection detail", () => {
     expect(actionLabel({ action: "navigate:next" })).toBe("move next");
     const rules = [

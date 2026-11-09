@@ -95,23 +95,30 @@ export function ContractView({ devices }: { devices: DeviceDescriptor[] }) {
             <tbody>
               <tr>
                 <td className="prov-raw_signal mono">raw_signal</td>
-                <td>recording.frame only</td>
+                <td>recording.frame: samples as the source sent them. Never delivered as a command.</td>
+              </tr>
+              <tr>
+                <td className="prov-processed_feature mono">processed_feature</td>
+                <td>features.binned, features.vector: features computed from a signal (e.g. spike counts). Never a command.</td>
               </tr>
               <tr>
                 <td className="prov-behavioral_label mono">behavioral_label</td>
-                <td>recording.annotation only — never delivered as an intent</td>
+                <td>behavior.sample, recording.annotation: what the task or participant did (labels). Never a command.</td>
               </tr>
               <tr>
                 <td className="prov-simulated_intent mono">simulated_intent</td>
-                <td>intent.* with synthetic=true (all v1 intents)</td>
+                <td>intent.* from a simulated profile (synthetic=true): an operator standing in for a participant.</td>
               </tr>
               <tr>
                 <td className="prov-decoded_intent mono">decoded_intent</td>
-                <td>intent.* with a model_id (no decoder ships in v1)</td>
+                <td>
+                  intent.* and intent.kinematics from a decoder, always with its model id and origin (Concord, external, historical).
+                  Reaches applications only while command output is on and only those you authorized.
+                </td>
               </tr>
               <tr>
                 <td className="prov-device_report mono">device_report / runtime</td>
-                <td>telemetry.sample, device.status</td>
+                <td>telemetry.sample, device.status, control.state: reports about the device and the runtime.</td>
               </tr>
             </tbody>
           </table>

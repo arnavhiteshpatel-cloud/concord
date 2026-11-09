@@ -2,9 +2,9 @@
 // live streams (LSL discovery, Open Ephys registration, registered sources) and plugins
 // (installed adapter packages, each run in its own process).
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { runtimeApi, type DeviceDescriptor, type RuntimeSnapshot } from "../../sdk";
-import { isDatasetFile, isLiveSource, isPluginSource, labApi } from "../api";
+import { consoleApi, cursorClickLabel, isCursorClickFile, isDatasetFile, isLiveSource, isPluginSource, labApi } from "../api";
 import { useLog, useLoggedAction } from "../context";
 import { shapeSummary, sourceKind } from "../wording";
 import { LslSources } from "./LslSources";
@@ -29,15 +29,18 @@ export function groupSources(devices: DeviceDescriptor[]) {
   // Only verified dataset files go in the recorded-data group: recordings of live sessions and
   // external streams declaring prerecorded content are not "recorded human intracranial data".
   const datasets = devices.filter(isDatasetFile);
+  // T15 cursor + click blocks: verified dataset files too, listed with their own names
+  const cursorClick = devices.filter(isCursorClickFile);
   const live = devices.filter(isLiveSource);
   const plugins = devices.filter(isPluginSource);
   const recordings = devices.filter((d) => d.device_id.startsWith("replay:"));
   const rest = devices.filter(
-    (d) => !isDatasetFile(d) && !isLiveSource(d) && !isPluginSource(d) && !d.device_id.startsWith("replay:"),
+    (d) =>
+      !isDatasetFile(d) && !isCursorClickFile(d) && !isLiveSource(d) && !isPluginSource(d) && !d.device_id.startsWith("replay:"),
   );
   const simulated = rest.filter((d) => d.kind === "simulated");
   const other = rest.filter((d) => d.kind !== "simulated");
-  return { simulated, datasets, recordings, live, plugins, other };
+  return { simulated, datasets, cursorClick, recordings, live, plugins, other };
 }
 
 export function SourcePicker({
@@ -54,7 +57,22 @@ export function SourcePicker({
   const log = useLog();
   const action = useLoggedAction();
   const activeId = runtime?.device && runtime.state !== "idle" ? runtime.device.device_id : null;
-  const { simulated, datasets, recordings, live, plugins, other } = groupSources(devices);
+  const { simulated, datasets, cursorClick, recordings, live, plugins, other } = groupSources(devices);
+  // where dataset files go, so the empty-state message can name the real folder (asked only
+  // when there are no files: the dataset listing scans the folder)
+  const noFiles = datasets.length === 0 && cursorClick.length === 0;
+  const [datasetsDir, setDatasetsDir] = useState<string | null>(null);
+  useEffect(() => {
+    if (!noFiles) return;
+    let alive = true;
+    consoleApi
+      .datasets()
+      .then((d) => alive && setDatasetsDir(d.datasets_dir))
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, [noFiles]);
   // the connected file is always visible
   const activeHidden = datasets.slice(DATASETS_SHOWN).some((d) => d.device_id === activeId);
   const [showAll, setAllDatasets] = useState(false);
@@ -131,7 +149,7 @@ export function SourcePicker({
       <section className="group">
         <h3>Recorded human data (offline replay)</h3>
         <p className="explain">Verified files from a public dataset, replayed. Not a live implant.</p>
-        {datasets.length ? (
+        {datasets.length || cursorClick.length ? (
           <>
             <ul className="pick-list" data-testid="dataset-list">
               {(allDatasets ? datasets : datasets.slice(0, DATASETS_SHOWN)).map((d) => {
@@ -144,11 +162,22 @@ export function SourcePicker({
                 Show all {datasets.length} files
               </button>
             )}
+            {cursorClick.length > 0 && (
+              <ul className="pick-list" data-testid="cursorclick-list">
+                {cursorClick.map((d) =>
+                  item(
+                    { ...d, display_name: `Cursor + click · ${cursorClickLabel(d) ?? d.device_id}` },
+                    ["Dryad T15", shapeSummary(d)].filter(Boolean).join(" · "),
+                  ),
+                )}
+              </ul>
+            )}
           </>
         ) : (
           <p className="value-muted" data-testid="no-datasets">
-            No recorded datasets found in <code>data/datasets/</code>. Download the verified files with{" "}
-            <code>make dataset</code>, then reload.
+            No recorded datasets yet. Put downloaded dataset files in{" "}
+            <code>{datasetsDir ?? "the datasets folder of your data directory"}</code> (create the folder if needed;
+            Getting started, section 4), then reload this page.
           </p>
         )}
       </section>

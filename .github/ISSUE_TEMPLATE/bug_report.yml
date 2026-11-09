@@ -36,7 +36,7 @@ body:
     attributes:
       label: Concord version
       description: "Shown in the support report, or run `concord version`."
-      placeholder: "0.3.0"
+      placeholder: "0.3.1"
     validations:
       required: true
   - type: input

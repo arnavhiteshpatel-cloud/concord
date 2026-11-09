@@ -584,12 +584,34 @@ export function isDatasetFile(device: Pick<DeviceDescriptor, "device_id"> | null
   return !!device && device.device_id.startsWith("nwb:");
 }
 
-/** The recorder refuses local file players; every other connected source can be recorded. */
+/** T15 cursor + click blocks (Dryad), replayed offline from local files. */
+export function isCursorClickFile(device: Pick<DeviceDescriptor, "device_id"> | null | undefined): boolean {
+  return !!device && device.device_id.startsWith("t15:");
+}
+
+/** Sources that play a local file: session recordings, NWB datasets and T15 blocks. */
+export function isFileReplay(device: Pick<DeviceDescriptor, "device_id"> | null | undefined): boolean {
+  return !!device && (device.device_id.startsWith("replay:") || isDatasetFile(device) || isCursorClickFile(device));
+}
+
+/** The recorder refuses local file players (they already are recordings); every other
+ *  connected source (simulated, LSL, Open Ephys, plugins) can be recorded. */
 export function isRecordable(device: Pick<DeviceDescriptor, "device_id"> | null | undefined): boolean {
-  return !!device && !device.device_id.startsWith("replay:") && !device.device_id.startsWith("nwb:");
+  return !!device && !isFileReplay(device);
+}
+
+/** "t15:day00468-block03-grid-evaluation" -> "Day 468 · block 3 · grid evaluation" */
+export function cursorClickLabel(device: Pick<DeviceDescriptor, "device_id">): string | null {
+  const m = /^t15:day(\d+)-block(\d+)-(.+)$/.exec(device.device_id);
+  const [, day, block, rawTask] = m ?? [];
+  if (!day || !block || !rawTask) return null;
+  const task = rawTask.replace(/-/g, " ").replace(/\bradial8\b/, "radial-8");
+  return `Day ${Number(day)} · block ${Number(block)} · ${task}`;
 }
 
 export const consoleApi = {
+  /** server version (shown in the title bar, so an old copy still running is easy to spot) */
+  health: () => apiCall<{ status: string; version: string }>("/health"),
   diagnostics: () => apiCall<DiagnosticsSnapshot>("/diagnostics"),
   recordings: () => apiCall<RecordingInfo[]>("/recordings"),
   /** excludeRaw: record everything except recording.frame (features, labels, markers, decoded output). */
@@ -603,7 +625,7 @@ export const consoleApi = {
   capabilities: () => apiCall<CapabilityInfo[]>("/capabilities"),
   source: (deviceId: string) => apiCall<SourceMetadata>(`/devices/${encodeURIComponent(deviceId)}/source`),
   datasets: () =>
-    apiCall<{ nwb_support: boolean; unavailable_reason: string | null; devices: string[]; problems: { file: string; error: string }[]; fetch_command: string }>(
+    apiCall<{ nwb_support: boolean; unavailable_reason: string | null; datasets_dir: string; devices: string[]; problems: { file: string; error: string }[]; fetch_command: string }>(
       "/datasets",
     ),
   playback: () => apiCall<PlaybackStatus>("/runtime/playback"),

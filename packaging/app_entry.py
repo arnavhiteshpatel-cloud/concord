@@ -3,7 +3,7 @@
 One executable, three roles:
 
 - ``Concord`` (double-click, or with ``--headless``): the desktop app (concord.desktop);
-- ``Concord doctor|status|stop|version|config|reproduce|dataset|serve ...``: the ``concord``
+- ``Concord doctor|status|stop|version|config|reproduce|dataset|serve|publish ...``: the ``concord``
   command, so a support report can be made from the bundle itself;
 - ``Concord -m concord_adapter_sdk.host ...`` / ``-m concord_decoder_sdk.host ...``: the
   source-plugin host and the isolated decoder host. Concord starts both as
@@ -18,7 +18,7 @@ import sys
 
 ALLOWED_MODULES = frozenset({"concord_adapter_sdk.host", "concord_decoder_sdk.host"})
 CLI_COMMANDS = frozenset(
-    {"doctor", "status", "stop", "start", "version", "config", "reproduce", "dataset", "serve"}
+    {"doctor", "status", "stop", "start", "version", "config", "reproduce", "dataset", "serve", "publish"}
 )
 
 

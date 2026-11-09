@@ -5,7 +5,9 @@ name: Release
 #
 #   Concord-macos-arm64.dmg       desktop app, macOS 14+ on Apple Silicon (unsigned)
 #   Concord-linux-x86_64.tar.gz   desktop bundle for Linux x86_64 (extract, run ./Concord/Concord)
-#   *.whl                         Python packages (concord with the console, the SDKs, concord-hwval)
+#   *.whl                         Python packages: concordos (with the console), the adapter and
+#                                 decoder SDKs, concord-hwval, and the BrainFlow, BCI2000 and
+#                                 certification plugins (none of these is on PyPI)
 #   SHA256SUMS.txt                checksums of every file above
 #
 # Every bundle is smoke-tested on its platform (the same checks as the CI package jobs) before
@@ -143,7 +145,8 @@ jobs:
           python -m pip install --upgrade pip
           # "./" makes each argument a local path: a bare name such as "backend" is a PyPI
           # requirement to pip and would fetch an unrelated package of that name
-          for p in ./backend ./packages/concord-adapter-sdk ./packages/concord-decoder-sdk ./packages/concord-hwval; do
+          for p in ./backend ./packages/concord-adapter-sdk ./packages/concord-decoder-sdk ./packages/concord-hwval \
+                   ./packages/concord-brainflow ./packages/concord-bci2000 ./packages/concord-certify; do
             python -m pip wheel --no-deps -w out "$p"
           done
           ls -l out
@@ -155,13 +158,16 @@ jobs:
           import os, pathlib, sys, zipfile
           v = os.environ["VERSION"]
           names = sorted(p.name for p in pathlib.Path("out").glob("*.whl"))
-          expected = [f"concordos-{v}-py3-none-any.whl", "concord_adapter_sdk-", "concord_decoder_sdk-", "concord_hwval-"]
-          ok = len(names) == 4 and all(any(n.startswith(e) for n in names) for e in expected)
+          expected = [f"concordos-{v}-py3-none-any.whl", "concord_adapter_sdk-", "concord_decoder_sdk-", "concord_hwval-",
+                      "concord_brainflow-", "concord_bci2000-", "concord_certify-"]
+          ok = len(names) == len(expected) and all(any(n.startswith(e) for n in names) for e in expected)
           if not ok:
               sys.exit(f"unexpected wheels: {names}")
           with zipfile.ZipFile(f"out/concordos-{v}-py3-none-any.whl") as z:
               if "concord/server/console/index.html" not in z.namelist():
                   sys.exit("the concordos wheel does not contain the console")
+              if "concord/compat/registry.json" not in z.namelist():
+                  sys.exit("the concordos wheel does not contain the compatibility registry")
           print("wheels:", names)
           PY
       - name: Clean-room check of the wheels (the CI distribution check)

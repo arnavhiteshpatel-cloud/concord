@@ -432,10 +432,30 @@ def parser() -> argparse.ArgumentParser:
     p = sub.add_parser("serve", help="run the server in the foreground (what `start` runs)")
     common(p)
     p.set_defaults(fn=cmd_serve)
+
+    p = sub.add_parser(
+        "publish",
+        help="test streams for rehearsing without hardware (LSL, Open Ephys); declared "
+        "synthetic or prerecorded. `concord publish --help` lists them",
+        add_help=False,
+    )
+    p.add_argument("publish_args", nargs=argparse.REMAINDER)
+    p.set_defaults(fn=cmd_publish)
     return ap
 
 
+def cmd_publish(args: argparse.Namespace) -> int:
+    """`concord publish …` = `python -m concord.testing.publish …`, also in the desktop app
+    (whose bundled program is not a Python interpreter), so app users can rehearse too."""
+    from concord.testing.publish import main as publish_main
+
+    return publish_main(list(args.publish_args))
+
+
 def main(argv: list[str] | None = None) -> int:
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if argv[:1] == ["publish"]:  # its own options (incl. --help) go to the publisher unparsed
+        return cmd_publish(argparse.Namespace(publish_args=argv[1:]))
     args = parser().parse_args(argv)
     code: int = args.fn(args)
     return code

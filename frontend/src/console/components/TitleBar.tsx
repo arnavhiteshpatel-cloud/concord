@@ -1,7 +1,9 @@
 // The graphite title bar: wordmark, research-use tag, source, status line and the
 // always-visible Stop control button.
 
+import { useEffect, useState } from "react";
 import type { ConnectionStatus, RuntimeSnapshot } from "../../sdk";
+import { consoleApi } from "../api";
 import { sourceKind, statusLine } from "../wording";
 import { Dot } from "./ui";
 
@@ -22,10 +24,29 @@ export function TitleBar({
   const status = statusLine(conn, runtime);
   const device = runtime && runtime.state !== "idle" ? runtime.device : null;
   const kind = sourceKind(device);
+  // the running server's version, read again whenever the connection (re)opens
+  const [version, setVersion] = useState<string | null>(null);
+  const open = conn === "open";
+  useEffect(() => {
+    if (!open) return;
+    let alive = true;
+    consoleApi
+      .health()
+      .then((h) => alive && setVersion(h.version))
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, [open]);
   return (
     <header className="titlebar">
       <div className="titlebar-left">
         <span className="wordmark">Concord</span>
+        {version && (
+          <span className="tb-version" title="The version of the Concord that serves this console" data-testid="version">
+            {version}
+          </span>
+        )}
         <span className="tag" title="Not a medical device. Read-only: Concord never writes to or stimulates a device.">
           Research use only
         </span>

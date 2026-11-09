@@ -40,6 +40,12 @@ def _load(name: str) -> ModuleType:
         (["-c", "print(1)"], "app", ["-c", "print(1)"]),
         (["doctor", "--json", "x.json"], "cli", ["doctor", "--json", "x.json"]),
         (["status"], "cli", ["status"]),
+        # 0.3.1: test streams for rehearsing without hardware, from the app's own program
+        (
+            ["publish", "lsl-ephys", "--channels", "8"],
+            "cli",
+            ["publish", "lsl-ephys", "--channels", "8"],
+        ),
         (["--version"], "cli", ["--version"]),
         ([], "app", []),
         (["--headless", "--port", "8010"], "app", ["--headless", "--port", "8010"]),
@@ -71,3 +77,16 @@ def test_packaged_console_is_preferred_outside_a_checkout(
     assert config.default_data_dir() == config.user_dir() / "data"
     (console / "index.html").unlink()
     assert config.default_static_dir() is None  # API only; never a wrong directory
+
+
+def test_publish_command_hands_its_arguments_to_the_test_publishers(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """`concord publish …` is `python -m concord.testing.publish …` (also inside the app)."""
+    from concord.cli import main
+
+    with pytest.raises(SystemExit) as exc:
+        main(["publish", "--help"])
+    assert exc.value.code == 0
+    out = capsys.readouterr().out
+    assert "lsl-ephys" in out and "openephys" in out and "falcon" in out

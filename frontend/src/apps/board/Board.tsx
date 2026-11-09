@@ -107,7 +107,11 @@ export function Board({ streamUrl, search }: { streamUrl?: string; search?: stri
         dispatch({ type: "negotiation", negotiation: n });
         usable();
       }),
-      stream.on("runtime", usable),
+      stream.on("runtime", (r) => {
+        usable();
+        const dev = r && r.state !== "idle" ? r.device : null;
+        dispatch({ type: "source", key: dev ? `${dev.device_id}|${r.session_id ?? ""}` : null });
+      }),
       stream.on("status", (s) => {
         setConn(s);
         usable();

@@ -388,7 +388,8 @@ async function main() {
 
     await step("13. tests section renders; board app stayed connected throughout", async () => {
       await open("adv-tests");
-      await page.getByTestId("tests-view").waitFor();
+      // results when this checkout has run its test suite; otherwise the "no results here" note
+      await page.locator('[data-testid="tests-view"], [data-testid="tests-none"]').first().waitFor();
       await open("adv-apps");
       await page.getByTestId("app-communication-board").waitFor({ timeout: 3000 });
       await expectText(board().getByTestId("board-conn"), /Connected/);

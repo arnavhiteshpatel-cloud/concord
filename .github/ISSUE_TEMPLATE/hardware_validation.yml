@@ -41,7 +41,7 @@ body:
     id: version
     attributes:
       label: Concord and concord-hwval versions
-      placeholder: "concordos 0.3.0, concord-hwval 0.1.0"
+      placeholder: "concordos 0.3.1, concord-hwval 0.1.0"
     validations:
       required: true
   - type: textarea
