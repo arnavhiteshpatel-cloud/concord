@@ -655,7 +655,7 @@ optionally, a [decoder](GLOSSARY.md#decoder) model. What decoders are and how th
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
 | **Processing** | Chooses how features are made from the source ([6.3](#63-processing-presets)) | Always | Preselected for the source. A one-paragraph description of the chosen preset appears below it. |
-| **Bin (ms)** | Length of one feature [bin](GLOSSARY.md#bin) | Spike-band, High-gamma, Band power | Leave empty for the default: 20 ms (spike-band) or 50 ms (high-gamma, band power). Must be a number above 0 and up to 1000. Another value is refused with a technical message such as *protocol_error: invalid processing spec: … bin_ms Input should be greater than 0 …*. |
+| **Bin (ms)** | Length of one feature [bin](GLOSSARY.md#bin) | Spike-band, High-gamma, Band power | Leave empty for the default: 20 ms (spike-band) or 50 ms (high-gamma, band power). Must be a number above 0 and up to 1000; another value is refused with *Bin (ms) must be above 0 and at most 1000*. |
 | **Threshold (× RMS)** | Spike detection threshold, in multiples of each channel's noise level ([RMS](GLOSSARY.md#rms)) | Spike-band only | Default −4.5 (negative: crossings below the noise). Allowed −20 to just below 0. |
 | **Band low (Hz)**, **Band high (Hz)** | The frequency band whose power is computed | Band power only | No default: fill both, or the panel says *band_power needs a low and a high band edge*. |
 | **Decoder model** | **None (features only)** or a model ([6.4](#64-decoder-models)) | Every preset except Source decoder outputs | Each model is marked *(compatible)* or *(incompatible)* with what this processing will produce. Models Concord refuses are greyed out. |

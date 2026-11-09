@@ -34,6 +34,8 @@ export function buildStartRequest(form: {
     v !== undefined && !Number.isFinite(v) ? `${name} must be a number` : null;
   const binMs = form.preset === "features_passthrough" ? undefined : optNum(form.binMs);
   const problems: (string | null)[] = [check("bin_ms", binMs)];
+  if (binMs !== undefined && Number.isFinite(binMs) && (binMs <= 0 || binMs > 1000))
+    problems.push("Bin (ms) must be above 0 and at most 1000");
   if (binMs !== undefined) processing.bin_ms = binMs;
   if (form.preset === "spikeband_threshold") {
     const k = optNum(form.thresholdK);

@@ -285,4 +285,11 @@ describe("decoder wording", () => {
     expect(buildStartRequest(form).request).not.toHaveProperty("allow_channel_mapping");
     expect(buildStartRequest({ ...form, modelId: "m" }).request).toMatchObject({ allow_channel_mapping: true });
   });
+
+  it("buildStartRequest refuses an out-of-range bin in plain words (no server validation dump)", () => {
+    const form = { preset: "band_power" as const, binMs: "0", thresholdK: "", bandLow: "8", bandHigh: "13", modelId: "", allowCrossSource: false };
+    expect(buildStartRequest(form)).toEqual({ request: null, problem: "Bin (ms) must be above 0 and at most 1000" });
+    expect(buildStartRequest({ ...form, binMs: "1001" }).problem).toBe("Bin (ms) must be above 0 and at most 1000");
+    expect(buildStartRequest({ ...form, binMs: "1000" }).request).toMatchObject({ processing: { bin_ms: 1000 } });
+  });
 });
