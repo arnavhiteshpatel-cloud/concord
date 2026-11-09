@@ -90,3 +90,43 @@ def test_every_quit_path_stops_safely(tmp_path: Path, how: str) -> None:
     assert (rec / "win.concord.jsonl").exists() and not (rec / "win.active.json").exists()
     with pytest.raises(httpx.HTTPError):
         httpx.get(base + "/api/v1/health", timeout=0.5)
+
+
+CLOSES = {
+    "close_button": lambda root: _find(root, "Close").invoke(),
+    "close_window": lambda root: root.tk.call(root.protocol("WM_DELETE_WINDOW")),
+    "mac_quit_command": lambda root: root.tk.call("::tk::mac::Quit"),
+    "sigterm_signal": lambda root: os.kill(os.getpid(), signal.SIGTERM),
+}
+
+
+@pytest.mark.parametrize("how", list(CLOSES))
+def test_other_copy_window_explains_and_offers_its_console(how: str) -> None:
+    """Another copy of Concord answers on the app's address: the window says so, with its
+    version and process ID, offers that copy's console, and every way to close it works."""
+    from concord.desktop import OTHER_COPY_TITLE, other_copy_message, show_other_copy
+    from concord.launcher import Instance
+
+    other = Instance(
+        pid=4242,
+        url="http://127.0.0.1:8000",
+        health={"status": "ok", "version": "0.3.0", "stream_protocol": "previous-name.stream/1"},
+        from_pid_file=False,
+    )
+    message = other_copy_message(other, ["data_dir", "stream_protocol"], Path("/x/data"))
+    stop = threading.Event()
+    opened: list[int] = []
+    timed_out: list[int] = []
+
+    def ready(root: Any) -> None:
+        assert _find(root, OTHER_COPY_TITLE) is not None
+        label = _find(root, message)
+        assert label is not None and "process ID 4242" in message and "0.3.0" in message
+        _find(root, "Open its console").invoke()
+        root.after(300, lambda: CLOSES[how](root))
+        root.after(15000, lambda: (timed_out.append(1), root.destroy()))
+
+    before = signal.getsignal(signal.SIGTERM)
+    show_other_copy(message, lambda: opened.append(1), stop, on_ready=ready)
+    assert opened == [1] and not timed_out
+    assert signal.getsignal(signal.SIGTERM) is before

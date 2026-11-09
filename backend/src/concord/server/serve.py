@@ -189,12 +189,18 @@ class StopWatcher:
 # --------------------------------------------------------------------------- running
 
 
-def prepare(settings: Settings) -> tuple[InstanceLock, str | None]:
-    """Everything that must hold before the server listens. Returns the lock and a warning."""
-    warning = check_bind(settings.host, settings.allow_remote)  # raises BindRefused
+def open_log(settings: Settings) -> None:
+    """Private files from here on (umask 0077), the data directory (0700) and logging to
+    stderr + ``<data>/logs/concord.log``."""
     os.umask(0o077)
     ensure_private_dir(settings.data_dir)
     configure_logging(settings.log_level, settings.log_file)
+
+
+def prepare(settings: Settings) -> tuple[InstanceLock, str | None]:
+    """Everything that must hold before the server listens. Returns the lock and a warning."""
+    warning = check_bind(settings.host, settings.allow_remote)  # raises BindRefused
+    open_log(settings)
     if warning:
         log.warning(warning)
     lock = acquire_instance(settings)

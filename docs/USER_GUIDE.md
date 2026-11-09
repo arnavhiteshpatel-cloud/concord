@@ -1837,9 +1837,9 @@ Installed with the Python package. The desktop app's own program answers the sam
 
 | Command | What it does | Main options |
 | --- | --- | --- |
-| `concord start` | Starts Concord in the background, waits until it answers, opens the console | `--port`, `--data-dir`, `--config`, `--no-browser`, `--foreground` (run here; Ctrl-C stops), `--host` with `--allow-remote`, `--log-level`, `--timeout` |
+| `concord start` | Starts Concord in the background, waits until it answers, opens the console. If another copy of Concord (another installation, version or data directory) already answers on the port, says what differs and exits with status 3 | `--port`, `--data-dir`, `--config`, `--no-browser`, `--foreground` (run here; Ctrl-C stops), `--host` with `--allow-remote`, `--log-level`, `--timeout` |
 | `concord stop` | Safe stop, then ends Concord; prints what it stopped | `--port`, `--timeout` |
-| `concord status` | Whether Concord runs, where, its version, the source and its state, recording, command output, research session, data folder | `--json` |
+| `concord status` | Whether Concord runs, where, its version, the source and its state, recording, command output, research session, data folder; says when the server it finds is another copy | `--json` |
 | `concord doctor` | Checks the installation and writes a support report (no neural or personal data) to the data folder's `support` folder | `--json FILE`, `--markdown FILE`, `--print json` or `markdown`, `--no-plugins` |
 | `concord version` | Versions of Concord and Python | `--json` (also lists packages) |
 | `concord config` | `path` (where the file is), `show` (settings in effect; the default), `init` (create the file), `template` (print a commented file) | `--config` |

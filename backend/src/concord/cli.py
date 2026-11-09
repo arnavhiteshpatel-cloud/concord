@@ -77,6 +77,49 @@ def _print_json(obj: Any) -> None:
     print(json.dumps(obj, indent=1, default=str))
 
 
+def _differences(inst: Any) -> list[str]:
+    from concord import launcher
+    from concord.contracts.protocol import STREAM_PROTOCOL
+
+    return launcher.differences(inst, version=__version__, stream_protocol=STREAM_PROTOCOL)
+
+
+def _other_copy(inst: Any, diffs: list[str], data_dir: Path) -> list[str]:
+    """A running server that is not this data directory's at this version: which, and how."""
+    from concord.contracts.protocol import STREAM_PROTOCOL
+
+    h = inst.health or {}
+    version = h.get("version") or "unknown"
+    notes = {
+        "data_dir": f"it does not use this data directory ({data_dir})",
+        "version": f"its version is {version}; this is {__version__}",
+        "stream_protocol": f"its stream protocol is {h.get('stream_protocol') or 'unknown'}; "
+        f"this version's is {STREAM_PROTOCOL}",
+    }
+    pid = inst.pid if inst.pid is not None else "unknown"
+    head = f"another copy of Concord is running at {inst.url} (version {version}, pid {pid})"
+    return [head, *(f"  - {notes[d]}" for d in diffs)]
+
+
+def _stop_hint(inst: Any, args: argparse.Namespace) -> str:
+    """How to stop the other copy; the flags keep `concord stop` on the same server."""
+    where = "where it runs (in its window, or Ctrl-C in its terminal)"
+    if inst.pid is None:  # `concord stop` needs the process id
+        return f"quit the other copy {where}"
+    import shlex
+
+    flags = "".join(
+        f" {flag} {shlex.quote(str(value))}"
+        for flag, value in (
+            ("--config", getattr(args, "config", None)),
+            ("--data-dir", getattr(args, "data_dir", None)),
+            ("--port", getattr(args, "port", None)),
+        )
+        if value is not None
+    )
+    return f"stop the other copy with `{command_hint('stop' + flags)}`, or quit it {where}"
+
+
 # --------------------------------------------------------------------------- commands
 
 
@@ -132,6 +175,16 @@ def cmd_start(args: argparse.Namespace) -> int:
     except launcher.LaunchError as exc:
         print(f"concord: {exc}", file=sys.stderr)
         return 1
+    diffs = _differences(inst)
+    if diffs:  # another installation, version or data directory answers at this URL
+        head, *notes = _other_copy(inst, diffs, s.data_dir)
+        print(f"concord: {head}", *notes, sep="\n", file=sys.stderr)
+        print(
+            f"Nothing was started. To start this one, {_stop_hint(inst, args)}, "
+            "then run this command again.",
+            file=sys.stderr,
+        )
+        return 3
     if warning:
         print(f"WARNING: {warning}", file=sys.stderr)
     print(f"Concord {inst.health.get('version') if inst.health else ''} is running: {inst.url}")
@@ -182,8 +235,10 @@ def cmd_status(args: argparse.Namespace) -> int:
         "data_dir": str(s.data_dir),
         "config": str(s.config_path) if s.config_path else None,
     }
+    diffs: list[str] = []
     if inst is not None and inst.health is not None:
         status["version"] = inst.health.get("version")
+        status["differences"] = diffs = _differences(inst)  # non-empty: another copy
         try:
             rt = launcher.http_json(inst.url + "/api/v1/runtime")
             sessions = launcher.http_json(inst.url + "/api/v1/sessions")
@@ -205,14 +260,22 @@ def cmd_status(args: argparse.Namespace) -> int:
         _print_json(status)
     elif status["running"]:
         r = status.get("runtime", {})
-        print(
-            f"Concord {status.get('version')} is running at {status['url']} (pid {status['pid']})"
-        )
+        if diffs:
+            head, *notes = _other_copy(inst, diffs, s.data_dir)
+            print(head[:1].upper() + head[1:], *notes, sep="\n")
+        else:
+            print(
+                f"Concord {status.get('version')} is running at {status['url']} "
+                f"(pid {status['pid']})"
+            )
         print(f"  source: {r.get('source') or 'none'} ({r.get('state')})")
         rec = r.get("recording") or "no"
         print(f"  recording: {rec} · command output: {status.get('command_output')}")
         print(f"  research session: {status.get('session') or 'none'}")
-        print(f"  data: {status['data_dir']}")
+        if "data_dir" not in diffs:
+            print(f"  data: {status['data_dir']}")
+        if diffs:
+            print(f"  to start this one instead: {_stop_hint(inst, args)}, then `concord start`")
     else:
         print(f"Concord is not running (would use {status['url']}, data {status['data_dir']}).")
     return 0 if status["running"] else 3

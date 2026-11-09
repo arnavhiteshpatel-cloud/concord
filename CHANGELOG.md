@@ -118,6 +118,14 @@ release fixes both. Nothing about how data is received, processed or decoded cha
 - Certification reports for the three bundled plugins were re-run on the renamed sources
   (same results and levels).
 
+**Desktop app: another running copy is explained.** If another copy of Concord already
+answers on the app's address (an older version, another installation, or one started from a
+terminal with its own data folder), the app no longer opens that copy's console without a
+word. A window says that another copy is running, with its version, process ID and what
+differs, and asks to quit it and open Concord again; without a window the same message goes
+to stderr and `concord.log` (exit status 3). A second launch while this data folder's own
+server runs still only opens its console ([TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)).
+
 ## 0.3.0 — Milestone 5 (research preview) — first downloadable release
 
 The first release with a desktop app download ([release notes](docs/releases/v0.3.0.md)).

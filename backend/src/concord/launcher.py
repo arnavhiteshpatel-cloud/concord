@@ -49,7 +49,8 @@ class Instance:
     pid: int | None
     url: str
     health: dict[str, Any] | None
-    from_pid_file: bool
+    from_pid_file: bool  # found through this data directory's instance lock
+    launched: bool = False  # start() launched it just now, for this data directory
 
 
 def http_json(url: str, method: str = "GET", body: Any = None, timeout: float = 3.0) -> Any:
@@ -92,6 +93,26 @@ def find(url: str, pid_file: Path) -> Instance | None:
     return None
 
 
+def differences(instance: Instance, *, version: str, stream_protocol: str) -> list[str]:
+    """How a running server differs from the one this installation would run here.
+
+    ``"data_dir"``: it does not hold this data directory's instance lock (found only by its
+    URL), so it is another installation, a build from before the lock, or a server started
+    with another data directory. ``"version"`` and ``"stream_protocol"``: its health report
+    names another version or stream protocol (or none). Empty: it is this data directory's
+    own server at this version.
+    """
+    h = instance.health or {}
+    out: list[str] = []
+    if not (instance.from_pid_file or instance.launched):
+        out.append("data_dir")
+    if h.get("version") != version:
+        out.append("version")
+    if h.get("stream_protocol") != stream_protocol:
+        out.append("stream_protocol")
+    return out
+
+
 def serve_command() -> list[str]:
     if frozen():  # the bundled program answers `serve` (packaging/app_entry.py)
         return [helper_executable(), "serve"]
@@ -124,7 +145,10 @@ def start(
     env: dict[str, str],
     timeout_s: float = START_TIMEOUT_S,
 ) -> Instance:
-    """Start ``concord serve`` in the background and wait until it is healthy."""
+    """Start ``concord serve`` in the background and wait until it is healthy.
+
+    A server that already answers is returned as found (``launched`` False), even one found
+    only by its URL; ``differences()`` tells whether it is this data directory's."""
     running = find(url, pid_file)
     if running is not None and running.health is not None:
         return running
@@ -158,7 +182,7 @@ def start(
             )
         h = health(url, timeout=1.0)
         if h is not None:
-            return Instance(pid=proc.pid, url=url, health=h, from_pid_file=False)
+            return Instance(pid=proc.pid, url=url, health=h, from_pid_file=False, launched=True)
         time.sleep(0.25)
     with contextlib.suppress(OSError):
         proc.terminate()

@@ -3,13 +3,16 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import os
 import shutil
 import signal
 import stat
+import threading
 import time
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Iterator, Sequence
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
 
@@ -106,12 +109,78 @@ def assert_mode(path: Path, mode: int) -> None:
         assert stat.S_IMODE(path.stat().st_mode) == mode, (path, oct(path.stat().st_mode))
 
 
+@contextlib.contextmanager
+def fake_health_server(port: int, health: dict[str, Any]) -> Iterator[list[str]]:
+    """Another program on 127.0.0.1:``port`` answering ``GET /api/v1/health`` with ``health``
+    (e.g. another copy of Concord: an older build or another installation); every other
+    request gets 404. Yields the list of request lines it received, as "METHOD path"."""
+    seen: list[str] = []
+
+    class Handler(BaseHTTPRequestHandler):
+        def _answer(self) -> None:
+            seen.append(f"{self.command} {self.path}")
+            if self.command != "GET" or self.path != "/api/v1/health":
+                self.send_error(404)
+                return
+            body = json.dumps(health).encode()
+            self.send_response(200)
+            self.send_header("content-type", "application/json")
+            self.send_header("content-length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        do_GET = do_POST = _answer
+
+        def log_message(self, format: str, *args: Any) -> None:
+            pass
+
+    server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+    thread = threading.Thread(target=server.serve_forever, name="fake-health", daemon=True)
+    thread.start()
+    try:
+        yield seen
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(5)
+
+
 async def wait_for(cond: Callable[[], bool], timeout: float = 3.0, interval: float = 0.01) -> None:
     deadline = time.monotonic() + timeout
     while not cond():
         if time.monotonic() > deadline:
             raise AssertionError("condition not met within timeout")
         await asyncio.sleep(interval)
+
+
+@contextlib.contextmanager
+def fake_concord_at(port: int, health: dict[str, Any]) -> Iterator[str]:
+    """A stand-in for another copy of Concord on ``port``: it answers ``GET /api/v1/health``
+    with ``health`` and 404 to everything else. Yields its base URL."""
+    body = json.dumps(health).encode()
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self) -> None:
+            found = self.path == "/api/v1/health"
+            payload = body if found else b'{"detail": "Not Found"}'
+            self.send_response(200 if found else 404)
+            self.send_header("content-type", "application/json")
+            self.send_header("content-length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+
+        def log_message(self, *args: Any) -> None:  # quiet test output
+            pass
+
+    server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+    thread = threading.Thread(target=server.serve_forever, name="fake-concord", daemon=True)
+    thread.start()
+    try:
+        yield f"http://127.0.0.1:{port}"
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(5)
 
 
 def drain(sub: Subscriber) -> list[dict[str, Any]]:

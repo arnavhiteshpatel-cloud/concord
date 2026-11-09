@@ -17,6 +17,8 @@ the same executable on macOS and Linux, ``Concord\\concord-cli.exe`` on Windows 
    the recording was closed cleanly (with private permissions, on POSIX).
 3. Crash recovery: kill mid-recording (SIGKILL / TerminateProcess), relaunch, the recording
    is kept and marked incomplete.
+3a. Another copy answering on the app's address (e.g. an older build still running): the app
+   does not start, says so in its log and exits 3; it only asks that copy for its health.
 4. ``start`` / ``status`` / ``stop`` from the command program: the background server.
 5. ``--window``: the Tk status window opens, and the same quit stops everything cleanly.
 6. ``--gui`` (macOS): ``open`` the .app like a double-click, then quit it with an Apple Event
@@ -37,10 +39,12 @@ import stat
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import urllib.error
 import urllib.request
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, ParamSpec
 
@@ -398,6 +402,72 @@ def check_cli_server(cli: Path, work: Path) -> str:
     return f"pid {status['pid']} started in the background; {said.splitlines()[-1]}"
 
 
+@contextlib.contextmanager
+def other_copy(port: int) -> Iterator[list[str]]:
+    """Another copy of Concord on ``port`` (as an older build still running would be): it
+    answers ``/api/v1/health`` with another version and stream protocol, and records every
+    request line it receives."""
+    health = {
+        "status": "ok",
+        "version": "0.0.0-smoke",
+        "schema_version": "1.0",
+        "stream_protocol": "other.stream/1",
+        "simulation_enabled": True,
+        "read_only": True,
+        "pid": os.getpid(),
+    }
+    seen: list[str] = []
+
+    class Handler(BaseHTTPRequestHandler):
+        def _answer(self) -> None:
+            seen.append(f"{self.command} {self.path}")
+            if self.command != "GET" or self.path != "/api/v1/health":
+                self.send_error(404)
+                return
+            body = json.dumps(health).encode()
+            self.send_response(200)
+            self.send_header("content-type", "application/json")
+            self.send_header("content-length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        do_GET = do_POST = _answer
+
+        def log_message(self, format: str, *args: Any) -> None:
+            pass
+
+    server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        yield seen
+    finally:
+        server.shutdown()
+        server.server_close()
+
+
+@step("another copy on the app's address is reported, not silently opened")
+def check_other_copy(exe: Path, work: Path) -> str:
+    data, port = work / "data-other-copy", free_port()
+    with other_copy(port) as seen:
+        proc = launch(exe, data, port)
+        try:
+            code = proc.wait(180)
+        finally:
+            if proc.poll() is None:
+                proc.kill()
+    assert code == 3, f"exit code {code} (expected 3: another copy is running)"
+    log = data / "logs" / "concord.log"
+    assert log.exists() and "another copy of Concord answers at" in log.read_text(), (
+        "not reported in the app's log"
+    )
+    assert not (data / "concord.pid").exists(), "the app took its instance lock"
+    assert seen and set(seen) == {"GET /api/v1/health"}, f"sent to the other copy: {seen}"
+    stderr = (work / f"launch-{port}.log").read_text(errors="replace")
+    shown = "and stderr" if "Another copy of Concord is running" in stderr else "(no stderr)"
+    return f"exit 3; reported in concord.log {shown}; only its health was requested"
+
+
 @step("window mode (Tk status window), quit reaches the window's event loop")
 def check_window(exe: Path, cli: Path, work: Path) -> str:
     data, port = work / "data-window", free_port()
@@ -526,6 +596,7 @@ def main(argv: list[str] | None = None) -> int:
         lambda: check_headless(exe, cli, work),
         lambda: check_crash(exe, cli, work),
         lambda: check_cli_server(cli, work),
+        lambda: check_other_copy(exe, work),
     ]
     if args.window:
         checks.append(lambda: check_window(exe, cli, work))

@@ -140,7 +140,8 @@ A small window titled **Concord** opens, with your browser behind it:
 > Open `http://127.0.0.1:8000` in your browser yourself. To quit, press **Ctrl-C** in that
 > terminal.
 
-> **Another copy already running?** You see this when the terminal says `Concord is already
+> **Another copy already running?** You see this when a window says *Another copy of Concord is
+> running* (with that copy's version and process ID), when the terminal says `Concord is already
 > running at http://127.0.0.1:8000`, when no small window appears on a Mac or Windows, or when the
 > console's version (top left, next to **Concord**) is not **0.3.1**. You are then looking at the
 > other copy, an older version or one started differently, with its own data folder.

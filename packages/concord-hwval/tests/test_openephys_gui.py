@@ -12,9 +12,11 @@ The File Reader is file playback, not hardware: these runs are software-level ev
 
 from __future__ import annotations
 
+import json
 import os
 import threading
 import time
+import warnings
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
@@ -32,6 +34,7 @@ from concord_hwval.oe_ref import find_recordings, load_oe_recording
 pytestmark = pytest.mark.reference_software
 EXAMPLES = os.environ.get("HWVAL_EXAMPLES_DIR")
 OPTS = OEOptions(thresholds=Thresholds(min_overlap_s=2.0))  # the GUI's sample file is 5 s long
+RECORD_NODE_TIMEOUT_S = 15.0  # for the Record Node to finish its files after IDLE
 
 
 class GUIs:
@@ -113,9 +116,60 @@ def _record_with(
     gui.set_status("IDLE")
     if "error" in out:
         raise out["error"]
+    _wait_for_record_node(root / "ref")
     recs = find_recordings(root / "ref")
     assert len(recs) == 1, recs
     return recs[0], out["paths"][0]
+
+
+def _wait_for_record_node(record_dir: Path, timeout: float = RECORD_NODE_TIMEOUT_S) -> None:
+    """Wait until the Record Node has finished writing under ``record_dir``.
+
+    IDLE stops acquisition, but GUI 1.1.0's record thread then drains its queue and closes the
+    files on its own (``stopAcquisition`` waits for it at most 1 s). Its .npy writers record
+    the entry count in the header only every 32,768 entries and when closed, after
+    continuous.dat. Stopping the GUI (SIGTERM) before that leaves continuous.dat with more rows
+    than sample_numbers.npy / timestamps.npy, which REF-FILE correctly reports as a failure.
+    Done once every stream is consistent and no file changed between two polls. After
+    ``timeout`` the files are compared as they are.
+    """
+    deadline = time.monotonic() + timeout
+    previous: tuple[tuple[str, int, int], ...] | None = None
+    while time.monotonic() < deadline:
+        current = _finished_files(record_dir)
+        if current is not None and current == previous:
+            return
+        previous = current
+        time.sleep(0.25)
+    warnings.warn(
+        f"Record Node files under {record_dir} not consistent and unchanged after {timeout} s; "
+        "comparing them as they are",
+        stacklevel=2,
+    )
+
+
+def _finished_files(record_dir: Path) -> tuple[tuple[str, int, int], ...] | None:
+    """(path, size, mtime) of every file under ``record_dir`` if each recording's continuous
+    streams have one sample_numbers.npy and timestamps.npy entry per continuous.dat row;
+    None while any recording is missing, incomplete or unreadable."""
+    oebins = sorted(record_dir.rglob("structure.oebin"))
+    if not oebins:
+        return None
+    try:
+        for oebin in oebins:
+            for info in json.loads(oebin.read_text(encoding="utf-8"))["continuous"]:
+                d = oebin.parent / "continuous" / str(info["folder_name"])
+                width = 2 * max(int(info["num_channels"]), 1)
+                rows, partial = divmod((d / "continuous.dat").stat().st_size, width)
+                if partial:
+                    return None
+                for name in ("sample_numbers.npy", "timestamps.npy"):
+                    if len(np.load(d / name, mmap_mode="r")) != rows:
+                        return None
+        stats = [(p, p.stat()) for p in sorted(record_dir.rglob("*")) if p.is_file()]
+        return tuple((str(p), s.st_size, s.st_mtime_ns) for p, s in stats)
+    except (OSError, ValueError, EOFError, KeyError, TypeError):  # still being written
+        return None
 
 
 @pytest.fixture(scope="module")

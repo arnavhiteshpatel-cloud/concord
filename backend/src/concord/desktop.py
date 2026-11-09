@@ -6,8 +6,16 @@ event loop. Quitting performs a safe stop (command output off, recording closed,
 disconnected) and then a graceful server shutdown, so recordings are closed properly.
 
 Without a window toolkit, or with ``--headless``, it runs until SIGTERM/SIGINT with the same
-clean shutdown. Inside the bundle the same executable also answers ``concord`` commands
-(``Concord doctor``, ``Concord status`` …) and serves as the source-plugin host.
+clean shutdown.
+
+Single instance: a second launch while this data directory's server (same version) runs only
+opens its console. If another copy of Concord answers on the address instead (another
+installation, an older build, or one with another data directory), the app does not start and
+says so: in a window if it can show one, and always on stderr and in ``<data>/logs/concord.log``
+(exit status ``OTHER_COPY_EXIT``).
+
+Inside the bundle the same executable also answers ``concord`` commands (``Concord doctor``,
+``Concord status`` …) and serves as the source-plugin host.
 
 Windows (Concord.exe): the same window; ``concord stop`` (``concord-cli.exe stop``) reaches
 the app through a stop request in the data folder (Windows has no SIGTERM to catch), and
@@ -24,17 +32,27 @@ import signal
 import sys
 import threading
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from concord import __version__
+from concord.config import command_hint
+
+if TYPE_CHECKING:
+    from concord.launcher import Instance
+    from concord.server.settings import Settings
 
 log = logging.getLogger(__name__)
 
 READY_TIMEOUT_S = 90.0
 STOP_TIMEOUT_S = 30.0
+# Another copy of Concord answers on this app's address (and is not this build's server for
+# this data directory), so this launch did not start; the same status as `concord serve` when
+# another server holds its data directory.
+OTHER_COPY_EXIT = 3
+OTHER_COPY_TITLE = "Another copy of Concord is running"
 
 
 class WindowUnavailable(Exception):
@@ -106,17 +124,11 @@ def run_headless(srv: ServerThread, url: str, stop_event: threading.Event) -> in
     return 1
 
 
-def run_window(
-    srv: ServerThread,
-    url: str,
-    stop_event: threading.Event,
-    open_console: Callable[[], None],
-    on_ready: Callable[[Any], None] | None = None,
-) -> int:
-    """A small Tk status window. Closing it, Cmd-Q or the Dock's Quit stop Concord.
+@contextlib.contextmanager
+def tk_root(stop_event: threading.Event) -> Iterator[Any]:
+    """A Tk root window titled Concord; SIGTERM / SIGINT set ``stop_event`` while it is open.
 
-    Raises ``WindowUnavailable`` if no window can be created (the caller runs headless).
-    ``on_ready(root)`` is called before the event loop starts (tests drive the window)."""
+    Raises ``WindowUnavailable`` if no window can be created."""
     import tkinter as tk
 
     try:
@@ -129,12 +141,44 @@ def run_window(
     previous = {sig: signal.getsignal(sig) for sig in quit_signals()}
     for sig in previous:
         signal.signal(sig, lambda *_: stop_event.set())
-    root.title("Concord")
-    root.resizable(False, False)
-    icon = window_icon()
-    if icon is not None:
-        with contextlib.suppress(tk.TclError):
-            root.iconbitmap(default=str(icon))  # type: ignore[no-untyped-call]
+    try:
+        root.title("Concord")
+        root.resizable(False, False)
+        icon = window_icon()
+        if icon is not None:
+            with contextlib.suppress(tk.TclError):
+                root.iconbitmap(default=str(icon))  # type: ignore[no-untyped-call]
+        yield root
+    finally:
+        for sig, handler in previous.items():
+            signal.signal(sig, handler)
+
+
+def run_window(
+    srv: ServerThread,
+    url: str,
+    stop_event: threading.Event,
+    open_console: Callable[[], None],
+    on_ready: Callable[[Any], None] | None = None,
+) -> int:
+    """A small Tk status window. Closing it, Cmd-Q or the Dock's Quit stop Concord.
+
+    Raises ``WindowUnavailable`` if no window can be created (the caller runs headless).
+    ``on_ready(root)`` is called before the event loop starts (tests drive the window)."""
+    with tk_root(stop_event) as root:
+        return _status_window(root, srv, url, stop_event, open_console, on_ready)
+
+
+def _status_window(
+    root: Any,
+    srv: ServerThread,
+    url: str,
+    stop_event: threading.Event,
+    open_console: Callable[[], None],
+    on_ready: Callable[[Any], None] | None,
+) -> int:
+    import tkinter as tk
+
     frame = tk.Frame(root, padx=18, pady=14)
     frame.pack()
     tk.Label(frame, text="Concord is running", font=("TkDefaultFont", 14, "bold")).pack(anchor="w")
@@ -182,11 +226,7 @@ def run_window(
     root.after(200, poll)
     if on_ready is not None:
         on_ready(root)
-    try:
-        root.mainloop()
-    finally:
-        for sig, handler in previous.items():
-            signal.signal(sig, handler)
+    root.mainloop()
     return result["code"]
 
 
@@ -208,6 +248,120 @@ def quit_signals() -> tuple[signal.Signals, ...]:
     if brk is not None:
         sigs.append(brk)
     return tuple(sigs)
+
+
+def other_copy_message(other: Instance, diffs: list[str], data_dir: Path) -> str:
+    """Why this launch did not start: another copy of Concord answers on this app's address.
+
+    ``diffs`` comes from ``concord.launcher.differences``."""
+    from concord.contracts.protocol import STREAM_PROTOCOL
+
+    h = other.health or {}
+
+    def shown(value: object) -> str:
+        return str(value) if value not in (None, "") else "unknown"
+
+    reasons = {
+        "data_dir": f"does not use this app's data folder ({data_dir})",
+        "version": f"is version {shown(h.get('version'))} (this app: {__version__})",
+        "stream_protocol": (
+            f"uses stream protocol {shown(h.get('stream_protocol'))} (this app: {STREAM_PROTOCOL})"
+        ),
+    }
+    return "\n".join(
+        [
+            f"Another copy (Concord version {shown(h.get('version'))}, process ID "
+            f"{shown(other.pid)}) is already running at {other.url}, so this Concord "
+            f"{__version__} did not start. That copy:",
+            *(f"• {reasons[d]}" for d in diffs),
+            "Its console shows that copy's version and data, not this app's.",
+            "",
+            "Quit the other copy (Stop and quit in its window, Ctrl-C in its terminal, or the "
+            f"command {command_hint('stop')}), then open Concord again.",
+        ]
+    )
+
+
+def show_other_copy(
+    message: str,
+    open_console: Callable[[], None],
+    stop_event: threading.Event,
+    on_ready: Callable[[Any], None] | None = None,
+) -> None:
+    """A Tk window with ``message`` (see ``other_copy_message``) until the user closes it.
+
+    Raises ``WindowUnavailable`` if no window can be created (the caller prints the message).
+    ``on_ready(root)`` is called before the event loop starts (tests drive the window)."""
+    import tkinter as tk
+
+    with tk_root(stop_event) as root:
+        frame = tk.Frame(root, padx=18, pady=14)
+        frame.pack()
+        tk.Label(frame, text=OTHER_COPY_TITLE, font=("TkDefaultFont", 14, "bold")).pack(anchor="w")
+        tk.Label(frame, text=message, justify="left", wraplength=480).pack(anchor="w", pady=(6, 0))
+        buttons = tk.Frame(frame, pady=10)
+        buttons.pack(anchor="w")
+        tk.Button(buttons, text="Open its console", command=open_console).pack(side="left")
+        tk.Button(buttons, text="Close", command=root.destroy).pack(side="left", padx=(8, 0))
+        root.protocol("WM_DELETE_WINDOW", root.destroy)
+        with contextlib.suppress(tk.TclError):  # macOS application menu / Dock / Cmd-Q
+            root.createcommand("::tk::mac::Quit", root.destroy)
+
+        def poll() -> None:
+            if stop_event.is_set():
+                root.destroy()
+                return
+            root.after(200, poll)
+
+        root.after(200, poll)
+        if on_ready is not None:
+            on_ready(root)
+        root.mainloop()
+
+
+def report_other_copy(
+    other: Instance, diffs: list[str], settings: Settings, *, window: bool, browser: bool
+) -> int:
+    """Tell the user that another copy answers on this app's address (in a window if one can be
+    shown; always on stderr and in ``<data>/logs/concord.log``). Returns ``OTHER_COPY_EXIT``.
+
+    Without a window, that copy's console is opened (``browser``) as before; the window offers
+    it as a button instead, so the explanation is seen first."""
+    from concord.launcher import open_browser
+    from concord.server.serve import open_log
+
+    message = other_copy_message(other, diffs, settings.data_dir)
+    try:
+        open_log(settings)
+    except OSError as exc:  # an unwritable data folder: stderr only
+        from concord.security import configure_logging
+
+        configure_logging(settings.log_level, None)
+        log.warning("cannot write the log in %s (%s)", settings.data_dir, exc)
+    h = other.health or {}
+    log.warning(
+        "another copy of Concord answers at %s (version %s, pid %s; differs: %s); "
+        "Concord %s did not start",
+        other.url,
+        h.get("version"),
+        other.pid,
+        ", ".join(diffs),
+        __version__,
+    )
+    print(f"Concord: {OTHER_COPY_TITLE}.\n{message}", file=sys.stderr, flush=True)
+
+    def show_console() -> None:
+        open_browser(other.url)
+
+    if window:
+        try:
+            show_other_copy(message, show_console, threading.Event())
+            return OTHER_COPY_EXIT
+        except WindowUnavailable as exc:
+            log.warning("no window could be created (%s)", exc)
+    if browser:
+        show_console()
+    return OTHER_COPY_EXIT
 
 
 def has_window_toolkit() -> bool:
@@ -238,8 +392,9 @@ def parse(argv: list[str]) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     args = parse(list(sys.argv[1:] if argv is None else argv))
     from concord.cli import _apply_overrides
-    from concord.config import ConfigError, command_hint
-    from concord.launcher import find, open_browser
+    from concord.config import ConfigError
+    from concord.contracts.protocol import STREAM_PROTOCOL
+    from concord.launcher import differences, find, open_browser
     from concord.security import BindRefused
     from concord.server.serve import AlreadyRunning, StopWatcher, prepare
     from concord.server.settings import Settings
@@ -253,7 +408,16 @@ def main(argv: list[str] | None = None) -> int:
     url = settings.url
     existing = find(url, settings.pid_file)
     if existing is not None and existing.health is not None:
-        # single instance: a second launch just shows the running console
+        diffs = differences(existing, version=__version__, stream_protocol=STREAM_PROTOCOL)
+        if diffs:  # another installation, an older build, or another data directory
+            return report_other_copy(
+                existing,
+                diffs,
+                settings,
+                window=not args.headless and has_window_toolkit(),
+                browser=settings.open_browser and not args.no_browser,
+            )
+        # single instance: a second launch just shows this data directory's running console
         print(f"Concord is already running at {existing.url}")
         if settings.open_browser and not args.no_browser:
             open_browser(existing.url)
