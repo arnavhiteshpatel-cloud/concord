@@ -234,7 +234,7 @@ export function StoredData({ onChanged }: { onChanged: () => void }) {
       )}
       <p className="hint">
         Deleting removes the files from the data directory. It does not erase copies elsewhere: exports you shared, backups
-        or snapshots (docs/SECURITY.md).
+        or snapshots.
       </p>
     </div>
   );

@@ -74,7 +74,8 @@ export function RecordingPanel({
       </div>
       {action.error && <p className="error-text">{action.error}</p>}
       <p className="hint">
-        Writes the standardized events of the connected session to <code>data/recordings/</code>, including pipeline
+        Writes the standardized events of the connected session to the <code>recordings</code> folder of the data
+        directory (see Stored data), including pipeline
         features and decoder output while decoding runs. Recordings appear as replay sources and can be used for
         calibration. With a raw high-rate source, record features and labels only: raw frames reach the size cap in
         seconds. Local file replays cannot be recorded.

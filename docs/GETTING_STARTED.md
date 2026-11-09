@@ -16,7 +16,8 @@ the top.
 > See [what has been validated](VALIDATION_LEVELS.md).
 
 **New to the ideas?** Read [How Concord works](CONCEPTS.md) first (10 minutes). It explains
-sources, data kinds, capabilities, decoders and command output in plain language.
+sources, data kinds, capabilities, decoders and command output in plain language. Look up any
+unfamiliar word in the [glossary](GLOSSARY.md).
 
 | Part | What you do | Time | Terminal needed? |
 | --- | --- | --- | --- |
@@ -26,7 +27,7 @@ sources, data kinds, capabilities, decoders and command output in plain language
 | [4. Replay a real human recording](#4-replay-a-real-human-recording-falcon-h1) | Replay intracortical recordings | 10 min | No |
 | [5. Let a recorded decoder drive the board](#5-let-a-recorded-decoder-drive-the-board-t15-cursor--click) | Cursor and clicks from a recording | 15 min | No (needs a free Dryad account) |
 | [6. Human ECoG](#6-human-ecog-ajile12-optional) (optional) | Replay a cortical-surface recording | 5 min | Yes, one command |
-| [7. A research session: record and export](#7-a-research-session-record-and-export) | Keep a reproducible record | 10 min | No |
+| [7. A research session: record and export](#7-a-research-session-record-and-export) | Keep a reproducible record | 10 min | No (one optional command) |
 | [8. Stored data, support report and quitting](#8-stored-data-support-report-and-quitting) | Tidy up and quit | 5 min | No |
 | [9. Where to go next](#9-where-to-go-next) | Your own equipment, every button | | |
 
@@ -34,7 +35,8 @@ sources, data kinds, capabilities, decoders and command output in plain language
 - a Mac with Apple Silicon (M1 or later) and macOS 14 or later, or a Linux PC (x86_64, e.g.
   Ubuntu 22.04 or later);
 - a current web browser (Chrome, Firefox, Safari or Edge);
-- about 300 MB of free disk space for the demo recordings.
+- about 700 MB of free disk space: Concord itself takes about 350 MB, the demo recordings about
+  300 MB.
 
 Windows is not supported yet.
 
@@ -65,20 +67,20 @@ Intel Macs and macOS 13 or older: use the Python installation in [INSTALL_MAC.md
 
 ### On Linux
 
-1. Download **[Concord-linux-x86_64.tar.gz](https://github.com/arnavhiteshpatel-cloud/concord/releases/latest/download/Concord-linux-x86_64.tar.gz)**.
-2. Extract it (right-click → *Extract Here* in most file managers). This creates a folder named
-   `Concord`.
-3. Start it:
-   - by double-clicking `Concord/Concord`. If nothing happens (many file managers do not start
-     programs this way), use the terminal:
-   - in a terminal, from the folder that *contains* the `Concord` folder, run:
+1. Download **[Concord-linux-x86_64.tar.gz](https://github.com/arnavhiteshpatel-cloud/concord/releases/latest/download/Concord-linux-x86_64.tar.gz)**
+   into your **Downloads** folder.
+2. Extract it there (right-click → *Extract Here* in most file managers). This creates a folder
+   named `Concord` inside **Downloads**.
+3. Start it. Double-click `Concord/Concord`. If nothing happens (many file managers do not start
+   programs this way), open a terminal and run these two commands. The first goes to the folder
+   where you extracted Concord; the second starts it:
 
-     ```bash
-     ./Concord/Concord
-     ```
+   ```bash
+   cd ~/Downloads
+   ./Concord/Concord
+   ```
 
-   If you started it from a terminal, keep that terminal open while you use Concord. Next time,
-   start it the same way.
+   Keep that terminal open while you use Concord. Next time, start it the same way.
 
 ### What you should see
 
@@ -103,19 +105,38 @@ A small window titled **Concord** opens, with your browser behind it:
 - `127.0.0.1` means "this computer". Concord runs entirely on your machine and sends nothing to
   the internet.
 
+> **No small window on Linux, and the terminal says `running headless`?** Concord is running
+> anyway; only its small window could not be shown (for example over a remote connection).
+> Open `http://127.0.0.1:8000` in your browser yourself. To quit, press **Ctrl-C** in that
+> terminal.
+
 > **No small window, or the console looks different from this guide?** Another copy of Concord
 > is probably already running: an older version, or one started from a terminal (`make run`,
 > `concord start`). The new app then only opens that copy's console, which uses that copy's
 > data folder.
 >
-> **Check:** the top-left of the console shows **Concord** and its version number (for example
-> **0.3.1**).
+> **Check:** the top-left of the console shows **Concord** and its version. It must match the
+> version on the Releases page you downloaded from (this guide was written for **0.3.1**). An
+> older number means you are looking at another copy.
 >
 > **Fix:**
 > 1. Quit the other copy: its window → **Stop and quit**, or Ctrl-C in its terminal.
 > 2. If you can't find it, see which program holds the console's address. On a Mac, run
 >    `lsof -nP -iTCP:8000 -sTCP:LISTEN` in Terminal. On Linux, run `ss -ltnp 'sport = :8000'`.
 > 3. Open Concord again.
+
+### Commands in this guide
+
+You need no commands for most of this guide. The few optional ones are typed in a terminal
+(Mac: the **Terminal** app), always the same way:
+
+- **Mac:** `/Applications/Concord.app/Contents/MacOS/Concord` followed by the command, for
+  example `/Applications/Concord.app/Contents/MacOS/Concord dataset ajile12`.
+- **Linux:** first `cd ~/Downloads`, then `./Concord/Concord` followed by the command, for
+  example `./Concord/Concord dataset ajile12`.
+
+Each command in this guide is written out for both. (If you installed Concord with Python
+instead, as in [INSTALL_MAC.md](INSTALL_MAC.md), type `concord` followed by the command.)
 
 ---
 
@@ -162,7 +183,8 @@ participant and choose words on the communication board yourself.
    ![The Connect a source panel on a fresh installation](images/02-connect-a-source.png)
 
    *Recorded human data* says "No recorded datasets yet" until you add recordings in
-   section 4. That is expected.
+   section 4. That is expected. The *Live streams* and *Plugins* parts are for your own
+   equipment; you don't need them in this guide (see section 9).
 2. Under **Simulated profiles**, click **Connect** next to **Simulated Profile A** (32 channels at
    1,000 Hz, with a simulated pointer and click).
 
@@ -189,6 +211,9 @@ to the console and make it large enough to see every tile. If nothing opens, you
 blocked the pop-up: allow pop-ups for `127.0.0.1:8000`.
 
 ![The communication board](images/05-participant-screen.png)
+
+*(The picture shows the board after one word was chosen in 3.3; yours starts with an empty
+message bar.)*
 
 What is on the board:
 - **Header:** *Communication board*, *Research use only*, the input method in use (here
@@ -260,8 +285,9 @@ Concord can replay public recordings from people with implanted electrodes:
   dataset, and refuses a file that does not match.
 
 **FALCON H1** (about 9 MB, no account needed): two recording blocks from one participant with
-two 96-channel arrays in motor cortex. They contain spike counts in 176 channels every 20 ms,
-plus the cued reach-and-grasp movements the participant attempted.
+two 96-channel arrays in motor cortex. They contain spike counts in 176 channels every 20 ms
+(the dataset provides 176 of the 192 electrodes; it does not list which were left out), plus
+the cued reach-and-grasp movements the participant attempted.
 ([Dataset page on DANDI](https://dandiarchive.org/dandiset/000954/draft), license CC-BY-4.0.)
 
 > **Downloading means agreeing to the dataset's Data Use Agreement** (on the DANDI page): no
@@ -270,8 +296,8 @@ plus the cued reach-and-grasp movements the participant attempted.
 ### 4.1 Download the two files
 
 Click each link; your browser downloads one file directly from the DANDI archive:
-- [sub-HumanPitt-held-in-calib_ses-19250108T110520.nwb](https://api.dandiarchive.org/api/assets/e40a2eca-883d-4c80-81e3-4203a49506b5/download/) (5.5 MB)
-- [sub-HumanPitt-held-in-calib_ses-19250108T111022.nwb](https://api.dandiarchive.org/api/assets/98f1e471-ad68-4006-b090-9a3e347852e6/download/) (3.2 MB)
+- [sub-HumanPitt-held-in-calib_ses-19250108T110520.nwb](https://api.dandiarchive.org/api/assets/e40a2eca-883d-4c80-81e3-4203a49506b5/download/) (5.8 MB)
+- [sub-HumanPitt-held-in-calib_ses-19250108T111022.nwb](https://api.dandiarchive.org/api/assets/98f1e471-ad68-4006-b090-9a3e347852e6/download/) (3.3 MB)
 
 If your browser saves a second copy with a name like `… (1).nwb`, delete the extra copy.
 
@@ -280,9 +306,12 @@ If your browser saves a second copy with a name like `… (1).nwb`, delete the e
 Concord keeps everything in one **data folder**. Recordings you download go in a folder named
 `datasets` inside it.
 
-1. **Find the data folder:** in the console, scroll to the bottom, open **Advanced → Stored
-   data**. The first line, **Data directory**, shows the folder this Concord uses. It is
-   normally:
+1. **Find the folder.** The quickest way: click **Connect a source**. Under *Recorded human
+   data*, Concord shows the exact folder to put recordings in: *Put downloaded dataset files in
+   …/data/datasets …*. Select and copy that path, then close the panel.
+
+   The same data folder is also the first line (**Data directory**) of **Advanced → Stored
+   data**, at the bottom of the console. It is normally:
 
    | You installed | Data folder |
    | --- | --- |
@@ -294,18 +323,19 @@ Concord keeps everything in one **data folder**. Recordings you download go in a
    (`~` is your home folder.) If **Stored data** shows a different folder, or this folder does not
    exist, another copy of Concord is running: see the note at the end of section 1.
 2. **Open it:**
-   - **Mac:** in Finder choose **Go → Go to Folder…**, paste the folder, press Return.
-   - **Linux:** in your file manager press Ctrl+L, paste the folder, press Enter. The folder
-     starts with a dot (`.local`), which makes it hidden; typing the path opens it anyway.
+   - **Mac:** in Finder choose **Go → Go to Folder…**, paste the path, press Return.
+   - **Linux:** in your file manager press Ctrl+L, paste the path, press Enter. The path
+     contains `.local`; a name starting with a dot is hidden, but typing the path opens it anyway.
 
-   On a new installation it contains only `logs` and `concord.pid`; leave those alone.
-3. **Create a folder named `datasets`** there (if it is not there yet) and **move both `.nwb`
-   files into it**.
+   On a new installation the `datasets` folder does not exist yet, so this fails. Then paste the
+   path without its last part, `/datasets` (that is the data folder; it contains only `logs` and
+   `concord.pid`, leave those alone), and create a folder named `datasets` in it.
+3. **Move both `.nwb` files into `datasets`.**
 
-> **With a terminal instead:** one command downloads, verifies and places both files:
-> - Mac app: `/Applications/Concord.app/Contents/MacOS/Concord dataset`
-> - Linux bundle: `./Concord/Concord dataset`
-> - Python install: `concord dataset`
+> **With a terminal instead:** one command downloads, verifies and places both files
+> (see [Commands in this guide](#commands-in-this-guide)):
+> - Mac: `/Applications/Concord.app/Contents/MacOS/Concord dataset`
+> - Linux: `cd ~/Downloads`, then `./Concord/Concord dataset`
 >
 > It puts them in `datasets/dandi-000954/`; any subfolder of `datasets` works.
 
@@ -350,8 +380,10 @@ Open **Advanced → Acquisition details**:
 - **Dataset** (with a link), **File**, and a green **SHA-256 matches DANDI 000954 asset …**: the
   file is exactly the published one.
 - **Recording**, **Signal**, **Behavior** and **Session**: what was recorded and how.
-- **Decoder**: *None attached*. Concord does not ship a decoder for this file; developers who
-  build Concord from its source code can train one ([DECODING.md](DECODING.md)).
+- **Decoder**: *None attached (no held-out evaluation for this file)*: no decoder has been
+  tested on this file ("held-out" means tested on data it was not trained on). Concord does not
+  ship a decoder for it; developers who build Concord from its source code can train one
+  ([DECODING.md](DECODING.md)).
 - **Citation**: how to cite the dataset if you use it.
 - **Metadata notes**: corrections Concord applied and what the file does not provide.
 - Below these, **Recorded neural activity** plots the replayed spike counts of all 176 channels
@@ -374,7 +406,9 @@ what that decoder did. (Singer-Clark et al. 2025,
 ### 5.1 Download the four files
 
 On the Dryad page, sign in (a free account) and download these four files one at a time from
-the file list. Don't use the button that downloads the whole dataset; it is much larger.
+the file list (click a file's name to download it). The list is long: use your browser's Find
+(Ctrl+F or ⌘F) for `day00468_block0`. Don't use the button that downloads the whole dataset;
+it is much larger.
 
 | File | Size | What it is |
 | --- | --- | --- |
@@ -413,7 +447,8 @@ The file's checksum is verified when you connect; a file that does not match is 
 citation is in [DATASETS.md](DATASETS.md).
 
 T15 replays at real speed: block 3 lasts 3 minutes and then starts again. You can **Pause**
-under **Options**.
+under **Options**. (Unlike FALCON, the T15 row shows no position, progress bar or speed
+choice.)
 
 ### 5.3 Set the board to the task's grid
 
@@ -425,7 +460,8 @@ The participant chose among targets on a 14 × 14 grid, so the board should show
    ![Board settings](images/14-board-settings.png)
 
 3. Under **Layout**, choose **Task grid (N × N words)**. **Grid size N** shows **14** (set it to
-   14 if not).
+   14 if not). Then maximise the board window: the 196 tiles are small, and words are cut off
+   in a smaller window.
 4. Leave **Input method** on **Automatic**. For now it reads *Automatic (nothing available now)*
    and the other methods say *not offered by the current source*. That is expected: no command
    output reaches the board yet. After 5.5 it reads *Automatic (now: Pointer and click)*, as in
@@ -456,17 +492,18 @@ A note says the velocity has "no declared output scale"; the next step sets the 
 
    ![Command output settings for the T15 replay](images/15-command-output-settings.png)
 
-2. Check or set:
-   - **Horizontal (x) from**: `vx`, and **Vertical (y) from**: `vy`.
+2. **Change three fields** (they start at 1, 0.3 and 2; the picture shows them already
+   changed):
    - **Gain**: `1.09`. The recorded velocity is in screen heights per second, and the task's
      targets filled a square 0.92 screen heights wide. Multiplying by 1 / 0.92 = 1.09 makes the
      board's square match that grid.
    - **Dead-zone**: `0` (don't ignore small movements).
    - **Max speed**: `10` (don't cap the recorded movements).
-   - **Invert y**: ticked. It is ticked for you, because the decoder counts "up" as positive y
-     while the screen counts "down".
-   - **Click from**: `click` (selected for you), **Click threshold** `0.5`, **Click pause (ms)**
-     `300`.
+
+   **Leave the others as they are**: **Horizontal (x) from** `vx`, **Vertical (y) from** `vy`,
+   **Invert y** ticked (ticked for you, because the decoder counts "up" as positive y while the
+   screen counts "down"), **Click from** `click` (selected for you), **Click threshold** `0.5`,
+   **Minimum confidence** `0`, **Click pause (ms)** `300`.
 3. Click **Start control**.
 4. Under **Authorized applications**, click **Authorize** next to **Communication Board**.
 
@@ -484,12 +521,11 @@ If you change a value later, click **Apply settings** under the fields.
 ![The board driven by the replayed decoder](images/16-board-t15.png)
 
 **What to expect:** the cursor moves the way the original decoder moved it during the
-recording. The participant was using it live, so the board's selections land on the cued word
-roughly half of the time; in the published comparison, 39 of 70 clicks did
-([NEURAL_COMMUNICATION.md](NEURAL_COMMUNICATION.md)). The replay is open loop: the recording
-cannot react to the board, so the cursor can drift where the original screen differed. The
-board does not show which word was cued, so you cannot check the 39 of 70 on screen; the
-comparison is in [NEURAL_COMMUNICATION.md](NEURAL_COMMUNICATION.md).
+recording. The replay is [open loop](GLOSSARY.md#closed-loop-open-loop): the recording cannot react to the
+board, so the cursor can drift where the original screen differed. Still, the board's
+selections land on the cued word roughly half of the time: 39 of 70 clicks in the published
+comparison. The board does not show which word was cued, so you cannot check this on screen;
+the comparison is described in [NEURAL_COMMUNICATION.md](NEURAL_COMMUNICATION.md).
 
 ### 5.6 Stop and tidy up
 
@@ -497,17 +533,17 @@ comparison is in [NEURAL_COMMUNICATION.md](NEURAL_COMMUNICATION.md).
    paused.
 2. Under **Authorized applications**, click **Revoke**. Authorization lasts until you revoke it,
    even if you change source or session.
-3. **Stop decoding**, then **Disconnect**.
-
-**What you should see:** the board says *Paused — device disconnected (operator disconnect)*.
-
+3. Click **Stop decoding** in the **Decoder** row, then **Disconnect** in **Acquisition
+   source**. The board says *Paused — device disconnected (operator disconnect)*.
 4. On the board, open **Settings → Layout → Phrases and letters** to get the normal board back
-   (the setting is saved in this browser), and select **Clear** or close the window to remove
-   the message.
+   (the setting is saved in this browser). Then close the board window: that removes the
+   message. (You cannot select **Clear** now: nothing moves the cursor after **Disconnect**,
+   and the board ignores mouse clicks.)
 
-Want Concord's *own* decoders on this recording? A Kalman cursor decoder and a click decoder
-fitted on blocks 0–2 are evaluated in [CURSOR_CLICK.md](CURSOR_CLICK.md). Fitting them needs a
-source installation.
+Want Concord's *own* decoders on this recording? A [Kalman](GLOSSARY.md#kalman-filter) cursor
+decoder and a click decoder fitted on blocks 0–2 are evaluated in
+[CURSOR_CLICK.md](CURSOR_CLICK.md). Fitting them needs Concord installed from its source code,
+which is meant for developers ([DEVELOPERS.md](DEVELOPERS.md)).
 
 ---
 
@@ -518,19 +554,20 @@ everyday arm movements (DANDI 000055, license CC-BY-4.0). The files are very lar
 cuts and verifies two short slices itself. That needs one command in a terminal. Concord may be
 running while you run it.
 
-- **Mac app** (open the Terminal app):
+- **Mac** (open the **Terminal** app):
 
   ```bash
   /Applications/Concord.app/Contents/MacOS/Concord dataset ajile12
   ```
 
-- **Linux bundle**, from the folder that contains the `Concord` folder:
+- **Linux** (open a terminal):
 
   ```bash
+  cd ~/Downloads
   ./Concord/Concord dataset ajile12
   ```
 
-- **Python install**: `concord dataset ajile12`
+(Python installation: `concord dataset ajile12`; see [Commands in this guide](#commands-in-this-guide).)
 
 **What you should see:**
 - The command takes about a minute and downloads about 157 MB.
@@ -541,6 +578,7 @@ Then:
 2. **Recorded human data** now also lists **Session 5** and **Session 6** ("DANDI 000055 ·
    64 channels · 500 Hz"). Connect one: the source row says *Recorded Human ECoG — Offline
    Replay* and the title bar *Streaming · Recorded human data, offline replay*.
+3. When you are done, click **Disconnect**.
 
 Background and decoding results: [ECOG.md](ECOG.md).
 
@@ -564,7 +602,7 @@ settings and a log, in one folder you can export as a zip file.
 3. Record: open **Advanced → Recording** and click **Start recording**. The title bar adds
    **· Recording**.
    - Leave **Features and labels only** unticked for this exercise. A recording with raw samples
-     stops by itself after 5 minutes or 200 MB. Simulated Profile A writes about 15 MB a minute,
+     stops by itself after 5 minutes or 200 MB. Simulated Profile A writes about 12 MB a minute,
      so a one-minute recording is fine. (The panel's warning that raw frames "reach the size cap
      in seconds" applies to high-channel-count live sources.)
    - With **Features and labels only (for calibration)** ticked, the raw samples are left out
@@ -599,12 +637,14 @@ settings and a log, in one folder you can export as a zip file.
    **What you should see:** the session strip returns to *No research session…*. The session's
    folder stays in **Advanced → Stored data**.
 
-**Reproducing an export.** Your browser saved the zip in your Downloads folder. In a terminal,
-give its full path, for example:
+**Reproducing an export (optional, needs a terminal).** Give the `reproduce` command the zip's
+full path. Its name is long: type the start, `~/Downloads/concord-session-`, then press **Tab**
+to complete it (or drag the zip from your file manager into the terminal).
 
-- Mac app: `/Applications/Concord.app/Contents/MacOS/Concord reproduce ~/Downloads/concord-session-….zip`
-- Linux bundle (from the folder that contains `Concord`): `./Concord/Concord reproduce ~/Downloads/concord-session-….zip`
-- Python install: `concord reproduce ~/Downloads/concord-session-….zip`
+- **Mac:** `/Applications/Concord.app/Contents/MacOS/Concord reproduce ~/Downloads/concord-session-….zip`
+- **Linux:** `cd ~/Downloads`, then `./Concord/Concord reproduce ~/Downloads/concord-session-….zip`
+
+(Python installation: `concord reproduce …`.)
 
 It checks every file against `manifest.json` and re-runs the session's decoder evaluation. For
 this session, which has no decoder, it prints `[OK  ] integrity: 6 files verified against
@@ -628,7 +668,8 @@ warnings and errors; that is expected. Download it as JSON or Markdown and attac
 
 **Quitting:**
 - **Mac:** click **Stop and quit** in the small Concord window, or press ⌘Q.
-- **Linux:** click **Stop and quit**; or, if you started Concord in a terminal, press Ctrl-C there.
+- **Linux:** click **Stop and quit**; or, if you started Concord in a terminal, press Ctrl-C there
+  (or run `./Concord/Concord stop` from `~/Downloads` in another terminal).
 
 Quitting performs a safe stop first, so recordings are closed properly. Afterwards the console
 says *Connection to Concord lost, reconnecting* and the board says *Reconnecting*: Concord has

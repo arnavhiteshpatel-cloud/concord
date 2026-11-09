@@ -56,7 +56,11 @@ export function DatasetDetails({ deviceId }: { deviceId: string }) {
                 <td>File</td>
                 <td className="mono">
                   {meta.file.name}
-                  <div className={meta.file.verified ? "text-ok" : "caution-text"} data-testid="source-verified">
+                  <div
+                    className={meta.file.verified ? "text-ok" : "caution-text"}
+                    style={{ overflowWrap: "anywhere" }}
+                    data-testid="source-verified"
+                  >
                     {meta.file.verification}
                   </div>
                 </td>
