@@ -439,7 +439,7 @@ def test_retrying_replace_on_windows(monkeypatch: pytest.MonkeyPatch, tmp_path: 
 def test_console_output_never_fails_on_a_narrow_code_page() -> None:
     """A redirected Windows console encodes with the ANSI code page (cp1252), which has no
     "→"; such characters are printed escaped instead of raising UnicodeEncodeError."""
-    from concord.cli import safe_console_streams
+    from concord import safe_console_streams
 
     buf = io.TextIOWrapper(io.BytesIO(), encoding="cp1252")
     saved = sys.stdout
@@ -500,3 +500,21 @@ def test_windows_command_hint_with_spaces_uses_the_powershell_call_operator(
     assert config.command_hint("stop") == '& "C:/My Apps/Concord/concord-cli.exe" stop'
     monkeypatch.setattr(sys, "executable", "C:/Users/me/Downloads/Concord/Concord.exe")
     assert config.command_hint("stop") == "C:/Users/me/Downloads/Concord/concord-cli.exe stop"
+
+
+def test_python_m_tools_are_protected_on_windows_too(tmp_path: Path) -> None:
+    """`python -m concord.decoding.evaluate_falcon` printed "τ" and crashed on the Windows CI
+    runner (cp1252): the guard now runs when the package is imported on Windows, so every
+    `python -m concord.…` tool is covered, not only the `concord` command (regression)."""
+    import subprocess
+
+    code = (
+        "import os, sys, io\n"
+        "os.name = 'nt'\n"  # pretend Windows before the package is imported
+        "sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='cp1252')\n"
+        "import concord\n"
+        "print('time constant \u03c4')\n"
+    )
+    out = subprocess.run([sys.executable, "-c", code], capture_output=True, timeout=60)
+    assert out.returncode == 0, out.stderr
+    assert b"time constant \\u03c4" in out.stdout

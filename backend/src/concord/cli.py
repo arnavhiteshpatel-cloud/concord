@@ -17,14 +17,13 @@ override both for one run. Ordinary use needs no flags.
 from __future__ import annotations
 
 import argparse
-import contextlib
 import json
 import os
 import sys
 from pathlib import Path
 from typing import Any
 
-from concord import __version__
+from concord import __version__, safe_console_streams
 from concord.config import (
     CONFIG_ENV,
     ConfigError,
@@ -464,17 +463,6 @@ def cmd_publish(args: argparse.Namespace) -> int:
     from concord.testing.publish import main as publish_main
 
     return publish_main(list(args.publish_args))
-
-
-def safe_console_streams() -> None:
-    """Never crash on a character the console cannot show. A redirected Windows console
-    encodes with the ANSI code page (cp1252), which has no arrows, "µ" in some pages, etc.;
-    such characters are printed escaped instead of raising UnicodeEncodeError."""
-    for stream in (sys.stdout, sys.stderr):
-        reconfigure = getattr(stream, "reconfigure", None)
-        if reconfigure is not None:
-            with contextlib.suppress(ValueError, OSError):
-                reconfigure(errors="backslashreplace")
 
 
 def main(argv: list[str] | None = None) -> int:
