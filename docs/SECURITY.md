@@ -17,8 +17,8 @@ identifiers anywhere in Concord (session names, notes, recording names).
 | **Read-only** | No adapter, API endpoint or SDK can write to, configure or stimulate a device. The only outbound message to acquisition software is the documented Open Ephys heartbeat. | ARCHITECTURE.md §8 |
 | **Loopback only** | The server listens on `127.0.0.1` by default. Any other address is **refused at startup** unless `allow_remote = true` (config file), `CONCORD_ALLOW_REMOTE=1` or `--allow-remote` is given, and then a warning is logged and printed. | `concord/security.py` `check_bind` |
 | **Other web sites** | A page open in your browser cannot use the API: requests whose `Origin` is another site, cross-site requests, `null` origins, and browser requests addressed to a non-loopback host name (DNS rebinding) are refused with 403; WebSocket handshakes from other sites are refused. | `server/origin.py` |
-| **Private files** | The server runs with umask 077. The data directory and every directory in it are 0700, every file 0600 (recordings, models, sessions, exports, logs, support reports, the pid file). Existing files with wider permissions are tightened at startup. Downloaded public datasets (`data/datasets`) and symlinked directories are left as they are. | `security.py`, `server/app.py` |
-| **Config file** | One TOML file, validated (unknown keys and wrong types are refused). A config file that other users can write to, or that belongs to another user, is refused (it decides where data goes and which interface the server listens on). It holds no secrets. | `concord/config.py` |
+| **Private files** | The server runs with umask 077. The data directory and every directory in it are 0700, every file 0600 (recordings, models, sessions, exports, logs, support reports, the pid file). Existing files with wider permissions are tightened at startup. Downloaded public datasets (`data/datasets`) and symlinked directories are left as they are. **Windows** has no mode bits: Concord does not change permissions there. The default data folder (`%LOCALAPPDATA%\Concord\data`) is inside the user profile, which other standard users cannot open (administrators can); a `data_dir` elsewhere (e.g. `C:\data`) keeps the permissions Windows gives it, often readable by every user of the PC. Keep neural data inside your profile. | `security.py`, `server/app.py` |
+| **Config file** | One TOML file, validated (unknown keys and wrong types are refused). A config file that other users can write to, or that belongs to another user, is refused (it decides where data goes and which interface the server listens on); POSIX only, on Windows the file is in the user profile (`%LOCALAPPDATA%\Concord\config.toml`). It holds no secrets. | `concord/config.py` |
 | **Logs** | Every log line passes a redacting formatter: no secrets (`token=`, `password:`, `Authorization`, …) and no numeric arrays (sample data, feature vectors, weights: replaced by "[N values redacted]"); lines are capped at 4000 characters. Session names, operator names and notes are never logged (only session ids). Logs rotate (3 × 5 MB) in `<data>/logs/`. | `security.py` |
 | **Support reports** | `concord doctor` and Advanced → Support report contain installation facts only. Every string is redacted again: the home directory becomes `~`, other users' home paths, e-mail and non-loopback IP addresses and the host name are replaced. The report lists what it leaves out. | `concord/doctor.py` |
 | **Session exports** | Operator name and notes are excluded unless you tick the option; recordings are excluded unless you tick the option (then listed by SHA-256 only); public datasets are never included (referenced by SHA-256). Every file is listed with its SHA-256 in `manifest.json`; `concord reproduce` detects any modification. | `runtime/export.py`, `concord/reproduce.py` |
@@ -54,8 +54,10 @@ identifiers anywhere in Concord (session names, notes, recording names).
 - **Authorizations for decoded commands** are keyed by the application id an app declares;
   they prevent mistakes, not a malicious local process that claims another app's id
   (docs/CONTROL_BRIDGE.md).
-- **The desktop app is unsigned** (ad-hoc signature, not notarized). macOS cannot verify who
-  built it; obtain it only from your lab's own build (docs/INSTALL_MAC.md).
+- **The desktop app is unsigned** (macOS: ad-hoc signature, not notarized; Windows: no
+  Authenticode signature, so SmartScreen warns). The operating system cannot verify who built
+  it; obtain it only from this repository's releases or your lab's own build
+  (docs/INSTALL_MAC.md, docs/INSTALL_WINDOWS.md).
 
 ## Reporting a problem
 

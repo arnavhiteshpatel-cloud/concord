@@ -433,12 +433,32 @@ See docs/APPLICATIONS.md.
   numpy/scipy wheels require it); Intel Macs and older macOS use the pip installation.
 - **Unsigned and not notarized** (ad-hoc signature only): Gatekeeper blocks the first launch
   until the user allows it (docs/INSTALL_MAC.md). No auto-update.
+- **Windows (new in 0.3.1): built and smoke-tested only on GitHub Actions `windows-latest`**
+  (Windows Server, x86_64; jobs `package-windows`, `backend-windows` and the release workflow),
+  **never run on a physical Windows 10 or 11 PC** or with equipment on Windows. Not tested: the
+  SmartScreen prompt and the first launch on a real desktop, a real browser and display scaling,
+  how Windows Defender and other antivirus programs treat an unsigned PyInstaller program,
+  the firewall prompt for LSL and BCI2000 sources, running from a OneDrive-synced or network
+  folder, Windows on ARM (not built). The app is **unsigned** (no Authenticode signature):
+  SmartScreen warns on first launch (docs/INSTALL_WINDOWS.md).
+- On Windows, **file permissions are not managed**: the 0700/0600 modes and the refusal of a
+  config file other users can change are POSIX-only. The default data folder
+  (`%LOCALAPPDATA%\Concord\data`) is private through the user profile's own access control; a
+  `data_dir` outside the profile keeps whatever permissions Windows gives it, and `concord
+  doctor` says the permissions are not checked.
+- On Windows, `concord stop` cannot send a signal: it writes a stop request into the data folder,
+  which the app or server polls every 0.25 s; a server it cannot reach that way (one using
+  another data folder, found only by its port) is ended with TerminateProcess after the safe
+  stop. A background server started with `concord start` ends when the user logs off, without
+  its graceful shutdown (the recording, already closed by a safe stop or recovered at the next
+  start, is never lost). A file that is open elsewhere (a replayed recording, a file in an
+  editor or being scanned) cannot be deleted until it is closed.
 - The app bundles Concord's built-in sources and the BCI2000 plugin. BrainFlow and other
   plugins need the pip installation (a frozen app cannot install packages); their wheels are on
   the release page. The test publishers are available from the app's own program since 0.3.1
   (`Concord publish …`).
 - The status window needs Tk; where no window can be created the app runs without it (quit
-  with `Concord stop`). The Apple Event quit is tested on CI only if the runner permits
+  with `Concord stop`; on Windows `concord-cli.exe stop`). The Apple Event quit is tested on CI only if the runner permits
   sending Apple Events; otherwise the job falls back to SIGTERM and says so.
 - **Security**: see docs/SECURITY.md. No authentication or TLS; any local process (including
   other users') can use the API; no encryption at rest; deletion is not secure erasure;

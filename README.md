@@ -7,6 +7,7 @@ has authorized.
 
 [![Download for macOS](https://img.shields.io/badge/Download-macOS%20(Apple%20Silicon)-1f2328?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/arnavhiteshpatel-cloud/concord/releases/latest/download/Concord-macos-arm64.dmg)
 [![Download for Linux](https://img.shields.io/badge/Download-Linux%20x86__64-1f2328?style=for-the-badge&logo=linux&logoColor=white)](https://github.com/arnavhiteshpatel-cloud/concord/releases/latest/download/Concord-linux-x86_64.tar.gz)
+[![Download for Windows](https://img.shields.io/badge/Download-Windows%20x86__64-1f2328?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/arnavhiteshpatel-cloud/concord/releases/latest/download/Concord-windows-x86_64.zip)
 [![All downloads](https://img.shields.io/badge/All%20downloads-Releases-0969da?style=for-the-badge&logo=github)](https://github.com/arnavhiteshpatel-cloud/concord/releases/latest)
 [![Getting started](https://img.shields.io/badge/Start%20here-Getting%20started-2da44e?style=for-the-badge)](docs/GETTING_STARTED.md)
 
@@ -43,9 +44,9 @@ has authorized.
 | Your computer | Download | Install |
 | --- | --- | --- |
 | **Mac** with Apple Silicon (M1 or later), macOS 14 or later | [**Concord-macos-arm64.dmg**](https://github.com/arnavhiteshpatel-cloud/concord/releases/latest/download/Concord-macos-arm64.dmg) | Open the `.dmg`, drag Concord to Applications. The app is not signed by Apple; the first time, Control-click it → **Open** (macOS 14) or **System Settings → Privacy & Security → Open Anyway** (macOS 15+). |
+| **Windows** 10 or 11, 64-bit (x86_64) | [**Concord-windows-x86_64.zip**](https://github.com/arnavhiteshpatel-cloud/concord/releases/latest/download/Concord-windows-x86_64.zip) | Right-click the zip → **Extract All…**, open the `Concord` folder, double-click `Concord.exe`. The app is not signed; the first time, Windows says *Windows protected your PC*: click **More info → Run anyway**. Built and smoke-tested on GitHub's Windows runners, not yet on a physical Windows PC. |
 | **Linux** x86_64 (Ubuntu 22.04 or later, or similar) | [**Concord-linux-x86_64.tar.gz**](https://github.com/arnavhiteshpatel-cloud/concord/releases/latest/download/Concord-linux-x86_64.tar.gz) | Extract it and run `Concord/Concord`. |
-| Python 3.12 (any platform with Python, for developers) | Wheels on the [Releases page](https://github.com/arnavhiteshpatel-cloud/concord/releases/latest), or [from source](#developers-install-from-source) | `pip install --find-links <folder with the wheels> "concordos[lab]"` |
-| Windows | — | Not supported yet. |
+| Python 3.12 (macOS, Windows or Linux, for developers) | Wheels on the [Releases page](https://github.com/arnavhiteshpatel-cloud/concord/releases/latest), or [from source](#developers-install-from-source) | `pip install --find-links <folder with the wheels> "concordos[lab]"` ([Mac](docs/INSTALL_MAC.md#b-with-python-pip), [Windows](docs/INSTALL_WINDOWS.md#b-with-python-pip)) |
 
 When Concord starts, a small window shows **"Concord is running at http://127.0.0.1:8000"**
 and the **console** opens in your web browser. Concord runs only on your computer.
@@ -149,7 +150,9 @@ All documents, grouped by topic: **[docs/README.md](docs/README.md)**. Problems:
 ## Developers: install from source
 
 You need [uv](https://docs.astral.sh/uv/) (it installs Python 3.12) and Node 20 or newer; on a
-Mac, `brew install uv node`.
+Mac, `brew install uv node`. The `make` targets assume macOS or Linux (bash, and a virtualenv
+with `bin/`); on Windows use the equivalent commands in
+[INSTALL_WINDOWS.md](docs/INSTALL_WINDOWS.md#b-with-python-pip).
 
 ```bash
 git clone https://github.com/arnavhiteshpatel-cloud/concord.git

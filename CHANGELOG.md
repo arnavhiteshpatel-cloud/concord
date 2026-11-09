@@ -50,9 +50,39 @@ release fixes both. Nothing about how data is received, processed or decoded cha
 
 **New**
 
+- **Windows 10 and 11 (x86_64).** A third desktop download, `Concord-windows-x86_64.zip`:
+  extract it and double-click `Concord.exe` (windowed, with the same status window); commands go
+  to `concord-cli.exe` next to it. The Python installation works on Windows too
+  ([INSTALL_WINDOWS.md](docs/INSTALL_WINDOWS.md)). Data and the config file are in
+  `%LOCALAPPDATA%\Concord`. CI builds the app on `windows-latest`, extracts the zip and
+  smoke-tests it (headless start, plugin host, recording, crash recovery, `start`/`status`/
+  `stop`, the Tk window), and runs the backend and package test suites and the clean-room wheel
+  installation on Windows. Unsigned, and **not yet tested on a physical Windows PC**
+  ([LIMITATIONS.md](LIMITATIONS.md)). What Windows needed:
+  - process liveness without `os.kill(pid, 0)` (on Windows that *ends* the process); file locks
+    for the pid file and recording markers that Windows releases when a process dies (a byte
+    lock beyond the end of the file, so the content stays readable); `concord stop` asks the app
+    or server to quit through a stop request in the data folder (Windows has no SIGTERM to
+    catch), with TerminateProcess only as the last resort;
+  - files opened in binary mode (`os.open` defaults to text mode on Windows, which turned every
+    `\n` into `\r\n`, corrupting export zips) and recordings and session logs written with `\n`
+    line endings on every platform; UTF-8 for every text file Concord reads or writes; console
+    output that never fails on a character the Windows code page lacks;
+  - helper processes (source-plugin and decoder hosts, `concord start`'s server) without console
+    windows, in their own process group, run with `concord-cli.exe` from the windowed app;
+  - Windows-specific checks: a busy port looked free to `concord doctor` (`SO_REUSEADDR` means
+    something else on Windows); the config template's Windows paths were invalid TOML; a
+    session bundle member such as `..\x` or `C:x` could escape the extraction folder in
+    `concord reproduce`; deleting a file another program holds open now says so (409) instead
+    of failing; support reports redact `C:\Users\<name>`;
+  - recording names that Windows reserves (`con`, `nul`, `com1`…) are refused on every platform,
+    so recordings can move between computers;
+  - `tornado` is installed with the `live` extra on Windows only: pyzmq needs it there for Open
+    Ephys on the Proactor event loop, which Concord needs for its plugin subprocesses.
 - **`concord publish lsl-ephys | falcon <file> | openephys`**: hardware-free test streams for
   rehearsing a lab setup. They are also available from the desktop app's own program
-  (`/Applications/Concord.app/Contents/MacOS/Concord publish …`, `./Concord/Concord publish …`).
+  (`/Applications/Concord.app/Contents/MacOS/Concord publish …`, `./Concord/Concord publish …`,
+  on Windows `.\concord-cli.exe publish …`).
 - **The release ships the BrainFlow, BCI2000 and certification plugins as wheels**, next to the
   others. None of Concord's packages is on PyPI; install from the release files.
 

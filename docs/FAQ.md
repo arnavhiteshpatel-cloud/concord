@@ -12,6 +12,7 @@
 
 - [Do I need to use the terminal?](#do-i-need-to-use-the-terminal)
 - [macOS says the app cannot be opened or verified. Is it safe?](#macos-says-the-app-cannot-be-opened-or-verified-is-it-safe)
+- [Windows says "Windows protected your PC". Is it safe?](#windows-says-windows-protected-your-pc-is-it-safe)
 - [Does Concord run on Windows or on an Intel Mac?](#does-concord-run-on-windows-or-on-an-intel-mac)
 - [Can I use the console from another computer?](#can-i-use-the-console-from-another-computer)
 - [How do I uninstall it?](#how-do-i-uninstall-it)
@@ -106,11 +107,26 @@ its checksum. Then allow it once:
 **System Settings → Privacy & Security → Open Anyway** (macOS 15+) or Control-click →
 **Open** (macOS 14). [INSTALL_MAC.md](INSTALL_MAC.md) has the details.
 
+### Windows says "Windows protected your PC". Is it safe?
+
+That is Microsoft Defender SmartScreen: the Windows app is not signed with a code-signing
+certificate, so Windows cannot tell who built it. Download it only from this repository's
+[Releases page](https://github.com/arnavhiteshpatel-cloud/concord/releases), where it was built
+and smoke-tested by the repository's own release workflow; `SHA256SUMS.txt` on that page lists
+its checksum (`Get-FileHash <file> -Algorithm SHA256` in PowerShell). Then click **More info →
+Run anyway** once. [INSTALL_WINDOWS.md](INSTALL_WINDOWS.md) has the details.
+
 ### Does Concord run on Windows or on an Intel Mac?
 
-Not as a desktop app. The Mac app needs Apple Silicon and macOS 14 or later. On an Intel Mac or
-older macOS, install with Python ([INSTALL_MAC.md](INSTALL_MAC.md#b-with-python-pip)). Windows is
-not supported.
+**Windows:** yes, Windows 10 and 11 on 64-bit x86 PCs: download `Concord-windows-x86_64.zip`
+([Getting started](GETTING_STARTED.md#on-windows), [INSTALL_WINDOWS.md](INSTALL_WINDOWS.md)), or
+install with Python. It is built and smoke-tested on GitHub's Windows runners for every change,
+but has not yet been tried on a physical Windows PC; please report problems. Windows on ARM is
+not built.
+
+**Intel Mac:** not as a desktop app. The Mac app needs Apple Silicon and macOS 14 or later. On
+an Intel Mac or older macOS, install with Python
+([INSTALL_MAC.md](INSTALL_MAC.md#b-with-python-pip)).
 
 ### Can I use the console from another computer?
 
@@ -121,7 +137,8 @@ encryption. To see the console from another computer, use an SSH tunnel
 
 ### How do I uninstall it?
 
-Quit Concord and move it from Applications to the Bin (on Linux, delete the extracted folder).
+Quit Concord and move it from Applications to the Bin (on Windows and Linux, delete the
+extracted folder).
 Your data is kept: delete the data folder yourself if you no longer need it (it may contain
 neural recordings; see [SECURITY.md](SECURITY.md) on deletion).
 

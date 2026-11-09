@@ -57,10 +57,12 @@ what liblsl provides; Open Ephys timestamps are sample counts in the GUI's clock
 
 Three ways, all for Concord 0.3.1:
 
-- **Desktop app**: `Concord-macos-arm64.dmg` (Mac with Apple Silicon, [INSTALL_MAC.md](INSTALL_MAC.md))
-  or `Concord-linux-x86_64.tar.gz` (Linux bundle). It includes LSL, Open Ephys and the BCI2000
+- **Desktop app**: `Concord-macos-arm64.dmg` (Mac with Apple Silicon, [INSTALL_MAC.md](INSTALL_MAC.md)),
+  `Concord-windows-x86_64.zip` (Windows 10/11, [INSTALL_WINDOWS.md](INSTALL_WINDOWS.md)) or
+  `Concord-linux-x86_64.tar.gz` (Linux bundle). It includes LSL, Open Ephys and the BCI2000
   plugin, not BrainFlow. Its program answers the same commands as `concord`:
-  `/Applications/Concord.app/Contents/MacOS/Concord <command>` or `./Concord/Concord <command>`.
+  `/Applications/Concord.app/Contents/MacOS/Concord <command>`, `.\concord-cli.exe <command>`
+  (Windows, in the `Concord` folder) or `./Concord/Concord <command>`.
 - **Python installation** (Python 3.12+; needed for BrainFlow and other plugins): download all
   `.whl` files of the [GitHub release](https://github.com/arnavhiteshpatel-cloud/concord/releases/latest)
   into one folder, then
@@ -108,7 +110,8 @@ BCI2000 plugin. Check the *Signal integrity* row and **Advanced → Acquisition 
 your acquisition software's own display.
 
 Rehearse without hardware first with `concord publish` (desktop app:
-`/Applications/Concord.app/Contents/MacOS/Concord publish …` or `./Concord/Concord publish …`).
+`/Applications/Concord.app/Contents/MacOS/Concord publish …`, `.\concord-cli.exe publish …` or
+`./Concord/Concord publish …`).
 The LSL test streams declare themselves synthetic or prerecorded; the Open Ephys protocol cannot
 carry that declaration, so its test stream is shown as *Live stream, origin unverified*
 ([OPEN_EPHYS.md](OPEN_EPHYS.md#limitations)).

@@ -1497,7 +1497,7 @@ What Concord keeps in the data folder, and deletion.
 
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
-| *Data directory \<path> (only your user can read it).* | Where the data folder is | Always | Select the path to copy it. |
+| *Data directory \<path> (only your user can read it).* On Windows: *(inside your Windows user profile: other users of this PC cannot open it)*, or *(outside your Windows user profile: other users of this PC may be able to read it)* | Where the data folder is, and who can read it ([16](#16-data-folders-ports-and-network)) | Always | Select the path to copy it. |
 | **recordings**, **models**, **sessions**, **exports** | Count and total size of each | Always | Dataset files are not listed or counted here: delete them from the `datasets` folder yourself. |
 | Retention line | *No retention policy: data is kept until you delete it ([retention] in the config file).*, or the policy and what it deleted at this start | Always | [15](#15-configuration-file). |
 | **Recordings** list | Name, size, age; *· incomplete (N events kept)* for a recovered recording | Always (*No recordings.* when empty) | |
@@ -1781,19 +1781,27 @@ More: [TROUBLESHOOTING.md](TROUBLESHOOTING.md) and [FAQ.md](FAQ.md).
 
 ## 13. The desktop app
 
-Starting Concord (the Mac app, or `Concord/Concord` in the Linux bundle) starts Concord, opens
-the console in your default browser and shows a small window titled **Concord**: *Concord is
-running*, its address, *Research use only · not a medical device · read-only. Quitting stops
-command output, closes any recording and disconnects the source.*
+Starting Concord (the Mac app, `Concord.exe` in the Windows app's `Concord` folder, or
+`Concord/Concord` in the Linux bundle) starts Concord, opens the console in your default
+browser and shows a small window titled **Concord**: *Concord is running*, its address,
+*Research use only · not a medical device · read-only. Quitting stops command output, closes any
+recording and disconnects the source.*
 
 | Control | What it does |
 | --- | --- |
 | **Open console** | Opens the console in your browser |
-| **Stop and quit** | A safe stop, then Concord ends. ⌘Q, Quit in the Dock and closing the window do the same. The window shows *Stopping…* meanwhile. |
+| **Stop and quit** | A safe stop, then Concord ends. Closing the window (the **X** on Windows and Linux), and on a Mac ⌘Q and Quit in the Dock, do the same. The window shows *Stopping…* meanwhile. |
 
 - Opening Concord again while it runs only opens the console.
 - If no window can be shown (some Linux systems without a desktop toolkit), Concord runs without
   the window: stop it with Ctrl-C in its terminal or with `./Concord/Concord stop`.
+- `concord stop` (`concord-cli.exe stop` on Windows) quits a running app the same safe way as
+  its window: on macOS and Linux with a SIGTERM; Windows has no such signal, so `stop` leaves a
+  stop request in the data folder, which the app picks up within a quarter of a second.
+- **Windows:** the `Concord` folder holds two programs. `Concord.exe` is the app (no terminal
+  window); `concord-cli.exe` answers the `concord` commands in PowerShell or Command Prompt
+  ([14.1](#141-commands)). The app is unsigned: the first time, SmartScreen says *Windows
+  protected your PC*; click **More info → Run anyway** ([INSTALL_WINDOWS.md](INSTALL_WINDOWS.md)).
 - If the server stops unexpectedly, the window says *The server stopped unexpectedly; see the log
   in the data folder.*
 - After a crash or power loss, the next start keeps the complete part of an interrupted
@@ -1802,7 +1810,8 @@ command output, closes any recording and disconnects the source.*
 - Options when started from a terminal: `--no-browser`, `--headless` (no window), `--port`,
   `--data-dir`, `--config`.
 
-Installation: [Getting started](GETTING_STARTED.md) and [INSTALL_MAC.md](INSTALL_MAC.md).
+Installation: [Getting started](GETTING_STARTED.md), [INSTALL_MAC.md](INSTALL_MAC.md) and
+[INSTALL_WINDOWS.md](INSTALL_WINDOWS.md).
 
 ---
 
@@ -1813,6 +1822,9 @@ Installation: [Getting started](GETTING_STARTED.md) and [INSTALL_MAC.md](INSTALL
 Installed with the Python package. The desktop app's own program answers the same commands:
 
 - Mac: `/Applications/Concord.app/Contents/MacOS/Concord <command>`
+- Windows: `.\concord-cli.exe <command>` in PowerShell, from the `Concord` folder (in Command
+  Prompt without the `.\`). Messages that name a command (for example *stop it with: …*) show
+  its full path.
 - Linux: `./Concord/Concord <command>`, from the folder where you extracted Concord
 
 | Command | What it does | Main options |
@@ -1857,7 +1869,10 @@ Every setting has a safe default, so the file is optional.
 - `concord config show` shows the settings in effect. The `[recording]` limits are not listed
   there; `concord config template` shows their defaults.
 
-Concord refuses a file that other users can change.
+On macOS and Linux, Concord refuses a file that other users can change (Windows has no such
+permission bits; the file's default location is inside your user profile). Windows paths in the
+file need doubled backslashes (`"C:\\data"`) or forward slashes (`"C:/data"`), as in any TOML
+file.
 
 | Section and key | Default | Meaning | Environment variable |
 | --- | --- | --- | --- |
@@ -1888,10 +1903,12 @@ Command-line options (`--port`, `--data-dir`, …) override both for one run.
 | Installation | Data folder | Configuration file |
 | --- | --- | --- |
 | Mac app, or Python on a Mac | `~/Library/Application Support/Concord/data` | `~/Library/Application Support/Concord/config.toml` |
+| Windows app, or Python on Windows | `%LOCALAPPDATA%\Concord\data` (e.g. `C:\Users\you\AppData\Local\Concord\data`) | `%LOCALAPPDATA%\Concord\config.toml` |
 | Linux bundle, or Python on Linux | `~/.local/share/concord/data` | `~/.config/concord/config.toml` |
 | Source checkout | `data/` in the repository | as above for the platform |
 
-`~/Library` and `~/.local` are hidden folders. On a Mac, use Finder's **Go → Go to Folder…**; on
+`~/Library`, `AppData` and `~/.local` are hidden folders. On a Mac, use Finder's **Go → Go to
+Folder…**; on Windows, type `%LOCALAPPDATA%\Concord\data` in File Explorer's address bar; on
 Linux, press Ctrl+L in the file manager and paste the path. The exact path is shown in
 **Advanced → Stored data**.
 
@@ -1904,9 +1921,13 @@ Linux, press Ctrl+L in the file manager and paste the path. The exact path is sh
 | `logs/` | Concord's application log |
 | `support/` | Support reports from `concord doctor` |
 
-A new installation also has `concord.pid` (marks a running Concord); leave it alone. The data
-folder is readable only by your user account (folders 0700, files 0600). Nothing is encrypted by
-Concord. What is and is not protected: [SECURITY.md](SECURITY.md).
+A new installation also has `concord.pid` (marks a running Concord); leave it alone. On
+Windows, `concord.stop` may appear there for a moment: it is how `concord-cli.exe stop` asks the
+app to quit. On macOS and Linux the data folder is readable only by your user account (folders
+0700, files 0600). Windows has no such permission bits; there the default folder is private
+because it is inside your user profile, and a folder you configure elsewhere keeps the
+permissions Windows gives it. Nothing is encrypted by Concord. What is and is not protected:
+[SECURITY.md](SECURITY.md).
 
 **Network.** Concord listens only on this computer, at http://127.0.0.1:8000. Concord has no
 passwords, so it protects itself from web pages open in your browser:
@@ -1919,6 +1940,10 @@ passwords, so it protects itself from web pages open in your browser:
 - Programs on this computer that are not web browsers, such as scripts, the SDKs or `curl`, can
   use Concord's programming interface. Any program on this computer could do so anyway: see
   [SECURITY.md](SECURITY.md).
+
+On Windows, listening on this computer does not make the firewall ask anything; it may ask once
+when an LSL or BCI2000 source listens for data: allow *Private networks* only if the acquisition
+system is on another computer.
 
 It contacts other computers only when you
 ask: LSL discovery and streams ([multicast](GLOSSARY.md#multicast) and TCP on your local network), an Open Ephys GUI (its

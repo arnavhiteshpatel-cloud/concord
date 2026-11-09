@@ -14,6 +14,7 @@ first three rows in order.
 | [Glossary](GLOSSARY.md) | The terms used in the console and these documents |
 | [Troubleshooting](TROUBLESHOOTING.md) | Symptoms and fixes |
 | [Installing on a Mac](INSTALL_MAC.md) | The desktop app and the Python installation in detail; configuration |
+| [Installing on Windows](INSTALL_WINDOWS.md) | The Windows app (`Concord.exe`, `concord-cli.exe`) and the Python installation in detail; SmartScreen; configuration |
 
 ## Using Concord in a lab
 

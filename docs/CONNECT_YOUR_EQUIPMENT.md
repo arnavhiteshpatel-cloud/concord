@@ -181,12 +181,13 @@ test stream is shown as *Live stream, origin unverified* ([OPEN_EPHYS.md, Limita
 ### 3.1 Start a test stream
 
 Concord must be running, with the console open. Open a **terminal** (Mac: the Terminal app;
-Linux: any terminal) and run the command for your installation. Keep the terminal open: the
+Windows: PowerShell; Linux: any terminal) and run the command for your installation. Keep the terminal open: the
 stream runs until you stop it.
 
 | You installed | Command |
 | --- | --- |
 | Mac app | `/Applications/Concord.app/Contents/MacOS/Concord publish lsl-ephys` |
+| Windows app | `.\concord-cli.exe publish lsl-ephys` (in the `Concord` folder: `cd $HOME\Downloads\Concord-windows-x86_64\Concord` first) |
 | Linux bundle | `./Concord/Concord publish lsl-ephys` (from the folder that contains the `Concord` folder) |
 | Python installation | `concord publish lsl-ephys` |
 

@@ -7,7 +7,8 @@ personal data:
 concord doctor
 ```
 
-(Desktop app: `/Applications/Concord.app/Contents/MacOS/Concord doctor`, or **Advanced →
+(Desktop app: `/Applications/Concord.app/Contents/MacOS/Concord doctor` on a Mac,
+`.\concord-cli.exe doctor` in PowerShell in the `Concord` folder on Windows, or **Advanced →
 Support report** in the console.) Logs are in `<data directory>/logs/`: `concord.log`
 (rotating, redacted) and `console.log` (startup output of `concord start`).
 
@@ -18,13 +19,14 @@ Support report** in the console.) Logs are in `<data directory>/logs/`: `concord
 | `No matching distribution found for concord-brainflow` (or another `concord…` package) | None of Concord's packages is on PyPI. Download the wheels from the release page into one folder and install with `pip install --find-links <folder> "concordos[lab]" concord-brainflow` ([Connect your equipment](CONNECT_YOUR_EQUIPMENT.md)). |
 | `The Concord server is not installed` | The base `concord` package is the application SDK only. `pip install "concordos[lab]"` (or `concordos[server]`). |
 | `concord: refusing to listen on '0.0.0.0'` | Non-loopback addresses are refused (no authentication). Remove `host` from the config file / `CONCORD_HOST`. To use the console from another computer, use an SSH tunnel (docs/SECURITY.md). |
-| `port 8000 is in use by another program` | `concord start --port 8010`, or `[server] port` in the config file. `concord doctor` shows who answers on the port. |
+| `port 8000 is in use by another program` | `concord start --port 8010`, or `[server] port` in the config file. `concord doctor` shows who answers on the port; on Windows `netstat -ano \| findstr :8000` shows the process ID (Task Manager → Details). |
 | `another Concord server … uses this data directory` | One server per data directory. `concord status`, then `concord stop`. |
-| `refusing to use the config file: … can be changed by other users` | `chmod 600 <file>` (`concord config path` prints it). |
+| `refusing to use the config file: … can be changed by other users` | `chmod 600 <file>` (`concord config path` prints it). macOS and Linux only; Windows does not check this. |
+| `invalid TOML` in a config file with a Windows path | Backslashes are escapes in TOML strings: write `data_dir = "C:\\data\\concord"` or `"C:/data/concord"`. |
 | `unknown key [server] prot` | A typo in the config file; `concord config template` lists every key. |
 | `concord start` says the server exited during startup | The last lines of `<data>/logs/console.log` are printed; `concord doctor` for missing components. |
 | The console page is blank or "Not Found", the API works | The console was not built into this installation: from a checkout `make build` (or `python packaging/stage_console.py --build` before building wheels). |
-| `concord stop` says it killed the server | It did not exit within 30 s of SIGTERM. An active recording is recovered and marked incomplete at the next start. Check `concord.log`. |
+| `concord stop` says it killed the server | It did not exit within 30 s of SIGTERM (Windows: of the stop request). An active recording is recovered and marked incomplete at the next start. Check `concord.log`. |
 
 ## Desktop app (macOS)
 
@@ -38,6 +40,19 @@ Support report** in the console.) Logs are in `<data directory>/logs/`: `concord
 | BrainFlow or another plugin is missing | The app includes only the BCI2000 plugin. Use the pip installation for other plugins. |
 | First start is slow (tens of seconds) | macOS verifies the bundle on first launch. Later starts are faster. |
 
+## Desktop app (Windows)
+
+| Symptom | Cause and fix |
+| --- | --- |
+| "Windows protected your PC" | The app is not signed. Click **More info**, check that the app is `Concord.exe`, then **Run anyway** ([INSTALL_WINDOWS.md](INSTALL_WINDOWS.md)). |
+| Double-clicking `Concord.exe` does nothing, or Windows says a file is missing | Concord was started from inside the zip, or `Concord.exe` was copied without the `_internal` folder next to it. Extract the whole zip (**Extract All…**) and start `Concord.exe` from the extracted `Concord` folder. |
+| Your antivirus quarantines `Concord.exe` or `concord-cli.exe` | Some antivirus programs distrust programs built with PyInstaller. Restore it only if you downloaded it from this repository's release page (check `SHA256SUMS.txt`). |
+| `.\concord-cli.exe` prints nothing, or "is not recognized" | Run it from the `Concord` folder (`cd` there first; in Command Prompt type `concord-cli.exe` without `.\`). `Concord.exe` given a command prints after the prompt has returned: use `concord-cli.exe` for commands. |
+| No Concord window opens, or the console shows an older version | Another copy of Concord answers on port 8000 (see the macOS row above). `netstat -ano \| findstr :8000` in PowerShell shows its process ID; Task Manager → Details shows the program. Quit it (`.\concord-cli.exe stop`), then open Concord again. |
+| Windows asks whether Concord may communicate on networks | Concord's console does not need it. The LSL and BCI2000 sources listen for data: allow **Private networks** only if your acquisition system is on another computer. |
+| Deleting a recording or session says it is open | Windows cannot delete a file another program has open (a replay of that recording, an editor, a backup or antivirus scan). Disconnect the replay or close the program, then delete again. |
+| BrainFlow or another plugin is missing | The app includes only the BCI2000 plugin. Use the Python installation for other plugins ([INSTALL_WINDOWS.md](INSTALL_WINDOWS.md#b-with-python-pip)). |
+
 ## Sources
 
 | Symptom | Cause and fix |
@@ -48,7 +63,7 @@ Support report** in the console.) Logs are in `<data directory>/logs/`: `concord
 | Open Ephys: "did not answer" | Host/port/firewall (TCP 5556 and 5557 on the GUI computer). |
 | BCI2000: `plugin did not answer 'open' within 4 s` | Nothing reached Concord's receiver in time: start Concord's source first, then the BCI2000 run, and check `ConnectorOutputAddress` and the firewall (next row). |
 | BCI2000: no data | BCI2000's `ConnectorOutputAddress` must point to this computer and port (default 20321); inbound UDP allowed; `concord doctor` shows whether the port is free. |
-| *Recorded human data* is empty ("No recorded datasets yet") | Put the downloaded files in the folder the message names: `<data folder>/datasets` (Getting started §4.2), then reload the console. Or download and verify FALCON H1 with one command: `concord dataset` (app: `/Applications/Concord.app/Contents/MacOS/Concord dataset`; Linux bundle: `./Concord/Concord dataset`). |
+| *Recorded human data* is empty ("No recorded datasets yet") | Put the downloaded files in the folder the message names: `<data folder>/datasets` (Getting started §4.2), then reload the console. Or download and verify FALCON H1 with one command: `concord dataset` (app: `/Applications/Concord.app/Contents/MacOS/Concord dataset`; Windows app: `.\concord-cli.exe dataset`; Linux bundle: `./Concord/Concord dataset`). |
 | A downloaded file is not listed | Check the console's data folder (**Advanced → Stored data**: *Data directory*); another running copy of Concord may use another folder. A browser duplicate (`… (1).mat`, `… (1).nwb`) is skipped, because the same block cannot be listed twice: delete the duplicate. The reason for any skipped file is in `<data folder>/logs/concord.log` ("not offered"). |
 | The title bar says *Source stopped with an error* | The source failed and could not reconnect (for example **Link failure** in the simulator, or a stream that stopped for good). The error is shown in the source row. Click **Reset**, then **Connect a source** again. |
 | `protocol_error: … declares +y up … enable invert_y` | The decoder counts "up" as positive y; the screen counts "down". Tick **Invert y** in **Command output → Settings** (0.3.1 ticks it for you). |

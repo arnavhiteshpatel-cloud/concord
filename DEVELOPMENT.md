@@ -114,6 +114,12 @@ Frontend only: `cd frontend && npm test`.
   fixtures are only for error paths real files cannot exercise.
 - Run `make lint test` before every commit. Do not claim something works
   unless it was executed.
+- Concord runs on macOS, Linux and Windows (CI: `backend-windows`, `package-windows`). Code that
+  differs by platform goes in `concord/oscompat.py` (processes, file locks, child-process
+  flags); never `os.kill(pid, 0)` (it ends the process on Windows). Open text files with
+  `encoding="utf-8"` and `os.open` with `oscompat.O_BINARY`. Test Windows branches on every
+  platform by substituting what only Windows has (`tests/test_m5_windows.py`); skip a test
+  only for a genuinely POSIX-only behaviour, with the reason.
 
 ## Changing contracts
 

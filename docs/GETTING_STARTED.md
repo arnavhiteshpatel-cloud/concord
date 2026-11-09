@@ -21,7 +21,7 @@ unfamiliar word in the [glossary](GLOSSARY.md).
 
 | Part | What you do | Time | Terminal needed? |
 | --- | --- | --- | --- |
-| [1. Install and open Concord](#1-install-and-open-concord) | Download, install, start | 5 min | No (Mac); Linux: yes, two commands to start |
+| [1. Install and open Concord](#1-install-and-open-concord) | Download, install, start | 5 min | No (Mac, Windows); Linux: yes, two commands to start |
 | [2. A tour of the console](#2-a-tour-of-the-console) | Learn what is on the screen | 5 min | No |
 | [3. A simulated device and the communication board](#3-a-simulated-device-and-the-communication-board) | Move a cursor and choose words yourself | 10 min | No |
 | [4. Replay a real human recording](#4-replay-a-real-human-recording-falcon-h1) | Replay intracortical recordings | 10 min | No |
@@ -32,13 +32,11 @@ unfamiliar word in the [glossary](GLOSSARY.md).
 | [9. Where to go next](#9-where-to-go-next) | Your own equipment, every button | | |
 
 **What you need:**
-- a Mac with Apple Silicon (M1 or later) and macOS 14 or later, or a Linux PC (x86_64, e.g.
-  Ubuntu 22.04 or later);
+- a Mac with Apple Silicon (M1 or later) and macOS 14 or later, a Windows 10 or 11 PC (64-bit,
+  x86_64), or a Linux PC (x86_64, e.g. Ubuntu 22.04 or later);
 - a current web browser (Chrome, Firefox, Safari or Edge);
 - about 700 MB of free disk space: Concord itself takes about 350 MB, the demo recordings about
   300 MB.
-
-Windows is not supported yet.
 
 ---
 
@@ -83,6 +81,29 @@ Intel Macs and macOS 13 or older: use the Python installation in [INSTALL_MAC.md
    open while you use Concord; it is busy now, so use a new terminal window for any other
    command. Next time, start Concord the same way.
 
+### On Windows
+
+1. Download **[Concord-windows-x86_64.zip](https://github.com/arnavhiteshpatel-cloud/concord/releases/latest/download/Concord-windows-x86_64.zip)**.
+2. Open your **Downloads** folder, right-click `Concord-windows-x86_64.zip` → **Extract All…**
+   → **Extract**. A folder named `Concord-windows-x86_64` opens, with a folder named `Concord`
+   in it. Always start Concord from this extracted folder: double-clicking inside the zip itself
+   (Windows shows a zip like a folder) does not work.
+3. Open the **Concord** folder and double-click **Concord.exe** (the program with the dark "C"
+   icon; `concord-cli.exe` next to it is for commands).
+4. The first time, Windows shows **Windows protected your PC** (Microsoft Defender
+   SmartScreen), because the app is not signed with a code-signing certificate:
+   1. Click **More info**.
+   2. Check that *App* says **Concord.exe**, then click **Run anyway**.
+
+   You do this once for each extracted copy. Later, double-click `Concord.exe` like any other
+   program (to start it from the Start menu: right-click `Concord.exe` → **Pin to Start**; on
+   Windows 11 it is under **Show more options**).
+
+Concord's window and console use only `127.0.0.1` (this computer), which does not make the
+Windows firewall ask anything. If Windows later asks whether Concord may communicate on
+networks (the LSL and BCI2000 sources listen for data), allow **Private networks** only, and
+only if your acquisition system runs on another computer of your lab network.
+
 ### What you should see
 
 A small window titled **Concord** opens, with your browser behind it:
@@ -102,7 +123,7 @@ A small window titled **Concord** opens, with your browser behind it:
 - Your web browser opens the **console** at `http://127.0.0.1:8000`. If it does not, click
   **Open console**.
 - **Keep this small window open**: Concord runs for as long as it is open. **Stop and quit**
-  ends Concord safely (section 8).
+  ends Concord safely (section 8). On Windows it has the Concord icon in the taskbar.
 - `127.0.0.1` means "this computer". Concord runs entirely on your machine and sends nothing to
   the internet.
 
@@ -112,28 +133,33 @@ A small window titled **Concord** opens, with your browser behind it:
 > terminal.
 
 > **Another copy already running?** You see this when the terminal says `Concord is already
-> running at http://127.0.0.1:8000`, when no small window appears on a Mac, or when the
+> running at http://127.0.0.1:8000`, when no small window appears on a Mac or Windows, or when the
 > console's version (top left, next to **Concord**) is not **0.3.1**. You are then looking at the
 > other copy, an older version or one started differently, with its own data folder.
 >
 > **Fix:** quit the other copy (its small window → **Stop and quit**; or Ctrl-C in its terminal;
-> or, on Linux, `cd ~/Downloads` then `./Concord/Concord stop` in a new terminal), then start
-> Concord again. Still stuck? See which program holds the console's address: on a Mac
-> `lsof -nP -iTCP:8000 -sTCP:LISTEN` in Terminal, on Linux `ss -ltnp 'sport = :8000'`.
+> or `… stop` as in [Commands in this guide](#commands-in-this-guide)), then start Concord
+> again. Still stuck? See which program holds the console's address: on a Mac
+> `lsof -nP -iTCP:8000 -sTCP:LISTEN` in Terminal, on Linux `ss -ltnp 'sport = :8000'`, on
+> Windows `netstat -ano | findstr :8000` in PowerShell (the number at the end of the
+> *LISTENING* line is the program's process ID: find it in **Task Manager → Details**, PID
+> column; a `Concord.exe` or `concord-cli.exe` there is another copy of Concord).
 
 ### Commands in this guide
 
-You need no commands for most of this guide. The few optional ones are typed in a terminal
-(Mac: the **Terminal** app), always the same way:
+You need no commands for most of this guide. The few optional ones are typed in a terminal,
+always the same way:
 
-- **Mac:** `/Applications/Concord.app/Contents/MacOS/Concord` followed by the command, for
-  example `/Applications/Concord.app/Contents/MacOS/Concord dataset ajile12`.
-- **Linux:** open a **new** terminal window (Ctrl+Alt+T; the one running Concord is busy and
-  must stay open), run `cd ~/Downloads`, then `./Concord/Concord` followed by the command, for
-  example `./Concord/Concord dataset ajile12`.
+| You have | Where to type it | Example: download the ECoG demo |
+| --- | --- | --- |
+| Mac app | the **Terminal** app | `/Applications/Concord.app/Contents/MacOS/Concord dataset ajile12` |
+| Windows app | **PowerShell** (Start menu → type *PowerShell*); first go to the Concord folder: `cd $HOME\Downloads\Concord-windows-x86_64\Concord` | `.\concord-cli.exe dataset ajile12` |
+| Linux bundle | a **new** terminal window (Ctrl+Alt+T; the one running Concord is busy and must stay open); first `cd ~/Downloads` | `./Concord/Concord dataset ajile12` |
+| Python install ([INSTALL_MAC.md](INSTALL_MAC.md), [INSTALL_WINDOWS.md](INSTALL_WINDOWS.md)) | a terminal with its virtual environment active | `concord dataset ajile12` |
 
-Each command in this guide is written out for both. (If you installed Concord with Python
-instead, as in [INSTALL_MAC.md](INSTALL_MAC.md), type `concord` followed by the command.)
+On Windows, commands go to `concord-cli.exe`, the command-line program next to `Concord.exe` in
+the same folder (`Concord.exe` is the app you double-click; it prints nothing to a terminal).
+Each command in this guide is written out for the Mac, Windows and Linux apps.
 
 ---
 
@@ -311,16 +337,20 @@ Concord keeps everything in one **data folder**. Recordings you download go in a
 > creates the folder (see [Commands in this guide](#commands-in-this-guide)). Then skip to 4.3.
 > - Mac: `/Applications/Concord.app/Contents/MacOS/Concord dataset`
 > - Linux (new terminal window): `cd ~/Downloads`, then `./Concord/Concord dataset`
+> - Windows (PowerShell): `cd $HOME\Downloads\Concord-windows-x86_64\Concord`, then `.\concord-cli.exe dataset`
 
 Without a terminal:
 
 1. **See where the folder is.** Click **Connect a source**. Under *Recorded human data*,
    Concord shows the folder to use, for example
-   `/home/you/.local/share/concord/data/datasets` (Linux) or
-   `/Users/you/Library/Application Support/Concord/data/datasets` (Mac). Close the panel.
-2. **Open the data folder**, the same path without `/datasets` at the end:
+   `/Users/you/Library/Application Support/Concord/data/datasets` (Mac),
+   `C:\Users\you\AppData\Local\Concord\data\datasets` (Windows) or
+   `/home/you/.local/share/concord/data/datasets` (Linux). Close the panel.
+2. **Open the data folder**, the same path without `datasets` at the end:
    - **Mac:** in Finder choose **Go → Go to Folder…**, type
      `~/Library/Application Support/Concord/data`, press Return.
+   - **Windows:** in File Explorer click the address bar, type `%LOCALAPPDATA%\Concord\data`
+     and press Enter. (`AppData` is a hidden folder, but typing the path opens it.)
    - **Linux:** in your file manager press **Ctrl+L**, type `~/.local/share/concord/data`, press
      Enter. (`.local` is a hidden folder, but typing the path opens it.)
 
@@ -557,6 +587,13 @@ running while you run it.
   /Applications/Concord.app/Contents/MacOS/Concord dataset ajile12
   ```
 
+- **Windows** (PowerShell, see [Commands in this guide](#commands-in-this-guide)):
+
+  ```powershell
+  cd $HOME\Downloads\Concord-windows-x86_64\Concord
+  .\concord-cli.exe dataset ajile12
+  ```
+
 - **Linux** (in a new terminal window, see [Commands in this guide](#commands-in-this-guide)):
 
   ```bash
@@ -639,6 +676,7 @@ full path. Its name is long: type the start, `~/Downloads/concord-session-`, the
 to complete it (or drag the zip from your file manager into the terminal).
 
 - **Mac:** `/Applications/Concord.app/Contents/MacOS/Concord reproduce ~/Downloads/concord-session-….zip`
+- **Windows** (PowerShell, in the Concord folder): `.\concord-cli.exe reproduce $HOME\Downloads\concord-session-….zip`
 - **Linux** (new terminal window): `cd ~/Downloads`, then `./Concord/Concord reproduce ~/Downloads/concord-session-….zip`
 
 (Python installation: `concord reproduce …`.)
@@ -665,6 +703,8 @@ warnings and errors; that is expected. Download it as JSON or Markdown and attac
 
 **Quitting:**
 - **Mac:** click **Stop and quit** in the small Concord window, or press ⌘Q.
+- **Windows:** click **Stop and quit** in the small Concord window, or close it (the **X** in its
+  title bar). From PowerShell, `.\concord-cli.exe stop` in the Concord folder does the same.
 - **Linux:** click **Stop and quit**; or, if you started Concord in a terminal, press Ctrl-C there
   (or run `./Concord/Concord stop` from `~/Downloads` in another terminal).
 

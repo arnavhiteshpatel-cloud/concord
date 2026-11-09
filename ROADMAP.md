@@ -21,7 +21,7 @@ Candidates for the next milestones. None has started.
 | Item | Why | Verification gate |
 | --- | --- | --- |
 | **First hardware verification (level 3)**: one LSL amplifier and one Open Ephys acquisition board | No component has run with acquisition hardware | The complete run set of [docs/HARDWARE_VALIDATION.md](docs/HARDWARE_VALIDATION.md) §9 passes and is signed off |
-| Signed and notarized macOS app; Windows support | The app is unsigned; Windows is not supported | Installs without security overrides on a clean machine; smoke tests on Windows |
+| Signed and notarized macOS app; signed Windows app | The apps are unsigned (Windows support, new in 0.3.1, is tested on GitHub's Windows runners only) | Installs without security overrides on a clean machine; a first run on a physical Windows 10 and 11 PC |
 | Publish the Python packages (PyPI) and the TypeScript SDK (npm) | Today they install from release wheels or a checkout | Clean-room installs from the public indexes |
 | Per-application authentication | Application identities are self-declared ([docs/SECURITY.md](docs/SECURITY.md)) | Unauthenticated applications refused; tests for every route |
 | Clock synchronisation between devices and the runtime | No offset or drift estimation beyond what LSL provides | Tests with injected clock skew; offset shown in diagnostics |
