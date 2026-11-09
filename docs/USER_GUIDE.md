@@ -15,15 +15,27 @@ each one does, when it appears and what to do with it.
 
 ## How to use this guide
 
-The guide follows the screen. Section 1 shows the whole console with numbered areas; each area
-then has its own section, in the same order, with a table of every control.
+The guide follows the screen from top to bottom:
+
+- Section 1 shows the whole console with its eight numbered areas.
+- Sections 2 to 8 describe areas 1 to 7, in that order: area *N* is in section *N* + 1.
+- Section 9 lists every way to stop.
+- Section 10 describes area 8, **Advanced**.
+- Sections 11 to 16 cover the communication board, common situations, the desktop app, the
+  `concord` command, the configuration file and the data folders.
+
+**Looking for one control**, for example **Dead-zone**? The [control index](#control-index) at
+the end lists every label in this guide from A to Z, with the section that explains it.
 
 Conventions:
 
 - **Bold** is a label exactly as the screen shows it: a button, a field, a heading.
 - *Italic* is text the screen displays: a status, a message, a caption.
-- Control tables have four columns: **Control** (the label), **What it does**, **When you see
-  it**, and **Notes / units / defaults**.
+- Most control tables have four columns: **Control** (the label), **What it does**, **When you
+  see it** (when the control is on the screen), and **Notes / units / defaults**. Longer
+  explanations are below the table.
+- A linked technical term, such as [held-out](GLOSSARY.md#held-out), leads to a plain-language
+  explanation in the [glossary](GLOSSARY.md).
 - "The data folder" is the folder where Concord keeps your data. Its exact path is at the top of
   **Advanced → Stored data** and in [section 16](#16-data-folders-ports-and-network).
 
@@ -31,11 +43,11 @@ Conventions:
 
 1. [The console at a glance](#1-the-console-at-a-glance)
 2. [The title bar and its states](#2-the-title-bar-and-its-states)
-3. [Acquisition source](#4-acquisition-source)
-4. [Signal integrity](#5-signal-integrity)
-5. [Decoder](#6-decoder)
-6. [Command output](#7-command-output)
-7. [Research sessions and export (the session strip)](#3-research-sessions-and-export-the-session-strip)
+3. [Research sessions and export (the session strip)](#3-research-sessions-and-export-the-session-strip)
+4. [Acquisition source](#4-acquisition-source)
+5. [Signal integrity](#5-signal-integrity)
+6. [Decoder](#6-decoder)
+7. [Command output](#7-command-output)
 8. [The session log](#8-the-session-log)
 9. [Stopping safely](#9-stopping-safely)
 10. [Advanced](#10-advanced)
@@ -45,6 +57,8 @@ Conventions:
 14. [The `concord` command](#14-the-concord-command)
 15. [Configuration file](#15-configuration-file)
 16. [Data folders, ports and network](#16-data-folders-ports-and-network)
+
+[Control index](#control-index): every label, A to Z.
 
 ---
 
@@ -64,7 +78,7 @@ when Concord starts (the browser tab is called *Concord Runtime Console*).
 | 5 | **Decoder** | Processing and decoding: **Start decoding**, **Calibrate…** | [6](#6-decoder) |
 | 6 | **Command output** | Whether decoded output may reach applications, its settings, and the applications you authorize | [7](#7-command-output) |
 | 7 | **Session log** | What happened, newest first | [8](#8-the-session-log) |
-| 8 | **Advanced** | Twelve sections of details and tools (thirteen with a simulated profile) | [10](#10-advanced) |
+| 8 | **Advanced** | Twelve sections of details and tools (thirteen while Simulated Profile A or B is connected) | [10](#10-advanced) |
 
 Things that work the same everywhere in the console:
 
@@ -72,14 +86,20 @@ Things that work the same everywhere in the console:
   **Calibrate…** appear once a source is connected. A button that exists but cannot be used now is
   greyed out; hover over it to see why, or read the grey line under the row's heading (for
   example *Connect a source first.* or *Start decoding with a model first.*).
-- **Panels that slide in from the right** (called *sheets*: **Connect a source**, **Start
-  decoding**, **Calibrate a decoder**, **New research session**, **Session · …**) close with their
-  **Close** button, with the Escape key, or by clicking the grey area beside them.
+- **Panels that slide in from the right** (called [sheets](GLOSSARY.md#sheet): **Connect a
+  source**, **Start decoding**, **Calibrate a decoder**, **New research session**,
+  **Session · …**) close with their **Close** button, with the Escape key, or by clicking the grey
+  area beside them.
 - **A small triangle (▸) before a label** (for example **Options**, **Settings**, **Advanced**)
   means the part is folded. Click the label to open it, click again to fold it.
 - **Hover** over a source, a figure or a status to see a longer explanation.
-- **A refused action** shows its reason in red next to the control and is also written to the
-  session log as *Refused: …*.
+- **A refused action** shows its reason in a grey box, under the control or at the top of the
+  panel. The reason starts with a code such as *capability_unsupported:*, *protocol_error:* or
+  *device_error:*. It is also written to the session log as *Refused: …*.
+- **Errors are not shown in red.** Errors and refusals appear as dark text in a light-grey box.
+  Look for that box, not for red text. Red marks only the stop buttons (**Stop control** while
+  command output is on, **Safe stop & disconnect** while something runs), the final **Delete**
+  and **End session now** confirmations, and the dot of a source that stopped with an error.
 - **There is one Concord, shared by every window.** All console tabs and every board window show
   and change the same source, decoder and command output. Opening the console in two tabs does
   not give you two independent setups.
@@ -119,10 +139,16 @@ connection to Concord; the others are about the source.
 | *Streaming · Live stream, origin unverified* | green | A live stream (LSL, Open Ephys, some plugins) with no declaration | Normal. Concord cannot tell hardware from a file player or a simulator. |
 | *Streaming · Device data* | green | A non-simulated source that is neither a stream nor a replay (some plugins) | Normal. |
 | *Paused · …* | amber | You paused the source (**Pause**); command output was turned off | Click **Resume** (in **Options** or **Playback**). |
-| *Source link lost, reconnecting* | amber | The connection to the source dropped; Concord is trying again (three attempts, after 0.2 s, 0.5 s and 1 s) | Wait. Command output was turned off and stays off. The session log shows *Link lost, reconnecting: …* and then either *Streaming (reconnected after N attempt(s))* or an error. |
+| *Source link lost, reconnecting* | amber | The connection to the source dropped. Concord tries to reconnect three times (see below the table) | Wait: this can take up to about 17 s. Command output was turned off and stays off. The session log shows *Link lost, reconnecting: …* and then either *Streaming (reconnected after N attempt(s))* or an error. |
 | *Disconnecting* | grey | The source is being closed | Wait. |
 | *Source stopped with an error* | red | The source failed and could not be restored | See [2.3](#23-source-stopped-with-an-error-and-reset). |
 | *Source ended* | light grey | The source reached its end (a source that can finish, for example some plugins). File replays do not end: they start again from the beginning. | Click **Reset**, then connect again if needed. |
+
+**How reconnecting works.** Concord tries three times, after waiting 0.2 s, 0.5 s and 1 s. Each
+attempt waits up to 5 s for the source to answer (an Open Ephys source gives up after 4 s). So
+*Source link lost, reconnecting* can last up to about 17 s before it ends in *Streaming* again
+or in *Source stopped with an error*. A short drop, such as the simulator's **Link drop**, is
+over in under a second.
 
 ### 2.3 Source stopped with an error, and Reset
 
@@ -130,11 +156,16 @@ When a source fails for good (for example after **Link failure** in the simulato
 LSL publisher or the Open Ephys GUI stops and does not come back):
 
 - the title bar shows a red dot and *Source stopped with an error*;
-- the **Acquisition source** row shows the error in red, for example *link lost; 3 reconnect
-  attempts failed: …*;
+- the **Acquisition source** row shows the error in a grey box under the source. After a lost
+  link it reads *link lost; 3 reconnect attempts failed:* followed by the last attempt's error:
+  its message, for example *sim-a: simulated link failure (device not responding)*, or the
+  error's type when it has no message, for example *TimeoutError*;
 - the **Disconnect** button is renamed **Reset**;
-- the session log has red entries *Source error: …* and *Source stopped: …*;
+- the session log has entries with a red dot: *Source error: …* and *Source stopped: …*;
 - decoding and command output have stopped, and any recording was closed.
+
+A source that cannot be opened at all (for example an LSL stream whose publisher is not running)
+ends the same way, with *connect failed: …* in the grey box.
 
 **What to do:** read the error, fix the cause (restart the publisher, check the cable or the
 network), then click **Reset**. Reset clears the failed source: the title bar returns to *No
@@ -145,9 +176,9 @@ there. You can also click **Change source** to pick another source directly.
 
 ## 3. Research sessions and export (the session strip)
 
-A **research session** is a named folder that groups what you do: source changes, decoding and
-control settings, recordings, calibrations and a log. It can be exported as one zip file.
-Concord works without one; a session is for keeping a record.
+A [research session](GLOSSARY.md#research-session) is a named folder that groups what you do:
+source changes, decoding and control settings, recordings, calibrations and a log. It can be
+exported as one zip file. Concord works without one; a session is for keeping a record.
 
 ### 3.1 The strip
 
@@ -155,7 +186,7 @@ Concord works without one; a session is for keeping a record.
 
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
-| *No research session. A session groups recordings, decoders and a log, and can be exported for reproduction.* | | No session | |
+| *No research session. A session groups recordings, decoders and a log, and can be exported for reproduction.* | Says that no session is open | No session | |
 | **New session** | Opens *New research session* ([3.2](#32-new-research-session)) | No session | |
 | *Research session* · name · operator · *started HH:MM:SS* · *N recordings* · *N models* | The active session | A session is active | Counts include recordings and models made during the session. |
 | **Session and export…** | Opens the session panel ([3.3](#33-session-and-export)) | A session is active | **End session…** is inside this panel. |
@@ -168,10 +199,13 @@ Concord works without one; a session is for keeping a record.
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
 | **Session name** | The session's name | Always | Required (up to 80 characters); **Start session** stays grey until it is filled. Do not enter participant identifiers. |
-| **Operator (optional)** | Who runs the session | | Up to 80 characters. |
-| **Notes (optional)** | Free text | | Up to 4000 characters. Operator and notes stay in the session folder: never in logs or support reports, and in an export only if you tick **Include the operator name and notes**. |
+| **Operator (optional)** | Who runs the session | Always | Up to 80 characters. |
+| **Notes (optional)** | Free text | Always | Up to 4000 characters. See the note below the table. |
 | **Start session** | Creates the session folder and starts logging | A name is entered | Logged as *Research session started: <name>*. |
-| **Close** | Closes without starting | | |
+| **Close** | Closes without starting | Always | |
+
+Operator and notes stay in the session folder. They never go into logs or support reports, and
+go into an export only if you tick **Include the operator name and notes**.
 
 You can start a session before or after connecting a source; changes during the session are
 logged either way.
@@ -183,17 +217,17 @@ logged either way.
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
 | **Session id** | The folder name, for example *20261109-013717-2037* | Always | Not the same as the *Session 19250108T…* names of FALCON files. |
-| **Started**, **Operator**, **Notes** | As entered | | Operator and Notes only if given. |
-| **Recordings** | Recordings made during the session, with sizes | | *(deleted)* or *incomplete* when that applies. |
-| **Decoder models** | Models trained during the session | | *none yet* otherwise. |
-| **Include the session's recordings (N, size) — neural data; needed to re-run the evaluation** | Puts the recordings into the zip | | Off by default (recordings can be large and identifying). The label says "neural data" even for simulated recordings. Without it, recordings are *listed by hash only*. |
-| **Include the operator name and notes** | Puts operator and notes into the zip | | Off by default. |
-| **Create export bundle** | Writes the zip | | Logged as *Session exported: <file>*. |
-| Result box | The zip's name (a download link), size, number of files, its SHA-256, *Recordings included: …* | After an export | |
+| **Started**, **Operator**, **Notes** | As entered | Always | Operator and Notes only if given. |
+| **Recordings** | Recordings made during the session, with sizes | Always | *(deleted)* or *incomplete* when that applies. |
+| **Decoder models** | Models trained during the session | Always | *none yet* otherwise. |
+| **Include the session's recordings (N, size) — neural data; needed to re-run the evaluation** | Puts the recordings into the zip | Always | Off by default (recordings can be large and identifying). Without it, recordings are *listed by hash only*. The label says "neural data" even for simulated recordings. |
+| **Include the operator name and notes** | Puts operator and notes into the zip | Always | Off by default. |
+| **Create export bundle** | Writes the zip | Always | Logged as *Session exported: <file>*. |
+| Result box | The zip's name (a download link), size, number of files, its [SHA-256](GLOSSARY.md#sha-256), *Recordings included: …* | After an export | |
 | Export list | Every export of this session, with download links | After an export | The newest export therefore appears twice: in the result box and in the list. |
 | **Session log** | The last 12 entries of the session's own log, and *N entries in the session folder* | Always | Entries such as *Source sim-a: streaming*, *pipeline start*, *router*, *Recording started: …*; *(refused 409)* marks refused actions. |
 | **End session…** | Asks for confirmation | Always | *Ending turns command output off, closes any recording, stops decoding and disconnects the source.* |
-| **End session now** / **Cancel** | Ends the session (after a safe stop) / keeps it | After **End session…** | Logged as *Research session ended: <name>*. |
+| **End session now** (red) / **Cancel** | Ends the session (after a safe stop) / keeps it | After **End session…** | Logged as *Research session ended: <name>*. |
 
 **Download the zip before you end the session.** Afterwards this panel is gone; the exports
 stay in the data folder under `sessions/<session id>/exports/`, and **Advanced → Stored data**
@@ -201,7 +235,7 @@ counts them but has no download link.
 
 ### 3.4 What is in the export, and what reproducible means
 
-The zip contains:
+The zip (the [export bundle](GLOSSARY.md#export-bundle)) contains:
 
 | File | Content |
 | --- | --- |
@@ -214,16 +248,26 @@ The zip contains:
 | `models/<id>.json`, `models/<id>.manifest.json` | Decoder models used or trained in the session, with their SHA-256 |
 | `calibration/<id>.json` (and `.md`) | Each calibration's settings and report |
 | `recordings/…` | Only if you ticked **Include the session's recordings** |
-| `REPRODUCE.md` | The exact commands to check and re-run it |
+| `REPRODUCE.md` | How to install the same Concord version, and the exact commands to check and re-run the session (see below) |
 
 Public dataset files are never included (DANDI terms forbid redistribution); they are referenced
 by SHA-256. The application log and support reports are not included either.
 
-**Reproducible** means: someone with the zip and any Concord installation can check that no
-file was changed and **re-fit every decoder trained in the session from the included
-recordings**, comparing the weights and held-out scores with the originals. A session without a
-trained decoder, or exported without its recordings, has nothing to re-run: only the files are
-checked.
+**Reproducible** means: someone with the zip and the same Concord version can check that no file
+was changed, and:
+
+- **re-fit every decoder trained in the session** from the included recordings, comparing the
+  weights and [held-out](GLOSSARY.md#held-out) scores with the originals;
+- **recompute the decoded output recorded during the session** from the recorded features, and
+  compare it with what was recorded.
+
+Both need the recordings in the zip. A session without a trained decoder, or exported without
+its recordings, has nothing to re-run: only the files are checked.
+
+**Installing the same version** (as `REPRODUCE.md` explains): Concord's packages are not on
+PyPI. Download the release wheels of that version from the project's release page into one
+folder, then run `pip install --find-links <folder> "concordos[lab]==0.3.1"`. Or use the
+desktop app of the same version: its program accepts `reproduce` ([3.5](#35-concord-reproduce)).
 
 ### 3.5 `concord reproduce`
 
@@ -234,10 +278,19 @@ concord reproduce concord-session-<id>-<time>.zip
 With the desktop app: `/Applications/Concord.app/Contents/MacOS/Concord reproduce <file>` (Mac)
 or `./Concord/Concord reproduce <file>` (Linux, from the folder where you extracted Concord).
 
-| Result line | Meaning | Exit status |
+It prints one line per check, then a result. Each check starts with a tag of four characters:
+`[OK  ]` (passed), `[skip]` (could not be run) or `[FAIL]` (failed).
+
+| Line | Meaning |
+| --- | --- |
+| `[OK  ] integrity: N files verified against manifest.json` | Every file matches the SHA-256 and size listed in the manifest. |
+| `[OK  ] calibration <model>: re-fitted from N recording(s): … r2 0.915294 -> 0.915294, …` | A decoder trained in the session was fitted again. Each score is shown as original -> re-fitted; they agree to 1e-6. |
+| `[OK  ] decoded_output <model>: N decoded outputs recomputed from recorded features, max relative difference 0 (…)` | The decoded output recorded in the session was computed again and matches. The first few bins (warm-up) are not compared. |
+| `[skip] calibration <model>: recordings not in the bundle: <file>` | That decoder cannot be re-fitted: its recordings were not exported. |
+| `[FAIL] integrity: <file>: SHA-256/size differ from the manifest` | A check failed; here, a file was changed after the export. |
+
+| Result (last line) | Meaning | Exit status |
 | --- | --- | --- |
-| `[OK] integrity: N files verified against manifest.json` | Every file matches its SHA-256 | |
-| `[OK] calibration <model>: re-fitted from N recording(s): r2 0.851788 -> 0.851788, …` | A decoder was fitted again and its scores agree (to 1e-6) | |
 | `result: reproduced` | Everything checked was reproduced | 0 |
 | `result: failed` | A check failed | 1 |
 | `result: nothing_to_reproduce` | The files are intact, but nothing could be re-run (no trained decoder, or no recordings in the zip) | 2 |
@@ -247,6 +300,8 @@ or `./Concord/Concord reproduce <file>` (Linux, from the folder where you extrac
 ---
 
 ## 4. Acquisition source
+
+Where the data comes from. One [source](GLOSSARY.md#acquisition-source) is connected at a time.
 
 ### 4.1 The row
 
@@ -260,17 +315,22 @@ or `./Concord/Concord reproduce <file>` (Linux, from the folder where you extrac
 | **Reset** | Clears a failed or ended source | After *Source stopped with an error* or *Source ended* (replaces **Disconnect**) | See [2.3](#23-source-stopped-with-an-error-and-reset). |
 | Source name (first line) | The source's name | Connected | Same as in the title bar. |
 | Which file is playing (second line) | Names the file or session being replayed | FALCON, AJILE12 and T15 files | For example *Session 19250108T111022 · DANDI 000954 · held-in-calib*, or *Cursor + click · Day 468 · block 3 · grid evaluation*. |
-| Kind and shape line | What kind of data it is, how many channels, its rate | Connected | For example *Simulated data · 32 channels · 1,000 Hz*, or *Recorded human data, offline replay · 176 channels · 20 ms bins*. Raw sources show a sample rate in Hz; sources that deliver binned features show the bin length. |
+| Kind and shape line | What kind of data it is, how many channels, its rate | Connected | For example *Simulated data · 32 channels · 1,000 Hz*, or *Recorded human data, offline replay · 176 channels · 20 ms bins*. Raw sources show a sample rate in Hz; sources that deliver binned features show the [bin](GLOSSARY.md#bin) length. |
 | Position (end of the kind line) | Where the replay is: *0:15.0 of 2:15.7*, followed by the speed when it is not 1× (*· 4×*) | FALCON and AJILE12 files, session recordings | Minutes:seconds. The length shows *—* when Concord cannot tell it. T15 blocks show no position. |
-| Modality tag (third line) | The kind of recording, as the source declares it: *Intracortical, implanted*, *ECoG, implanted*, *EEG, noninvasive*, … | Sources that declare a modality, and every plugin | Concord shows what the source says; it cannot check it. A plugin that declares nothing shows *modality not declared*. "Intracranial" in the FALCON source name is the general term (inside the skull); *Intracortical* is the specific modality (electrodes inside the cortex). |
-| Plugin line | *Plugin · package@version · isolated* before the modality | Plugin sources | *isolated* means the plugin runs in its own process, separate from Concord. |
-| Error text (red) | Why the source stopped | After an error | |
+| Modality tag (last line) | The kind of recording, as the source declares it: *Intracortical, implanted*, *ECoG, implanted*, *EEG, noninvasive*, … | Sources that declare a [modality](GLOSSARY.md#modality), and every plugin | Concord shows what the source says; it cannot check it. A plugin that declares nothing shows *modality not declared*. |
+| Plugin line | *Plugin · package@version · isolated* before the modality | Plugin sources | *isolated*: the plugin runs in its own process, separate from Concord ([isolated](GLOSSARY.md#isolated)). |
+| Error text (grey box) | Why the source stopped, for example *link lost; 3 reconnect attempts failed: …* or *connect failed: open timed out* | After an error | See [2.3](#23-source-stopped-with-an-error-and-reset). |
 | **Options** | Folded; contains **Pause** / **Resume** | Simulated profiles, T15 blocks, LSL, Open Ephys, plugins | Nothing else is in it. |
 | **Playback** | Folded; contains a progress bar, **Pause** / **Resume** and the speeds | FALCON and AJILE12 files, session recordings | |
 | **Pause** | Pauses the source; command output turns off | Inside **Options** or **Playback**, while streaming | The verdict becomes *Paused*; the log says *Paused (paused by operator)*. Data arriving from a live source while paused is discarded and counted. |
 | **Resume** | Continues | While paused | Command output stays off: start it again if you need it. |
 | **0.5× 1× 2× 4× 8×** | Replay speed | **Playback** only | Default 1×. The highlighted button is the current speed. T15 blocks have no speed control. |
 | Progress bar | How far the replay is | **Playback** only | Display only: you cannot drag it to move in the file. Replays loop: at the end they start again from the beginning, without a log entry. |
+
+The modality tag is the last line of the row: the third line for most sources, the fourth for
+FALCON and T15 files, which also have a file line. "Intracranial" in the FALCON source name is the
+general term (inside the skull); *Intracortical* is the specific modality (electrodes inside the
+cortex). See [intracortical, intracranial](GLOSSARY.md#intracortical-intracranial).
 
 ### 4.2 What the row shows for each kind of source
 
@@ -283,7 +343,7 @@ or `./Concord/Concord reproduce <file>` (Linux, from the folder where you extrac
 | Session recording | depends on what was recorded | — | **Playback** | Every event is marked replayed. |
 | LSL stream | *Live stream, origin unverified*, or what the publisher declares | — | **Options** (Pause) | **Data received (%)** is measured. |
 | Open Ephys | *Live stream, origin unverified* | — | **Options** (Pause) | **Data received (%)** is measured. |
-| Plugin | what the plugin declares | — | **Options** (Pause) | Plugin line and modality tag. |
+| Plugin | what the plugin declares | — | **Options** (Pause) | Plugin line and modality tag. No **Simulator controls**, even for a plugin's synthetic board. |
 
 ### 4.3 The Connect a source panel
 
@@ -295,11 +355,19 @@ when nothing is connected and **Change source** otherwise.
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
 | **Close** | Closes the panel | Always | So do Escape and clicking beside the panel. |
-| **Connect** | Connects that source and closes the panel | Nothing connected | |
+| **Connect** | Connects that source and closes the panel | Nothing connected | If the connection fails, the panel stays open and shows why. |
 | **Switch** | Replaces the connected source with this one | A source is connected | Same button, renamed. |
 | *Connected* | Marks the source that is connected now | Next to the active source | |
-| Hover on any row | Shows the source's full description: file name, dataset, block, task, duration, whether the checksum is verified | Always | For T15 blocks, the hover also tells *includes computer assistance* or *fully neural*. |
-| Red text at the top | Why the last connect or remove was refused | After a refusal | |
+| Hover on a row | Shows the source's description | Always | What it contains depends on the source: see the list below the table. |
+| Grey box at the top | Why the last connect or remove failed or was refused, for example *device_error: open timed out* | After a failure or refusal | |
+
+What the hover shows:
+
+- **Simulated profiles**: a one-line description.
+- **FALCON files**: the file name and dataset, for example *sub-HumanPitt-held-in-calib_ses-19250108T110520.nwb (DANDI 000954)*. The checksum result is in **Advanced → Acquisition details**.
+- **T15 blocks**: the file name, dataset, block, task, *includes computer assistance* or *fully neural*, the duration, and that the SHA-256 is verified when the file is opened.
+- **Session recordings**: *Replay of a recording from <source> (<source id>). Events are marked replayed.*
+- **LSL sources**: the stream name, the host and the `source_id`.
 
 ### 4.4 Simulated profiles
 
@@ -311,34 +379,41 @@ participant with **Advanced → Simulator controls** ([10.8](#108-simulator-cont
 | **Simulated Profile A** | *32 channels · 1,000 Hz* | A raw signal, continuous pointer movement (50 times per second; with the pad at rest only small simulated noise), a select action, simulated device health once per second | **Pointer and click** |
 | **Simulated Profile B** | *8 channels · 250 Hz* | A raw signal, a select action and text, no pointer; device health every 5 s | **Scanning** (Direct selection can be chosen) |
 
-Neither profile is a model of a real device. Their events are labelled `simulated_intent` and
-*synthetic*. Simulated input reaches the board **without** command output or authorization (it
-is labelled *simulated input* on the board); only decoded output needs them
-([7.1](#71-when-commands-reach-an-application)).
+Neither profile is a model of a real device. Their events are labelled
+[`simulated_intent`](GLOSSARY.md#simulated-intent) and
+[*synthetic*](GLOSSARY.md#simulated-data-synthetic). Simulated input reaches the board
+**without** command output or authorization (it is labelled *simulated input* on the board); only
+decoded output needs them ([7.1](#71-when-commands-reach-an-application)).
 
 ### 4.5 Recorded human data (offline replay)
 
 *Verified files from a public dataset, replayed. Not a live implant.* Files appear here as soon
 as they are in the data folder's `datasets` folder (or any folder inside it) and you reload the
 page. How to download them: [Getting started](GETTING_STARTED.md) and [Datasets](DATASETS.md).
+The datasets: [FALCON H1](GLOSSARY.md#falcon-h1), [AJILE12](GLOSSARY.md#ajile12) and
+[T15](GLOSSARY.md#t15).
 
 ![FALCON and T15 files in the source list](images/13-t15-sources.png)
 
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
-| *Session 19250108T110520*, *Session 19250108T111022* (*DANDI 000954 · held-in-calib · 176 channels · 20 ms bins*) | The two FALCON H1 demonstration blocks | FALCON files in `datasets/` | The name is the recording's session time stamp (the dataset shifted the dates to 1925 for de-identification). *held-in-calib* is FALCON's name for its calibration split. Either block works. |
-| *Session 5*, *Session 6* (*DANDI 000055 · 64 channels · 500 Hz*) | The two AJILE12 ECoG extracts | After `concord dataset ajile12` | Raw voltage, 64 electrodes. |
+| *Session 19250108T110520*, *Session 19250108T111022* (*DANDI 000954 · held-in-calib · 176 channels · 20 ms bins*) | The two FALCON H1 demonstration blocks | FALCON files in `datasets/` | Either block works. See the note below the table. |
+| *Session 5*, *Session 6* (*DANDI 000055 · 64 channels · 500 Hz*) | The two AJILE12 [ECoG](GLOSSARY.md#ecog) extracts | After `concord dataset ajile12` | Raw voltage, 64 electrodes. |
 | **Show all N files** | Lists the remaining dataset files | More than four FALCON or AJILE12 files (for example after `concord dataset --all-calib`) | Only the first four are shown at first. The connected file is always shown. |
-| *Cursor + click · Day 468 · block 0 · radial-8 calibration* | T15 block 0: radial-8 calibration task, includes computer assistance, 180 s | T15 files in `datasets/` | Sub-line *Dryad T15 · 256 channels · 10 ms bins*. |
-| *Cursor + click · Day 468 · block 1 · radial-8 calibration* | T15 block 1: fully neural calibration, 70 s | | |
-| *Cursor + click · Day 468 · block 2 · radial-8 calibration* | T15 block 2: fully neural calibration, 180 s | | |
-| *Cursor + click · Day 468 · block 3 · grid evaluation* | T15 block 3: choosing targets on a grid, fully neural, 180 s | | The block to use with the board ([7.7](#77-example-the-t15-recorded-decoder-on-the-board)). |
+| *Cursor + click · Day 468 · block 0 · radial-8 calibration* | T15 block 0: [radial-8](GLOSSARY.md#radial-8) calibration task, includes computer assistance, 180 s | T15 files in `datasets/` | Sub-line *Dryad T15 · 256 channels · 10 ms bins*. |
+| *Cursor + click · Day 468 · block 1 · radial-8 calibration* | T15 block 1: fully neural calibration, 70 s | T15 files in `datasets/` | |
+| *Cursor + click · Day 468 · block 2 · radial-8 calibration* | T15 block 2: fully neural calibration, 180 s | T15 files in `datasets/` | |
+| *Cursor + click · Day 468 · block 3 · grid evaluation* | T15 block 3: choosing targets on a grid, fully neural, 180 s | T15 files in `datasets/` | The block to use with the board ([7.7](#77-example-the-t15-recorded-decoder-on-the-board)). |
 | *No recorded datasets yet. Put downloaded dataset files in `<folder>` (create the folder if needed; Getting started, section 4), then reload this page.* | Tells you where the files go | No dataset file found | The message names the real folder on your computer. |
 
-Every FALCON and AJILE12 file is checked against a pinned SHA-256 checksum (a fingerprint of the
-published file); the result is shown in **Advanced → Acquisition details**
-([10.3](#103-acquisition-details)). T15 files are checked when you connect them; Acquisition
-details has no dataset or citation panel for T15 (the citation is in [Datasets](DATASETS.md)).
+A FALCON file's name is the recording's session time stamp; the dataset shifted the dates to 1925
+for de-identification. *held-in-calib* is FALCON's name for its calibration split.
+
+Every FALCON and AJILE12 file is checked against a pinned [SHA-256](GLOSSARY.md#sha-256)
+checksum (a fingerprint of the published file); the result is shown in **Advanced → Acquisition
+details** ([10.3](#103-acquisition-details)). T15 files are checked when you connect them;
+Acquisition details has no dataset or citation panel for T15 (the citation is in
+[Datasets](DATASETS.md)).
 
 ![A FALCON replay with Playback open](images/09-recorded-human-data.png)
 
@@ -347,13 +422,19 @@ details has no dataset or citation panel for T15 (the citation is in [Datasets](
 **Session recordings (replay)**: *Recordings made with this console, replayed through the same
 pipeline.* Each row is named *Replay · <recording name>*, with what was recorded (for example
 *Simulated data*). This group appears once you have made a recording ([10.5](#105-recording)).
-Every replayed event is marked replayed (↺ in the event stream).
+Every replayed event is marked [replayed](GLOSSARY.md#replayed) (↺ in the event stream).
 
-A recording made with **Features and labels only** (including every recording made from the
-**Calibrate…** panel) of a raw source replays only its labels in 0.3.1: the console shows *No
-signal* and the session log fills with *Undeclared capability: adapter emitted features.binned
-but did not declare neural_features*. Use those recordings to train a decoder
-([6.5](#65-the-calibrate-panel)), not to replay.
+**A recording that contains pipeline features cannot be replayed cleanly in 0.3.1.** That is
+every recording made while decoding runs, including every recording made from the
+**Calibrate…** panel. On replay:
+
+- the session log fills with *Undeclared capability: adapter emitted features.binned* (or
+  *features.vector*) *but did not declare neural_features*;
+- **Advanced → Diagnostics → Contract violations** keeps rising;
+- if it was recorded with **Features and labels only**, the console also shows *No signal*.
+
+Use such recordings to train a decoder ([6.5](#65-the-calibrate-panel)). To make a recording for
+replay, record with decoding off.
 
 **Other sources**: any other offline source Concord finds. It is empty in a standard
 installation and then not shown.
@@ -361,60 +442,75 @@ installation and then not shown.
 ### 4.7 Live streams: LSL
 
 *Lab Streaming Layer or Open Ephys. Concord only receives; nothing is sent to the acquisition
-system.* Setting up your own equipment: [Connect your equipment](CONNECT_YOUR_EQUIPMENT.md) and
-[Lab guide](LAB_GUIDE.md). To rehearse without hardware, start a test stream with
-`concord publish lsl-ephys` or `concord publish falcon <file>` ([14.2](#142-test-streams-concord-publish)).
+system.* ([LSL](GLOSSARY.md#lsl-lab-streaming-layer) is a common way to stream data between
+programs on a lab network.) Setting up your own equipment:
+[Connect your equipment](CONNECT_YOUR_EQUIPMENT.md) and [Lab guide](LAB_GUIDE.md). To rehearse
+without hardware, start a [test stream](GLOSSARY.md#test-stream) with
+`concord publish lsl-ephys` or `concord publish falcon <file>`
+([14.2](#142-test-streams-concord-publish)).
 
 **The list of live sources.** Registered LSL and Open Ephys sources are listed at the top of the
 **Live streams** group, each with **Remove** and **Connect** (or **Switch**). A row reads, for
 example, *LSL · Concord synthetic ephys (EEG) — declared synthetic* with *Simulated data · 32
 channels · 30,000 Hz*. Two streams can have the same name: hover over a row to see its
-`source_id` and host. This list is kept only while Concord runs; after a restart, search again.
+[`source_id`](GLOSSARY.md#source_id) and host. This list is kept only while Concord runs; after
+a restart, search again.
 
-**How the LSL search really behaves:**
+#### Connect an LSL stream, step by step
 
-1. Open **Find LSL streams** and click **Search the network** (it shows *Searching…* for about
-   1.5 s).
+1. Open **Find LSL streams** and click **Search the network**. It shows *Searching…* for about
+   1.5 s.
 2. The results table lists every stream found. **At the same time, every stream that can be a
    signal is added to the list of live sources above, ready to connect.** For a signal stream
-   without attachments, just click **Connect** (or **Switch**) on its row.
-3. To attach a behaviour stream (calibration labels) or a marker stream, click **Use** on the
-   signal stream, pick the **Behavior stream (optional)** and **Marker stream (optional)**, and
-   click **Add source**. This does **not** add a new row: it updates the signal stream's existing
-   row with the attachments. The session log says *Registered LSL · …*.
+   without attachments, just click **Connect** (or **Switch**) on its row. You are done.
+3. To attach a [behavior stream](GLOSSARY.md#behavior-stream) (calibration labels) or a
+   [marker stream](GLOSSARY.md#marker-stream): click **Use** on the signal stream, pick the
+   **Behavior stream (optional)** and **Marker stream (optional)**, and click **Add source**.
+   This does **not** add a new row: it updates the signal stream's existing row with the
+   attachments. The session log says *Registered LSL · …*. Then click **Connect** on that row.
 4. To check the attachments: **Advanced → Capability contract** shows *behavior: Yes* in that
-   source's column, and once connected, **Advanced → Acquisition details** lists one line per
-   stream (*signal*, *behavior*, *markers*).
+   source's column. Once connected, **Advanced → Acquisition details** lists one line per stream
+   (*signal*, *behavior*, *markers*).
+
+#### The Find LSL streams panel
 
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
 | **Find LSL streams** | Opens the search | Panel open | |
-| **Search the network** | Looks for LSL streams on your network for about 1.5 s | Inside Find LSL streams | Next to it: *Not searched yet*, or *Last search 4 s ago · 7 streams*. The search uses multicast on your local network. |
+| **Search the network** | Looks for LSL streams on your network for about 1.5 s | Inside **Find LSL streams** | Next to it: *Not searched yet*, or *Last search 4 s ago · 7 streams*. The search uses [multicast](GLOSSARY.md#multicast) on your local network. |
 | *No LSL streams found on the network.* | Nothing was found | After a search | Check that the publisher runs and that both computers are on the same network ([LAB_SETUP.md](LAB_SETUP.md)). |
 | Results: **Stream** | The stream's name and, below it, its type (EEG, Behavior, SpikeCounts, Markers, …) | After a search | Hover a row: its key, host, `source_id` and number format. |
-| Results: **Channels** | Number of channels | | |
-| Results: **Rate** | Samples per second; *irregular* for streams without a fixed rate (markers) | | |
-| Results: **Units** | The channel units the stream declares; *channels not described* when it declares none; *none* for channels without a unit | | |
-| Results: **Declared** | What the publisher declares: *prerecorded*, *synthetic*, *prerecorded + synthetic*, *declared neither*, or *no declaration* | | A declaration cannot be verified. |
+| Results: **Channels** | Number of channels | After a search | |
+| Results: **Rate** | Samples per second; *irregular* for streams without a fixed rate (markers) | After a search | |
+| Results: **Units** | The channel units the stream declares | After a search | *channels not described* when it declares none; *none* for channels without a unit. |
+| Results: **Declared** | What the publisher [declares](GLOSSARY.md#declared): *prerecorded*, *synthetic*, *prerecorded + synthetic*, *declared neither*, or *no declaration* | After a search | A declaration cannot be verified. |
 | **Use** | Makes this stream the signal and shows the form below | Streams that can be a signal | Click again to unselect. |
 | Reason instead of **Use** | Why a stream cannot be the signal, for example *stream '…' carries strings; use it as a marker stream*, or an irregular rate | Unusable streams | Such a stream can still be attached as a marker stream. |
 | *Signal: name (type, N ch)* | The chosen signal stream | After **Use** | |
-| **Behavior stream (optional)** | Attaches a stream whose values become behaviour labels (for example cued velocity), mapped onto the signal's clock | After **Use** | Default **None**. The list offers every other stream found; streams with the same name appear in the order of the results table. |
+| **Behavior stream (optional)** | Attaches a stream whose values become behavior labels (for example cued velocity), mapped onto the signal's clock | After **Use** | Default **None**. Lists every other stream found; streams with the same name appear in the order of the results table. |
 | **Marker stream (optional)** | Attaches a stream of event markers (for example trial start) | After **Use** | Default **None**. |
 | **Add source** | Registers the signal with its attachments | After **Use** | Updates the existing row; does not connect. |
 | **Remove** | Removes a registered source from the list | Each row that is not connected | |
 
 ### 4.8 Live streams: Open Ephys
 
-**Add Open Ephys source** registers the Open Ephys GUI's *ZMQ Interface* plugin as a source.
-Setup in the GUI: [OPEN_EPHYS.md](OPEN_EPHYS.md).
+**Add Open Ephys source** registers the Open Ephys GUI's *ZMQ Interface* plugin as a source
+([Open Ephys GUI, ZMQ Interface](GLOSSARY.md#open-ephys-gui-zmq-interface);
+[ZMQ](GLOSSARY.md#zmq) is the messaging library it uses). Setup in the GUI:
+[OPEN_EPHYS.md](OPEN_EPHYS.md).
 
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
 | **Host** | The computer running the Open Ephys GUI | **Add Open Ephys source** open | Default 127.0.0.1 (this computer). |
-| **Data port** | The plugin's data port | | Default 5556 (1–65534). Concord sends heartbeats (a "still listening" message, the only message Concord ever sends) to the next port, 5557 by default. |
-| **Sample unit** | The unit the GUI sends | | **Unknown (pass through unscaled)** (default): samples are passed on unchanged and labelled *arbitrary*. **uV**, **mV** or **V**: Concord converts to microvolts. The plugin does not transmit units, so choose what the GUI is set to. |
-| **Add source** | Registers *Open Ephys (ZMQ) · host:port* in the live-sources list | | Adding does not connect. Then click **Connect** on its row. |
+| **Data port** | The plugin's data port | **Add Open Ephys source** open | Default 5556 (1–65534). Concord sends [heartbeats](GLOSSARY.md#heartbeat) to the next port, 5557 by default. |
+| **Sample unit** | The unit the GUI sends | **Add Open Ephys source** open | Default **Unknown (pass through unscaled)**. See the note below the table. |
+| **Add source** | Registers *Open Ephys (ZMQ) · host:port* in the live-sources list | **Add Open Ephys source** open | Adding does not connect. Then click **Connect** on its row. |
+
+- **Heartbeat**: a short "still listening" message. It is the only message Concord ever sends to
+  any acquisition system.
+- **Sample unit**: with **Unknown (pass through unscaled)**, samples are passed on unchanged and
+  labelled [*arbitrary*](GLOSSARY.md#arbitrary-unit). With **uV**, **mV** or **V**, Concord
+  converts to microvolts. The plugin does not transmit units, so choose what the GUI is set to.
 
 The Open Ephys protocol cannot carry a "synthetic" or "prerecorded" declaration, so an Open
 Ephys source is always shown as *Live stream, origin unverified*, even the test stream from
@@ -423,7 +519,8 @@ Ephys source is always shown as *Live stream, origin unverified*, even the test 
 ### 4.9 Plugins
 
 *Sources from installed adapter packages. Each plugin runs in its own process and only delivers
-data to Concord; what it declares and sends is checked before use.*
+data to Concord; what it declares and sends is checked before use.* (A
+[plugin](GLOSSARY.md#plugin) is an [adapter](GLOSSARY.md#adapter) that someone else wrote.)
 
 The desktop app includes the BCI2000 plugin. BrainFlow, BCI2000 and the certification tools are
 also published as wheel files on the release page (none of Concord's packages is on PyPI): see
@@ -435,9 +532,13 @@ your own: [ADAPTER_SDK.md](ADAPTER_SDK.md).
 | Trust note | *Plugins are third-party code. Each runs in its own process, but with your user's permissions … "Compatible" means it follows the adapter contract, not that its code was reviewed. Install only plugins you trust.* | Always | |
 | Plugin name and status line | For example *BCI2000 App Connector* with *concord-bci2000@0.1.0 · compatible · bci2000 · uses the network* | Each installed plugin | *compatible*: Concord accepts it. *rejected: …* or *failed to load: …* gives the reason; such a plugin cannot be used. *uses the network*: it opens a network port. |
 | Device rows | Each device the plugin found, with its description, **Connect** / **Switch** | Compatible plugins | *No devices found.* or *Device search failed: …* otherwise. |
-| **Options** | The plugin's own settings for that device | Plugins that have settings | Fields are defined by the plugin; their labels explain them. *(required)* marks fields you must fill. Only values you change are sent; the plugin checks them when you connect. The BCI2000 plugin's options are explained in [ECOSYSTEMS.md](ECOSYSTEMS.md). |
+| **Options** | The plugin's own settings for that device | Plugins that have settings | Fields are defined by the plugin; see the note below the table. |
 | *No plugins installed. Install an adapter package into Concord's Python environment, then search again.* | Nothing installed | No plugin | |
 | **Search again** | Looks again for installed plugins | Always | Next to it: *Last search 4 min ago · adapter SDK 1.0* (the plugin-interface version this Concord supports). Concord also searches by itself at start. |
+
+Plugin **Options**: their labels explain them, and *(required)* marks fields you must fill. Only
+values you change are sent; the plugin checks them when you connect. The BCI2000 plugin's options
+are explained in [ECOSYSTEMS.md](ECOSYSTEMS.md).
 
 ---
 
@@ -448,21 +549,33 @@ on the left, the verdict and three measured numbers on the right.
 
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
-| Traces (raw sources) | The first four channels' samples, each scaled to fit its lane | Simulated profiles, raw LSL streams, Open Ephys, AJILE12 | Caption: *Showing 4 of 32 channels · raw samples, last 2 s, each scaled to fit*. Shapes only: there is no voltage scale. |
-| Traces (feature sources) | Four channels' counts per bin, on a common scale | FALCON, T15, LSL spike-count streams | Caption: *Showing 4 of 176 channels with the most activity · spike count per 20 ms bin, last 5 s*. The four most active channels are chosen once, after the first second. |
+| Traces (raw sources) | The first four [channels'](GLOSSARY.md#channel) [raw](GLOSSARY.md#raw-signal) samples, each scaled to fit its lane | Simulated profiles, raw LSL streams, Open Ephys, AJILE12 | Caption: *Showing 4 of 32 channels · raw samples, last 2 s, each scaled to fit*. Shapes only: there is no voltage scale. |
+| Traces (feature sources) | Four channels' counts per [bin](GLOSSARY.md#bin), on a common scale | FALCON, T15, LSL spike-count streams | Caption: *Showing 4 of 176 channels with the most activity · spike count per 20 ms bin, last 5 s*. The four most active channels are chosen once, after the first second. |
 | *Waiting for data* | No data to draw yet | Just after connecting, or a source with nothing drawable | |
 | Verdict (*Good*, *Gaps detected*, …) | A one-word summary | Always | Hover for the exact rules (table below). |
 | **Channels** | Channels in the latest data block, of the channels the source declares: *32 of 32* | Connected | A smaller first number means channels are missing from the stream. |
-| **Data received (%)** | Share of the data that arrived | Connected | Measured only for LSL (samples received vs samples estimated missing from time-stamp gaps) and Open Ephys (messages received vs missed). Shows *—* for every other source: they do not report losses, so nothing is estimated. |
-| **Delay to this screen (ms)** | Median time from Concord receiving an event to this browser tab receiving it, over the last 1,000 events | Connected | Measured in this browser. It is not the delay from the brain or the device. Never shown below 0 (clock rounding on one computer can otherwise produce tiny negative values). A value that keeps growing means this tab is falling behind. |
+| **Data received (%)** | Share of the data that arrived | Connected | Measured only for LSL and Open Ephys; *—* for every other source. See the note below the table. |
+| **Delay to this screen (ms)** | Median time from Concord receiving an event to this browser tab receiving it, over the last 1,000 events | Connected | Measured in this browser, not from the brain or the device. A value that keeps growing means this tab is falling behind. |
+
+- **Data received (%)**: for LSL, samples received compared with samples estimated missing from
+  time-stamp gaps; for Open Ephys, messages received compared with messages missed. Other sources
+  do not report losses, so nothing is estimated and the figure shows *—*.
+- **Delay to this screen** is never shown below 0: on one computer, clock rounding could
+  otherwise produce tiny negative values.
 
 | Verdict | When | What to do |
 | --- | --- | --- |
 | *Good* | None of the conditions below | Nothing. |
-| *Gaps detected* | A loss counter rose in the last 10 s: stream gaps, estimated missing samples, missed messages, incomplete blocks, inputs the pipeline dropped, or events an application or console tab could not take in time | Look at **Advanced → Acquisition details** (source losses) and **Advanced → Diagnostics → Subscriber drops**. If *Data received* shows *—* or 100, the cause is usually a slow application: check **Advanced → Connected applications** for a non-zero *dropped* and close console or board tabs you don't need. |
+| *Gaps detected* | A loss counter rose in the last 10 s (the list is below the table) | Look at **Advanced → Acquisition details** (source losses) and **Advanced → Diagnostics → Subscriber drops**. |
 | *No signal* | No raw-signal or feature data arrived in the last 2 s (also shown when nothing is connected) | Check the source. A replayed features-only recording also shows this ([4.6](#46-session-recordings-replay-and-other-sources)). |
 | *Paused* | You paused the source | **Resume**. |
 | *Interrupted — reconnecting* | Concord is reconnecting to the source | Wait; see [2.2](#22-every-state-the-title-bar-can-show). |
+
+*Gaps detected* counts these losses: stream gaps, estimated missing samples, missed messages,
+incomplete blocks, inputs the pipeline dropped, and events an application or console tab could
+not take in time ([subscriber drops](GLOSSARY.md#subscriber-drops)). If **Data received (%)**
+shows *—* or 100, the cause is usually a slow application: check **Advanced → Connected
+applications** for a non-zero *dropped*, and close console or board tabs you don't need.
 
 Concord counts every loss and reconnect; it never fills gaps silently. Detailed per-stream
 counters are in [10.3](#103-acquisition-details).
@@ -471,9 +584,10 @@ counters are in [10.3](#103-acquisition-details).
 
 ## 6. Decoder
 
-*Turns brain activity into intended movement.* This row starts the processing pipeline
-(filters and feature extraction) and, optionally, a decoder model. What decoders are and how they
-are evaluated: [How Concord works](CONCEPTS.md#5-decoders-from-brain-activity-to-intended-movement).
+*Turns brain activity into intended movement.* This row starts the processing
+[pipeline](GLOSSARY.md#pipeline) (filters and [feature](GLOSSARY.md#features) extraction) and,
+optionally, a [decoder](GLOSSARY.md#decoder) model. What decoders are and how they are evaluated:
+[How Concord works](CONCEPTS.md#5-decoders-from-brain-activity-to-intended-movement).
 
 ### 6.1 The row
 
@@ -482,51 +596,68 @@ are evaluated: [How Concord works](CONCEPTS.md#5-decoders-from-brain-activity-to
 | **Start decoding** | Opens the **Start decoding** panel ([6.2](#62-the-start-decoding-panel)) | A source is connected, decoding is off | |
 | **Stop decoding** | Stops processing and the decoder | Decoding runs | Command output turns off with it. |
 | **Calibrate…** | Opens the **Calibrate a decoder** panel ([6.5](#65-the-calibrate-panel)) | A source is connected | |
-| *Off* / *Connect a source first.* | Nothing runs | | |
+| *Off* / *Connect a source first.* | Nothing runs | Decoding off | |
 | *Unavailable: …* | Decoding cannot run in this installation, with the reason | Rare | |
-| *Running · <processing>* | Decoding runs with that processing preset | Decoding | Green dot. |
+| *Running · <processing>* | Decoding runs with that [processing preset](GLOSSARY.md#processing-preset) | Decoding | Green dot. |
 | *No model: features only.* | Only features are computed; nothing can become a command | Decoding without a model | Useful for watching or recording features. |
-| *Model <id> · offline held-out R² 0.xxx* | The running model and its offline score, reported by the model file | Decoding with a movement model | Classifiers show *classes … · offline held-out balanced accuracy … (chance …)*; click models show *events …*. An offline score says how well the model reconstructs recorded labels, not how well a person could control anything. |
-| Origin line | For example *Concord-trained · ridge regression · in Concord · compatible with this source* | With a model | Origin: *Concord-trained*, *Imported model file*, *Decoder plugin*, *External decoder*, *Historical decoder replay (original research system)*. Where it runs: *in Concord* or *isolated process*. *channels mapped by label (operator enabled)* when you chose **Map channels by label**. |
+| *Model <id> · offline held-out R² 0.xxx* | The running model and its [offline held-out score](GLOSSARY.md#offline-held-out-score), as reported by the model file | Decoding with a movement model | Classifiers and click models show other scores (below the table). |
+| Origin line | For example *Concord-trained · ridge regression · in Concord · compatible with this source* | With a model | The possible values are below the table. |
 | *Trained on …* | The recording(s) the model was fitted on | With a model | |
-| *Historical decoder replay (original research system): t15-historical-velocity → vx, vy (velocity, 271 received)* | A decoder output the source carries, passed through unchanged; the count is how many outputs arrived since decoding started | **Source decoder outputs (passthrough)** | One line per decoder output; T15 has two (velocity and click). |
+| *Historical decoder replay (original research system): t15-historical-velocity → vx, vy (velocity, 271 received)* | A decoder output the source carries, passed through unchanged; the count is how many outputs arrived since decoding started | **Source decoder outputs (passthrough)** | One line per decoder output; T15 has two (velocity and click). See [historical](GLOSSARY.md#historical-model-origin). |
 | *T15-historical-velocity: no declared output scale; the router uses its values as they are.* (amber) | The source does not say in what units its output is | Passthrough of such an output | **Gain** and **Dead-zone** are then in the decoder's own units ([7.3](#73-settings-for-movement-decoders)). |
 | *Estimating thresholds (0.6 s left).* | The spike-band preset measures each channel's noise level during the first second | Spike-band preset, first second | |
-| *Drift monitor warming up (N bins)* | The model compares incoming features with its training data; it needs some data first | With a Concord model | Then *No drift from the training data detected*, or (amber) *Recalibration recommended: …* with the reason. *Drift monitor: …* means it cannot check (for example no training statistics). |
-| *Cross-source override: decoded output is marked as reduced quality.* (amber) | You allowed a model trained on another source | | |
-| Compatibility warnings (amber) | Differences between the model and the source that do not prevent running | | |
-| *Decoder stopped: …* (red) | The decoder failed; command output turned off | | Check the reason; start decoding again. |
+| *Drift monitor warming up (N bins)* | The [drift monitor](GLOSSARY.md#drift-monitor) compares incoming features with the model's training data; it needs some data first | With a Concord model | Then *No drift from the training data detected*, or (amber) *Recalibration recommended: …* with the reason. *Drift monitor: …* means it cannot check (for example no training statistics). |
+| *Cross-source override: decoded output is marked as reduced quality.* (amber) | You allowed a model trained on another source ([cross-source model](GLOSSARY.md#cross-source-model)) | After **Allow a model trained on a different source** | |
+| Compatibility warnings (amber) | Differences between the model and the source that do not prevent running | With a model | |
+| *Decoder stopped: …* (grey box) | The decoder failed; command output turned off | After a decoder failure | Check the reason; start decoding again. |
 | *This recording carries the replayed output of an offline decoder (<model>); it is not used for control.* | The file contains a decoder's recorded output (T15: the original research system's decoders) | Such a file, decoding off | It reaches command output only if you choose **Source decoder outputs (passthrough)** and start control ([7.7](#77-example-the-t15-recorded-decoder-on-the-board)). |
+
+- **Other scores.** A classifier shows *classes … · offline held-out balanced accuracy …
+  (chance …)* ([balanced accuracy](GLOSSARY.md#balanced-accuracy),
+  [chance](GLOSSARY.md#chance)). A click model shows *events …*. An offline score says how well
+  the model reconstructs recorded labels, not how well a person could control anything.
+- **Origin line.** The origin is *Concord-trained*, *Imported model file*, *Decoder plugin*,
+  *External decoder* or *Historical decoder replay (original research system)*. Where it runs:
+  *in Concord* or *isolated process*. The line adds *channels mapped by label (operator
+  enabled)* when you chose **Map channels by label**.
 
 ### 6.2 The Start decoding panel
 
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
 | **Processing** | Chooses how features are made from the source ([6.3](#63-processing-presets)) | Always | Preselected for the source. A one-paragraph description of the chosen preset appears below it. |
-| **Bin (ms)** | Length of one feature bin | Spike-band, High-gamma, Band power | Leave empty for the default: 20 ms (spike-band) or 50 ms (high-gamma, band power). Must be a number above 0 and up to 1000. |
-| **Threshold (× RMS)** | Spike detection threshold, in multiples of each channel's noise level (RMS) | Spike-band only | Default −4.5 (negative: crossings below the noise). Allowed −20 to just below 0. |
+| **Bin (ms)** | Length of one feature [bin](GLOSSARY.md#bin) | Spike-band, High-gamma, Band power | Leave empty for the default: 20 ms (spike-band) or 50 ms (high-gamma, band power). Must be a number above 0 and up to 1000. |
+| **Threshold (× RMS)** | Spike detection threshold, in multiples of each channel's noise level ([RMS](GLOSSARY.md#rms)) | Spike-band only | Default −4.5 (negative: crossings below the noise). Allowed −20 to just below 0. |
 | **Band low (Hz)**, **Band high (Hz)** | The frequency band whose power is computed | Band power only | No default: fill both, or the panel says *band_power needs a low and a high band edge*. |
 | **Decoder model** | **None (features only)** or a model ([6.4](#64-decoder-models)) | Every preset except Source decoder outputs | Each model is marked *(compatible)* or *(incompatible)* with what this processing will produce. Models Concord refuses are greyed out. |
 | Model details | Origin, data it was trained on, its score, what it expects, compatibility, warnings | A model is chosen | See [6.4](#64-decoder-models). |
 | **Map channels by label (the model's channels are taken from the source by name)** | Feeds the model the source channels whose labels match the model's channel labels, in the model's order | Offered only when the labels allow it | Use only if the labels name the same electrodes. The mapping is logged and shown while decoding. |
 | **Allow a model trained on a different source** | Runs a model calibrated on another source or session | A model is chosen | For deliberate cross-source tests only. Its output is not expected to be meaningful; decoded events are marked reduced quality. |
-| **Mark this file trusted** / **Withdraw trust** | Allows (or no longer allows) a pickle or joblib model file to load | Such a file is chosen | These formats run code from the file when loaded, so Concord refuses them until you decide. The decision is tied to the file's SHA-256: changing the file voids it. |
-| **Start decoding** | Starts | The source is streaming or paused | Otherwise: *Connect a source (streaming or paused) first.* A refusal is shown in red, for example *capability_unsupported: Recorded Human Intracranial Data — Offline Replay provides no continuous raw signal (recording frames)*. |
+| **Mark this file trusted** / **Withdraw trust** | Allows (or no longer allows) a [pickle or joblib](GLOSSARY.md#pickle-joblib) model file to load | Such a file is chosen | See the note below the table. |
+| **Start decoding** | Starts | The source is streaming or paused | Otherwise: *Connect a source (streaming or paused) first.* A refusal is shown in a grey box (example below the table). |
 | **Search for decoder plugins** | Looks again for installed decoder plugins | Always | *Installed decoder plugins and model files are listed with the models.* |
-| **Close** | Closes the panel without starting | | |
+| **Close** | Closes the panel without starting | Always | |
+
+- **Trust.** Pickle and joblib files run code from the file when loaded, so Concord refuses them
+  until you decide. The decision is tied to the file's [SHA-256](GLOSSARY.md#sha-256): changing
+  the file voids it.
+- **Refusal example**: *capability_unsupported: Recorded Human Intracranial Data — Offline Replay
+  provides no continuous raw signal (recording frames)*, when a raw preset is chosen for a FALCON
+  file.
 
 ### 6.3 Processing presets
 
 | Preset (**Processing**) | For | What it does | Preselected when | Parameters |
 | --- | --- | --- | --- | --- |
-| **Spike-band threshold crossings** | Intracortical broadband signals, at least 10 kHz | Band-pass 250–5000 Hz, common average reference (subtracting the mean of all channels, with 8 or more channels), counts of negative threshold crossings per bin (1 ms refractory period); the noise level (RMS) is measured over the first second | The source's raw rate is 10 kHz or more (LSL ephys, Open Ephys) | **Bin (ms)** 20, **Threshold (× RMS)** −4.5 |
-| **High-gamma band power** | ECoG, sEEG, LFP, at least 400 Hz | Mains notch at 60 Hz and its harmonics (or the mains frequency the source declares), common average reference without channels the source marks bad, 70–150 Hz band, log10 mean power per bin | Raw rate 400 Hz to 10 kHz (Simulated Profile A, AJILE12) | **Bin (ms)** 50 |
+| **Spike-band threshold crossings** | [Intracortical](GLOSSARY.md#intracortical-intracranial) broadband signals, at least 10 kHz | Band-pass 250–5000 Hz, [common average reference](GLOSSARY.md#common-average-reference) (with 8 or more channels), counts of negative threshold crossings per bin (1 ms refractory period); the noise level (RMS) is measured over the first second | The source's raw rate is 10 kHz or more (LSL ephys, Open Ephys) | **Bin (ms)** 20, **Threshold (× RMS)** −4.5 |
+| **High-gamma band power** | [ECoG](GLOSSARY.md#ecog), [sEEG](GLOSSARY.md#seeg), [LFP](GLOSSARY.md#lfp), at least 400 Hz | Mains [notch](GLOSSARY.md#notch-filter) at 60 Hz and its harmonics (or the mains frequency the source declares), common average reference without channels the source marks bad, 70–150 Hz band, log10 mean power per bin | Raw rate 400 Hz to 10 kHz (Simulated Profile A, AJILE12) | **Bin (ms)** 50 |
 | **Band power** | Any rate | log10 mean power in one band you choose, per bin (common average reference with 8 or more channels) | Raw rate below 400 Hz (Simulated Profile B) | **Bin (ms)** 50, **Band low (Hz)**, **Band high (Hz)** (required) |
 | **Source features (passthrough)** | Sources that already deliver binned features | No processing | The source delivers features (FALCON, T15, LSL spike counts) | None |
-| **Source decoder outputs (passthrough)** | Sources that carry a decoder's output | No features and no model: the source's own decoder outputs go to **Command output** unchanged, keeping their model name and origin (a research system's recorded decoder, or an external system's live decoder) | Never preselected; listed only when the source carries decoder outputs (T15) | None |
+| **Source decoder outputs (passthrough)** | Sources that carry a decoder's output | No features and no model: the source's own decoder outputs go to **Command output** unchanged, keeping their model name and origin | Never preselected; listed only when the source carries decoder outputs (T15) | None |
 
 A raw preset on a source without a raw signal, or a preset below its minimum rate, is refused
-with the reason.
+with the reason. **Source decoder outputs** passes on a research system's recorded decoder (T15)
+or an external system's live decoder; see [passthrough](GLOSSARY.md#passthrough).
 
 ### 6.4 Decoder models
 
@@ -534,9 +665,11 @@ The **Decoder model** list shows every model Concord can run:
 
 - **Concord-trained** models: made with **Calibrate…** ([6.5](#65-the-calibrate-panel)) or, in a
   source installation, `make model`. Saved as JSON files in the data folder's `models` folder.
-- **Imported model files** (ONNX, scikit-learn via skops, TorchScript, safetensors; pickle and
-  joblib only after **Mark this file trusted**): copy the file and its `<id>.manifest.json` into
-  the `models` folder. They run in an isolated process.
+- **Imported model files** ([ONNX](GLOSSARY.md#onnx), scikit-learn via
+  [skops](GLOSSARY.md#skops), [TorchScript](GLOSSARY.md#torchscript),
+  [safetensors](GLOSSARY.md#safetensors); [pickle and joblib](GLOSSARY.md#pickle-joblib) only
+  after **Mark this file trusted**): copy the file and its `<id>.manifest.json` into the `models`
+  folder. They run in an [isolated](GLOSSARY.md#isolated) process.
 - **Decoder plugins**: installed packages; **Search for decoder plugins** finds new ones.
 
 The list is read again each time you open the panel. How to bring your own model:
@@ -546,61 +679,111 @@ Model details, shown when you pick a model:
 
 | Line | Meaning |
 | --- | --- |
-| **Decoder** | Origin · family (ridge regression, Kalman filter, LDA classifier, click classifier, ONNX, scikit-learn, TorchScript) · where it runs |
+| **Decoder** | Origin · [family](GLOSSARY.md#decoder-family) (ridge regression, Kalman filter, LDA classifier, click classifier, ONNX, scikit-learn, TorchScript) · where it runs |
 | **Trained on data from** | The modality of the training data; *not participant-specific* when it was not calibrated on this participant |
 | **Trained on** | The recording(s) |
 | **Source** | The source the training data came from |
-| **Offline held-out R²** / **Offline held-out balanced accuracy** / **Outputs** | The score reported by the model file, with its control (mean predictor, or chance) and the number of held-out samples |
+| **Offline held-out R²** / **Offline held-out balanced accuracy** / **Outputs** | The score reported by the model file, with its control ([mean predictor](GLOSSARY.md#mean-predictor-control), or chance) and the number of held-out samples |
 | **Expects** | Feature, bin length and channel count the model needs, and what it outputs (for example *threshold crossing count · 20 ms bins · 32 channels → vx, vy*) |
-| Compatibility line | *Compatible with this processing (… preview).*, *Not compatible with …* (red), or *Compatibility is checked against the pipeline output when it starts.* |
-| Errors (red), warnings (amber) | Why it cannot run, or what to be careful about |
+| Compatibility line | *Compatible with this processing (… preview).*, or *Not compatible with this processing (… preview).* followed by the reasons in a grey box, or *Compatibility is checked against the pipeline output when it starts.* |
+| Errors (grey box), warnings (amber) | Why it cannot run, or what to be careful about |
 
 ### 6.5 The Calibrate panel
 
 **Calibrate…** opens *Calibrate a decoder*: record labelled data from the connected source, then
-fit a decoder on it. Step by step with a lab setup: [LAB_GUIDE.md](LAB_GUIDE.md).
+fit a decoder on it ([calibration](GLOSSARY.md#calibration)). Step by step with a lab setup:
+[LAB_GUIDE.md](LAB_GUIDE.md).
 
-The labels come from a **behaviour stream**: an LSL behaviour stream you attached
-([4.7](#47-live-streams-lsl)), BCI2000 states, or a test stream. Simulated profiles carry no
-labels. To rehearse without hardware: start `concord publish lsl-ephys` (synthetic signal plus a
-"latent velocity" behaviour stream), attach its behaviour stream, **Start decoding** with
-**Spike-band threshold crossings** and **None (features only)**, then record and train here.
+The labels come from a [behavior stream](GLOSSARY.md#behavior-stream): an LSL behavior stream
+you attached ([4.7](#47-live-streams-lsl)), BCI2000 states, or a test stream. Simulated profiles
+carry no labels.
 
-**1. Record a calibration session**
+**To rehearse without hardware:**
+
+1. Start `concord publish lsl-ephys` (a synthetic signal plus a "latent velocity" behavior
+   stream; [14.2](#142-test-streams-concord-publish)).
+2. Connect its signal stream with the behavior stream attached ([4.7](#47-live-streams-lsl)).
+3. **Start decoding** with **Spike-band threshold crossings** and **None (features only)**.
+4. Record and train here (steps 1 and 2 below).
+
+#### Step 1: Record a calibration session
 
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
-| **Start recording** | Records features and behaviour labels only, not raw samples | A simulated or live source (LSL, Open Ephys, plugin) is streaming or paused | Up to an hour by default ([15](#15-configuration-file)). With a raw source, start decoding without a model first so that the pipeline computes features to record. The recording is named after the source and the time, for example *lsl-guide-ephys-20261109-014019*. |
+| **Start recording** | Records features and behavior labels only, not raw samples | A simulated or live source (LSL, Open Ephys, plugin) is streaming or paused | Up to an hour by default ([15](#15-configuration-file)). See the notes below the table. |
 | **Stop recording** | Ends it; it appears in the list below | While recording | *Recording <name>* is shown next to it. |
 | *A recorded file is already a recording and cannot be recorded again. Calibrate from a simulated or live source, or train on an earlier session recording below.* | Explains why **Start recording** is greyed out | FALCON, AJILE12, T15 or session recording connected | |
-| *Connect a source that is streaming to record.* | | Nothing streaming | |
+| *Connect a source that is streaming to record.* | Explains why you cannot record now | Nothing streaming | |
 
-**2. Train**
+- With a raw source, start decoding without a model first, so that the pipeline computes
+  features to record.
+- The recording is named after the source and the time, for example
+  *lsl-concord-synthetic-ephys-20261109-024115* for the `concord publish lsl-ephys` test stream.
+
+#### Step 2: Train
 
 *The first part of the data trains the decoder; the chronological tail, after a gap, is held out
-for scoring.*
+for scoring.* ([Held-out](GLOSSARY.md#held-out) data is used only to score the decoder, never to
+fit it.)
 
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
-| Recording checklist | Tick the recordings to train on | Finished recordings exist (otherwise *No finished recordings yet.*) | Each line: name · source · events · size · *synthetic* when the data was synthetic. |
-| **What the decoder should output** | **Continuous movement**, **Discrete classes** or **Click** | Always | The line below says what it needs. Continuous: *a behavior stream with continuous targets (e.g. cued cursor velocity)*. Discrete classes: *a behavior dimension with a small-integer class code per bin (e.g. a cue)*. Click: *a behavior dimension that is 1 while a click is attempted and 0 otherwise*. |
-| **Decoder family** | Which kind of model | Continuous movement, Click | Continuous: **Default (ridge regression)**, **ridge regression**, **Kalman filter**. Click: **Default (LDA classifier)**, **LDA classifier**, **click classifier**. Discrete classes always uses the LDA classifier (no choice shown). |
-| **Label dimension (optional)** | Which behaviour dimension holds the label | Discrete classes, Click | Needed only when there are several. Examples shown: `cue_class`, `click`. |
+| Recording checklist | Tick the recordings to train on | Finished recordings exist (otherwise *No finished recordings yet.*) | Each line: name · source id · *— events* · size · *synthetic* when the data was synthetic. 0.3.1 does not count events here. |
+| **What the decoder should output** | **Continuous movement**, **Discrete classes** or **Click** | Always | The line below says what it needs (list below the table). |
+| **Decoder family** | Which kind of model | Continuous movement, Click | Choices below the table. Discrete classes always uses the LDA classifier (no choice shown). |
+| **Label dimension (optional)** | Which behavior dimension holds the label | Discrete classes, Click | Needed only when there are several. Examples shown: `cue_class`, `click`. |
 | **Class names (optional)** | Names for classes 0, 1, 2, … separated by commas | Discrete classes | Example shown: `rest, left, right`. A class named rest, idle, none or baseline later gets no action by default ([7.4](#74-settings-for-classifiers)). |
-| **Train fraction** | The share of the data (from the start) used for fitting | Always | Default 0.8; allowed 0.5 to 0.95. |
+| **Train fraction** | The share of the data (from the start) used for fitting ([train fraction](GLOSSARY.md#train-fraction)) | Always | Default 0.8; allowed 0.5 to 0.95. |
 | **Gap (bins)** | Bins skipped between the training part and the held-out part, so that slow signals do not leak from one into the other | Always | Default 12; a whole number, 0 or more. |
-| **Feature source** | Which features in the recording to use | Always | **All feature events in the recording** (default). **Features computed by the Concord pipeline**: those made by **Start decoding** from a raw source. **Features delivered by an LSL stream**: binned counts the stream itself sent. **Spike bins from Open Ephys**: spikes the Open Ephys GUI detected, binned by Concord. Choose one when a recording holds more than one kind. |
+| **Feature source** | Which features in the recording to use | Always | Default **All feature events in the recording**. Other choices below the table. |
 | **Use every feature stream in the recording, joined per bin** | Uses all feature streams of the same bins together (for example threshold crossings and spike-band power) | Always | Off by default. |
-| **Check labels** | Checks that the ticked recordings contain the labels the chosen output needs | A recording is ticked | Green on success, for example *Labels found: vx, vy · 885 labelled bins*, with notes. Red with the problem otherwise, for example that a recording has *no neural features (features.binned / features.vector)*: record again while decoding runs. |
+| **Check labels** | Checks that the ticked recordings contain the labels the chosen output needs | A recording is ticked | Green on success, for example *Labels found: vx, vy · 885 labelled bins*, with notes. Otherwise the problem in a grey box (example below the table). |
 | **Train decoder** | Fits and saves the decoder | A recording is ticked and the numbers are valid | Shows *Training…* while it works. The result is logged as *Model <id> trained · …*. |
-| Report | The saved model's id (*It is now selectable under Start decoding.*) and its offline held-out results | After training | Continuous: R² overall and per dimension with a mean-predictor and a time-shift control, velocity error, bins (total, labelled, train, gap, held-out), source, recordings. Classes: balanced accuracy with chance, per-class results, confusion table. Click: precision, recall, F1, false clicks per minute, per-bin ROC AUC. *synthetic data* or *prerecorded data streamed live* is marked when it applies. |
-| Disclaimer | *An offline held-out score on a recording does not establish closed-loop performance …* | Always | |
+| Report | The saved model's id (*It is now selectable under Start decoding.*) and its offline held-out results | After training | Contents in the table below. |
+| Disclaimer | *An offline held-out score on a recording does not establish closed-loop performance …* | Always | See [closed loop](GLOSSARY.md#closed-loop-open-loop). |
+
+**What the decoder should output**, and what each choice needs (the line under the choice):
+
+- **Continuous movement**: *a behavior stream with continuous targets (e.g. cued cursor
+  velocity)*.
+- **Discrete classes**: *a behavior dimension with a small-integer class code per bin (e.g. a
+  cue)*.
+- **Click**: *a behavior dimension that is 1 while a click is attempted and 0 otherwise*.
+
+**Decoder family** choices:
+
+- Continuous movement: **Default (ridge regression)**, **ridge regression**, **Kalman filter**
+  ([ridge regression](GLOSSARY.md#ridge-regression), [Kalman filter](GLOSSARY.md#kalman-filter)).
+- Click: **Default (LDA classifier)**, **LDA classifier**, **click classifier**
+  ([LDA classifier](GLOSSARY.md#lda-classifier), [click classifier](GLOSSARY.md#click-classifier)).
+
+**Feature source** choices (pick one when a recording holds more than one kind of feature):
+
+- **All feature events in the recording** (default).
+- **Features computed by the Concord pipeline**: those made by **Start decoding** from a raw
+  source.
+- **Features delivered by an LSL stream**: binned counts the stream itself sent.
+- **Spike bins from Open Ephys**: spikes the Open Ephys GUI detected, binned by Concord.
+
+**Check labels** problem example: a recording has *no neural features (features.binned /
+features.vector)*. Record again while decoding runs.
+
+**The report** shows offline held-out results only:
+
+| Output | What the report lists |
+| --- | --- |
+| Continuous movement | **Offline held-out R²** ([R²](GLOSSARY.md#r-squared)), with the number of samples, the [mean-predictor control](GLOSSARY.md#mean-predictor-control) and, when computed, the [time-shift control](GLOSSARY.md#time-shift-control). **Per dimension**: R² of each output. **Velocity error** (when computed): mean error, mean target speed, error per dimension (RMSE). **Bins**: total, labelled, train, gap, held-out. **Source**. **Recordings**. |
+| Discrete classes | **Held-out balanced accuracy** ([balanced accuracy](GLOSSARY.md#balanced-accuracy)), with [chance](GLOSSARY.md#chance), plain accuracy and majority-class accuracy, the time-shift control and the number of bins. **Per class**: accuracy of each class. **Confusion**: a table of true against predicted classes. **Source**. |
+| Click | **Click events (held-out)**: [precision, recall](GLOSSARY.md#precision-and-recall) and [F1](GLOSSARY.md#f1); how many clicks there were and how many were detected within a tolerance; false clicks per minute; per-bin [ROC AUC](GLOSSARY.md#roc-auc). |
+
+*synthetic data* or *prerecorded data streamed live* is added after the source when it applies.
 
 ---
 
 ## 7. Command output
 
 *Lets the decoder send commands to the applications you authorize. Off unless you start it.*
+[Command output](GLOSSARY.md#command-output) is the only path from a decoder to an application.
 Background: [How Concord works](CONCEPTS.md#6-command-output-the-only-way-decoded-data-reaches-an-app).
 Every rule and stop path in detail: [CONTROL_BRIDGE.md](CONTROL_BRIDGE.md).
 
@@ -610,7 +793,7 @@ A decoded command reaches an application only while **all three** hold:
 
 1. a decoder runs: a model, or **Source decoder outputs (passthrough)**;
 2. you clicked **Start control** (command output is *On*);
-3. you clicked **Authorize** for that application.
+3. you clicked **Authorize** for that application ([authorize](GLOSSARY.md#authorize-revoke)).
 
 **Simulated profiles are different.** Their pointer, select and text input is simulated (the
 operator standing in for a participant), not decoded, so it reaches the board directly, without
@@ -623,16 +806,20 @@ or disconnect the source.
 
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
-| **Start control** | Turns command output on with the current settings | A decoder runs and command output is off | Turning it off is the title bar's **Stop control**. A refusal appears in red, for example *protocol_error: decoder … declares +y up; the pointer workspace's +y is down: enable invert_y (console: Command output → Settings → Invert y)*. |
+| **Start control** | Turns command output on with the current settings | A decoder runs and command output is off | Turning it off is the title bar's **Stop control**. A refusal appears in a grey box under the settings (example below the table). |
 | **Open participant screen** | Opens the communication board in its own window (1280 × 800), for a second screen facing the participant | Always | Clicking again brings the same window forward. If the browser blocks pop-ups, it opens in a new tab instead. |
-| *Off* / *On · …* | Whether command output is on, and what it sends | Always | Notation below. |
+| *Off* / *On · …* | Whether command output is on, and what it sends | Always | Notation below the table. |
 | *Start decoding with a model first.* | Why it cannot start | Nothing is decoding | |
 | *The decoder has no model. Start decoding with a model.* | Why it cannot start | Decoding with **None (features only)** | |
-| *Last stopped: …* | Why command output last turned off | A decoder runs and command output is off, once command output has been on since Concord started | Reasons in [7.6](#76-why-command-output-turned-off-last-stopped). |
+| *Last stopped: …* | Why command output last turned off | A decoder with a model (or **Source decoder outputs**) runs and command output is off, once command output has been on since Concord started | Reasons in [7.6](#76-why-command-output-turned-off-last-stopped). |
 | *When started, the cursor in authorized apps follows the decoder's vx/vy output.* | What starting would do | A movement decoder runs, output off | For a classifier: *When started, authorized apps receive select when left is held, …*, or *Choose in Settings which class triggers which action.* |
-| **Settings** | Folded mapping settings | A decoder runs | [7.3](#73-settings-for-movement-decoders) for movement decoders, [7.4](#74-settings-for-classifiers) for classifiers. |
+| **Settings** | Folded mapping settings | A decoder runs | [7.3](#73-settings-for-movement-decoders) for movement decoders, [7.4](#74-settings-for-classifiers) for [classifiers](GLOSSARY.md#classifier). |
 | **Authorized applications** | Every application that asks for commands, with **Authorize** / **Revoke** | Applications are connected | [7.5](#75-authorized-applications). |
 | Footer line | *N applications connected*, then *<app> waiting for: …* for each one that cannot run | Always | The console itself is not counted. |
+
+**Refusal example** for **Start control**: *protocol_error: decoder … declares +y up; the
+pointer workspace's +y is down: enable invert_y (console: Command output → Settings → Invert
+y)*.
 
 **Reading the status line.** *On · x ← vx, y ← vy (inverted), gain 1.09; click ← click* means:
 the horizontal pointer velocity comes from the decoder output `vx`, the vertical from `vy`
@@ -643,25 +830,45 @@ classifier it reads like *select ← left; activate ← right* (action ← class
 
 ### 7.3 Settings for movement decoders
 
-For decoders with continuous output (velocity). The application's workspace is the board's tile
-area, counted as 1 wide and 1 high, with y pointing down.
+For decoders with continuous output (velocity). Open **Settings** to see them. The pointer moves
+in the application's [workspace](GLOSSARY.md#workspace): the board's tile area, counted as 1 wide
+and 1 high, with y pointing down.
 
-| Control | What it does | When you see it | Notes / units / defaults |
-| --- | --- | --- | --- |
-| **Horizontal (x) from**, **Vertical (y) from** | Which decoder outputs drive the pointer | Movement decoder | Default: the decoder's first and second outputs. Both must come from the same decoder. |
-| **Gain** | Multiplies the decoder output to give pointer velocity | | Default 1; allowed above 0 and up to 10. **Units depend on the decoder:** for a Concord-trained model, the output is first divided by its training standard deviation, so gain 1 turns a typical training movement into 1 workspace per second. For **Source decoder outputs**, the output is used as it is (unless the source declares a scale): gain 1 means one of the decoder's own units per second. |
-| **Dead-zone** | Outputs smaller than this are treated as zero (applied before the gain) | | Default 0.3; allowed 0 to just below 3. Same units as above: training standard deviations for a Concord model, the decoder's own units for a source decoder. Use 0 to pass every movement. |
-| **Max speed** | Upper limit of the pointer speed, on each axis | | Default 2; allowed above 0 and up to 10. In workspaces per second (2 = across the whole board in half a second). |
-| **Invert y** | Flips the vertical direction | | Ticked automatically when the decoder declares that its +y points up (the screen's +y points down); starting without it is then refused. Otherwise unticked. |
-| **Click from** | A decoder output that is a click probability or a 0/1 click decision | | Lists the outputs of **every running decoder** other than the two pointer outputs, including a second decoder such as a recording's click decoder. When a running decoder has a click output, it is preselected; otherwise **No click**. Without a click the board can still select by dwelling ([11.8](#118-input-methods)). |
-| **Click threshold** | The click output must reach this value | A click output is chosen | Default 0.5; above 0 and up to 1. |
-| **Minimum confidence** | Clicks whose confidence is below this are not sent (counted as *clicks gated* in [10.2](#102-pipeline-details)) | A click output is chosen | Default 0; 0 to 1. |
-| **Click pause (ms)** | Minimum time between two clicks | A click output is chosen | Default 300; 0 to 10000. |
-| **Apply settings** | Applies changed settings while control is on | Command output is on | While it is off, the settings apply when you click **Start control**. |
-| Problem line (amber) | *Check the settings: 0 < gain ≤ 10, 0 ≤ dead-zone < 3, 0 < max speed ≤ 10.*, *Check the click: …*, or *The click cannot come from a dimension that moves the pointer.* | A value is out of range | **Start control** stays grey until it is fixed. |
+| Control | What it does | Default; allowed values |
+| --- | --- | --- |
+| **Horizontal (x) from**, **Vertical (y) from** | Which decoder outputs drive the pointer. Both must come from the same decoder. | The decoder's first and second outputs |
+| **Gain** | Multiplies the decoder output to give pointer velocity. Its units depend on the decoder (below the table). | 1; above 0 and up to 10 |
+| **Dead-zone** | Outputs smaller than this are treated as zero, before the gain. Use 0 to pass every movement. | 0.3; 0 to just below 3 |
+| **Max speed** | Upper limit of the pointer speed on each axis, in workspaces per second (2 = across the whole board in half a second). | 2; above 0 and up to 10 |
+| **Invert y** | Flips the vertical direction. | Ticked automatically when the decoder declares that its +y points up; otherwise unticked |
+| **Click from** | A decoder output that is a click probability or a 0/1 click decision (details below the table). | The running decoder's click output if it has one; otherwise **No click** |
+| **Click threshold** | The click output must reach this value. Shown once a click output is chosen. | 0.5; above 0 and up to 1 |
+| **Minimum confidence** | Clicks whose confidence is below this are not sent; they are counted as *clicks gated* ([10.2](#102-pipeline-details)). Shown once a click output is chosen. | 0; 0 to 1 |
+| **Click pause (ms)** | Minimum time between two clicks. Shown once a click output is chosen. | 300; 0 to 10000 |
+| **Apply settings** | Applies changed settings. Shown while command output is on; while it is off, the settings apply when you click **Start control**. | |
+| Problem line (amber) | *Check the settings: 0 < gain ≤ 10, 0 ≤ dead-zone < 3, 0 < max speed ≤ 10.*, *Check the click: …*, or *The click cannot come from a dimension that moves the pointer.* **Start control** stays grey until it is fixed. | |
 
-The settings are filled in when a decoder starts and are kept while you edit; starting a
-different decoder fills them in again.
+**Units of Gain and Dead-zone.** They depend on the decoder:
+
+- **Concord-trained model**: the output is first divided by its training standard deviation.
+  Gain 1 turns a typical training movement into 1 workspace per second, and the dead-zone is in
+  training standard deviations.
+- **Source decoder outputs**: the output is used as it is, unless the source declares a scale.
+  Gain 1 means one of the decoder's own units per second, and the dead-zone is in the decoder's
+  own units.
+
+**Invert y.** The screen's +y points down. When the decoder declares that its +y points up,
+**Invert y** is ticked for you, and starting without it is refused.
+
+**Click from** lists the outputs of **every running decoder** other than the two pointer outputs,
+including a second decoder such as a recording's click decoder. Without a click, the board can
+still select by dwelling ([11.8](#118-input-methods)).
+
+**The settings reset every time decoding starts.** They are filled in with their defaults when
+decoding starts, also when you restart the same decoder, and are kept while you edit. So after
+**Stop decoding** → **Start decoding**, enter your values again before **Start control** (for
+the T15 example in [7.7](#77-example-the-t15-recorded-decoder-on-the-board): **Gain** 1.09,
+**Dead-zone** 0, **Max speed** 10).
 
 ### 7.4 Settings for classifiers
 
@@ -669,15 +876,23 @@ For decoders that output classes (for example rest, left, right). *The decoder e
 likely each class is. An action is sent when a class stays above its threshold for the hold
 time; it can repeat only after the class drops back and the pause has passed.*
 
-| Control | What it does | When you see it | Notes / units / defaults |
-| --- | --- | --- | --- |
-| **When <class> is held** | The action for that class | One per class | **No action**, **Select**, **Activate**, **Cancel** (discrete actions); **Move to next**, **Move to previous**, **Move up**, **Move down**, **Move left**, **Move right** (navigation); **Type text** (text). Default: classes named rest, idle, none or baseline get **No action**; the others get Select, Activate, Cancel in order. |
-| **Threshold** | Probability the class must exceed | An action is chosen | Default 0.8; above 0 and up to 1. |
-| **Hold (ms)** | How long it must stay above the threshold | An action is chosen | Default 300; 0 to 10000. |
-| **Pause (ms)** | Minimum time before the same class acts again | An action is chosen | Default 1000; 0 to 60000. |
-| **Text** | The text to type | **Type text** | Up to 64 characters; required (*Enter the text to type for <class>.*). |
-| **Apply settings** | As above | Command output is on | |
-| Problem line | *Check the actions: …* or *Choose an action for at least one class.* | | |
+| Control | What it does | Default; allowed values |
+| --- | --- | --- |
+| **When <class> is held** | The action for that class; one per class (choices below the table). | Classes named rest, idle, none or baseline: **No action**. The others: Select, Activate, Cancel, in order |
+| **Threshold** | Probability the class must exceed. Shown once an action is chosen. | 0.8; above 0 and up to 1 |
+| **Hold (ms)** | How long the class must stay above the threshold. Shown once an action is chosen. | 300; 0 to 10000 |
+| **Pause (ms)** | Minimum time before the same class acts again. Shown once an action is chosen. | 1000; 0 to 60000 |
+| **Text** | The text to type. Shown for **Type text**; required (otherwise *Enter the text to type for <class>.*). | Up to 64 characters |
+| **Apply settings** | As for movement decoders. Shown while command output is on. | |
+| Problem line | *Check the actions: …* or *Choose an action for at least one class.* | |
+
+The actions for **When <class> is held**:
+
+- [discrete actions](GLOSSARY.md#discrete-actions): **No action**, **Select**, **Activate**,
+  **Cancel**;
+- [navigation](GLOSSARY.md#navigation): **Move to next**, **Move to previous**, **Move up**,
+  **Move down**, **Move left**, **Move right**;
+- text: **Type text**.
 
 ### 7.5 Authorized applications
 
@@ -718,7 +933,7 @@ since Concord started, which can come from an earlier decoder or source.
 | *stopped by operator (console)* | You clicked **Stop control** |
 | *source paused* | You paused the source |
 | *source link lost* | The source connection dropped; command output stays off after Concord reconnects |
-| *input stalled: no decoder input for N ms (limit L)* | No decoder input arrived for longer than the limit (1000 ms, or three bins if longer) |
+| *input stalled: no decoder input for N ms (limit L)* | No decoder input arrived for longer than the limit (1000 ms, or three bins if longer): a [router stall](GLOSSARY.md#router-stall) |
 | *decoder <model> failed: …* | The decoder failed |
 | *stopped by operator* | You clicked **Stop decoding** while command output was on (or it was stopped through the programming interface without a reason) |
 | *device disconnected (…)* | The source was switched or disconnected while command output was on |
@@ -732,7 +947,8 @@ decoding and control again when you need them.
 
 ### 7.7 Example: the T15 recorded decoder on the board
 
-The T15 blocks carry the original research system's decoder outputs: a cursor velocity
+The [T15](GLOSSARY.md#t15) blocks carry the original research system's decoder outputs
+([historical](GLOSSARY.md#historical-model-origin)): a cursor velocity
 (`t15-historical-velocity`) and a click decision (`t15-historical-click`). To let them drive the
 board:
 
@@ -743,13 +959,15 @@ board:
 4. **Command output → Settings**: **Gain** 1.09 (1 / 0.92: the original decoder's units are
    screen heights per second, with targets in a square 0.92 screen heights wide;
    [CONTROL_BRIDGE.md](CONTROL_BRIDGE.md#native-pointer-scale)), **Dead-zone** 0, **Max speed**
-   10. **Invert y** and **Click from** `click` are already set for you.
+   10. **Invert y** and **Click from** `click` are already set for you. If you stop and start
+   decoding again, these three values go back to their defaults: enter them again.
 5. **Start control**, then **Authorize** next to *Communication Board*.
 
 The board then shows *Pointer and click* and *Input: historical decoder replay (original
 research system) · recorded data replay*, and labels the text *demonstration — not the
-participant's message*. The replay is open loop: the recording cannot react to the board, so the
-cursor can drift away from where the participant's own screen was.
+participant's message*. The replay is [open loop](GLOSSARY.md#closed-loop-open-loop): the
+recording cannot react to the board, so the cursor can drift away from where the participant's
+own screen was.
 
 ![The board driven by the replayed T15 decoder](images/16-board-t15.png)
 
@@ -764,17 +982,29 @@ When you are done: **Stop control** (title bar), **Revoke**, **Stop decoding**.
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
 | Entry | Time (HH:MM:SS), a coloured dot and a sentence | Always | Connections, state changes, recordings, decoding, control, authorizations, faults, refusals (*Refused: …*), runtime errors. |
-| Dot colours | Green: something started streaming or succeeded. Grey: information. Light grey: stopped, paused, disconnected. Amber: a warning, for example a lost link. Red: the source stopped with an error. | | |
+| Dot colours | What kind of entry it is | Always | See the list below the table. |
 | **Show all (N)** | Shows every entry | More than 8 entries | |
 | **Show latest only** | Back to the latest 8 | After **Show all** | |
-| *Nothing yet.* | | Empty log | |
+| *Nothing yet.* | Says the log is empty | Empty log | |
+
+The dot colours:
+
+- **Green**: something started streaming or succeeded.
+- **Grey**: information, including *Decoding stopped*, *Recording stopped*, *Control stopped*
+  and refusals (*Refused: …*).
+- **Light grey**: the source was paused, disconnected or ended.
+- **Amber**: a warning, for example a lost link, or a run that was interrupted.
+- **Red**: the source stopped with an error (*Source error: …*, *Source stopped: …*).
 
 This log belongs to the browser tab: it starts afresh when you reload the page and keeps at most
 200 entries. The permanent records are the research session's log (in the session folder, and
-in an export) and Concord's application log in the data folder's `logs` folder. Entries about an
-interrupted previous run (*Recording … was interrupted when Concord stopped; its complete part
-was kept and marked incomplete*, *Research session … was interrupted when Concord stopped*)
-appear once when the console opens.
+in an export) and Concord's application log in the data folder's `logs` folder.
+
+**After Concord stopped unexpectedly** (a crash or power loss), the next start recovers what was
+open. Entries about it (*Recording … was interrupted when Concord stopped; its complete part was
+kept and marked incomplete*, *Research session … was interrupted when Concord stopped*) appear
+in the log each time you open or reload the console, for as long as that Concord runs. A console
+tab that stayed open and reconnected does not show them: reload it.
 
 ---
 
@@ -798,31 +1028,52 @@ Simulated input is not command output: to stop it, pause or disconnect the simul
 ## 10. Advanced
 
 **Advanced** is the last part of the page, folded until you click it. Each section inside opens
-when you click its name. **Simulator controls** is listed only while a simulated profile is
-connected and working.
+when you click its name. **Simulator controls** is listed only while Simulated Profile A or B is
+connected (not after an error).
 
 ![Advanced, with its sections folded](images/11-advanced.png)
 
 ### 10.1 Event stream
 
-Every piece of data Concord handles is an *event*. This section lists the latest 60 events this
-console receives, newest first.
+Every piece of data Concord handles is an [event](GLOSSARY.md#event). This section lists the
+latest 60 events this console receives, newest first (*Latest 60 events. Select a row to inspect
+its envelope.*).
 
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
 | **Freeze view** | Stops the list from moving so you can read it | Always | Concord keeps running; only this view is frozen. |
 | **Resume view** | Shows live events again | While frozen | |
-| Event-type checkboxes | Show or hide each type | Always | `recording.frame` (raw samples), `recording.annotation` (markers, labels), `intent.pointer` (pointer movement), `intent.selection` (select / activate / cancel), `intent.text` (text), `telemetry.sample` (device health), `device.status` (connection changes), `features.binned` (counts per bin), `features.vector` (band power and similar per bin), `behavior.sample` (behaviour labels), `intent.kinematics` (decoder output), `intent.navigate` (navigation), `control.state` (command output on/off notices). |
-| **Seq** | The event's sequence number in this connection | | |
-| **Type** | Event type | | |
-| **Device** | The source's id | | |
-| **Provenance** | The data kind: `raw_signal`, `processed_feature`, `behavioral_label`, `simulated_intent`, `decoded_intent`, `device_report`, `runtime` | | **↺** after it means the event was replayed from a recording. Hover: the model id (decoded events) or the adapter. What the kinds mean: [How Concord works](CONCEPTS.md#3-data-kinds-what-each-piece-of-data-is). |
-| **Quality** | A score from 0 to 1 set by the source (1 = nominal) | | Shown in amber below 0.7. A clock regression lowers it to 0.5 at most; a cross-source model lowers decoded quality. |
-| **Payload** | A short summary of the content | | For example *vx 0.014 vy -0.031*, *32×40 @ 1000 Hz #19080*, *bin 9001 256 ch Σ42 threshold_crossing_count*; decoded events end with *⟵ <model>*. |
-| *No events yet. Connect a source.* | | Nothing received | |
+| Event-type checkboxes | Show or hide each type | Always | The 13 types are in the table below. |
+| **Seq** | The event's sequence number in this connection | Always | |
+| **Type** | Event type | Always | |
+| **Device** | The source's id | Always | |
+| **Provenance** | The data kind ([provenance](GLOSSARY.md#provenance)): `raw_signal`, `processed_feature`, `behavioral_label`, `simulated_intent`, `decoded_intent`, `device_report`, `runtime` | Always | **↺** after it means the event was [replayed](GLOSSARY.md#replayed) from a recording. Hover: the model id (decoded events) or the adapter. |
+| **Quality** | A score from 0 to 1 set by the source (1 = nominal) | Always | Shown in amber below 0.7. See the note below the table. |
+| **Payload** | A short summary of the content | Always | For example *vx 0.014 vy -0.031*, *32×40 @ 1000 Hz #19080*, *bin 9001 256 ch Σ42 threshold_crossing_count*; decoded events end with *⟵ <model>*. |
+| *No events yet. Connect a source.* | Nothing has arrived | Nothing received | |
 | Clicking a row | Opens *Envelope, seq N*: the full event | Always | **Close** hides it. |
 
-Fields of the full event (the *envelope*):
+What the data kinds mean: [How Concord works](CONCEPTS.md#3-data-kinds-what-each-piece-of-data-is).
+[Quality](GLOSSARY.md#quality): a clock regression lowers it to 0.5 at most; a cross-source model
+lowers decoded quality.
+
+| Event type | What it carries |
+| --- | --- |
+| `recording.frame` | Raw samples |
+| `recording.annotation` | Markers, labels |
+| `intent.pointer` | Pointer movement |
+| `intent.selection` | Select / activate / cancel |
+| `intent.text` | Text |
+| `telemetry.sample` | Device health |
+| `device.status` | Connection changes |
+| `features.binned` | Counts per bin |
+| `features.vector` | Band power and similar values per bin |
+| `behavior.sample` | Behavior labels |
+| `intent.kinematics` | Decoder output |
+| `intent.navigate` | Navigation |
+| `control.state` | Command output on/off notices |
+
+Fields of the full event (the [envelope](GLOSSARY.md#envelope)):
 
 | Field | Meaning |
 | --- | --- |
@@ -844,13 +1095,14 @@ Fields of the full event (the *envelope*):
 
 ### 10.2 Pipeline details
 
-What the decoding pipeline is doing. All numbers are counted since decoding last started.
+What the decoding [pipeline](GLOSSARY.md#pipeline) is doing. All numbers are counted since
+decoding last started.
 
 | Line | Meaning |
 | --- | --- |
-| *Running · <preset> on <source>* / *Stopped* | Its state; *warm-up … s (estimating thresholds)* during the first second of the spike-band preset |
-| **Stages** | Each processing step with its settings, for example *butterworth bandpass 250-5000 Hz, order 4*, *common average reference*, *threshold crossings at -4.5 x RMS …, 20 ms bins* |
-| **Input** | The event type it reads (`recording.frame` for raw, `features.binned` for features) |
+| *Running · <preset id> on <source id>* / *Stopped* | Its state, with Concord's internal names: for example *Running · ecog_high_gamma on sim-a* for **High-gamma band power** on Simulated Profile A. During the first second of the spike-band preset: *warm-up … s (estimating thresholds)*. |
+| **Stages** | Each processing step with its settings, for example *butterworth bandpass 250-5000 Hz, order 4*, *notch 60 Hz (Q=30)*, *common average reference*, *threshold crossings at -4.5 x RMS …, 20 ms bins* |
+| **Input** | The event type it reads: `recording.frame` for raw, `features.binned` for features, `intent.kinematics` for **Source decoder outputs** |
 | **Output** | What it produces: type · feature · bin · channels · unit |
 | **Decoder** | The model and its outputs, or *none (features only)* |
 | **Command router** | *On · <output> → vx, <output> → vy* (which decoder outputs become the pointer's horizontal and vertical velocity), or *Off (no commands reach apps)* |
@@ -860,7 +1112,7 @@ What the decoding pipeline is doing. All numbers are counted since decoding last
 | **inputs** | Events the pipeline processed | Should grow while decoding |
 | **input samples** | Raw samples processed (0 for feature sources) | |
 | **dropped inputs** | Inputs dropped because the pipeline fell behind (its queue was full) | Any increase: data was lost; the verdict shows *Gaps detected*. Use a longer bin or fewer channels. |
-| **features out** | Feature bins produced | Stays 0 with a feature-passthrough source (features are used as they arrive) |
+| **features out** | Feature bins produced | Stays 0 with a passthrough preset (features are used as they arrive) |
 | **decoded out** | Decoder outputs produced | 0 with a model means the decoder gets no input |
 | **commands out** | Pointer commands sent through command output | |
 | **errors** | Inputs that failed to process | Any increase: see *Last error* below the tables |
@@ -871,7 +1123,7 @@ What the decoding pipeline is doing. All numbers are counted since decoding last
 | **decoded in** | Source decoder outputs received (passthrough) | |
 | **rejected inputs** | Passthrough inputs refused (not a decoder output, or undeclared) | Any increase |
 | **join dropped** | Bins discarded because not every feature stream arrived for them | Rising steadily |
-| **labels in** | Behaviour labels received | |
+| **labels in** | Behavior labels received | |
 | **decoder failures** | Times a decoder failed or could not start | Any increase |
 
 Counters that should be zero are shown in amber when they are not (**dropped inputs**, **errors**).
@@ -881,14 +1133,20 @@ Counters that should be zero are shown in amber when they are not (**dropped inp
 | **processing per input** | Time to process one input event, in µs |
 | **input event → derived event** | Time from an input event to the feature or decoded event made from it, in ms |
 
-Columns p50, p95, p99 and max: the value that 50 %, 95 %, 99 % and all measurements stayed under;
-n: how many measurements. Compatibility warnings and *Last error: …* follow.
+Columns p50, p95, p99 and max ([latency, p50, p95, p99](GLOSSARY.md#latency-p50-p95-p99)): the
+value that 50 %, 95 %, 99 % and all measurements stayed under; n: how many measurements.
+Compatibility warnings and *Last error: …* follow.
 
 ### 10.3 Acquisition details
 
-What this section shows depends on the source.
+What this section shows depends on the source. Jump to:
+[FALCON and AJILE12 files](#falcon-and-ajile12-files-recorded-data-source) ·
+[the activity plot](#the-activity-plot) · [T15 blocks](#t15-blocks) ·
+[simulated profiles](#simulated-profiles-device-telemetry) ·
+[LSL and Open Ephys](#lsl-and-open-ephys-live-source-counters) ·
+[plugin sources](#plugin-sources).
 
-**FALCON and AJILE12 files: Recorded data source**
+#### FALCON and AJILE12 files: Recorded data source
 
 ![Acquisition details of a FALCON file](images/10-dataset-details.png)
 
@@ -896,46 +1154,66 @@ What this section shows depends on the source.
 | --- | --- |
 | Label | The source's name |
 | **Dataset** | Archive link, title, licence |
-| **File** | The file name and, in green, *SHA-256 matches DANDI … asset …*: the file is exactly the published one. In amber when it is not verified. |
+| **File** | The file name and, in green, *SHA-256 matches DANDI … asset …*: the file is exactly the published one ([checksum](GLOSSARY.md#checksum)). In amber when it is not verified. |
 | **Recording** | Species, recording type, modality |
 | **Extract** | AJILE12 only: which samples of which archive file this extract holds |
-| **Signal** | Channels, feature and unit, bin length and rate, number of bins, duration (FALCON); channels, unit, rate, samples, duration, mains frequency and channels marked bad (AJILE12) |
-| **Behavior** | The recorded movement: quantity, dimension names, unit, share of valid samples. FALCON's seven dimensions `tx, ty, tz, rx, g1, g2, g3` are the dataset's own names for its cued reach-and-grasp velocity, in arbitrary units. |
+| **Signal** | FALCON: channels, feature and unit, bin length and rate, number of bins, duration. AJILE12: channels, unit, rate, samples, duration, mains frequency and channels marked bad. |
+| **Behavior** | The recorded movement: quantity, dimension names, unit, share of valid samples (note below the table) |
 | **Session** | The dataset's session identifier and institution |
-| **Decoder** | A decoder evaluated on this file (trained on a *different* block), with its offline held-out R² and controls; or *None attached (no held-out evaluation for this file)*. In the desktop app it is normally *None attached*: such decoders come from `make model` in a source installation. |
-| **Metadata notes (N): corrections and what the file does not provide** | Click to read Concord's notes on this file: corrections it applied (for example a time-base correction), how it reads a field (for example `eval_mask`), and what is missing (no electrode table, dates shifted for de-identification) |
+| **Decoder** | A decoder evaluated on this file, or *None attached (no held-out evaluation for this file)* (note below the table) |
+| **Metadata notes (N): corrections and what the file does not provide** | Click to read Concord's notes on this file (note below the table) |
 | **Channels (N)** | FALCON: one entry per unit, *unit:spike count in this file* (for example *0:218*); hover for details |
 | **Electrodes (N)** | AJILE12: electrode labels; *(bad)* marks electrodes the dataset marks bad; hover for group, location and coordinates |
 | *Citation: …* | How to cite the dataset |
 
-**The activity plot**, for sources whose data arrives as counts per bin: FALCON, T15, LSL
-spike-count streams, and raw sources while **Spike-band threshold crossings** runs. Titled
-*Recorded neural activity (offline replay)* (FALCON), *Source features* (T15, LSL counts) or
-*Pipeline features* (counts the pipeline computes from a raw source). Band-power features are
-not drawn here.
+- **Behavior**: FALCON's seven dimensions `tx, ty, tz, rx, g1, g2, g3` are the dataset's own
+  names for its cued reach-and-grasp velocity, in [arbitrary units](GLOSSARY.md#arbitrary-unit).
+- **Decoder**: a decoder trained on a *different* block, with its offline
+  [held-out](GLOSSARY.md#held-out) R² and controls. In the desktop app it is normally *None
+  attached*: such decoders come from `make model` in a source installation.
+- **Metadata notes** ([metadata notes](GLOSSARY.md#metadata-notes)): corrections Concord applied
+  (for example a time-base correction), how it reads a field (for example `eval_mask`), and what
+  is missing (no electrode table, dates shifted for de-identification).
+
+#### The activity plot
+
+For sources whose data arrives as counts per bin: FALCON, T15, LSL spike-count streams, and raw
+sources while **Spike-band threshold crossings** runs. Titled *Recorded neural activity (offline
+replay)* (FALCON), *Source features* (T15, LSL counts) or *Pipeline features* (counts the
+pipeline computes from a raw source). Band-power features are not drawn here.
 
 | Control | What it does | Notes |
 | --- | --- | --- |
 | Raster | Each row a channel, each column a bin; brighter = more counts | The header gives channels, bin length, feature and time span (last 5 s at 20 ms bins). |
-| **Velocity dimension** | Chooses which behaviour dimension the lines show | FALCON: `tx … g3`; T15: `x`, `y`. |
-| *Solid: recorded behavior (ground truth, valid samples)* | The recorded behaviour of that dimension | |
+| **Velocity dimension** | Chooses which behavior dimension the lines show ([velocity dimension](GLOSSARY.md#velocity-dimension)) | FALCON: `tx … g3`; T15: `x`, `y`. |
+| *Solid: recorded behavior (ground truth, valid samples)* | The recorded behavior of that dimension | |
 | *Dashed: decoded (<model>)* | The output of the decoder named, if one runs or the file carries one | Lines are scaled to fit; there is no unit axis. |
 
-For the T15 blocks this plot is of limited use in 0.3.1: their recorded behaviour is cursor and
+For the T15 blocks this plot is of limited use in 0.3.1: their recorded behavior is cursor and
 target position (not velocity), and the dashed line shows whichever of the two historical
 decoders reported last for each bin (usually the click decision). To see the historical outputs
 themselves, use the [Event stream](#101-event-stream) (`intent.kinematics` rows).
 
-**T15 blocks**: the *Source features* plot and *Device telemetry: No telemetry for the current
-session.* There is no dataset, checksum or citation panel for T15: the checksum is verified when
-you connect, and the citation is in [Datasets](DATASETS.md).
+#### T15 blocks
 
-**Simulated profiles: Device telemetry.** *battery pct*, *temperature c*, *link quality*,
-*packets sent*, with how many seconds ago they arrived. These are **simulated device-health
-numbers**, made up by the simulator; they do not come from any implant. Profile B reports every
-5 s (*Waiting for telemetry from this session (0.2 Hz).* at first).
+The *Source features* plot and *Device telemetry: No telemetry for the current session.* There is
+no dataset, checksum or citation panel for T15: the checksum is verified when you connect, and the
+citation is in [Datasets](DATASETS.md).
 
-**LSL and Open Ephys: Live source counters**, polled every second.
+#### Simulated profiles: Device telemetry
+
+The latest [telemetry](GLOSSARY.md#telemetry) values, with how many seconds ago they arrived:
+
+- Profile A: *battery pct*, *temperature c*, *link quality*, *packets sent*.
+- Profile B: *battery pct*, *temperature c*, *rssi dbm*, *link quality*. It reports every 5 s
+  (*Waiting for telemetry from this session (0.2 Hz).* at first).
+
+These are **simulated device-health numbers**, made up by the simulator; they do not come from
+any implant.
+
+#### LSL and Open Ephys: Live source counters
+
+Polled every second.
 
 | Line | Meaning |
 | --- | --- |
@@ -944,17 +1222,32 @@ numbers**, made up by the simulator; they do not come from any implant. Profile 
 | **Endpoint**, **Stream**, **Rate** | Host and port, stream name, sample rate (Open Ephys) |
 | **Interpreted as** | `raw` (samples, processed by a raw preset) or `spike_counts` (already binned counts, used with **Source features (passthrough)**). Concord decides from the stream type (for example *SpikeCounts*) or the stream's declaration. |
 | **Unit** | The unit Concord uses; for Open Ephys *configured … → emitted …* (what you chose under **Sample unit**, and what Concord sends on) |
-| **Heartbeat** | Open Ephys: whether the plugin answers Concord's liveness messages (*ok*) |
+| **Heartbeat** | Open Ephys: whether the plugin answers Concord's [heartbeats](GLOSSARY.md#heartbeat) (*ok*) |
 | **Last message #** | Open Ephys: the plugin's latest message number |
 | **Clock offset** | Open Ephys: this computer's clock minus the sender's time stamp, including transport time; *min* is the best estimate of the clock offset |
 | **Runtime (since start)** | Reconnect attempts, successes and link errors since Concord started (all sources) |
-| Counter tiles | LSL: *chunks*, *samples*, *gaps*, *estimated missing samples*, *lost*, *stalls*, *discarded while paused*. Open Ephys: messages, data messages, *missed messages*, *missing samples*, *incomplete blocks*, *malformed*, *duplicate messages*, *sample regressions*, *sample clock resets*, spikes, heartbeats, *config changes* and more. A tile turns amber when a loss-type counter (gap, missing, missed, malformed, lost, stall, timeout, error, incomplete, discarded, regression, duplicate, overflow, nonfinite, skipped) is above zero. |
-| Stream table (LSL) | One line per stream (**Role** *signal*, *behavior*, *markers*): **Received** samples, **Gaps**, **Est. missing** samples, **Time correction** (offset LSL measured between the publisher's clock and this computer's, used to align streams), **Last timestamp** |
+| Counter tiles | Loss and traffic counters (list below the table) |
+| Stream table (LSL) | One line per stream (**Role** *signal*, *behavior*, *markers*): **Received** samples, **Gaps**, **Est. missing** samples, **Time correction**, **Last timestamp** |
 | Notes | How time stamps are interpreted, that losses are estimated from time-stamp gaps (LSL has no sequence numbers), that units are not transmitted (Open Ephys), and that Concord cannot verify whether the stream comes from hardware |
 
-**Plugin sources**: *Device telemetry* (usually *No telemetry for the current session.*) and,
-when the plugin delivers features, the activity plot. Plugins have no live-counter panel in
-0.3.1.
+The counter tiles:
+
+- **LSL**: *chunks*, *samples*, *gaps*, *estimated missing samples*, *lost*, *stalls*,
+  *discarded while paused*.
+- **Open Ephys**: messages, data messages, *missed messages*, *missing samples*, *incomplete
+  blocks*, *malformed*, *duplicate messages*, *sample regressions*, *sample clock resets*,
+  spikes, heartbeats, *config changes* and more.
+- A tile turns amber when a loss-type counter (gap, missing, missed, malformed, lost, stall,
+  timeout, error, incomplete, discarded, regression, duplicate, overflow, nonfinite, skipped) is
+  above zero.
+
+**Time correction** is the offset LSL measured between the publisher's clock and this computer's,
+used to align streams ([time correction](GLOSSARY.md#time-correction)).
+
+#### Plugin sources
+
+*Device telemetry* (usually *No telemetry for the current session.*) and, when the plugin
+delivers features, the activity plot. Plugins have no live-counter panel in 0.3.1.
 
 ### 10.4 Diagnostics
 
@@ -963,20 +1256,20 @@ when the plugin delivers features, the activity plot. Plugins have no live-count
 | Tile | Meaning | When to worry |
 | --- | --- | --- |
 | **Events published** | Events Concord has published since it started | |
-| **Runtime pipeline p50**, **p99** | Time from the adapter reading a packet to the checked event being queued for every application (median, 99th percentile) | Growing steadily |
+| **Runtime pipeline p50**, **p99** | Time from the adapter reading a packet to the checked event being queued for every application (median, 99th percentile; see [p50, p99](GLOSSARY.md#latency-p50-p95-p99)) | Growing steadily |
 | **Delivery p95** | Time from queued to written to the network connection | Growing steadily |
 | **Client p50**, **Client p95** | Time from Concord receiving an event to this tab receiving it, in ms | Growing steadily |
-| **Contract violations** | Sum of decode errors, validation errors and undeclared-capability events | Any increase, except after a deliberate **Malformed packet** |
-| **Subscriber drops** | Events dropped because an application or console tab could not take them in time (each keeps up to 2,048 waiting events) | Any increase: see [10.7](#107-connected-applications) for which one |
+| **Contract violations** | Sum of decode errors, validation errors and undeclared-capability events ([contract violation](GLOSSARY.md#contract-violation)) | Any increase, except after a deliberate **Malformed packet**, or while replaying a recording made during decoding ([4.6](#46-session-recordings-replay-and-other-sources)) |
+| **Subscriber drops** | Events dropped because an application or console tab could not take them in time (each keeps up to 2,048 waiting events; [subscriber drops](GLOSSARY.md#subscriber-drops)) | Any increase: see [10.7](#107-connected-applications) for which one |
 | **Reconnects ok / tried** | Successful / attempted source reconnections | Amber after any link error |
 | **Uptime** | Seconds since Concord started | |
 
 | Counter (in **Counters**) | Meaning |
 | --- | --- |
 | events published | As above |
-| decode errors | Packets from the source that could not be read (for example a CRC mismatch) |
+| decode errors | Packets from the source that could not be read (for example a [CRC](GLOSSARY.md#crc) mismatch) |
 | validation errors | Events that failed Concord's format check (should never happen) |
-| undeclared capability | Events of a kind the source did not declare; refused |
+| undeclared capability | Events of a kind the source did not declare; refused ([undeclared capability](GLOSSARY.md#undeclared-capability)) |
 | timestamp regressions | Times the source's clock went backwards; those events are flagged |
 | discarded while paused | Packets dropped because the source was paused |
 | link errors | Times the source connection was lost |
@@ -996,7 +1289,9 @@ p99, max), **Device switches** (time, from → to, how long the switch took; *No
 ### 10.5 Recording
 
 Writes the events of the connected source to the data folder's `recordings` folder, including
-features and decoder output while decoding runs.
+features and decoder output while decoding runs. A recording made while decoding runs is for
+training a decoder; in 0.3.1 it does not replay cleanly ([4.6](#46-session-recordings-replay-and-other-sources)).
+To make a recording for replay, record with decoding off.
 
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
@@ -1019,13 +1314,17 @@ use your acquisition software.
 
 ### 10.6 Capability contract
 
-What every source can provide, in Concord's vocabulary. What capabilities are and why they
-matter: [How Concord works](CONCEPTS.md#4-capabilities-what-a-source-can-provide-and-an-app-can-ask-for).
+What every source can provide, in Concord's vocabulary of [capabilities](GLOSSARY.md#capability).
+What capabilities are and why they matter:
+[How Concord works](CONCEPTS.md#4-capabilities-what-a-source-can-provide-and-an-app-can-ask-for).
 
-**Capability matrix**: one row per capability, one column per source Concord knows now (not only
-the connected one), in the same order as the source list. *Yes* plus its details means the
-source declares it; *—* means it does not. Several columns can have the same heading (for
-example the two FALCON files); tell them apart by their order.
+**Capability matrix**: one row per capability, and one column per source in Concord's list, not
+only the connected one. The columns come in this order: the simulated profiles, your session
+recordings, the dataset files (FALCON before T15), then the registered live sources. This is not
+quite the order of the **Connect a source** panel, which lists session recordings after the
+dataset files. *Yes* plus its details means the source declares it; *—* means it does not.
+Several columns can have the same heading (for example the FALCON files); tell them apart by
+their order.
 
 | Detail | Meaning |
 | --- | --- |
@@ -1043,25 +1342,30 @@ example the two FALCON files); tell them apart by their order.
 | `text_modes` | `character` and/or `word` |
 | `feature`, `bin_ms` | The feature and its bin length |
 | `streams` | The separate feature streams it carries (T15: threshold crossings and spike band power) |
-| `quantity`, `quantities` | What the behaviour data is (velocity; cursor and target position) |
-| `space` | The coordinate frame of the behaviour data (T15: `t15_screen`, in screen heights) |
+| `quantity`, `quantities` | What the behavior data is (velocity; cursor and target position) |
+| `space` | The coordinate frame of the behavior data (T15: `t15_screen`, in screen heights) |
 | `decoders` | The decoder outputs the source carries (T15: `t15-historical-velocity`, `t15-historical-click`) |
 
-**Native format** (last row): how each source's data arrives before Concord converts it, for
-example *binary frames (magic, type, flags, length, u64 µs clock, payload, CRC32)* for Simulated
-Profile A, *newline-delimited JSON* for Profile B, *NWB 2.x / HDF5* for FALCON, *MATLAB .mat* for
-T15, *LSL float32 x 32 @ 30000 Hz* for an LSL stream.
+**Native format** (last row; [native format](GLOSSARY.md#native-format)): how each source's data
+arrives before Concord converts it, for example *binary frames (magic, type, flags, length, u64
+µs clock, payload, CRC32)* for Simulated Profile A, *newline-delimited JSON* for Profile B,
+*NWB 2.x / HDF5* for FALCON ([NWB](GLOSSARY.md#nwb)), *MATLAB .mat* for T15, *LSL float32 x 32
+@ 30000 Hz* for an LSL stream.
 
 **Capability vocabulary**: each capability, the event types it covers and a one-line
-description. **Provenance separation**: the data kinds (`raw_signal`, `processed_feature`,
+description. **Provenance separation**: the data kinds ([provenance](GLOSSARY.md#provenance):
+`raw_signal`, `processed_feature`,
 `behavioral_label`, `simulated_intent`, `decoded_intent`, `device_report` / `runtime`), which
 events carry each, and which can ever reach an application. The links */api/v1/schema/event*
-(the event format as JSON Schema) and */docs* (the programming interface) are for developers.
+(the event format as JSON Schema; [schema](GLOSSARY.md#schema)) and */docs* (the programming
+interface) are for developers.
 
 ### 10.7 Connected applications
 
 Every program connected to Concord, including each console tab itself (*Operator Console*) and
-each communication board (embedded or in its own window).
+each communication board (embedded or in its own window). When a program connects, Concord gives
+it the capabilities it asked for that the source provides
+([negotiation](GLOSSARY.md#negotiation)).
 
 | Line | Meaning |
 | --- | --- |
@@ -1073,8 +1377,10 @@ each communication board (embedded or in its own window).
 
 ### 10.8 Simulator controls
 
-You stand in for the participant's intent. No neural decoding is involved. Shown only while
-Simulated Profile A or B is connected (and not in error).
+You stand in for the participant's intent ([simulated intent](GLOSSARY.md#simulated-intent)).
+No neural decoding is involved. Shown only while Simulated Profile A or B is connected (not after
+an error). It is not shown for other synthetic sources, such as the LSL test stream or a plugin's
+synthetic board: nothing can be simulated or injected there.
 
 ![Simulator controls](images/04-simulator-controls.png)
 
@@ -1086,13 +1392,13 @@ Simulated Profile A or B is connected (and not in error).
 | *Velocity 0.00, 0.00 · N sent* | The current joystick velocity, and how many selections and texts were sent | Always | *sent* does not count movements. |
 | Text field and **Send text** | Sends up to 32 characters of text to the board | Profile B | Placeholder *Text intent, for example: hi*; on Profile A *This profile has no text intent* (greyed out). |
 
-**Fault injection** tests how Concord and applications react. Each fault is logged as *Injected
-fault: …*.
+**Fault injection** ([fault injection](GLOSSARY.md#fault-injection)) tests how Concord and
+applications react. Each fault is logged as *Injected fault: …*.
 
 | Button | What happens | What you see | How to recover |
 | --- | --- | --- | --- |
 | **Link drop** | The link drops once | Within a second: *Link lost, reconnecting: sim-a: simulated link drop*, then *Streaming (reconnected after 1 attempt(s))*. Too fast to see in the title bar; **Diagnostics** counts it (*Reconnects ok / tried*, *link errors*). | Nothing: Concord reconnects by itself. Command output, if it was on, stays off. |
-| **Link failure** | The link drops and every reconnect fails | *Source stopped with an error* (red), the error in the source row, **Reset** | Click **Reset**, then **Connect a source** ([2.3](#23-source-stopped-with-an-error-and-reset)). |
+| **Link failure** | The link drops and every reconnect fails | After about 2 s: *Source stopped with an error* (red dot) in the title bar, the error in a grey box in the source row, **Reset** | Click **Reset**, then **Connect a source** ([2.3](#23-source-stopped-with-an-error-and-reset)). |
 | **Malformed packet** | The next packet is corrupt | *Decode error: CRC mismatch*; **Contract violations** +1 | Nothing: the packet is dropped and counted. |
 | **Clock regression** | The next packet's device clock jumps back | *Timestamp regression: device clock went backwards by … ms*; the event is flagged | Nothing. |
 
@@ -1121,7 +1427,8 @@ itself.
 ### 10.11 Compatibility
 
 Every integration Concord has (simulated profiles, recording replay, the datasets, LSL, Open
-Ephys, the example plugin, BrainFlow, BCI2000) and the validation level its evidence supports.
+Ephys, the example plugin, BrainFlow, BCI2000) and the [validation level](GLOSSARY.md#validation-level)
+its evidence supports.
 Levels are derived from the listed evidence; this page cannot change them. Explanation of the
 levels: [VALIDATION_LEVELS.md](VALIDATION_LEVELS.md); the full table:
 [COMPATIBILITY.md](COMPATIBILITY.md).
@@ -1175,7 +1482,7 @@ For whoever helps you with your installation; the same report as `concord doctor
 ## 11. The communication board
 
 The participant-facing application included with Concord: tiles with phrases, letters or words,
-chosen with one of five input methods. It knows nothing about devices: it adapts to the
+chosen with one of five [input methods](GLOSSARY.md#input-method). It knows nothing about devices: it adapts to the
 capabilities the connected source and command output provide.
 
 ### 11.1 Opening the board
@@ -1208,7 +1515,7 @@ Make the window wider than 900 pixels to see the **History** panel.
 | Tiles | The current page ([11.4](#114-the-phrases-page) to [11.6](#116-the-task-grid)) | |
 | **History** | Messages spoken or saved with **Speak** / **Save**, newest first, each with its label and input | Up to 50; hidden in windows narrower than 900 pixels; cleared by **Clear history** or reloading the page. |
 | Footer, left | *Runtime: <reason>*: what Concord last told the board about its input, for example *command input active (pointer_intent, selection; from Simulated Profile A)*, *operator authorized this application (…)*, *command output stopped: stopped by operator (console)*; *Runtime: no control state yet* before the first notice | |
-| Footer, right | *N selections · N events · N delivery gaps*: tiles chosen since the page loaded, events received, and events the board missed | Delivery gaps should stay 0. |
+| Footer, right | *N selections · N events · N delivery gaps*: tiles chosen since the page loaded, events received, and events the board missed | [Delivery gaps](GLOSSARY.md#delivery-gap) should stay 0. |
 
 The message and history live only in that window: reloading the page clears them.
 
@@ -1290,7 +1597,7 @@ as choosing cued words (like the T15 grid task). **Grid size N**: 2 to 20, defau
 - **Word list URL**: a web address the browser can download, of a text file with one word or
   phrase per line (blank lines and lines starting with `#` are ignored; at most 400 entries, each cut to 40
   characters). A file on your disk (`file://…`) does not work, and a list on another web server
-  works only if that server allows other sites to read it (CORS). If the list cannot be loaded,
+  works only if that server allows other sites to read it ([CORS](GLOSSARY.md#cors)). If the list cannot be loaded,
   the panel says *cannot load the word list (…); using the built-in vocabulary*. A custom list is
   also used for word prediction. Format details: [APPLICATIONS.md](APPLICATIONS.md).
 
@@ -1317,7 +1624,7 @@ The board picks the first method the source supports, in this order, unless you 
 | Method | Needs | How it works | Typical source |
 | --- | --- | --- | --- |
 | **Pointer and click** | pointer movement and discrete actions (`pointer_intent` + `selection`) | Move the cursor to a tile, click (select) to choose it | Simulated Profile A; a movement decoder with **Click from**; T15 passthrough with its click |
-| **Pointer with dwell selection** | pointer movement (`pointer_intent`) | Rest the cursor on a tile for the **Dwell time** to choose it. This is a board interaction, never a neural click. Dwell starts only after the cursor has moved since input became active, and after a choice you must leave the tile before it can be chosen again. | A movement decoder without a click |
+| **Pointer with dwell selection** | pointer movement (`pointer_intent`) | Rest the cursor on a tile for the **Dwell time** to choose it ([dwell selection](GLOSSARY.md#dwell-selection)). This is a board interaction, never a neural click. Dwell starts only after the cursor has moved since input became active, and after a choice you must leave the tile before it can be chosen again. | A movement decoder without a click |
 | **Directional navigation** | navigation (`navigation`) | Up / down / left / right (or next / previous) move the highlight; select chooses. Without discrete actions, resting on the highlighted tile for the **Dwell time** chooses it. | A classifier with **Move …** actions |
 | **Direct selection** | discrete actions with several kinds (`selection`) | Select moves to the next tile, activate chooses it, cancel undoes. **Automatic** uses it only after the source has sent an activate or cancel. | A classifier with Select, Activate and Cancel |
 | **Scanning** | discrete actions (`selection`) | The board highlights tiles in turn (every **Scan interval**); any select or activate chooses the highlighted one. With **Row, then column**, rows are highlighted first; select a row, then tiles in it are highlighted (after two passes without a choice it returns to rows). After a choice, scanning starts again at the first tile. | Simulated Profile B; any source with only a select |
@@ -1400,7 +1707,7 @@ The full reference for evaluation harnesses: [APPLICATIONS.md](APPLICATIONS.md).
 | The board's cursor moves but never clicks | No click output is mapped | Choose **Click from** ([7.3](#73-settings-for-movement-decoders)), or use dwell selection. |
 | Clicking tiles on the board does nothing | By design | [11.3](#113-mouse-clicks-on-tiles-do-nothing). |
 | **Start recording** is grey | A file replay is connected | Record a simulated or live source ([10.5](#105-recording)). |
-| A replayed recording shows *No signal* and *Undeclared capability* entries | It was recorded with features and labels only | Use it for training, not replay ([4.6](#46-session-recordings-replay-and-other-sources)). |
+| A replayed recording logs many *Undeclared capability* entries (and may show *No signal*) | It was recorded while decoding ran, or with features and labels only | Use it for training, not replay ([4.6](#46-session-recordings-replay-and-other-sources)). To make a recording for replay, record with decoding off. |
 | The board keeps old words from another source | The message keeps everything until cleared | Press **Clear** before changing source. |
 | An export disappeared after **End session now** | The session panel closes with the session | It is in `sessions/<id>/exports/` in the data folder. |
 | The console says *Connection to Concord lost, reconnecting* | Concord stopped | Start Concord again, or close the tab if you quit it. |
@@ -1428,7 +1735,7 @@ command output, closes any recording and disconnects the source.*
   in the data folder.*
 - After a crash or power loss, the next start keeps the complete part of an interrupted
   recording, marks it *incomplete*, and marks an open research session *interrupted*; the session
-  log tells you once ([8](#8-the-session-log)).
+  log says so when you open or reload the console ([8](#8-the-session-log)).
 - Options when started from a terminal: `--no-browser`, `--headless` (no window), `--port`,
   `--data-dir`, `--config`.
 
@@ -1455,7 +1762,7 @@ Installed with the Python package. The desktop app's own program answers the sam
 | `concord config` | `path` (where the file is), `show` (settings in effect; the default), `init` (create the file), `template` (print a commented file) | `--config` |
 | `concord dataset` | Downloads and verifies demo recordings into `<data folder>/datasets/dandi-<number>/`: `falcon-h1` (default: the two demo blocks) or `ajile12` (two ECoG extracts) | `--all-calib` (all 13 FALCON calibration blocks, about 66 MiB), `--list`, `--data-dir`. T15 files are downloaded in the browser from Dryad. |
 | `concord reproduce BUNDLE.zip` | Verifies a session export and re-runs its evaluation ([3.5](#35-concord-reproduce)) | `--json FILE` |
-| `concord serve` | Runs Concord in the foreground (what `start` runs) | as `start` |
+| `concord serve` | Runs Concord in the foreground (what `start` runs) | `--port`, `--data-dir`, `--config`, `--host` with `--allow-remote`, `--log-level` |
 | `concord publish …` | Test streams for rehearsing without hardware ([14.2](#142-test-streams-concord-publish)) | `concord publish --help` |
 
 ### 14.2 Test streams (`concord publish`)
@@ -1468,7 +1775,7 @@ rehearsing the console workflow; they are not hardware tests. Stop one with Ctrl
 
 | Stream | What it publishes | Main options (defaults) | How it appears in Concord |
 | --- | --- | --- | --- |
-| `concord publish lsl-ephys` | A synthetic broadband signal over LSL (stream *Concord synthetic ephys*, type EEG) plus a 2-dimensional *latent velocity* behaviour stream that the signal encodes | `--channels` 32, `--rate` 30000, `--chunk-ms` 10, `--source-id` concord-synthetic-ephys, `--unit` microvolts (`none` to omit), `--seed` 0, `--no-latent` (no behaviour stream) | *LSL · Concord synthetic ephys (EEG) — declared synthetic*; title bar *Simulated data*. Good for rehearsing calibration. |
+| `concord publish lsl-ephys` | A synthetic broadband signal over LSL (stream *Concord synthetic ephys*, type EEG) plus a 2-dimensional *latent velocity* behavior stream that the signal encodes | `--channels` 32, `--rate` 30000, `--chunk-ms` 10, `--source-id` concord-synthetic-ephys, `--unit` microvolts (`none` to omit), `--seed` 0, `--no-latent` (no behavior stream) | *LSL · Concord synthetic ephys (EEG) — declared synthetic*; title bar *Simulated data*. Good for rehearsing calibration. |
 | `concord publish falcon <file.nwb>` | A FALCON H1 file over LSL in real time: spike counts (*SpikeCounts*), kinematics (*Behavior*) and trial markers (*Markers*) | `--speed` 1, `--loop`, `--source-prefix` | *Recorded data, streamed replay (declared)* |
 | `concord publish openephys` | The Open Ephys ZMQ Interface format with a synthetic signal | `--host` 127.0.0.1, `--port` 5556 (heartbeat on the next port), `--channels` 16, `--rate` 30000, `--block-size` 1024, `--seed` 0 | Add it with **Add Open Ephys source** (same port). Shown as *Live stream, origin unverified*: the protocol cannot carry the declaration. |
 
@@ -1480,10 +1787,14 @@ recipes: [LAB_SETUP.md](LAB_SETUP.md) and [Connect your equipment](CONNECT_YOUR_
 
 ## 15. Configuration file
 
-Every setting has a safe default, so the file is optional. Create it with `concord config init`
-(a commented file readable only by you), see where it is with `concord config path`, and see the
-settings in effect with `concord config show`. Concord refuses a file that other users can
-change.
+Every setting has a safe default, so the file is optional.
+
+- `concord config init` creates it: a commented file readable only by you.
+- `concord config path` shows where it is.
+- `concord config show` shows the settings in effect. The `[recording]` limits are not listed
+  there; `concord config template` shows their defaults.
+
+Concord refuses a file that other users can change.
 
 | Section and key | Default | Meaning |
 | --- | --- | --- |
@@ -1537,8 +1848,19 @@ A new installation also has `concord.pid` (marks a running Concord); leave it al
 folder is readable only by your user account (folders 0700, files 0600). Nothing is encrypted by
 Concord. What is and is not protected: [SECURITY.md](SECURITY.md).
 
-**Network.** Concord listens only on this computer, at http://127.0.0.1:8000, and refuses
-requests from other web sites and other host names. It contacts other computers only when you
+**Network.** Concord listens only on this computer, at http://127.0.0.1:8000. Concord has no
+passwords, so it protects itself from web pages open in your browser:
+
+- It refuses requests that a web browser sends from another web site.
+- It refuses browser requests that address it by any name other than this computer's own
+  (`127.0.0.1`, `localhost` or `::1`). This blocks [DNS rebinding](GLOSSARY.md#dns-rebinding),
+  where a web site makes its own name point at your computer. With `allow_remote` on
+  ([15](#15-configuration-file)), this name check is off.
+- Programs on this computer that are not web browsers, such as scripts, the SDKs or `curl`, can
+  use Concord's programming interface. Any program on this computer could do so anyway: see
+  [SECURITY.md](SECURITY.md).
+
+It contacts other computers only when you
 ask: LSL discovery and streams (multicast and TCP on your local network), an Open Ephys GUI (its
 data port, and heartbeats to the next port), BCI2000 (UDP 20321 by default), and dataset
 downloads. Ports and topology for a lab: [LAB_SETUP.md](LAB_SETUP.md#2-network-topology).
