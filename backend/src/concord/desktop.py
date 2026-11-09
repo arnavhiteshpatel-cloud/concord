@@ -131,10 +131,19 @@ def tk_root(stop_event: threading.Event) -> Iterator[Any]:
     Raises ``WindowUnavailable`` if no window can be created."""
     import tkinter as tk
 
-    try:
-        root = tk.Tk()
-    except Exception as exc:  # TclError: no display, broken Tcl/Tk installation
-        raise WindowUnavailable(str(exc)) from exc
+    root = None
+    for attempt in range(2):
+        try:
+            root = tk.Tk()
+            break
+        except Exception as exc:  # TclError: no display, broken Tcl/Tk installation
+            # Tk's start-up script occasionally fails to read one of its own files on Windows
+            # (seen on CI: "couldn't read file …/tk8.6/msgs/en.msg"); one retry gets past it
+            if attempt:
+                raise WindowUnavailable(str(exc)) from exc
+            log.info("creating the window failed (%s); retrying once", str(exc).splitlines()[0])
+            time.sleep(0.2)
+    assert root is not None
     # Creating the Tk root initializes Cocoa on macOS, which can replace the process's SIGTERM
     # disposition (CI: the windowed app exited with status 1 on SIGTERM without the safe quit).
     # Reinstate ours so SIGTERM / SIGINT (e.g. `concord stop`) run the same quit as the window.
