@@ -60,6 +60,12 @@ and your web browser opens the **console** (if it does not, click **Open console
 window). The console is the operator's screen: everything below happens there. Concord runs
 only on your computer; nothing is sent to the internet.
 
+> **No Concord window, or the console shows an older version?** Another copy of Concord is
+> already running on this computer, for example an older version or one started from a terminal
+> (`make run`, `concord start`). A new launch then only opens that copy's console, and uses that
+> copy's data folder. Quit the other copy (its window → **Quit**, or Ctrl-C in its terminal),
+> then open Concord again. The console's title bar must read **Concord**.
+
 ![The console on first launch: no source connected](images/01-console-first-launch.png)
 
 The console is one screen, top to bottom:
@@ -73,7 +79,7 @@ The console is one screen, top to bottom:
 | **Decoder** | Turns brain activity into intended movement or choices: **Start decoding**, **Calibrate…** |
 | **Command output** | Lets the decoder send commands to applications you **Authorize**; off unless you start it. **Open participant screen** opens the communication board. |
 | **Session log** | What happened, newest first. |
-| **Advanced** | Details for experts: event stream, pipeline, acquisition details, diagnostics, recording, simulator, stored data, support report and more. |
+| **Advanced** | At the bottom of the page, closed until you click it. Details for experts: event stream, pipeline, acquisition details, diagnostics, recording, simulator, stored data, support report and more. |
 
 The [user guide](USER_GUIDE.md) explains every control in depth.
 
@@ -100,7 +106,9 @@ they are never brain data, and Concord labels them as simulated everywhere.
    A second window shows the **communication board**, the screen a participant would use.
    Arrange it next to the console.
 
-4. Act as the participant. In the console, open **Advanced → Simulator controls**:
+4. Act as the participant. In the console, scroll to the bottom, click **Advanced** to open
+   it, then click **Simulator controls**. (Simulator controls are listed only while a
+   simulated profile is connected.)
 
    ![Simulator controls](images/04-simulator-controls.png)
 
@@ -137,8 +145,15 @@ or contact the participant, and no redistribution of the files.
    archive):
    - [sub-HumanPitt-held-in-calib_ses-19250108T110520.nwb](https://api.dandiarchive.org/api/assets/e40a2eca-883d-4c80-81e3-4203a49506b5/download/) (5.5 MB)
    - [sub-HumanPitt-held-in-calib_ses-19250108T111022.nwb](https://api.dandiarchive.org/api/assets/98f1e471-ad68-4006-b090-9a3e347852e6/download/) (3.2 MB)
-2. Put them in Concord's **datasets** folder (create the `datasets` folder if it does not
-   exist):
+2. Put them in Concord's **datasets** folder:
+   1. Find the data folder this Concord uses: at the bottom of the console, open
+      **Advanced → Stored data**. The first line, **Data directory**, shows it.
+   2. Open that folder. On a Mac: in Finder choose **Go → Go to Folder…**, paste the
+      folder, press Return.
+   3. Create a folder named `datasets` in it (if it is not there yet) and move both `.nwb`
+      files into it.
+
+   The data folder is normally:
 
    | You installed | Data folder | Put the files in |
    | --- | --- | --- |
@@ -146,10 +161,9 @@ or contact the participant, and no redistribution of the files.
    | Linux bundle | `~/.local/share/concord/data` | `…/data/datasets/` |
    | From source (`make setup`) | `data/` in the repository | `data/datasets/` |
 
-   On a Mac: in Finder choose **Go → Go to Folder…**, paste
-   `~/Library/Application Support/Concord/data`, press Return, create a folder named
-   `datasets` there and move both `.nwb` files into it. The **Stored data** section of the
-   console (Advanced) shows the exact data folder of your installation.
+   If **Stored data** shows a different folder than you expect, or the folder in this table
+   does not exist, another copy of Concord is running: see the note in
+   [First launch](#2-first-launch-the-console).
 3. Reload the console page. **Connect a source → Recorded human data (offline replay)** now
    lists two sessions (`Session 19250108T110520` and `Session 19250108T111022`).
 4. Click **Connect** next to one of them. The title bar says **Streaming · Recorded human data,

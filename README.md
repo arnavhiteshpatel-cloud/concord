@@ -59,8 +59,8 @@ No data or hardware needed:
 1. Click **Connect a source**, then **Connect** next to **Simulated Profile A** (synthetic data,
    labelled as such everywhere).
 2. Click **Open participant screen**: the communication board opens in its own window.
-3. Open **Advanced → Simulator controls**, drag the dot in the pad to move the board's cursor,
-   and click **Select** to choose a word.
+3. At the bottom of the console, open **Advanced → Simulator controls**, drag the dot in the
+   pad to move the board's cursor, and click **Select** to choose a word.
 4. Try **Advanced → Simulator controls → Link drop** and watch Concord reconnect on its own.
 
 Then replay real human recordings: [Getting started, section 4](docs/GETTING_STARTED.md#4-replay-real-human-recordings-10-minutes).

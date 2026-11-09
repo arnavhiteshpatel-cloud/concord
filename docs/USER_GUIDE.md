@@ -364,6 +364,10 @@ closes any recording, stops decoding, disconnects the source and closes the sess
 
 ## Advanced sections
 
+**Advanced** is the last part of the console page, closed until you click it. Each section
+inside opens when you click its name. **Simulator controls** is listed only while a simulated
+profile is connected.
+
 ![Advanced](images/11-advanced.png)
 
 | Section | What it shows or does |
