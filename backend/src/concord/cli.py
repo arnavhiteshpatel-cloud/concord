@@ -290,7 +290,7 @@ def cmd_config(args: argparse.Namespace) -> int:
             print(f"concord: {path} already exists (not overwritten)", file=sys.stderr)
             return 1
         write_template(path)
-        print(f"wrote {path} (mode 600)")
+        print(f"wrote {path}" + ("" if os.name == "nt" else " (mode 600)"))
         return 0
     if args.action == "template":
         print(template())

@@ -318,7 +318,8 @@ def template() -> str:
     lines = [
         "# Concord configuration. Every key is optional; delete a line to use the default.",
         "# Environment variables (CONCORD_PORT, CONCORD_DATA_DIR, ...) override this file.",
-        "# Documentation: docs/INSTALL_MAC.md, docs/LAB_SETUP.md, docs/SECURITY.md.",
+        "# Documentation: docs/INSTALL_MAC.md, docs/INSTALL_WINDOWS.md, docs/LAB_SETUP.md, "
+        "docs/SECURITY.md.",
         "",
         "[server]",
         'host = "127.0.0.1"        # loopback only: Concord has no authentication or TLS',

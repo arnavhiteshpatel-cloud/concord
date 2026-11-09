@@ -23,7 +23,8 @@ export function retentionText(r: Record<string, number | null> | undefined): str
 export function dataDirPrivacy(dataDir: string): string {
   const windows = /^[A-Za-z]:[\\/]|^\\\\/.test(dataDir);
   if (!windows) return "only your user can read it";
-  return /^[A-Za-z]:[\\/]Users[\\/]/i.test(dataDir)
+  // C:\Users\<name>\…, but not the shared C:\Users\Public (or Default, All Users)
+  return /^[A-Za-z]:[\\/]Users[\\/](?!(Public|Default|All Users)([\\/]|$))[^\\/]+/i.test(dataDir)
     ? "inside your Windows user profile: other users of this PC cannot open it"
     : "outside your Windows user profile: other users of this PC may be able to read it";
 }

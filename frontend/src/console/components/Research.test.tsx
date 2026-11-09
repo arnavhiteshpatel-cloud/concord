@@ -285,6 +285,7 @@ describe("wording", () => {
     // Windows has no 0700 folders: privacy there depends on the folder being in the profile
     expect(dataDirPrivacy("/home/ana/.local/share/concord/data")).toBe("only your user can read it");
     expect(dataDirPrivacy("C:\\Users\\Ana\\AppData\\Local\\Concord\\data")).toContain("cannot open it");
+    expect(dataDirPrivacy("C:\\Users\\Public\\Concord\\data")).toContain("may be able to read it");
     expect(dataDirPrivacy("D:\\lab\\concord")).toContain("may be able to read it");
     expect(somethingRunning(null, false, false)).toBe(false);
     expect(somethingRunning(null, true, false)).toBe(true);

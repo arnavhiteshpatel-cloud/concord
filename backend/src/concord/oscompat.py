@@ -253,6 +253,8 @@ def cli_command() -> str:
     if frozen():
         exe = Path(sys.executable)
         if is_windows():
-            return f'"{exe.with_name(CLI_EXE)}"'
+            cli = str(exe.with_name(CLI_EXE))
+            # PowerShell runs a quoted path only after the call operator: & "C:\My Apps\…" stop
+            return f'& "{cli}"' if " " in cli else cli
         return f'"{exe}"' if " " in str(exe) else str(exe)
     return "concord"

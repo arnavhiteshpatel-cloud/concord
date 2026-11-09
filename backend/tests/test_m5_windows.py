@@ -140,7 +140,7 @@ def test_helper_programs_in_the_windows_app(
     (app.parent / "concord-cli.exe").write_bytes(b"")
     assert oscompat.helper_executable() == str(app.parent / "concord-cli.exe")
     assert launcher.serve_command() == [str(app.parent / "concord-cli.exe"), "serve"]
-    assert config.command_hint("stop") == f'"{app.parent / "concord-cli.exe"}" stop'
+    assert config.command_hint("stop") == f"{app.parent / 'concord-cli.exe'} stop"
     monkeypatch.setattr(oscompat, "is_windows", lambda: False)
     assert oscompat.helper_executable() == str(app)
 
@@ -487,3 +487,16 @@ def test_support_report_paths_from_windows_are_redacted() -> None:
     text = json.dumps({"log": r"open C:\Users\dana\x failed", "dir": r"C:\Users\dana\Concord"})
     out = redact(text, home=home)
     assert "dana" not in out and r"C:\\Users\\<user>" in out
+
+
+def test_windows_command_hint_with_spaces_uses_the_powershell_call_operator(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A quoted path followed by an argument is a parse error in PowerShell; with spaces in the
+    path the hint starts with the call operator `&` (regression)."""
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    monkeypatch.setattr(oscompat, "is_windows", lambda: True)
+    monkeypatch.setattr(sys, "executable", "C:/My Apps/Concord/Concord.exe")
+    assert config.command_hint("stop") == '& "C:/My Apps/Concord/concord-cli.exe" stop'
+    monkeypatch.setattr(sys, "executable", "C:/Users/me/Downloads/Concord/Concord.exe")
+    assert config.command_hint("stop") == "C:/Users/me/Downloads/Concord/concord-cli.exe stop"
