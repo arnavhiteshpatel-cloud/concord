@@ -425,7 +425,7 @@ Step by step, with what you should see: [Connect your equipment §4.4](CONNECT_Y
    data…* / *Set when BCI2000 replays a recording…*) if BCI2000 runs SignalGenerator or
    FilePlayback.
 4. Click **Connect**, then start the BCI2000 run right away. BCI2000 sends only while running,
-   and in Concord 0.3.1 the console's **Connect** waits about 4 s for the first blocks, whatever
+   and in Concord 0.3.2 the console's **Connect** waits about 4 s for the first blocks, whatever
    `open_timeout_s` says (the plugin host's limit for `open`; otherwise the message is
    `plugin did not answer 'open' within 4 s; host stopped`). **Connect** opens the receiver
    twice, once to learn the streams and once for the connection, about 0.1 s apart (measured
@@ -434,5 +434,5 @@ Step by step, with what you should see: [Connect your equipment §4.4](CONNECT_Y
    connecting, stop and start the run.
 5. **Signal check** shows *Waiting for data* / *No signal*: expected, the plugin delivers a
    control signal, not a signal or features. **Start decoding** with **Source decoder outputs
-   (passthrough)** (in 0.3.1 the preset menu starts on *Band power*) shows the control signal
+   (passthrough)** (in 0.3.2 the preset menu starts on *Band power*) shows the control signal
    (`Signal(ch,el)`) and offers it to **Send to apps**.

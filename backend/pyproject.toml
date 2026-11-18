@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "concordos"
-version = "0.3.1"
+version = "0.3.2"
 description = "Concord: hardware-agnostic, read-only runtime and SDK for implanted brain-computer interfaces (MVP)."
 readme = "README.md"
 requires-python = ">=3.12"

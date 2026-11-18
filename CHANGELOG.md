@@ -6,7 +6,7 @@ interfaces. Each entry links to the documents that describe the change in depth.
 Every release is software- and protocol-tested only: **no version has been used with
 acquisition hardware or with a participant** ([validation levels](docs/VALIDATION_LEVELS.md)).
 
-## Unreleased — a console for first-time users
+## 0.3.2 — a console for first-time users
 
 The console was written for people who already knew the field. It now explains itself. Nothing
 about how data is received, processed, decoded or sent changed, and the safety rules are the same.

@@ -106,7 +106,7 @@ otherwise click **Cancel**.
    ./Concord/Concord
    ```
 
-   Among a few log lines, the terminal prints `Concord 0.3.1 is running at
+   Among a few log lines, the terminal prints `Concord 0.3.2 is running at
    http://127.0.0.1:8000`. Keep that terminal
    open while you use Concord; it is busy now, so use a new terminal window for any other
    command. Next time, start Concord the same way.
@@ -143,7 +143,7 @@ A small window titled **Concord** opens, with your browser behind it:
 > **Another copy already running?** You see this when a window says *Another copy of Concord is
 > running* (with that copy's version and process ID), when the terminal says `Concord is already
 > running at http://127.0.0.1:8000`, when no small window appears on a Mac or Windows, or when the
-> console's version (top left, next to **Concord**) is not **0.3.1**. You are then looking at the
+> console's version (top left, next to **Concord**) is not **0.3.2**. You are then looking at the
 > other copy, an older version or one started differently, with its own data folder.
 >
 > **Fix:** quit the other copy: its small window → **Stop and quit**, or Ctrl-C in its terminal,

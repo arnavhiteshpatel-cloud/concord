@@ -2,7 +2,7 @@
 
 This guide shows how to connect the acquisition equipment your lab already uses to Concord, step
 by step. It is written for researchers; you do not need to program. It describes **Concord
-0.3.1** (the console's title bar shows the version next to **Concord**).
+0.3.2** (the console's title bar shows the version next to **Concord**).
 
 **Before you start, two facts:**
 
@@ -89,7 +89,7 @@ Some terms:
 
 | | |
 | --- | --- |
-| **Concord 0.3.1** | The **desktop app** (Mac with Apple Silicon: `Concord-macos-arm64.dmg`; Linux: `Concord-linux-x86_64.tar.gz`) covers LSL, Open Ephys and BCI2000. For **BrainFlow**, use the **Python installation** (below). Installing the app: [Getting started §1](GETTING_STARTED.md#1-install-and-open-concord). |
+| **Concord 0.3.2** | The **desktop app** (Mac with Apple Silicon: `Concord-macos-arm64.dmg`; Linux: `Concord-linux-x86_64.tar.gz`) covers LSL, Open Ephys and BCI2000. For **BrainFlow**, use the **Python installation** (below). Installing the app: [Getting started §1](GETTING_STARTED.md#1-install-and-open-concord). |
 | **Your acquisition software** | Installed and able to stream, on the same computer as Concord or on the same lab network |
 | **A known test signal** | For the validation session: a signal generator or your amplifier's test-signal mode, never a person ([FIRST_LAB_SESSION.md](FIRST_LAB_SESSION.md)) |
 | **For calibrating a decoder** | A **behavior stream**: what the participant is asked to do, over time, for example the cued cursor direction from your task software. Concord uses it as labels to fit a decoder (section 5.1). |
@@ -476,7 +476,7 @@ What BrainFlow delivers, and what it does not:
   rows as EEG, EMG and ECG at once (32 of BrainFlow's board descriptions do, the synthetic board
   among them). Concord does not guess.
 - For plugin sources, *Data received (%)* shows "—", and **Source details** shows *No
-  telemetry for the current session*. In 0.3.1 the console shows no loss counters for plugin
+  telemetry for the current session*. In 0.3.2 the console shows no loss counters for plugin
   sources, and the **Gaps detected** verdict does not use them. Lost samples are still flagged
   in the data and in recordings (the frame after a gap is marked *dropped samples*).
 
@@ -521,7 +521,7 @@ the desktop app; for the Python installation it is the `concord-bci2000` wheel.
    | *Set when BCI2000 replays a recording (e.g. FilePlayback) …* | Tick if BCI2000 plays back a file |
 
 2. **Order matters.** BCI2000 sends only while a **run** is active, and Concord's **Connect**
-   gives up if no data arrives within about 4 seconds (in 0.3.1 that limit applies whatever the
+   gives up if no data arrives within about 4 seconds (in 0.3.2 that limit applies whatever the
    *How long open() waits* field says). Click **Connect**, then start the run in BCI2000 right
    away.
 
@@ -531,7 +531,7 @@ the desktop app; for the Python installation it is the `concord-bci2000` wheel.
    **Signal check stays at *Waiting for data* / *No signal*: this is expected**, because
    BCI2000 sends a control signal, not a brain signal.
 3. **See the control signal:** **Decoder → Start decoding** → **Processing: Source decoder
-   outputs (passthrough)** (in 0.3.1 the menu starts on *Band power*, which does not apply here;
+   outputs (passthrough)** (in 0.3.2 the menu starts on *Band power*, which does not apply here;
    change it) → **Start decoding**.
 
    **What you should see:** *Running · Source decoder outputs (passthrough)* and *External
@@ -740,7 +740,7 @@ neural or personal data. The session log (right column) shows every refusal with
 | Messages such as *PLAYBACK_FILE_BOARD needs option 'file'* or *STREAMING_BOARD needs options 'ip_address' …* | Required fields missing | Fill in the fields the message names |
 | *modality not declared* | BrainFlow cannot tell EEG from EMG/ECG rows for this board | Expected; Concord does not guess |
 | The link is reported lost after 5 s | No sample arrived for 5 s: board stopped, or a playback file ended | Check the board; raise *Report the link as lost …* if your board pauses |
-| Accelerometer or other auxiliary channels are missing | Only the main sensor rows are delivered | Expected in 0.3.1 |
+| Accelerometer or other auxiliary channels are missing | Only the main sensor rows are delivered | Expected in 0.3.2 |
 
 ### 6.4 BCI2000
 
@@ -814,7 +814,7 @@ compare the recordings with your own tools, and use `concord-certify` for the pl
 
 ## What was checked for this guide
 
-The console steps and messages in this guide were checked with Concord 0.3.1 (Python
+The console steps and messages in this guide were checked with Concord 0.3.1, and the console labels updated for 0.3.2 (Python
 installation from the release wheels, Linux, Chromium) against test sources only, never
 acquisition hardware:
 
