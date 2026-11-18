@@ -1,9 +1,10 @@
-// The graphite title bar: wordmark, research-use tag, source, status line and the
-// always-visible Stop control button.
+// The graphite title bar: wordmark, research-use tag, source, status line, Help (the in-app
+// guide) and the always-visible Stop sending button.
 
 import { useEffect, useState } from "react";
 import type { ConnectionStatus, RuntimeSnapshot } from "../../sdk";
 import { consoleApi } from "../api";
+import { useHelp } from "../context";
 import { sourceKind, statusLine } from "../wording";
 import { Dot } from "./ui";
 
@@ -21,6 +22,7 @@ export function TitleBar({
   stopping: boolean;
   onStopControl: () => void;
 }) {
+  const openHelp = useHelp();
   const status = statusLine(conn, runtime);
   const device = runtime && runtime.state !== "idle" ? runtime.device : null;
   const kind = sourceKind(device);
@@ -47,7 +49,7 @@ export function TitleBar({
             {version}
           </span>
         )}
-        <span className="tag" title="Not a medical device. Read-only: Concord never writes to or stimulates a device.">
+        <span className="tag" title="Research software. Not a medical device. Not for clinical or commercial use. Read-only: Concord never writes to or stimulates a device.">
           Research use only
         </span>
         {device && (
@@ -72,16 +74,25 @@ export function TitleBar({
           )}
         </span>
       </div>
-      <button
-        type="button"
-        className="btn btn-stop"
-        disabled={!controlOn || stopping}
-        onClick={onStopControl}
-        title={controlOn ? "Stop command output to applications now" : "Command output is off"}
-        data-testid="stop-control"
-      >
-        Stop control
-      </button>
+      <div className="titlebar-right">
+        <button type="button" className="btn btn-bar" onClick={() => openHelp()} data-testid="open-guide">
+          Help
+        </button>
+        <button
+          type="button"
+          className="btn btn-stop"
+          disabled={!controlOn || stopping}
+          onClick={onStopControl}
+          title={
+            controlOn
+              ? "Stop sending decoded actions to apps, now"
+              : "Nothing is being sent to apps. This button turns red while sending is on (step 4)."
+          }
+          data-testid="stop-control"
+        >
+          Stop sending
+        </button>
+      </div>
     </header>
   );
 }

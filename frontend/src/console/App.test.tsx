@@ -175,17 +175,17 @@ function open(runtime: unknown = streaming) {
 }
 
 describe("title bar", () => {
-  it("shows the source and a plain status line, and a disabled Stop control while output is off", async () => {
+  it("shows the source and a plain status line, and a disabled Stop sending while output is off", async () => {
     open();
     expect(screen.getByTestId("runtime-device").textContent).toBe("Simulated Profile A");
     const status = screen.getByTestId("status-line");
     expect(status.getAttribute("aria-live")).toBe("polite");
     expect(status.textContent).toBe("Streaming · Simulated data");
     const stop = screen.getByTestId("stop-control") as HTMLButtonElement;
-    expect(stop.textContent).toBe("Stop control");
+    expect(stop.textContent).toBe("Stop sending");
     await waitFor(() => expect(calls.some((c) => c.path === "/pipeline")).toBe(true));
     expect(stop.disabled).toBe(true);
-    expect(stop.title).toBe("Command output is off");
+    expect(stop.title).toMatch(/^Nothing is being sent to apps/);
   });
 
   it("enables Stop control while output is on; it calls the control stop (router off, mapping kept)", async () => {
@@ -205,37 +205,84 @@ describe("title bar", () => {
 });
 
 describe("session screen", () => {
-  it("shows the four rows, the session log and one collapsed Advanced section", () => {
+  it("shows the use notice, the welcome card, four numbered steps, the session log and every tool, closed", () => {
     open({ ...streaming, state: "idle", device: null, session_id: null });
     for (const id of ["row-source", "row-integrity", "row-decoder", "row-control"]) expect(screen.getByTestId(id)).toBeTruthy();
     expect(screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent)).toEqual([
-      "Acquisition source",
-      "Signal integrity",
-      "Decoder",
-      "Command output",
+      "Welcome to Concord",
+      "Step 1: Data source",
+      "Step 2: Signal check",
+      "Step 3: Decoder",
+      "Step 4: Send to apps",
       "Session log",
+      "More tools",
     ]);
-    expect(screen.getByText("Where the brain data comes from.")).toBeTruthy();
+    expect(screen.getByTestId("use-notice").textContent).toContain("Not for clinical, diagnostic or commercial use");
     expect(screen.getByTestId("status-line").textContent).toBe("No source connected");
-    // only one primary action when nothing is connected
+    // only one primary action in the steps when nothing is connected
     const source = within(screen.getByTestId("row-source"));
-    expect(source.getByTestId("connect-source").textContent).toBe("Connect a source");
+    expect(source.getByTestId("connect-source").textContent).toBe("Choose a source");
     expect(source.queryByTestId("disconnect")).toBeNull();
     expect(source.queryByTestId("pause")).toBeNull();
     expect(screen.queryByTestId("start-decoding-open")).toBeNull();
     expect(screen.queryByTestId("router-on")).toBeNull();
     expect(screen.getByTestId("verdict").textContent).toBe("No signal");
-    // Advanced: a single collapsed disclosure; nothing technical rendered until opened
-    const adv = screen.getByTestId("advanced-toggle");
-    expect(adv.getAttribute("aria-expanded")).toBe("false");
-    expect(screen.queryByTestId("event-stream")).toBeNull();
-    fireEvent.click(adv);
-    for (const id of ["adv-events", "adv-pipeline", "adv-acquisition", "adv-diagnostics", "adv-recording", "adv-contract", "adv-apps", "adv-board", "adv-tests"])
-      expect(screen.getByTestId(`${id}-toggle`).getAttribute("aria-expanded")).toBe("false");
+    // More tools: every tool listed with what it does, closed; nothing technical rendered until shown
+    const tools = within(screen.getByTestId("more-tools"));
+    for (const id of ["adv-events", "adv-pipeline", "adv-acquisition", "adv-diagnostics", "adv-recording", "adv-contract", "adv-apps", "adv-board", "adv-tests", "adv-compat", "adv-storage", "adv-support"]) {
+      const toggle = tools.getByTestId(`${id}-toggle`);
+      expect(toggle.getAttribute("aria-expanded")).toBe("false");
+      expect(toggle.textContent).toBe("Show");
+      expect(within(tools.getByTestId(id)).getByRole("heading", { level: 4 }).textContent).not.toBe("");
+    }
     expect(screen.queryByTestId("adv-simulator")).toBeNull(); // only with the built-in simulator connected
     expect(screen.queryByTestId("event-stream")).toBeNull();
     fireEvent.click(screen.getByTestId("adv-events-toggle"));
     expect(screen.getByTestId("event-stream")).toBeTruthy();
+    expect(screen.getByTestId("adv-events-toggle").textContent).toBe("Hide");
+  });
+
+  it("opens the guide from Help, from a step's 'What is this?' and from the notice, at the right section", async () => {
+    open({ ...streaming, state: "idle", device: null, session_id: null });
+    fireEvent.click(screen.getByTestId("open-guide"));
+    const guide = await screen.findByTestId("guide");
+    for (const id of ["start", "quick", "source", "signal", "decoder", "control", "sessions", "tools", "words", "safety"])
+      expect(within(guide).getByTestId(`guide-${id}`)).toBeTruthy();
+    expect(within(guide).getByTestId("guide-safety").textContent).toContain("not for commercial use");
+    fireEvent.click(screen.getByTestId("sheet-close"));
+    await waitFor(() => expect(screen.queryByTestId("guide")).toBeNull());
+    // jsdom has no scrollIntoView: record which section the guide scrolls to
+    const scrolled: string[] = [];
+    const proto = Element.prototype as { scrollIntoView?: unknown };
+    const before = proto.scrollIntoView;
+    proto.scrollIntoView = function (this: Element) {
+      scrolled.push(this.id);
+    };
+    try {
+      fireEvent.click(screen.getByTestId("row-integrity-help"));
+      await screen.findByTestId("guide");
+      await waitFor(() => expect(scrolled).toContain("guide-signal"));
+      fireEvent.click(screen.getByTestId("sheet-close"));
+      fireEvent.click(screen.getByTestId("use-notice-more"));
+      await waitFor(() => expect(scrolled).toContain("guide-safety"));
+    } finally {
+      proto.scrollIntoView = before;
+    }
+  });
+
+  it("the welcome card connects the demo source and stays hidden once hidden", async () => {
+    window.localStorage.removeItem("concord.welcome.hidden");
+    open({ ...streaming, state: "idle", device: null, session_id: null });
+    await waitFor(() => expect(calls.some((c) => c.path === "/devices")).toBe(true));
+    fireEvent.click(await screen.findByTestId("welcome-demo"));
+    await waitFor(() => expect(calls.some((c) => c.path === "/runtime/connect")).toBe(true));
+    expect(calls.find((c) => c.path === "/runtime/connect")!.body).toEqual({ device_id: "sim-a" });
+    fireEvent.click(screen.getByTestId("welcome-hide"));
+    expect(screen.queryByTestId("welcome")).toBeNull();
+    cleanup();
+    open({ ...streaming, state: "idle", device: null, session_id: null });
+    expect(screen.queryByTestId("welcome")).toBeNull();
+    window.localStorage.removeItem("concord.welcome.hidden");
   });
 
   it("source row actions call the runtime: picker -> connect, disconnect, pause", async () => {
@@ -247,7 +294,6 @@ describe("session screen", () => {
     await waitFor(() => expect(screen.queryByTestId("source-picker")).toBeNull());
     act(() => socket.push({ type: "runtime", runtime: streaming }));
     expect(screen.getByTestId("source-name").textContent).toBe("Simulated Profile A");
-    fireEvent.click(screen.getByTestId("source-options-toggle"));
     fireEvent.click(screen.getByTestId("pause"));
     await waitFor(() => expect(calls.some((c) => c.path === "/runtime/pause")).toBe(true));
     await waitFor(() => expect((screen.getByTestId("disconnect") as HTMLButtonElement).disabled).toBe(false));
@@ -311,7 +357,6 @@ describe("console when the server connection is lost", () => {
   it("stops showing the last runtime state and metrics as live", async () => {
     const socket = open();
     expect(screen.getByTestId("status-line").getAttribute("data-state")).toBe("streaming");
-    fireEvent.click(screen.getByTestId("advanced-toggle"));
     fireEvent.click(screen.getByTestId("adv-diagnostics-toggle"));
     await waitFor(() => expect(screen.getByText("600 µs")).toBeTruthy());
 

@@ -1,20 +1,23 @@
-// The operator console: one session screen. Title bar (status + Stop control), four rows
-// (acquisition source, signal integrity, decoder, command output), the session log, and a
-// single collapsed "Advanced" section for technical detail.
+// The operator console: one session screen. Title bar (status, Help, Stop sending), the use
+// notice, a welcome card for first-time users, four numbered steps (data source, signal check,
+// decoder, send to apps), the session log, and "More tools", each tool explained. The in-app
+// guide (Help) explains everything in plain language.
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { runtimeApi, type DeviceDescriptor } from "../sdk";
 import { consoleApi, isLiveSource, labApi, type DiagnosticsSnapshot, type RecordingInfo } from "./api";
-import { Advanced } from "./components/Advanced";
 import { ControlRow } from "./components/ControlRow";
 import { DecoderRow } from "./components/DecoderRow";
+import { Guide } from "./components/Guide";
 import { IntegrityRow, type IntegrityFigures } from "./components/IntegrityRow";
+import { MoreTools } from "./components/MoreTools";
 import { SessionBar } from "./components/SessionBar";
 import { SessionLogView } from "./components/SessionLogView";
 import { SourcePicker } from "./components/SourcePicker";
 import { SourceRow } from "./components/SourceRow";
 import { TitleBar } from "./components/TitleBar";
-import { LogContext } from "./context";
+import { UseNotice, Welcome } from "./components/Welcome";
+import { HelpContext, LogContext } from "./context";
 import { useAction, usePoll } from "./hooks";
 import { LossTracker, dataReceived, integrityVerdict, lossTotal } from "./integrity";
 import { controlOn, mappingText, stopSpec, usePipeline } from "./pipeline";
@@ -33,6 +36,9 @@ export function App() {
   const [recordings, setRecordings] = useState<RecordingInfo[]>([]);
   const [diag, setDiag] = useState<DiagnosticsSnapshot | null>(null);
   const [picker, setPicker] = useState(false);
+  // the in-app guide: closed (null) or open at a section ("" = the top)
+  const [guide, setGuide] = useState<string | null>(null);
+  const openHelp = useCallback((section?: string) => setGuide(section ?? ""), []);
   const pipeline = usePipeline();
   const stopAction = useAction((text) => log.add("info", `Refused: ${text}`));
 
@@ -186,50 +192,56 @@ export function App() {
 
   const apps = diag?.apps ?? runtime?.apps ?? [];
   const closePicker = useCallback(() => setPicker(false), []);
+  const closeGuide = useCallback(() => setGuide(null), []);
 
   return (
     <LogContext.Provider value={add}>
-      <div className="shell">
-        <TitleBar conn={data.conn} runtime={runtime} controlOn={on} stopping={stopAction.busy} onStopControl={stopControl} />
-        <main className="session">
-          <SessionBar
-            runtime={data.conn === "open" ? runtime : null}
-            pipelineRunning={!!pst?.running}
-            controlOn={on}
-            recordings={recordings}
-            onChanged={refreshLists}
-          />
-          <div className="session-grid">
-            <div className="rows">
-              <SourceRow runtime={runtime} onPick={() => setPicker(true)} />
-              <IntegrityRow connected={connected} f={figures} signal={data.signal} neural={data.neural} />
-              <DecoderRow
-                runtime={runtime}
-                pipeline={pipeline}
-                recordings={recordings}
-                replayedModel={!pipelineHere && binnedHere && data.neural.decoded.size > 0 ? data.neural.modelId : null}
-                onRecordingsChanged={refreshLists}
-              />
-              <ControlRow pipeline={pipeline} apps={apps} />
+      <HelpContext.Provider value={openHelp}>
+        <div className="shell">
+          <TitleBar conn={data.conn} runtime={runtime} controlOn={on} stopping={stopAction.busy} onStopControl={stopControl} />
+          <UseNotice />
+          <main className="session">
+            <Welcome runtime={data.conn === "open" ? runtime : null} devices={devices} onPick={() => setPicker(true)} />
+            <SessionBar
+              runtime={data.conn === "open" ? runtime : null}
+              pipelineRunning={!!pst?.running}
+              controlOn={on}
+              recordings={recordings}
+              onChanged={refreshLists}
+            />
+            <div className="session-grid">
+              <div className="rows">
+                <SourceRow runtime={runtime} onPick={() => setPicker(true)} />
+                <IntegrityRow connected={connected} f={figures} signal={data.signal} neural={data.neural} />
+                <DecoderRow
+                  runtime={runtime}
+                  pipeline={pipeline}
+                  recordings={recordings}
+                  replayedModel={!pipelineHere && binnedHere && data.neural.decoded.size > 0 ? data.neural.modelId : null}
+                  onRecordingsChanged={refreshLists}
+                />
+                <ControlRow pipeline={pipeline} apps={apps} />
+              </div>
+              <SessionLogView entries={log.entries} />
             </div>
-            <SessionLogView entries={log.entries} />
-          </div>
-          <Advanced
-            data={data}
-            devices={devices}
-            diag={diag}
-            pipeline={pipeline}
-            recordings={recordings}
-            liveMeta={live.value}
-            liveError={live.error}
-            stats={data.stats}
-            onRecordingsChanged={refreshLists}
-          />
-        </main>
-        {picker && (
-          <SourcePicker devices={devices} devicesLoaded={devicesLoaded} runtime={runtime} onClose={closePicker} onSourcesChanged={refreshLists} />
-        )}
-      </div>
+            <MoreTools
+              data={data}
+              devices={devices}
+              diag={diag}
+              pipeline={pipeline}
+              recordings={recordings}
+              liveMeta={live.value}
+              liveError={live.error}
+              stats={data.stats}
+              onRecordingsChanged={refreshLists}
+            />
+          </main>
+          {picker && (
+            <SourcePicker devices={devices} devicesLoaded={devicesLoaded} runtime={runtime} onClose={closePicker} onSourcesChanged={refreshLists} />
+          )}
+          {guide !== null && <Guide section={guide || undefined} onClose={closeGuide} />}
+        </div>
+      </HelpContext.Provider>
     </LogContext.Provider>
   );
 }

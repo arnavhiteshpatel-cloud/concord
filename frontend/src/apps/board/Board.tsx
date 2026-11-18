@@ -202,7 +202,9 @@ export function Board({ streamUrl, search }: { streamUrl?: string; search?: stri
     >
       <header className="board-head">
         <span className="board-name">Communication board</span>
-        <span className="board-tag">Research use only</span>
+        <span className="board-tag" title="Research software. Not a medical device. Not for clinical or commercial use.">
+          Research use only · not a medical device
+        </span>
         <span className="board-status">
           <span className={`dot ${state.active ? "dot-on" : "dot-off"}`} aria-hidden />
           <span data-testid="board-mode" data-mode={method ?? "inactive"}>

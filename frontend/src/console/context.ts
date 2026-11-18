@@ -11,6 +11,13 @@ export const LogContext = createContext<LogWriter>(() => {});
 
 export const useLog = (): LogWriter => useContext(LogContext);
 
+/** Opens the in-app guide, optionally at one of its sections (see components/Guide.tsx). */
+export type HelpOpener = (section?: string) => void;
+
+export const HelpContext = createContext<HelpOpener>(() => {});
+
+export const useHelp = (): HelpOpener => useContext(HelpContext);
+
 /** useAction whose refusals also go to the session log, verbatim. */
 export function useLoggedAction(): Action {
   const log = useLog();

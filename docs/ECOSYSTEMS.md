@@ -203,8 +203,8 @@ Step by step, with what you should see: [Connect your equipment §4.3](CONNECT_Y
    `pip install --find-links <folder> "concordos[lab]" concord-brainflow`. This pulls
    `concord-adapter-sdk` from the folder and `brainflow` from PyPI (the newest BrainFlow; 5.24.0
    when Concord 0.3.1 was released; the measurements above used 5.23.0). Start Concord, or click
-   **Search again** under **Connect a source → Plugins** if it was already running.
-2. In the console, **Connect a source → Plugins → BrainFlow** lists four entries: **BrainFlow
+   **Search again** under **Choose a source → Add-ons (plugins)** if it was already running.
+2. In the console, **Choose a source → Add-ons (plugins) → BrainFlow** lists four entries: **BrainFlow
    synthetic board**, **BrainFlow playback file**, **BrainFlow streaming board** and
    **Configure a BrainFlow board**. Try the synthetic board first (**Connect**).
 3. For your board: **Configure a BrainFlow board → Options**. The form's labels are the option
@@ -416,7 +416,7 @@ Step by step, with what you should see: [Connect your equipment §4.4](CONNECT_Y
    `Set parameter ConnectorOutputAddress localhost:20321` (or `<Concord machine>:20321` with
    the plugin's `address` set to that machine's address). Leave `ConnectorInputAddress`
    empty: Concord never sends.
-3. In Concord, **Connect a source → Plugins → BCI2000 App Connector → Options** under **BCI2000
+3. In Concord, **Choose a source → Add-ons (plugins) → BCI2000 App Connector → Options** under **BCI2000
    App Connector (UDP)**. The labels are the option descriptions (hover shows the option name):
    `address` (*Local address to receive on…*) and `port` (*Local UDP port…*) as above.
    Optionally enter BCI2000's `SamplingRate` and `SampleBlockSize` for a nominal rate (both or
@@ -432,7 +432,7 @@ Step by step, with what you should see: [Connect your equipment §4.4](CONNECT_Y
    with the recorded capture; never tried against a live BCI2000 run). Given the behaviour in
    "Receiver restarts stop BCI2000's output until the next run" above, if data stops after
    connecting, stop and start the run.
-5. Signal integrity shows *Waiting for data* / *No signal*: expected, the plugin delivers a
+5. **Signal check** shows *Waiting for data* / *No signal*: expected, the plugin delivers a
    control signal, not a signal or features. **Start decoding** with **Source decoder outputs
    (passthrough)** (in 0.3.1 the preset menu starts on *Band power*) shows the control signal
-   (`Signal(ch,el)`) and offers it to **Command output**.
+   (`Signal(ch,el)`) and offers it to **Send to apps**.

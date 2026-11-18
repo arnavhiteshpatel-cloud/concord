@@ -127,10 +127,10 @@ export function IntentPad({ runtime }: { runtime: RuntimeSnapshot | null }) {
   };
 
   return (
-    <Panel title="Simulated intention" className="intent-panel" testId="intent-pad">
+    <Panel title="Play the participant" className="intent-panel" testId="intent-pad">
       <p className="hint">
-        You stand in for the participant's intent. Input goes to the simulated device, which emits its own packets;
-        apps only see standardized runtime events. No neural decoding is involved.
+        Drag the dot to move the pointer and press Select to choose, as the person using the BCI would. This steers the
+        simulated device directly: no brain data and no decoder are involved, and apps receive it labelled as simulated.
       </p>
       <div className="pad-row">
         <div

@@ -15,17 +15,12 @@ internally).
 
 ## A
 
-### Acquisition details
-
-The section of **Advanced** that shows everything Concord knows about the connected source: a
-dataset's checksum and citation, a live stream's counters, simulated device health.
-[Guide 10.3](USER_GUIDE.md#103-acquisition-details)
-
 ### Acquisition source
 
 Also just *source*. Where the data comes from: a simulated profile, a replayed recording, a live
-stream (LSL, Open Ephys) or a plugin. One source is connected at a time.
-[Guide 4](USER_GUIDE.md#4-acquisition-source)
+stream (LSL, Open Ephys) or a plugin. One source is connected at a time. In the console it is
+chosen in step 1, [Data source](#data-source).
+[Guide 4](USER_GUIDE.md#4-step-1-data-source)
 
 ### Activate
 
@@ -35,37 +30,32 @@ selection, *activate* chooses the highlighted tile. [Guide 11.8](USER_GUIDE.md#1
 ### Adapter
 
 The part of Concord that reads one kind of source and turns its data into standard events.
-Adapters only receive. Others can write adapters as plugins. [Guide 4.9](USER_GUIDE.md#49-plugins)
-
-### Advanced
-
-The folded part at the bottom of the console with technical sections.
-[Guide 10](USER_GUIDE.md#10-advanced)
+Adapters only receive. Others can write adapters as plugins. [Guide 4.9](USER_GUIDE.md#49-add-ons-plugins)
 
 ### AJILE12
 
 A public dataset of electrocorticography (ECoG) recorded from people (DANDI 000055). Concord
 replays two verified extracts, shown as *Session 5* and *Session 6*.
-[Guide 4.5](USER_GUIDE.md#45-recorded-human-data-offline-replay)
+[Guide 4.5](USER_GUIDE.md#45-real-recordings-played-back)
 
 ### Application
 
 Also *app*. A program that receives data from Concord, such as the communication board. The
 board embedded in each console tab counts as one application. The console tab itself is listed
-under **Connected applications** (as *Operator Console*, type `console`) but is not counted in *N applications
-connected*. [Guide 10.7](USER_GUIDE.md#107-connected-applications)
+under **Connected apps** (as *Operator Console*, type `console`) but is not counted in *N applications
+connected*. [Guide 10.7](USER_GUIDE.md#107-connected-apps)
 
 ### Arbitrary (unit)
 
 The data has no physical unit, either because the file says so (FALCON velocities) or because
 the source did not tell (Open Ephys with **Unknown** sample unit).
-[Guide 4.8](USER_GUIDE.md#48-live-streams-open-ephys)
+[Guide 4.8](USER_GUIDE.md#48-live-equipment-open-ephys)
 
 ### Authorize, Revoke
 
 Allow one application to receive decoded commands, or withdraw that permission. Applications are
 not authorized by default; an authorization lasts until you revoke it or Concord quits.
-[Guide 7.5](USER_GUIDE.md#75-authorized-applications)
+[Guide 7.5](USER_GUIDE.md#75-apps-you-authorize)
 
 ### Automatic (input method)
 
@@ -80,7 +70,7 @@ sent an activate or cancel), Scanning.
 
 A score for a classifier: the share of correct answers is computed for each class separately, and
 these shares are averaged. A class that occurs often therefore cannot inflate the score. Shown
-next to [chance](#chance). [Guide 6.5](USER_GUIDE.md#65-the-calibrate-panel)
+next to [chance](#chance). [Guide 6.5](USER_GUIDE.md#65-the-train-a-decoder-panel)
 
 ### Band power
 
@@ -91,13 +81,13 @@ bin. Also the name of a processing preset. [Guide 6.3](USER_GUIDE.md#63-processi
 
 On screen also `behavior` or `behavioral_label`. What the task or the person did at each moment:
 cued movement, cursor position, a target, a click attempt. Decoders are trained to reproduce
-these labels. They are never commands. [Guide 6.5](USER_GUIDE.md#65-the-calibrate-panel)
+these labels. They are never commands. [Guide 6.5](USER_GUIDE.md#65-the-train-a-decoder-panel)
 
 ### Behavior stream
 
 A stream that carries behavior labels next to the neural signal, for example an LSL stream of
 cued velocity attached with **Behavior stream (optional)**.
-[Guide 4.7](USER_GUIDE.md#47-live-streams-lsl)
+[Guide 4.7](USER_GUIDE.md#47-live-equipment-lsl)
 
 ### Bin
 
@@ -108,9 +98,10 @@ or averaged. [Guide 6.2](USER_GUIDE.md#62-the-start-decoding-panel)
 
 ### Calibration
 
-**Calibrate…** in the console. Recording labelled data from a source and fitting a decoder to it.
+Also *training*: **Train a decoder…** in the console. Recording labelled data from a source and
+fitting a decoder to it.
 The report gives [held-out](#held-out) scores with controls.
-[Guide 6.5](USER_GUIDE.md#65-the-calibrate-panel)
+[Guide 6.5](USER_GUIDE.md#65-the-train-a-decoder-panel)
 
 ### Cancel
 
@@ -121,30 +112,24 @@ A discrete action that undoes the last change on the board (or cancels a pending
 
 One kind of data a source can provide or an application can ask for, such as `pointer_intent`
 (pointer movement) or `behavior`. An application receives only the capabilities it asked for
-that the source provides. [Guide 10.6](USER_GUIDE.md#106-capability-contract)
-
-### Capability contract
-
-The **Advanced** section that lists every source's capabilities (the **Capability matrix**),
-what each capability means (**Capability vocabulary**), and which data kinds can reach an
-application (**Provenance separation**). [Guide 10.6](USER_GUIDE.md#106-capability-contract)
+that the source provides. [Guide 10.6](USER_GUIDE.md#106-source-capabilities)
 
 ### Chance
 
 The score a classifier would get by guessing. For [balanced accuracy](#balanced-accuracy) it is
 1 divided by the number of classes (0.333 for three classes). A useful classifier scores clearly
-above chance. [Guide 6.5](USER_GUIDE.md#65-the-calibrate-panel)
+above chance. [Guide 6.5](USER_GUIDE.md#65-the-train-a-decoder-panel)
 
 ### Channel
 
 One recording electrode or signal line. *32 of 32* means all declared channels arrive.
-[Guide 5](USER_GUIDE.md#5-signal-integrity)
+[Guide 5](USER_GUIDE.md#5-step-2-signal-check)
 
 ### Checksum
 
 A fingerprint of a file, made with [SHA-256](#sha-256). If even one byte changes, the fingerprint
 changes. Concord compares each dataset file and export with its published fingerprint.
-[Guide 10.3](USER_GUIDE.md#103-acquisition-details)
+[Guide 10.3](USER_GUIDE.md#103-source-details)
 
 ### Classifier
 
@@ -160,7 +145,7 @@ decision. Mapped to the board with **Click from**.
 ### Click classifier
 
 A decoder family that estimates the probability of a click attempt.
-[Guide 6.5](USER_GUIDE.md#65-the-calibrate-panel)
+[Guide 6.5](USER_GUIDE.md#65-the-train-a-decoder-panel)
 
 ### Click pause and debounce
 
@@ -178,9 +163,10 @@ has decoded is open loop.
 
 ### Command output
 
-Also *command router*. The only path from a decoder's output to an application command. Off
-unless you click **Start control**; **Stop control** turns it off.
-[Guide 7](USER_GUIDE.md#7-command-output)
+Also *command router*. The only path from a decoder's output to an application command. In the
+console it is step 4, [Send to apps](#send-to-apps). Off unless you click **Start sending**;
+**Stop sending** turns it off.
+[Guide 7](USER_GUIDE.md#7-step-4-send-to-apps)
 
 ### Common average reference
 
@@ -200,7 +186,7 @@ The list of every integration and the validation level its evidence supports.
 ### Compatible
 
 For a plugin: it follows Concord's plugin rules (its code was not reviewed). For a decoder model:
-it accepts what the chosen processing produces. [Guide 4.9](USER_GUIDE.md#49-plugins),
+it accepts what the chosen processing produces. [Guide 4.9](USER_GUIDE.md#49-add-ons-plugins),
 [6.4](USER_GUIDE.md#64-decoder-models)
 
 ### `concord` command
@@ -236,7 +222,7 @@ The operator's screen, in a web browser at http://127.0.0.1:8000.
 ### Contract violation
 
 Data a source sent that breaks Concord's rules (unreadable, malformed, or of a kind it did not
-declare). It is refused and counted. [Guide 10.4](USER_GUIDE.md#104-diagnostics)
+declare). It is refused and counted. [Guide 10.4](USER_GUIDE.md#104-health-check)
 
 ### `control_status`, `control.state`
 
@@ -255,7 +241,7 @@ allows it. [Guide 11.6](USER_GUIDE.md#116-the-task-grid)
 Cyclic redundancy check: a short checksum inside each data packet, so that a damaged packet can be
 recognized and dropped. Simulated Profile A's packets carry one (CRC32); the simulator's
 **Malformed packet** fault produces a *CRC mismatch*.
-[Guide 10.4](USER_GUIDE.md#104-diagnostics)
+[Guide 10.4](USER_GUIDE.md#104-health-check)
 
 ### Cross-source model
 
@@ -268,12 +254,12 @@ different source**; its output is marked reduced quality.
 ### DANDI
 
 A public archive of neurophysiology data (dandiarchive.org). Source of FALCON H1 and AJILE12.
-[Guide 4.5](USER_GUIDE.md#45-recorded-human-data-offline-replay)
+[Guide 4.5](USER_GUIDE.md#45-real-recordings-played-back)
 
 ### Data folder
 
 Also *data directory*. Where Concord keeps datasets, recordings, models, sessions, exports and
-logs. Its path is in **Advanced → Stored data**.
+logs. Its path is in **More tools → Saved data**.
 [Guide 16](USER_GUIDE.md#16-data-folders-ports-and-network)
 
 ### Data kind
@@ -283,7 +269,12 @@ See [provenance](#provenance).
 ### Data received (%)
 
 The share of data that arrived, measured for LSL and Open Ephys only.
-[Guide 5](USER_GUIDE.md#5-signal-integrity)
+[Guide 5](USER_GUIDE.md#5-step-2-signal-check)
+
+### Data source
+
+Step 1 of the console: where you choose, pause and disconnect the
+[source](#acquisition-source). [Guide 4](USER_GUIDE.md#4-step-1-data-source)
 
 ### Data Use Agreement
 
@@ -293,23 +284,24 @@ redistribution). Downloading means accepting them ([Datasets](DATASETS.md)).
 ### Dead-zone
 
 Decoder outputs smaller than this are treated as zero, so that small noise does not move the
-cursor. [Guide 7.3](USER_GUIDE.md#73-settings-for-movement-decoders)
+cursor. Shown as **Ignore small movements (dead-zone)** in **Send to apps → Adjust how the cursor
+moves**. [Guide 7.3](USER_GUIDE.md#73-settings-for-movement-decoders)
 
 ### Declared
 
 Prerecorded, synthetic: what an LSL stream's publisher says about itself. Concord shows it but
-cannot check it. [Guide 4.7](USER_GUIDE.md#47-live-streams-lsl)
+cannot check it. [Guide 4.7](USER_GUIDE.md#47-live-equipment-lsl)
 
 ### Decoded intent
 
 On screen `decoded_intent`. A decoder's estimate of what the person intended, always labelled
 with the model and its origin (Concord, external or historical).
-[Guide 10.1](USER_GUIDE.md#101-event-stream)
+[Guide 10.1](USER_GUIDE.md#101-live-message-feed)
 
 ### Decoder
 
 A model that turns neural features into intended movement, a click or a choice.
-[Guide 6](USER_GUIDE.md#6-decoder)
+[Guide 6](USER_GUIDE.md#6-step-3-decoder)
 
 ### Decoder family
 
@@ -325,10 +317,10 @@ One trained decoder, chosen under **Decoder model**. [Guide 6.4](USER_GUIDE.md#6
 An installed package that adds a decoder; it runs in its own process.
 [Guide 6.4](USER_GUIDE.md#64-decoder-models)
 
-### Delay to this screen
+### Delay (ms)
 
-The time from Concord receiving an event to this browser tab receiving it. Not the delay from the
-brain. [Guide 5](USER_GUIDE.md#5-signal-integrity)
+In **Signal check**: the time from Concord receiving an event to this browser tab receiving
+it. Not the delay from the brain. [Guide 5](USER_GUIDE.md#5-step-2-signal-check)
 
 ### Delivery gap
 
@@ -338,15 +330,11 @@ An event an application (the board, or a console tab) never received.
 ### `device_report`
 
 The data kind of reports about a device, such as simulated battery and temperature. Never a
-command. [Guide 10.1](USER_GUIDE.md#101-event-stream)
+command. [Guide 10.1](USER_GUIDE.md#101-live-message-feed)
 
 ### `device_status`
 
-Connection and streaming changes of a source. [Guide 10.6](USER_GUIDE.md#106-capability-contract)
-
-### Diagnostics
-
-Measured event rates, latencies, drops and errors. [Guide 10.4](USER_GUIDE.md#104-diagnostics)
+Connection and streaming changes of a source. [Guide 10.6](USER_GUIDE.md#106-source-capabilities)
 
 ### Direct selection
 
@@ -361,7 +349,7 @@ A board input method: up, down, left, right (or next, previous) move the highlig
 ### Discrete actions
 
 The console's name for `selection`: select, activate, cancel.
-[Guide 7.5](USER_GUIDE.md#75-authorized-applications)
+[Guide 7.5](USER_GUIDE.md#75-apps-you-authorize)
 
 ### DNS rebinding
 
@@ -378,7 +366,7 @@ recalibration when they differ. [Guide 6.1](USER_GUIDE.md#61-the-row)
 ### Dryad
 
 A public data repository (datadryad.org). Source of the T15 cursor + click dataset.
-[Guide 4.5](USER_GUIDE.md#45-recorded-human-data-offline-replay)
+[Guide 4.5](USER_GUIDE.md#45-real-recordings-played-back)
 
 ### Dwell selection
 
@@ -395,16 +383,12 @@ Electrocorticography: signals from electrodes on the surface of the brain.
 ### Envelope
 
 The full form of one event, with its time stamps, quality and provenance.
-[Guide 10.1](USER_GUIDE.md#101-event-stream)
+[Guide 10.1](USER_GUIDE.md#101-live-message-feed)
 
 ### Event
 
 One piece of data inside Concord (a block of samples, a feature bin, a decoder output, a status
-change). [Guide 10.1](USER_GUIDE.md#101-event-stream)
-
-### Event stream
-
-The **Advanced** section listing the latest events. [Guide 10.1](USER_GUIDE.md#101-event-stream)
+change). [Guide 10.1](USER_GUIDE.md#101-live-message-feed)
 
 ### Export bundle
 
@@ -423,13 +407,13 @@ A decoder that runs in another system and sends its output to Concord.
 
 A score for a click decoder that combines [precision and recall](#precision-and-recall) into one
 number (their harmonic mean). 1 is perfect; it is low if either precision or recall is low.
-[Guide 6.5](USER_GUIDE.md#65-the-calibrate-panel)
+[Guide 6.5](USER_GUIDE.md#65-the-train-a-decoder-panel)
 
 ### FALCON H1
 
 A public benchmark dataset (DANDI 000954) of multi-unit spiking from intracortical arrays of one
 person, with cued seven-dimensional reach-and-grasp velocity.
-[Guide 4.5](USER_GUIDE.md#45-recorded-human-data-offline-replay)
+[Guide 4.5](USER_GUIDE.md#45-real-recordings-played-back)
 
 ### Fault injection
 
@@ -438,8 +422,8 @@ Buttons that make the simulated device fail on purpose (**Link drop**, **Link fa
 
 ### Feature source
 
-In **Calibrate…**, which features of a recording to train on.
-[Guide 6.5](USER_GUIDE.md#65-the-calibrate-panel)
+In **Train a decoder…**, which features of a recording to train on.
+[Guide 6.5](USER_GUIDE.md#65-the-train-a-decoder-panel)
 
 ### Features
 
@@ -449,40 +433,51 @@ bin, such as threshold crossings or band power, used by decoders. Never commands
 
 ### Freeze view
 
-Stops the event stream list from moving; **Resume view** continues.
-[Guide 10.1](USER_GUIDE.md#101-event-stream)
+Stops the **Live message feed** list from moving; **Resume view** continues.
+[Guide 10.1](USER_GUIDE.md#101-live-message-feed)
 
 ## G
 
 ### Gain
 
-How much a decoder output is multiplied to give pointer velocity.
+How much a decoder output is multiplied to give pointer velocity. Shown as **Speed (gain)** in
+**Send to apps → Adjust how the cursor moves**.
 [Guide 7.3](USER_GUIDE.md#73-settings-for-movement-decoders)
 
 ### Gap (bins)
 
 In calibration, bins left out between the training part and the held-out part.
-[Guide 6.5](USER_GUIDE.md#65-the-calibrate-panel)
+[Guide 6.5](USER_GUIDE.md#65-the-train-a-decoder-panel)
 
 ### Gaps detected
 
-The signal-integrity verdict when something was lost in the last 10 seconds.
-[Guide 5](USER_GUIDE.md#5-signal-integrity)
+The **Signal check** verdict when something was lost in the last 10 seconds.
+[Guide 5](USER_GUIDE.md#5-step-2-signal-check)
 
 ## H
+
+### Health check
+
+The **More tools** tool with measured event rates, latencies, drops and errors.
+[Guide 10.4](USER_GUIDE.md#104-health-check)
 
 ### Heartbeat
 
 A short "still listening" message that Concord sends to the Open Ephys GUI's ZMQ Interface
 plugin, on the port after the data port. It is the only message Concord ever sends to
-acquisition software. [Guide 4.8](USER_GUIDE.md#48-live-streams-open-ephys)
+acquisition software. [Guide 4.8](USER_GUIDE.md#48-live-equipment-open-ephys)
 
 ### Held-out
 
 Held-out data is kept apart: it is not used to train a decoder, only to score it. Concord never
 scores or shows a decoder on the data it was trained on. *Held-in* is the opposite: the data a
 decoder may be trained on; *held-in-calib* is FALCON's name for its calibration files.
-[Guide 6.5](USER_GUIDE.md#65-the-calibrate-panel)
+[Guide 6.5](USER_GUIDE.md#65-the-train-a-decoder-panel)
+
+### Help
+
+The title-bar button that opens the in-app guide, *How Concord works*.
+[Guide 1](USER_GUIDE.md#1-the-console-at-a-glance)
 
 ### High-gamma band power
 
@@ -516,24 +511,25 @@ skull (a wider term, used in the FALCON source name). [Guide 4.1](USER_GUIDE.md#
 ### Invert y
 
 Flips the vertical direction, for decoders whose "up" is positive while the screen's "down" is
-positive. [Guide 7.3](USER_GUIDE.md#73-settings-for-movement-decoders)
+positive. Shown as **Flip up and down (invert y)** in **Send to apps → Adjust how the cursor
+moves**. [Guide 7.3](USER_GUIDE.md#73-settings-for-movement-decoders)
 
 ### Isolated
 
 Running in its own separate process, as plugins and imported decoders do. It limits damage from a
-crash; it is not a security sandbox. [Guide 4.9](USER_GUIDE.md#49-plugins)
+crash; it is not a security sandbox. [Guide 4.9](USER_GUIDE.md#49-add-ons-plugins)
 
 ## K
 
 ### Kalman filter
 
 A decoder family for continuous movement that combines the features with a model of how movement
-evolves. [Guide 6.5](USER_GUIDE.md#65-the-calibrate-panel)
+evolves. [Guide 6.5](USER_GUIDE.md#65-the-train-a-decoder-panel)
 
 ### `kinematic_intent`
 
 A movement estimate with several dimensions from a decoder (simulated or model-decoded). Reaches
-applications only through command output. [Guide 10.6](USER_GUIDE.md#106-capability-contract)
+applications only through command output. [Guide 10.6](USER_GUIDE.md#106-source-capabilities)
 
 ## L
 
@@ -546,12 +542,12 @@ reference by `concord-hwval`.
 
 Latency is how long something takes. p50 is the median: half of the measurements were shorter.
 p95 and p99 are the values that 95 % and 99 % of the measurements stayed under; they show the
-slow cases. [Guide 10.2](USER_GUIDE.md#102-pipeline-details)
+slow cases. [Guide 10.2](USER_GUIDE.md#102-decoder-details)
 
 ### LDA classifier
 
 Linear discriminant analysis: a decoder family that chooses among classes; also used for clicks.
-[Guide 6.5](USER_GUIDE.md#65-the-calibrate-panel)
+[Guide 6.5](USER_GUIDE.md#65-the-train-a-decoder-panel)
 
 ### LFP
 
@@ -564,6 +560,11 @@ few hundred hertz), the summed activity of many neurons near the electrode.
 A source connection lost once (Concord reconnects) or for good (the source stops with an error).
 [Guide 10.8](USER_GUIDE.md#108-simulator-controls)
 
+### Live message feed
+
+The **More tools** tool listing the latest events as they arrive.
+[Guide 10.1](USER_GUIDE.md#101-live-message-feed)
+
 ### Live stream, origin unverified
 
 A stream from your network that does not say what it is. Concord cannot tell hardware from a file
@@ -572,7 +573,7 @@ player or a simulator. [Guide 2.2](USER_GUIDE.md#22-every-state-the-title-bar-ca
 ### LSL (Lab Streaming Layer)
 
 A widely used way of streaming time series between programs on a lab network.
-[Guide 4.7](USER_GUIDE.md#47-live-streams-lsl)
+[Guide 4.7](USER_GUIDE.md#47-live-equipment-lsl)
 
 ## M
 
@@ -584,41 +585,42 @@ Feeds a model the source channels whose names match the model's channel names.
 ### Marker stream
 
 A stream of event markers (for example trial start), attached to an LSL signal with **Marker
-stream (optional)**. [Guide 4.7](USER_GUIDE.md#47-live-streams-lsl)
-
-### Max speed
-
-The fastest the pointer may move on each axis, in workspaces per second.
-[Guide 7.3](USER_GUIDE.md#73-settings-for-movement-decoders)
+stream (optional)**. [Guide 4.7](USER_GUIDE.md#47-live-equipment-lsl)
 
 ### Mean-predictor control
 
 The [R²](#r-squared) of a "decoder" that always outputs the average of the training labels. It is
 about 0 or below. A decoder that does not score clearly above it has learned nothing useful.
-[Guide 6.5](USER_GUIDE.md#65-the-calibrate-panel)
+[Guide 6.5](USER_GUIDE.md#65-the-train-a-decoder-panel)
 
 ### Metadata notes
 
 Concord's notes on a dataset file: corrections it applied and what the file does not provide.
-[Guide 10.3](USER_GUIDE.md#103-acquisition-details)
+[Guide 10.3](USER_GUIDE.md#103-source-details)
 
 ### Modality
 
 The kind of recording (intracortical, ECoG, EEG, …) and whether it is implanted, as the source
 declares it. [Guide 4.1](USER_GUIDE.md#41-the-row)
 
+### More tools
+
+The always-visible section at the bottom of the console: every other tool, in groups, each with
+what it does, when to use it and its own **Show** button.
+[Guide 10](USER_GUIDE.md#10-more-tools)
+
 ### Multicast
 
 A way of sending one network message to every computer on the local network that listens for it.
 LSL uses it to find streams. Some networks (for example some Wi-Fi networks) block it.
-[Guide 4.7](USER_GUIDE.md#47-live-streams-lsl)
+[Guide 4.7](USER_GUIDE.md#47-live-equipment-lsl)
 
 ## N
 
 ### Native format
 
 How a source's data arrives before Concord converts it.
-[Guide 10.6](USER_GUIDE.md#106-capability-contract)
+[Guide 10.6](USER_GUIDE.md#106-source-capabilities)
 
 ### `navigation`
 
@@ -629,7 +631,7 @@ Commands that move a highlight (up, down, left, right, next, previous).
 
 When an application connects, Concord gives it the capabilities it asked for that the source
 provides (**Granted**), and lists the others (**Not granted**).
-[Guide 10.7](USER_GUIDE.md#107-connected-applications)
+[Guide 10.7](USER_GUIDE.md#107-connected-apps)
 
 ### Notch filter
 
@@ -647,12 +649,12 @@ files are NWB.
 
 How well a model reconstructs recorded labels on [held-out](#held-out) data (R² for movement,
 balanced accuracy for classes, precision and recall for clicks). It does not show how well a
-person could control anything with it. [Guide 6.5](USER_GUIDE.md#65-the-calibrate-panel)
+person could control anything with it. [Guide 6.5](USER_GUIDE.md#65-the-train-a-decoder-panel)
 
 ### Offline Replay
 
 Playing back recorded data from a file, labelled as such. Never live.
-[Guide 4.5](USER_GUIDE.md#45-recorded-human-data-offline-replay)
+[Guide 4.5](USER_GUIDE.md#45-real-recordings-played-back)
 
 ### ONNX
 
@@ -662,11 +664,11 @@ isolated process. [Guide 6.4](USER_GUIDE.md#64-decoder-models)
 ### Open Ephys GUI, ZMQ Interface
 
 Open-source acquisition software, and the plugin of it that Concord reads (it publishes data over
-[ZMQ](#zmq)). [Guide 4.8](USER_GUIDE.md#48-live-streams-open-ephys)
+[ZMQ](#zmq)). [Guide 4.8](USER_GUIDE.md#48-live-equipment-open-ephys)
 
 ### Operator
 
-The person running the console. [Guide 3.2](USER_GUIDE.md#32-new-research-session)
+The person running the console. [Guide 3.2](USER_GUIDE.md#32-start-a-session)
 
 ## P
 
@@ -676,7 +678,8 @@ See [latency, p50, p95, p99](#latency-p50-p95-p99).
 
 ### Participant screen
 
-The communication board in its own window, for a second screen facing the participant.
+The communication board in its own window, for a second screen facing the participant. A copy
+is also inside the console: **More tools → Participant screen preview**.
 [Guide 11.1](USER_GUIDE.md#111-opening-the-board)
 
 ### Passthrough
@@ -687,7 +690,8 @@ features, **Source decoder outputs (passthrough)** for a decoder's output.
 
 ### Pause, Resume
 
-Stops and continues a source; pausing turns command output off.
+Stops and continues a source; pausing turns command output off. Always visible under the
+source in step 1.
 [Guide 4.1](USER_GUIDE.md#41-the-row)
 
 ### Pickle, joblib
@@ -699,27 +703,28 @@ so Concord loads one only after you click **Mark this file trusted**.
 ### Pipeline
 
 Signal processing (filters, feature extraction) followed by an optional decoder, run
-continuously on the connected source. [Guide 10.2](USER_GUIDE.md#102-pipeline-details)
+continuously on the connected source. [Guide 10.2](USER_GUIDE.md#102-decoder-details)
 
 ### Playback
 
-The replay controls of a file: position, **Pause**, speed. [Guide 4.1](USER_GUIDE.md#41-the-row)
+The replay controls of a file, under the source in step 1: position, progress bar, **Pause**
+and the playback speed buttons. [Guide 4.1](USER_GUIDE.md#41-the-row)
 
 ### Plugin
 
 Third-party code that adds a source or a decoder; it runs in its own process.
-[Guide 4.9](USER_GUIDE.md#49-plugins)
+[Guide 4.9](USER_GUIDE.md#49-add-ons-plugins)
 
 ### `pointer_intent`
 
 Shown as *pointer movement*. A command to move a cursor, as a 2-D velocity.
-[Guide 7.5](USER_GUIDE.md#75-authorized-applications)
+[Guide 7.5](USER_GUIDE.md#75-apps-you-authorize)
 
 ### Precision and recall
 
 Scores for a click decoder. Precision: of the clicks the decoder made, the share that were real
 click attempts. Recall: of the real click attempts, the share the decoder caught. [F1](#f1)
-combines both. [Guide 6.5](USER_GUIDE.md#65-the-calibrate-panel)
+combines both. [Guide 6.5](USER_GUIDE.md#65-the-train-a-decoder-panel)
 
 ### Processing preset
 
@@ -732,14 +737,14 @@ high-gamma band power, band power, the two passthroughs).
 Also *data kind*. What an event is and where it came from: `raw_signal`, `processed_feature`,
 `behavioral_label`, `simulated_intent`, `decoded_intent`, `device_report`, `runtime`, and
 whether it was replayed. Only intents can become commands.
-[Guide 10.1](USER_GUIDE.md#101-event-stream)
+[Guide 10.1](USER_GUIDE.md#101-live-message-feed)
 
 ## Q
 
 ### Quality
 
 A score from 0 to 1 on each event, and flags such as `synthetic`, `replayed` or
-`timestamp_regression`. [Guide 10.1](USER_GUIDE.md#101-event-stream)
+`timestamp_regression`. [Guide 10.1](USER_GUIDE.md#101-live-message-feed)
 
 ## R
 
@@ -748,28 +753,28 @@ A score from 0 to 1 on each event, and flags such as `synthetic`, `replayed` or
 Written **R²**; also called the coefficient of determination. How much of the variation in
 recorded movement a decoder reproduces: 1 is perfect, 0 is no better than always guessing the
 average ([mean-predictor control](#mean-predictor-control)), and it can be negative.
-[Guide 6.5](USER_GUIDE.md#65-the-calibrate-panel)
+[Guide 6.5](USER_GUIDE.md#65-the-train-a-decoder-panel)
 
 ### Radial-8
 
 A calibration task with eight targets around a centre (T15 blocks 0–2).
-[Guide 4.5](USER_GUIDE.md#45-recorded-human-data-offline-replay)
+[Guide 4.5](USER_GUIDE.md#45-real-recordings-played-back)
 
 ### Raw signal
 
 On screen `raw_signal`. Samples as acquired (for example microvolts per channel), as opposed to
-features. [Guide 5](USER_GUIDE.md#5-signal-integrity)
+features. [Guide 5](USER_GUIDE.md#5-step-2-signal-check)
 
 ### Recording (file)
 
 A file of events Concord wrote while a source was connected; it can be replayed and used for
-calibration. [Guide 10.5](USER_GUIDE.md#105-recording)
+calibration. [Guide 10.5](USER_GUIDE.md#105-record-data)
 
 ### `recording` (capability)
 
 A source provides raw sample blocks (and time-aligned markers). Not the same as the **Recording**
 feature: a dataset can declare it and still not be recordable.
-[Guide 10.6](USER_GUIDE.md#106-capability-contract)
+[Guide 10.6](USER_GUIDE.md#106-source-capabilities)
 
 ### Reference recording
 
@@ -779,7 +784,7 @@ verification ([HARDWARE_VALIDATION.md](HARDWARE_VALIDATION.md)).
 ### Replayed
 
 Shown as **↺**. Played back from a recording, not happening now.
-[Guide 10.1](USER_GUIDE.md#101-event-stream)
+[Guide 10.1](USER_GUIDE.md#101-live-message-feed)
 
 ### Research session
 
@@ -795,7 +800,7 @@ Clears a source that stopped with an error, so you can connect again.
 ### Ridge regression
 
 A simple linear decoder family for continuous movement (Concord's default).
-[Guide 6.5](USER_GUIDE.md#65-the-calibrate-panel)
+[Guide 6.5](USER_GUIDE.md#65-the-train-a-decoder-panel)
 
 ### RMS
 
@@ -807,23 +812,23 @@ when the signal crosses a multiple of it (−4.5 by default).
 
 A score for a click decoder, computed per bin: the chance that a bin with a click attempt gets a
 higher click score than a bin without one. 0.5 is guessing, 1 is perfect.
-[Guide 6.5](USER_GUIDE.md#65-the-calibrate-panel)
+[Guide 6.5](USER_GUIDE.md#65-the-train-a-decoder-panel)
 
 ### Router stall
 
 On screen *input stalled*. Command output turned off because the decoder received no input for
-too long. [Guide 7.6](USER_GUIDE.md#76-why-command-output-turned-off-last-stopped)
+too long. [Guide 7.6](USER_GUIDE.md#76-why-sending-turned-off-last-stopped)
 
 ### `runtime`
 
 The data kind of notices from Concord itself, such as "command output stopped".
-[Guide 10.1](USER_GUIDE.md#101-event-stream)
+[Guide 10.1](USER_GUIDE.md#101-live-message-feed)
 
 ## S
 
 ### Safe stop
 
-**Safe stop & disconnect**: command output off, recording closed, decoding stopped, source
+**Stop everything**: command output off, recording closed, decoding stopped, source
 disconnected, in that order. Quitting does the same. [Guide 9](USER_GUIDE.md#9-stopping-safely)
 
 ### safetensors
@@ -839,7 +844,7 @@ A board input method: tiles are highlighted in turn and one switch chooses.
 ### Schema
 
 The formal description of Concord's event format (version 1.4), at */api/v1/schema/event*.
-[Guide 10.6](USER_GUIDE.md#106-capability-contract)
+[Guide 10.6](USER_GUIDE.md#106-source-capabilities)
 
 ### sEEG
 
@@ -854,7 +859,12 @@ The basic discrete action; on the board it chooses a tile (or moves, with direct
 ### `selection`
 
 Shown as *discrete actions*. The commands select, activate and cancel.
-[Guide 7.5](USER_GUIDE.md#75-authorized-applications)
+[Guide 7.5](USER_GUIDE.md#75-apps-you-authorize)
+
+### Send to apps
+
+Step 4 of the console: where you start and set up the [command output](#command-output) and
+authorize applications. [Guide 7](USER_GUIDE.md#7-step-4-send-to-apps)
 
 ### Session
 
@@ -869,29 +879,35 @@ The console's list of what happened, newest first. [Guide 8](USER_GUIDE.md#8-the
 
 ### Session recording
 
-A recording you made, offered for replay under **Session recordings (replay)**.
-[Guide 4.6](USER_GUIDE.md#46-session-recordings-replay-and-other-sources)
+A recording you made, offered for replay under **Your recordings**.
+[Guide 4.6](USER_GUIDE.md#46-your-recordings-and-other-sources)
 
 ### SHA-256
 
 The method Concord uses to make a file's fingerprint ([checksum](#checksum)): a 64-character code
 that changes completely if even one byte of the file changes.
-[Guide 4.5](USER_GUIDE.md#45-recorded-human-data-offline-replay)
+[Guide 4.5](USER_GUIDE.md#45-real-recordings-played-back)
 
 ### Sheet
 
-A panel that slides in from the right of the console, for example **Connect a source** or **Start
-decoding**. Close it with **Close**, the Escape key, or a click on the grey area beside it.
+A panel that slides in from the right of the console, for example **Choose a data source** or
+**Start decoding**. Close it with **Close**, the Escape key, or a click on the grey area beside it.
 [Guide 1](USER_GUIDE.md#1-the-console-at-a-glance)
+
+### Signal check
+
+Step 2 of the console: whether data arrives complete and on time
+([signal integrity](#signal-integrity)). [Guide 5](USER_GUIDE.md#5-step-2-signal-check)
 
 ### Signal integrity
 
-Whether data arrives complete and on time. [Guide 5](USER_GUIDE.md#5-signal-integrity)
+Whether data arrives complete and on time. In the console: step 2,
+[Signal check](#signal-check). [Guide 5](USER_GUIDE.md#5-step-2-signal-check)
 
 ### Simulated data, synthetic
 
 Generated by software, not recorded from a person.
-[Guide 4.4](USER_GUIDE.md#44-simulated-profiles)
+[Guide 4.4](USER_GUIDE.md#44-demo-data-simulated)
 
 ### Simulated intent
 
@@ -902,27 +918,39 @@ participant. Reaches applications without command output, labelled simulated.
 ### Simulated profile
 
 One of two built-in simulated devices (Profile A, Profile B). Never brain data, and not a model
-of any real device. [Guide 4.4](USER_GUIDE.md#44-simulated-profiles)
+of any real device. [Guide 4.4](USER_GUIDE.md#44-demo-data-simulated)
 
 ### Simulator controls
 
-The pad, **Select**, text and fault buttons for Simulated Profile A or B. Not shown for other
-synthetic sources. [Guide 10.8](USER_GUIDE.md#108-simulator-controls)
+The pad, **Select**, text and fault buttons for Simulated Profile A or B, under **More tools →
+Practice**. Not shown for other synthetic sources. [Guide 10.8](USER_GUIDE.md#108-simulator-controls)
 
 ### skops
 
 A file format for scikit-learn models that can be loaded without running code from the file.
 [Guide 6.4](USER_GUIDE.md#64-decoder-models)
 
+### Source capabilities
+
+The **More tools** tool that lists every source's capabilities (the **Capability matrix**),
+what each capability means (**Capability vocabulary**), and which data kinds can reach an
+application (**Provenance separation**). [Guide 10.6](USER_GUIDE.md#106-source-capabilities)
+
+### Source details
+
+The **More tools** tool that shows everything Concord knows about the connected source: a
+dataset's checksum and citation, a live stream's counters, simulated device health.
+[Guide 10.3](USER_GUIDE.md#103-source-details)
+
 ### `source_id`
 
 An LSL stream's identifier, set by its publisher; it tells apart streams with the same name.
-[Guide 4.7](USER_GUIDE.md#47-live-streams-lsl)
+[Guide 4.7](USER_GUIDE.md#47-live-equipment-lsl)
 
 ### Spike band power
 
 Power in the frequency band of spikes, per bin (a T15 feature stream).
-[Guide 10.6](USER_GUIDE.md#106-capability-contract)
+[Guide 10.6](USER_GUIDE.md#106-source-capabilities)
 
 ### Spike-band threshold crossings
 
@@ -930,7 +958,7 @@ Also *threshold crossings*. Counts of how often a band-passed signal crosses a t
 noise level, per bin; a standard intracortical feature.
 [Guide 6.3](USER_GUIDE.md#63-processing-presets)
 
-### Stop control
+### Stop sending
 
 The title-bar button that turns command output off immediately.
 [Guide 2.1](USER_GUIDE.md#21-controls-in-the-title-bar)
@@ -938,7 +966,7 @@ The title-bar button that turns command output off immediately.
 ### Subscriber drops
 
 Events an application or console tab could not take in time and lost.
-[Guide 10.4](USER_GUIDE.md#104-diagnostics)
+[Guide 10.4](USER_GUIDE.md#104-health-check)
 
 ### Support report
 
@@ -948,7 +976,7 @@ A report about your installation without neural or personal data, for whoever he
 ### Switch
 
 The **Connect** button's name while another source is connected; changes source.
-[Guide 4.3](USER_GUIDE.md#43-the-connect-a-source-panel)
+[Guide 4.3](USER_GUIDE.md#43-the-choose-a-data-source-panel)
 
 ## T
 
@@ -956,7 +984,7 @@ The **Connect** button's name while another source is connected; changes source.
 
 The participant of a published cursor-and-click study whose recordings (Dryad) Concord replays:
 four blocks of one day, with the original decoders' outputs.
-[Guide 4.5](USER_GUIDE.md#45-recorded-human-data-offline-replay)
+[Guide 4.5](USER_GUIDE.md#45-real-recordings-played-back)
 
 ### Task grid
 
@@ -965,7 +993,7 @@ A board layout of N × N word tiles, for grid tasks. [Guide 11.6](USER_GUIDE.md#
 ### Telemetry
 
 On screen `telemetry`. Device health numbers. The simulated profiles' values are simulated.
-[Guide 10.3](USER_GUIDE.md#103-acquisition-details)
+[Guide 10.3](USER_GUIDE.md#103-source-details)
 
 ### Test stream
 
@@ -975,19 +1003,25 @@ A stream from `concord publish` for rehearsing without hardware.
 ### `text_intent`
 
 Shown as *text*. Text sent a character or a word at a time.
-[Guide 7.5](USER_GUIDE.md#75-authorized-applications)
+[Guide 7.5](USER_GUIDE.md#75-apps-you-authorize)
 
 ### Time correction
 
 The offset LSL measures between a publisher's clock and this computer's, used to line up streams.
-[Guide 10.3](USER_GUIDE.md#103-acquisition-details)
+[Guide 10.3](USER_GUIDE.md#103-source-details)
 
 ### Time-shift control
 
 The score of the same trained decoder when the held-out features are shifted in time against the
 labels, so that they no longer belong together (averaged over several shifts). A decoder that
 does not score clearly above it may be following slow trends rather than the neural signal.
-[Guide 6.5](USER_GUIDE.md#65-the-calibrate-panel)
+[Guide 6.5](USER_GUIDE.md#65-the-train-a-decoder-panel)
+
+### Top speed
+
+The fastest the pointer may move on each axis (max speed), in workspaces per second. In
+**Send to apps → Adjust how the cursor moves**.
+[Guide 7.3](USER_GUIDE.md#73-settings-for-movement-decoders)
 
 ### TorchScript
 
@@ -996,7 +1030,7 @@ A file format for models built with PyTorch. [Guide 6.4](USER_GUIDE.md#64-decode
 ### Train fraction
 
 The share of calibration data (from the start) used for fitting.
-[Guide 6.5](USER_GUIDE.md#65-the-calibrate-panel)
+[Guide 6.5](USER_GUIDE.md#65-the-train-a-decoder-panel)
 
 ### Trust (model file)
 
@@ -1008,12 +1042,18 @@ loaded. [Guide 6.2](USER_GUIDE.md#62-the-start-decoding-panel)
 ### Undeclared capability
 
 Data a source sent of a kind it did not declare; refused and counted.
-[Guide 10.4](USER_GUIDE.md#104-diagnostics)
+[Guide 10.4](USER_GUIDE.md#104-health-check)
+
+### Use notice
+
+The bar under the console's title bar: *Research preview. Not a medical device. Not for
+clinical, diagnostic or commercial use. Not yet tested with real recording equipment or with
+people.* [Guide 2.1](USER_GUIDE.md#21-controls-in-the-title-bar)
 
 ### uV, µV
 
 Microvolts, the unit of raw voltage Concord uses.
-[Guide 4.8](USER_GUIDE.md#48-live-streams-open-ephys)
+[Guide 4.8](USER_GUIDE.md#48-live-equipment-open-ephys)
 
 ## V
 
@@ -1024,10 +1064,21 @@ How far a component has been validated: software, protocol, hardware, human part
 
 ### Velocity dimension
 
-The selector in **Acquisition details** that chooses which behavior dimension the plot shows.
-[Guide 10.3](USER_GUIDE.md#103-acquisition-details)
+The selector in **Source details** that chooses which behavior dimension the plot shows.
+[Guide 10.3](USER_GUIDE.md#103-source-details)
 
 ## W
+
+### Welcome card
+
+The card at the top of the console for first-time users: the four steps, **Try it with demo
+data** and **Read the 2-minute guide**. **Hide this** hides it for good in that browser.
+[Guide 1](USER_GUIDE.md#1-the-console-at-a-glance)
+
+### What is this?
+
+The link on each of the console's four steps that opens the in-app guide at that step.
+[Guide 1](USER_GUIDE.md#1-the-console-at-a-glance)
 
 ### Word list, word prediction
 
@@ -1051,4 +1102,4 @@ The file format LabRecorder writes.
 
 ZeroMQ: a messaging library that programs use to send data to each other over a network. The
 Open Ephys GUI's ZMQ Interface plugin uses it to publish data, and Concord receives it that way.
-[Guide 4.8](USER_GUIDE.md#48-live-streams-open-ephys)
+[Guide 4.8](USER_GUIDE.md#48-live-equipment-open-ephys)

@@ -1,4 +1,4 @@
-// Row 1 — Acquisition source: what is connected and the actions that apply to it now.
+// Step 1 — Data source: what is connected and the actions that apply to it now.
 
 import { useEffect, useState } from "react";
 import { runtimeApi, type PlaybackStatus, type RuntimeSnapshot } from "../../sdk";
@@ -6,7 +6,7 @@ import { consoleApi, cursorClickLabel, isCursorClickFile, isDatasetFile } from "
 import { useLoggedAction } from "../context";
 import { integrationLine, modalityWords, shapeSummary, sourceKind } from "../wording";
 import { datasetLabel } from "./SourcePicker";
-import { Disclosure, Row } from "./ui";
+import { Row } from "./ui";
 
 const SPEEDS = [0.5, 1, 2, 4, 8];
 
@@ -69,16 +69,18 @@ export function SourceRow({
   if (!device) {
     return (
       <Row
-        title="Acquisition source"
-        explain="Where the brain data comes from."
+        step={1}
+        title="Data source"
+        explain="Where the brain signals come from: demo data, a recording, or your lab's live equipment."
+        help="source"
         testId="row-source"
         actions={
           <button type="button" className="btn btn-primary" onClick={onPick} data-testid="connect-source">
-            Connect a source
+            Choose a source
           </button>
         }
       >
-        <p className="value-muted">No source connected.</p>
+        <p className="value-muted">Nothing connected yet. Not sure where to start? Choose a source, then Simulated Profile A.</p>
       </Row>
     );
   }
@@ -86,8 +88,10 @@ export function SourceRow({
   const pct = pb?.duration_s ? Math.min(100, (pb.position_s / pb.duration_s) * 100) : 0;
   return (
     <Row
-      title="Acquisition source"
-      explain="Where the brain data comes from."
+      step={1}
+      title="Data source"
+      explain="Where the brain signals come from: demo data, a recording, or your lab's live equipment."
+      help="source"
       testId="row-source"
       actions={
         <>
@@ -135,7 +139,7 @@ export function SourceRow({
         </p>
       )}
       {!finished && (
-        <Disclosure title={replayFile ? "Playback" : "Options"} testId="source-options" className="inline">
+        <div className="source-controls" data-testid="source-options">
           {replayFile && pb && (
             <div className="progress" aria-hidden>
               <div className="progress-bar" style={{ width: `${pct}%` }} />
@@ -164,7 +168,7 @@ export function SourceRow({
               </button>
             )}
             {replayFile && (
-              <span className="segmented" role="group" aria-label="Playback speed">
+              <span className="segmented" role="group" aria-label="Playback speed" title="Playback speed">
                 {SPEEDS.map((s) => (
                   <button
                     key={s}
@@ -180,8 +184,9 @@ export function SourceRow({
                 ))}
               </span>
             )}
+            {replayFile && <span className="hint">Playback speed</span>}
           </div>
-        </Disclosure>
+        </div>
       )}
       {action.error && <p className="error-text">{action.error}</p>}
     </Row>

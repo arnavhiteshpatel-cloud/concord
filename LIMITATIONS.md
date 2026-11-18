@@ -152,17 +152,17 @@ the PR description and delete it here.
   task's display latency is not measured, so cue timing on screen vs. on the LSL clock may
   differ by a monitor frame or more.
 - **Console**: live-source counters and the pipeline status are polled once per second
-  (up to ~1 s old). The signal-integrity verdict uses only what the console can measure: data
+  (up to ~1 s old). The signal-check verdict (step 2) uses only what the console can measure: data
   events arriving in this browser tab, the runtime state, and loss counters reported by the
   adapter, pipeline and runtime; "Data received" is shown only for LSL (samples vs estimated
   missing) and Open Ephys (messages vs missed), never estimated for other sources. The four
   live traces show raw samples (first four channels) or binned counts (the four most active
-  channels); `features.vector` output (band power, high gamma) appears only in the event
-  stream. The status line does not show the reconnect attempt number (the runtime does not
+  channels); `features.vector` output (band power, high gamma) appears only in the live
+  message feed. The status line does not show the reconnect attempt number (the runtime does not
   report it per attempt). Discovery uses a fixed 1.5 s wait. The Playwright demo exercises
   LSL discovery → registration → connect → spikeband pipeline, Open Ephys registration →
-  connect, and real data over LSL → passthrough + trained model → Start control → title-bar
-  Stop control; calibration is covered by component tests with a mocked server and by
+  connect, and real data over LSL → passthrough + trained model → Start sending → title-bar
+  Stop sending; calibration is covered by component tests with a mocked server and by
   backend tests, not by the browser demo.
 - **Backpressure** drops the oldest events per slow subscriber; there is no per-app QoS or
   priority (e.g. "never drop selections").
@@ -175,23 +175,24 @@ the PR description and delete it here.
 
 These are known and documented in the guides; none affects what Concord receives or decodes.
 
-- **T15 cursor + click blocks have no dataset panel** in Advanced → Acquisition details. Their
+- **T15 cursor + click blocks have no dataset panel** in More tools → Source details. Their
   checksum is verified when you connect, but the console shows no checksum line, license or
   citation for them (FALCON and AJILE12 have it). The citation is in docs/DATASETS.md.
-- **T15 blocks have no playback speed or position**, only Pause and Resume (under *Options*). They
+- **T15 blocks have no playback speed or position**, only Pause and Resume (under the source). They
   replay at real speed.
 - **Replays loop** at the end of the file, without a log entry.
-- **The board preview in Advanced counts as a connected application.** The console therefore
+- **The board preview in More tools (*Participant screen preview*) counts as a connected
+  application.** The console therefore
   lists a *Communication Board* before you open the participant screen, and two once you have.
   Both share one authorization.
-- **Stored data does not list downloaded datasets**; delete them from the datasets folder.
-- **Replaying a "Features and labels only" recording** (every recording made from **Calibrate…**)
-  shows *No signal*. The session log fills with *Undeclared capability: adapter emitted
+- **Saved data (in More tools) does not list downloaded datasets**; delete them from the datasets folder.
+- **Replaying a "Features and labels only" recording** (every recording made from **Train a
+  decoder…**) shows *No signal*. The session log fills with *Undeclared capability: adapter emitted
   features.binned …*, because the replay declares the original device's capabilities, not the
   pipeline's features it also contains. Training a decoder from such a recording works; only
   replaying it as a source is affected.
-- **Plugin sources show no counters** in Acquisition details, and their losses do not change the
-  Signal integrity verdict; *Data received (%)* shows "—" for them.
+- **Plugin sources show no counters** in Source details, and their losses do not change the
+  Signal check verdict; *Data received (%)* shows "—" for them.
 - **BCI2000 connect, untested against BCI2000 itself:**
   - The plugin host gives `open` 4 s, whatever the plugin's own timeout.
   - Connecting opens the receiver twice, leaving a fraction of a second when nothing listens.
@@ -201,8 +202,8 @@ These are known and documented in the guides; none affects what Concord receives
     outputs (passthrough)* yourself.
 - **LSL Behavior and Marker menus show stream names only**, so two streams with the same name cannot
   be told apart there; the Marker menu also offers numeric streams it then refuses.
-- *Last stopped: …* under Command output can show the reason from an earlier decoder or source.
-- **The T15 plot in Acquisition details** draws the recorded cursor and target *positions* under a
+- *Last stopped: …* under Send to apps can show the reason from an earlier decoder or source.
+- **The T15 plot in Source details** draws the recorded cursor and target *positions* under a
   selector labelled *Velocity dimension*. Its dashed line is whichever historical decoder output
   arrived last (often the click), not necessarily the velocity decoder.
 - The FALCON source is named *Recorded Human Intracranial Data* while its sub-line says
@@ -374,7 +375,7 @@ See docs/APPLICATIONS.md.
 - A source's own decoder outputs (`model_origin: historical`, or an external live decoder) reach
   the command router only through the *Source decoder outputs (passthrough)* preset, unchanged:
   Concord does not rescale them. Their pointer scale is whatever the source used ("no declared
-  output scale"), so the operator sets **Gain** and **Dead-zone** in those units.
+  output scale"), so the operator sets **Speed (gain)** and **Ignore small movements (dead-zone)** in those units.
 - The router's click rule needs a decoder output that is a click probability or a 0/1
   decision; Concord does not check that a continuous output really is one.
 - Board: word prediction is a fixed 200-word list (no language model); speech is the

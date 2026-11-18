@@ -1,7 +1,7 @@
-// Row 2 — Signal integrity, laid out like a patient monitor: four live traces on the left,
+// Step 2 — Signal check (signal integrity), laid out like a patient monitor: four live traces on the left,
 // the verdict and three measured numbers stacked on the right.
 
-import { VERDICT_RULE } from "../integrity";
+import { VERDICT_RULE, verdictMeaning } from "../integrity";
 import type { NeuralBuffer } from "../neuralBuffer";
 import type { SignalBuffer } from "../signalBuffer";
 import type { Tone } from "../wording";
@@ -51,16 +51,28 @@ export function IntegrityRow({
       {f.verdict.text}
     </p>
   );
+  const meaning = (
+    <p className="value-sub" data-testid="verdict-meaning">
+      {verdictMeaning(f.verdict.text, connected)}
+    </p>
+  );
+  const rowProps = {
+    step: 2,
+    title: "Signal check",
+    explain: "Is the data arriving complete and on time? A green light means yes.",
+    help: "signal",
+    testId: "row-integrity",
+  };
   if (!connected) {
     return (
-      <Row title="Signal integrity" explain="Whether the data is arriving complete and on time." testId="row-integrity">
+      <Row {...rowProps}>
         {verdict}
-        <p className="value-sub">No source connected.</p>
+        {meaning}
       </Row>
     );
   }
   return (
-    <Row title="Signal integrity" explain="Whether the data is arriving complete and on time." testId="row-integrity">
+    <Row {...rowProps}>
       <div className="monitor">
         <div className="monitor-traces">
           {shown > 0 && f.traces ? (
@@ -81,10 +93,11 @@ export function IntegrityRow({
         </div>
         <div className="monitor-numbers">
           {verdict}
+          {meaning}
           <Figure
-            label="Channels"
+            label="Channels arriving"
             value={channels}
-            title="Channels in the latest data block, of the channels the source declares."
+            title="Channels in the latest block of data, out of the channels the source says it has."
             testId="fig-channels"
           />
           <Figure
@@ -93,14 +106,14 @@ export function IntegrityRow({
             title={
               f.received
                 ? `Reported by the source adapter: ${f.received.basis}.`
-                : "This source does not report lost data, so no percentage is shown."
+                : "This source does not report lost data, so Concord shows no percentage rather than guess one."
             }
             testId="fig-received"
           />
           <Figure
-            label="Delay to this screen (ms)"
+            label="Delay (ms)"
             value={f.delayMs === null ? "—" : fmt.num(Math.max(0, f.delayMs), f.delayMs < 10 ? 1 : 0)}
-            title="Median time from the runtime receiving an event to this screen receiving it (last 1,000 events, measured in this browser)."
+            title="How long data takes from reaching Concord to reaching this screen: the median of the last 1,000 messages, measured in this browser."
             testId="fig-delay"
           />
         </div>

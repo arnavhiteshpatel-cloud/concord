@@ -43,6 +43,25 @@ export function integrityVerdict(i: VerdictInput): { text: string; tone: Tone } 
   return { text: "Good", tone: "ok" };
 }
 
+/** One plain sentence under the verdict: what it means and, where useful, what to do. */
+export function verdictMeaning(verdict: string, connected: boolean): string {
+  if (!connected) return "Connect a source in step 1 to see its signal here.";
+  switch (verdict) {
+    case "Good":
+      return "Data is arriving and nothing was lost in the last 10 seconds.";
+    case "Gaps detected":
+      return "Some data was lost in the last 10 seconds. Check the cables, the network or the recording software.";
+    case "No signal":
+      return "Nothing has arrived for 2 seconds. Check that the source is sending data.";
+    case "Paused":
+      return "The source is paused. Click Resume in step 1 to continue.";
+    case "Interrupted — reconnecting":
+      return "The connection dropped. Concord is trying to reconnect.";
+    default:
+      return "";
+  }
+}
+
 type Obj = Record<string, unknown>;
 const isObj = (v: unknown): v is Obj => typeof v === "object" && v !== null && !Array.isArray(v);
 const num = (v: unknown): number => (typeof v === "number" && Number.isFinite(v) ? v : 0);

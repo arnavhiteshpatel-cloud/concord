@@ -90,8 +90,8 @@ hardware run (the stream declares itself synthetic).
    or abbreviations); otherwise it reports `arbitrary` and does not guess. Note what the vendor
    app declares.
 3. Check that Concord sees the stream (`concord-hwval capture` discovers it; in the operator
-   console, use LSL discovery in the acquisition-source panel; REST:
-   `POST /api/v1/sources/lsl/discover`). If several streams share a name, note the `source_id`
+   console, use **Find LSL streams on this network** in the source panel (**Choose a source** →
+   *Live equipment*); REST: `POST /api/v1/sources/lsl/discover`). If several streams share a name, note the `source_id`
    and host.
 4. Do not run other LSL streams with the same name on the network during the run.
 

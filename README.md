@@ -57,12 +57,15 @@ Every download is listed with its SHA-256 checksum in `SHA256SUMS.txt` on the re
 
 No data or hardware needed:
 
-1. Click **Connect a source**, then **Connect** next to **Simulated Profile A** (synthetic data,
-   labelled as such everywhere).
+1. Click **Try it with demo data** on the welcome card (or **Choose a source**, then **Connect**
+   next to **Simulated Profile A**): synthetic data, labelled as such everywhere.
 2. Click **Open participant screen**: the communication board opens in its own window.
-3. At the bottom of the console, open **Advanced → Simulator controls**, drag the dot in the
-   pad to move the board's cursor, and click **Select** to choose a word.
-4. Try **Advanced → Simulator controls → Link drop** and watch Concord reconnect on its own.
+3. At the bottom of the console, under **More tools**, click **Show** next to **Simulator
+   controls**. Drag the dot in the pad to move the board's cursor, and click **Select** to choose
+   a word.
+4. Try **Link drop** in **Simulator controls** and watch Concord reconnect on its own.
+
+**Help** in the console's title bar opens a short in-app guide that explains every step.
 
 Then replay real human recordings ([Getting started, section 4](docs/GETTING_STARTED.md#4-replay-a-real-human-recording-falcon-h1)) and let a recorded decoder drive the board ([section 5](docs/GETTING_STARTED.md#5-let-a-recorded-decoder-drive-the-board-t15-cursor--click)).
 
@@ -86,14 +89,14 @@ Details, verification and known pitfalls of each dataset: [DATASETS.md](docs/DAT
 
 | | Feature | Learn more |
 | --- | --- | --- |
-| 📡 | **Connect sources**: simulated devices, recorded human datasets, live streams over Lab Streaming Layer (LSL) and the Open Ephys GUI, and plugins (BrainFlow, BCI2000, your own) | [User guide: sources](docs/USER_GUIDE.md#4-acquisition-source) |
-| ✅ | **Check signal integrity**: channels present, data received, delay, gaps and reconnects, all counted and shown | [User guide: signal integrity](docs/USER_GUIDE.md#5-signal-integrity) |
+| 📡 | **Connect sources**: simulated devices, recorded human datasets, live streams over Lab Streaming Layer (LSL) and the Open Ephys GUI, and plugins (BrainFlow, BCI2000, your own) | [User guide: sources](docs/USER_GUIDE.md#4-step-1-data-source) |
+| ✅ | **Check signal integrity**: channels present, data received, delay, gaps and reconnects, all counted and shown | [User guide: signal check](docs/USER_GUIDE.md#5-step-2-signal-check) |
 | 🏷️ | **Know where every event came from**: simulated, recorded, live, decoded (by which model) — the provenance travels with the data into recordings and exports | [Architecture](ARCHITECTURE.md) |
-| ⚙️ | **Process signals**: streaming filters, threshold crossings, band power, ECoG high-gamma, as presets | [User guide: decoding](docs/USER_GUIDE.md#6-decoder) |
-| 🧠 | **Decode**: built-in decoders (ridge, Kalman, click, LDA), calibration from your recordings with held-out evaluation, or your own model (ONNX, scikit-learn, PyTorch) in an isolated process | [User guide: decoding](docs/USER_GUIDE.md#6-decoder), [Decoder SDK](docs/DECODER_SDK.md) |
-| 🛑 | **Control applications safely**: decoded commands reach only applications you authorize; one click stops them | [User guide: command output](docs/USER_GUIDE.md#7-command-output), [Control bridge](docs/CONTROL_BRIDGE.md) |
+| ⚙️ | **Process signals**: streaming filters, threshold crossings, band power, ECoG high-gamma, as presets | [User guide: decoding](docs/USER_GUIDE.md#6-step-3-decoder) |
+| 🧠 | **Decode**: built-in decoders (ridge, Kalman, click, LDA), calibration from your recordings with held-out evaluation, or your own model (ONNX, scikit-learn, PyTorch) in an isolated process | [User guide: decoding](docs/USER_GUIDE.md#6-step-3-decoder), [Decoder SDK](docs/DECODER_SDK.md) |
+| 🛑 | **Control applications safely**: decoded commands reach only applications you authorize; one click stops them | [User guide: send to apps](docs/USER_GUIDE.md#7-step-4-send-to-apps), [Control bridge](docs/CONTROL_BRIDGE.md) |
 | 💬 | **Communication board**: a participant screen with five input methods (pointer and click, dwell, navigation, direct selection, scanning) | [Applications](docs/APPLICATIONS.md) |
-| 🔴 | **Record and replay**: crash-safe recordings that replay through the same pipeline | [User guide: recording](docs/USER_GUIDE.md#105-recording) |
+| 🔴 | **Record and replay**: crash-safe recordings that replay through the same pipeline | [User guide: recording](docs/USER_GUIDE.md#105-record-data) |
 | 🗂️ | **Research sessions**: a session log, export bundles and `concord reproduce` to re-run an evaluation elsewhere | [User guide: sessions](docs/USER_GUIDE.md#3-research-sessions-and-export-the-session-strip) |
 | 🔬 | **Verify your acquisition**: compare what Concord received with what LabRecorder or the Open Ephys Record Node recorded, sample by sample | [Hardware validation](docs/HARDWARE_VALIDATION.md) |
 | 🧩 | **Extend it**: source plugins, decoder plugins, Python and TypeScript SDKs for applications | [Developers](docs/DEVELOPERS.md) |
@@ -203,7 +206,7 @@ docs/                  documentation
 ## Citing Concord
 
 Use GitHub's **Cite this repository** button (from [CITATION.cff](CITATION.cff)), and cite every
-dataset you use: each dataset's citation is shown in the console (**Advanced → Acquisition
+dataset you use: each dataset's citation is shown in the console (**More tools → Source
 details**) and listed in [DATASETS.md](docs/DATASETS.md).
 
 ## Project status and contributing

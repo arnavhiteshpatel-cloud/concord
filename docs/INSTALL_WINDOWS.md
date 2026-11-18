@@ -264,7 +264,7 @@ such mode bits: Concord relies on Windows' own permissions, under which the defa
 inside your user profile (`%LOCALAPPDATA%`), cannot be opened by other standard users of the
 PC. If you set `data_dir` to a folder outside your profile (e.g. `C:\data`, or the shared
 `C:\Users\Public`), other users of the PC may be able to read it; keep neural data inside your
-profile ([SECURITY.md](SECURITY.md)). **Advanced → Stored data** says which: it counts a folder
+profile ([SECURITY.md](SECURITY.md)). **More tools → Saved data** says which: it counts a folder
 under `C:\Users\<name>\` as inside a user profile, and `C:\Users\Public` (and `Default`,
 `All Users`) as outside.
 

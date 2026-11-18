@@ -7,10 +7,10 @@ import { useLog, useLoggedAction } from "../context";
 import { fmt } from "./ui";
 
 const FAULTS: { fault: Fault; label: string; hint: string }[] = [
-  { fault: "link_drop", label: "Link drop", hint: "Recoverable: the runtime reconnects automatically" },
-  { fault: "link_fail", label: "Link failure", hint: "Unrecoverable: reconnect attempts fail, then error" },
-  { fault: "malformed_packet", label: "Malformed packet", hint: "Corrupt native packet: dropped and counted" },
-  { fault: "timestamp_regression", label: "Clock regression", hint: "Device clock jumps back: flagged" },
+  { fault: "link_drop", label: "Link drop", hint: "The connection drops for a moment; Concord reconnects by itself" },
+  { fault: "link_fail", label: "Link failure", hint: "The connection is lost for good; Concord tries to reconnect, then stops with an error" },
+  { fault: "malformed_packet", label: "Malformed packet", hint: "One broken message arrives; Concord throws it away and counts it" },
+  { fault: "timestamp_regression", label: "Clock regression", hint: "The device's clock jumps backwards; Concord flags it" },
 ];
 
 /** Fault injection exists only for the built-in simulator (an LSL stream declared synthetic, or a
@@ -114,7 +114,15 @@ export function FaultInjection() {
   };
   return (
     <div data-testid="fault-injection">
-      <h3 className="minor">Fault injection</h3>
+      <h3 className="minor">Try a problem (fault injection)</h3>
+      <p className="hint">Each button causes one problem, so you can see how Concord reacts:</p>
+      <ul className="hint fault-list">
+        {FAULTS.map((f) => (
+          <li key={f.fault}>
+            <b>{f.label}</b>: {f.hint.charAt(0).toLowerCase() + f.hint.slice(1)}.
+          </li>
+        ))}
+      </ul>
       <div className="btn-row">
         {FAULTS.map((f) => (
           <button

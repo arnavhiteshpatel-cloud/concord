@@ -45,7 +45,7 @@ concord publish openephys --port 5560 --channels 32
 concord publish falcon "<data folder>/datasets/sub-HumanPitt-held-in-calib_ses-19250108T111022.nwb" --loop
 ```
 
-`<data folder>` is shown in **Advanced → Stored data** (*Data directory*); files downloaded with
+`<data folder>` is shown in **More tools → Saved data** (*Data directory*); files downloaded with
 `concord dataset` (or `make dataset`) are in its `datasets/dandi-000954/` subfolder. Use a data
 port other than 5556 if the Open Ephys GUI runs on this computer. Stop each with Ctrl-C.
 
@@ -67,12 +67,12 @@ Requirements on the outlet (all standard LSL metadata):
 - for binned counts rather than voltages: stream type `SpikeCounts` (or `BinnedSpikes`), or
   `<desc><concord><feature>spike_count` in the description (a Concord convention).
 
-Console: **Acquisition source** → **Connect a source** (or **Change source**) → *Live streams*
-→ **Find LSL streams** → **Search the network**. Two things happen at once:
+Console: **Data source** → **Choose a source** (or **Change source**) → *Live equipment*
+→ **Find LSL streams on this network** → **Search the network**. Two things happen at once:
 
 - the results table lists every stream found, with **Use** next to each stream that can be a
   signal (text streams and irregular-rate streams show the reason instead);
-- every stream that can be a signal is also added to the *Live streams* list as an entry of its
+- every stream that can be a signal is also added to the *Live equipment* list as an entry of its
   own (*LSL · `<name>` (`<type>`)*, with **Remove** and **Connect**): the stream alone, without
   attachments. Connecting such an entry needs no further step.
 
@@ -80,12 +80,12 @@ To attach a behavior stream and a marker stream (mapped onto the signal stream's
 liblsl `time_correction`): **Use** the signal stream → **Behavior stream (optional)** / **Marker
 stream (optional)** → **Add source**. *Add source* adds no new line: it updates the signal
 stream's existing entry (the session log says *Registered LSL · …*). Then **Connect** that
-entry. The attachments are listed after connecting, in the *Role* table of **Advanced →
-Acquisition details**.
+entry. The attachments are listed after connecting, in the *Role* table of **More tools → Source
+details**.
 
-The **Signal integrity** row gives the verdict (*Good*, *Gaps detected*, *No signal*,
+The **Signal check** row gives the verdict (*Good*, *Gaps detected*, *No signal*,
 *Interrupted — reconnecting*), the channel count, the percentage of samples received (samples
-vs estimated missing) and the delay to the console; **Advanced → Acquisition details** lists
+vs estimated missing) and the delay to the console; **More tools → Source details** lists
 every counter: samples, gaps, estimated missing samples, stalls and clock corrections.
 Registered entries stay listed after their stream stops (**Remove** clears them) and are
 forgotten when Concord restarts.
@@ -118,7 +118,7 @@ In the GUI: add **ZMQ Interface** after your source (and filters/spike detector)
 stream, set *Data Port* (default 5556; heartbeat uses port + 1), select channels, start
 acquisition. Details: [OPEN_EPHYS.md](OPEN_EPHYS.md).
 
-Console: **Connect a source** → *Live streams* → **Add Open Ephys source** → **Host** (the GUI
+Console: **Choose a source** → *Live equipment* → **Connect to Open Ephys** → **Host** (the GUI
 machine; `127.0.0.1` if local), **Data port**, and **Sample unit**: the plugin does not
 transmit units, so choose the unit your signal chain outputs (**uV**, **mV** or **V**;
 electrode/headstage channels are usually µV in the GUI, ADC/AUX channels are not — check your
@@ -137,7 +137,7 @@ Python: `await op.configure_openephys(host="192.168.1.20", data_port=5556, unit=
 Console: **Decoder** → **Start decoding**. The processing preset is preselected from the
 source (passthrough if it already sends features, spike band at ≥ 10 kHz, high gamma at
 ≥ 400 Hz, band power otherwise); a decoder model is optional (without one, the pipeline only
-computes features). Stages, counters and latency percentiles are under **Advanced → Pipeline
+computes features). Stages, counters and latency percentiles are under **More tools → Decoder
 details**.
 
 | Your signal | Preset | Output |
@@ -152,7 +152,7 @@ Set `line_hz` to 50 in 50 Hz countries. The threshold is estimated from the firs
 queue overflow) and the processing-time percentiles; on an M-series laptop 96 channels at
 30 kHz should use well under one core (measure yours: `make bench-live`).
 
-## 5. Calibrate a decoder
+## 5. Train (calibrate) a decoder
 
 1. On the participant display machine (same network), start the cue task (source checkout):
    `.venv/bin/python backend/examples/center_out_task.py --trials 40`
@@ -161,12 +161,12 @@ queue overflow) and the processing-time percentiles; on an M-series laptop 96 ch
    cues over LSL.
 2. Register the neural stream with those two streams attached (section 2), connect, start
    decoding without a model (section 4).
-3. **Decoder** → **Calibrate…** → *1. Record a calibration session* → **Start recording**: it
+3. **Decoder** → **Train a decoder…** → *1. Record a training session* → **Start recording**: it
    records **features and labels only** (`exclude_raw`; raw 30 kHz frames would hit the default
    200 MiB recording limit within seconds). Run all trials, then **Stop recording**. (Concord
    0.3.0 refused this for LSL, Open Ephys and plugin sources with *invalid recording name*;
    0.3.1 records them.)
-4. In the same panel, under *2. Train*, tick that recording, choose **What the decoder should
+4. In the same panel, under *2. Train a model on a recording*, tick that recording, choose **What the decoder should
    output** (**Continuous movement** for cue velocity), click **Check labels**, then **Train
    decoder**. With features from the pipeline, **Feature source** *Features computed by the
    Concord pipeline* (`feature_source = concord.pipeline`) selects them explicitly. The report
@@ -179,19 +179,20 @@ CLI equivalent of step 4: `.venv/bin/python -m concord.decoding.calibrate data/r
 
 ## 6. Route commands to an application
 
-Decoded output (`intent.kinematics`) is never a command. To drive an app, use **Command
-output** → **Start control** (the command router). It is offered while a decoder model runs, and
+Decoded output (`intent.kinematics`) is never a command. To drive an app, use **Send to
+apps** → **Start sending** (the command router). It is offered while a decoder model runs, and
 also while **Source decoder outputs (passthrough)** runs (a source's own decoder outputs, e.g.
-BCI2000's control signal or the T15 recordings' historical decoders). Its **Settings** choose
-the two decoded dimensions for x/y (**Horizontal (x) from**, **Vertical (y) from**), **Gain**,
-**Dead-zone**, **Max speed**, **Invert y** (ticked automatically when the decoder declares +y
-up) and **Click from**, which lists the outputs of every running decoder and preselects a click
-output when there is one.
-With a classifier (LDA, calibrated with *A class per moment*), **Settings** instead list one
-action per class (select, activate, cancel or type text) with threshold, hold and pause.
-Commands then reach only the applications you **Authorize** under *Authorized applications*
+BCI2000's control signal or the T15 recordings' historical decoders). **Adjust how the cursor
+moves** chooses the two decoded dimensions for x/y (**Horizontal (x) from**, **Vertical (y)
+from**), **Speed (gain)**, **Ignore small movements (dead-zone)**, **Top speed**, **Flip up and
+down (invert y)** (ticked automatically when the decoder declares +y up) and **Click from**,
+which lists the outputs of every running decoder and preselects a click output when there is
+one.
+With a classifier (LDA, calibrated with *A class per moment*), **Choose what each decoded
+choice does** instead lists one action per class (select, activate, cancel or type text) with threshold, hold and pause.
+Commands then reach only the applications you **Authorize** under *Apps you authorize*
 (each says what it would receive); **Revoke** withdraws it at once. Authorizations last until
-revoked or Concord restarts; control itself is off after any source change, pause, link loss
+revoked or Concord restarts; sending itself turns off after any source change, pause, link loss
 or decoder change, and stops by itself if the decoder gets no input for 1 s (at least three
 feature bins)
 (docs/CONTROL_BRIDGE.md). Run the reference app in another terminal:
@@ -202,13 +203,13 @@ feature bins)
 
 It prints whether it is suspended, waiting for your authorization, or active, and where
 commands come from (model id, prerecorded/synthetic). For discrete actions use
-`backend/examples/reference_app/menu_app.py`. The **Stop control** button in the title bar
+`backend/examples/reference_app/menu_app.py`. The **Stop sending** button in the title bar
 (always shown; grey and disabled while command output is off, red while it is on) stops
 commands; **Stop decoding** stops the pipeline; **Disconnect** stops acquisition.
 
 The communication board is the reference participant display: **Open participant screen** in the
-*Command output* row opens it in its own window, to put on a second monitor facing the
-participant; **Authorize** it under *Authorized applications*. With a decoder that has a click
+*Send to apps* row opens it in its own window, to put on a second monitor facing the
+participant; **Authorize** it under *Apps you authorize*. With a decoder that has a click
 output (selected in **Click from**), it uses *Pointer and click*. With a movement-only decoder
 it switches to **Pointer with dwell selection**: a tile is chosen by resting the cursor on it.
 With a simulated profile it works end to end.
@@ -230,6 +231,6 @@ More symptoms, per route (including BrainFlow and BCI2000):
 ## 8. (M5-D) Installation, research sessions, export and safe stop
 
 Installation without `make` (`concord start`, the macOS app), network topology with a
-separate acquisition computer, research sessions, the reproducibility export and **Safe stop &
-disconnect**: [LAB_SETUP.md](LAB_SETUP.md). The first session with real equipment:
+separate acquisition computer, research sessions, the reproducibility export and **Stop
+everything**: [LAB_SETUP.md](LAB_SETUP.md). The first session with real equipment:
 [FIRST_LAB_SESSION.md](FIRST_LAB_SESSION.md). Problems: [TROUBLESHOOTING.md](TROUBLESHOOTING.md).

@@ -8,8 +8,8 @@ concord doctor
 ```
 
 (Desktop app: `/Applications/Concord.app/Contents/MacOS/Concord doctor` on a Mac,
-`.\concord-cli.exe doctor` in PowerShell in the `Concord` folder on Windows, or **Advanced →
-Support report** in the console.) Logs are in `<data directory>/logs/`: `concord.log`
+`.\concord-cli.exe doctor` in PowerShell in the `Concord` folder on Windows, or **More tools → Support
+report** in the console.) Logs are in `<data directory>/logs/`: `concord.log`
 (rotating, redacted) and `console.log` (startup output of `concord start`).
 
 ## Installing and starting
@@ -65,13 +65,13 @@ Support report** in the console.) Logs are in `<data directory>/logs/`: `concord
 | Open Ephys: "did not answer" | Host/port/firewall (TCP 5556 and 5557 on the GUI computer). |
 | BCI2000: `plugin did not answer 'open' within 4 s` | Nothing reached Concord's receiver in time: start Concord's source first, then the BCI2000 run, and check `ConnectorOutputAddress` and the firewall (next row). |
 | BCI2000: no data | BCI2000's `ConnectorOutputAddress` must point to this computer and port (default 20321); inbound UDP allowed; `concord doctor` shows whether the port is free. |
-| *Recorded human data* is empty ("No recorded datasets yet") | Put the downloaded files in the folder the message names: `<data folder>/datasets` (Getting started §4.2), then reload the console. Or download and verify FALCON H1 with one command: `concord dataset` (app: `/Applications/Concord.app/Contents/MacOS/Concord dataset`; Windows app: `.\concord-cli.exe dataset`; Linux bundle: `./Concord/Concord dataset`). |
-| A downloaded file is not listed | Check the console's data folder (**Advanced → Stored data**: *Data directory*); another running copy of Concord may use another folder. A browser duplicate (`… (1).mat`, `… (1).nwb`) is skipped, because the same block cannot be listed twice: delete the duplicate. The reason for any skipped file is in `<data folder>/logs/concord.log` ("not offered"). |
-| The title bar says *Source stopped with an error* | The source failed and could not reconnect (for example **Link failure** in the simulator, or a stream that stopped for good). The error is shown in the source row. Click **Reset**, then **Connect a source** again. |
-| `protocol_error: … declares +y up … enable invert_y` | The decoder counts "up" as positive y; the screen counts "down". Tick **Invert y** in **Command output → Settings** (0.3.1 ticks it for you). |
+| *Real recordings (played back)* is empty ("No recordings on this computer yet") | Put the downloaded files in the folder the message names: `<data folder>/datasets` (Getting started §4.2), then reload the console. Or download and verify FALCON H1 with one command: `concord dataset` (app: `/Applications/Concord.app/Contents/MacOS/Concord dataset`; Windows app: `.\concord-cli.exe dataset`; Linux bundle: `./Concord/Concord dataset`). |
+| A downloaded file is not listed | Check the console's data folder (**More tools → Saved data**: *Data directory*); another running copy of Concord may use another folder. A browser duplicate (`… (1).mat`, `… (1).nwb`) is skipped, because the same block cannot be listed twice: delete the duplicate. The reason for any skipped file is in `<data folder>/logs/concord.log` ("not offered"). |
+| The title bar says *Source stopped with an error* | The source failed and could not reconnect (for example **Link failure** in the simulator, or a stream that stopped for good). The error is shown in the source row. Click **Reset**, then **Choose a source** again. |
+| `protocol_error: … declares +y up … enable invert_y` | The decoder counts "up" as positive y; the screen counts "down". Tick **Flip up and down (invert y)** in **Send to apps → Adjust how the cursor moves** (0.3.1 ticks it for you). |
 | **Click from** offers only *No click* | Before 0.3.1 it listed only the first running decoder's outputs. Update to 0.3.1, where every running decoder's outputs are listed. A decoder without a click output cannot click: the board then selects by resting the cursor (dwell). |
-| The board says *Paused — no command output for this application* | Decoded data reaches the board only while command output is on and the board is authorized: **Start control**, then **Authorize** next to *Communication Board*. |
-| The board does not react to mouse clicks | By design: it reacts only to input from Concord, as it would for a participant. Use the simulator (**Advanced → Simulator controls**) to try it yourself. |
+| The board says *Paused — no command output for this application* | Decoded data reaches the board only while command output is on and the board is authorized: **Start sending**, then **Authorize** next to *Communication Board*. |
+| The board does not react to mouse clicks | By design: it reacts only to input from Concord, as it would for a participant. Use the simulator (**More tools → Simulator controls**) to try it yourself. |
 | `recording_error: invalid recording name 'lsl:…'` (or `openephys:`, `plugin:`) | A bug in 0.3.0: live sources could not be recorded. Update to 0.3.1. |
 | `incompatible_decoder` | Channel count/labels, bin size or feature differ from the model, or the stream is the model's training session, or a different source without override (LAB_GUIDE.md §7). |
 

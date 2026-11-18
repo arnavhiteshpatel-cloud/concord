@@ -162,7 +162,7 @@ synthetic data. It says nothing about decoding motor imagery from a person.
 
 | Trigger | Recorded reason |
 | --- | --- |
-| operator Stop (`POST /control/stop`, the console's title-bar Stop control) | the given reason, default `stopped by operator` |
+| operator Stop (`POST /control/stop`, the console's title-bar Stop sending) | the given reason, default `stopped by operator` |
 | operator disables the router (`POST /pipeline/router` with `enabled: false`) | `disabled by operator` |
 | source paused | `source paused` |
 | source link lost (reconnecting) | `source link lost` |
@@ -253,11 +253,11 @@ and on the decoded synthetic source).
 1. Connect a source with a class-label behavior stream; start decoding (e.g. band power
    8–13 Hz) without a model; record; Decoder → Calibrate with "A class per moment … LDA
    classifier" (optionally class names).
-2. Start decoding with the new classifier. Command output → Settings shows one action per
+2. Start decoding with the new classifier. Send to apps → Choose what each decoded choice does shows one action per
    class (rest: none; others select / activate / cancel by default; thresholds, hold, pause,
    or "Type text").
-3. Start control. Under "Authorized applications" each app that asks for commands says what it
-   would receive; Authorize the one you mean. Revoke or the title-bar Stop control end it.
+3. Start sending. Under "Apps you authorize" each app that asks for commands says what it
+   would receive; Authorize the one you mean. Revoke or the title-bar Stop sending end it.
 
 ## 7. Milestone 5 (workstream C): control.state, navigation, click
 

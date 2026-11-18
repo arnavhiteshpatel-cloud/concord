@@ -6,6 +6,30 @@ interfaces. Each entry links to the documents that describe the change in depth.
 Every release is software- and protocol-tested only: **no version has been used with
 acquisition hardware or with a participant** ([validation levels](docs/VALIDATION_LEVELS.md)).
 
+## Unreleased — a console for first-time users
+
+The console was written for people who already knew the field. It now explains itself. Nothing
+about how data is received, processed, decoded or sent changed, and the safety rules are the same.
+
+- **An in-app guide.** **Help** in the title bar opens *How Concord works*: what Concord is, a
+  two-minute walkthrough with demo data, each step in depth, every tool, the words used, and the
+  limits of use. Each step's **What is this?** opens the guide at that topic, so nobody needs the
+  online documentation to get started.
+- **A welcome card** for first-time users: the four steps and **Try it with demo data**, which
+  connects Simulated Profile A. **Hide this** hides it for good in that browser.
+- **Clear notices of use.** A notice under the title bar on every screen: research preview, not a
+  medical device, not for clinical, diagnostic or commercial use, not yet tested with real
+  equipment or people. The participant screen says "not a medical device" too.
+- **Plain words.** The rows are numbered steps: 1 Data source, 2 Signal check (with a sentence
+  saying what the light means), 3 Decoder, 4 Send to apps. Buttons say what they do
+  (**Choose a source**, **Train a decoder…**, **Start sending**, **Stop sending**,
+  **Stop everything**, **Start a session**), and the source list explains each kind of source.
+  When no recordings are installed, the source list gives the two starter downloads and the
+  exact folder to put them in.
+- **No more hidden Advanced section.** It is replaced by **More tools**, always visible: every
+  tool listed by group with what it does and when to use it, opened with its own **Show** button.
+  Playback controls (pause, speed) are always visible under the source instead of in a dropdown.
+
 ## 0.3.1 — fixes found by a first-time walkthrough, and the guides rewritten
 
 Two independent reviews followed the documentation as a first-time researcher would. They found

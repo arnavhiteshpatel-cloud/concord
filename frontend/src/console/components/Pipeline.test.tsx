@@ -159,7 +159,7 @@ describe("Decoder row", () => {
     expect(screen.getByTestId("decoder-state").textContent).toBe("Off");
     expect(screen.queryByTestId("start-decoding-open")).toBeNull();
     expect(screen.queryByTestId("calibrate-open")).toBeNull();
-    expect(screen.getByText("Connect a source first.")).toBeTruthy();
+    expect(screen.getByText("Connect a source in step 1 first.")).toBeTruthy();
   });
 
   it("starts decoding from the form (default preset for the source) and shows a refusal verbatim", async () => {
@@ -258,7 +258,7 @@ describe("Command output row", () => {
   it("offers no Start control without a running decoder, and says why", () => {
     render(<ControlRow pipeline={pipelineState(stopped)} apps={[]} />);
     expect(screen.queryByTestId("router-on")).toBeNull();
-    expect(screen.getByTestId("control-reason").textContent).toBe("Start decoding with a model first.");
+    expect(screen.getByTestId("control-reason").textContent).toBe("Start a decoder with a model in step 3 first.");
     cleanup();
     render(<ControlRow pipeline={pipelineState({ ...running, decoder: null })} apps={[]} />);
     expect(screen.queryByTestId("router-on")).toBeNull();

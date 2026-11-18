@@ -39,24 +39,27 @@ make run
 
 Open **http://127.0.0.1:8000** and:
 
-The console is one session screen: a title bar with the status line and the red **Stop
-control** button, four rows (*Acquisition source*, *Signal integrity*, *Decoder*, *Command
-output*), the *Session log* on the right, and a collapsed **Advanced** section at the bottom.
+The console is one session screen: a title bar with the status line, **Help** (the in-app
+guide) and the red **Stop sending** button; the always-visible use notice under it; a welcome
+card for first-time users; four numbered steps (*Data source*, *Signal check*, *Decoder*,
+*Send to apps*), each with a **What is this?** link; the *Session log* on the right; and the
+always-visible **More tools** section at the bottom, where each tool opens with its own
+**Show** button.
 
-1. In **Acquisition source**, click **Connect a source**. Under *Recorded human data (offline
-   replay)*, click **Connect** on *Session 19250108T111022* (show all files if it is not listed).
+1. In **Data source**, click **Choose a source**. Under *Real recordings (played
+   back)*, click **Connect** on *Session 19250108T111022* (show all files if it is not listed).
 2. The status line now reads **Streaming · Recorded human data, offline replay**. *Signal
-   integrity* shows the verdict, 176 of 176 channels, the measured delay, and four of the 176
+   check* shows the verdict, 176 of 176 channels, the measured delay, and four of the 176
    channels' spike counts as live traces.
-3. Open **Advanced → Acquisition details**: the dataset (DANDI 000954, CC-BY-4.0), the
+3. Under **More tools**, click **Show** next to **Source details**: the dataset (DANDI 000954, CC-BY-4.0), the
    "SHA-256 matches DANDI" check, 176 channels at 20 ms bins, the attached decoder's offline
    held-out R², the raster of all channels and the recorded velocity (solid) against the
    offline decoder's output (dashed).
-4. In *Acquisition source*, open **Playback**: **Pause / Resume** and the speed buttons
-   (**0.5× … 8×**). **Disconnect** stops the replay.
-5. In **Advanced → Event stream**, click a `features.binned` row: `provenance.kind` is
+4. Under the source in *Data source*: **Pause / Resume** and the playback speed buttons
+   (**0.5× … 8×**), always visible. **Disconnect** stops the replay.
+5. Show **More tools → Live message feed** and click a `features.binned` row: `provenance.kind` is
    `processed_feature`, `synthetic` is `false`, and `origin` names the exact DANDI file.
-6. *Command output* lists the Communication Board as *waiting for: selection*. It does not
+6. *Send to apps* lists the Communication Board as *waiting for: selection*. It does not
    react to neural data, because recorded activity is never presented as intent.
 7. **Change source** → *Simulated Profile A*. Everything returns to the simulated demo below,
    and you can switch back at any time.
@@ -106,13 +109,13 @@ prerecorded). With Concord running (`make run`), in a second terminal:
 .venv/bin/python -m concord.testing.publish falcon data/datasets/dandi-000954/sub-HumanPitt-held-in-calib_ses-19250108T111022.nwb --loop
 ```
 
-In the console: **Connect a source** → *Live streams* → **Find LSL streams** → *Search the
-network*; **Use** the FALCON spike-count stream, attach its behavior and marker streams, **Add
+In the console: **Choose a source** → *Live equipment* → **Find LSL streams on this network**
+→ *Search the network*; **Use** the FALCON spike-count stream, attach its behavior and marker streams, **Add
 source**, then **Connect** it (the status line reads *Recorded data, streamed replay
 (declared)*). In **Decoder**, **Start decoding**: *Source features (passthrough)* is preselected;
-choose the trained model. In **Command output**, **Start control**, then **Authorize** the
-application under *Authorized applications* (decoded commands reach only authorized apps); the
-red **Stop control** in the title bar stops it at any time.
+choose the trained model. In **Send to apps**, **Start sending**, then **Authorize** the
+application under *Apps you authorize* (decoded commands reach only authorized apps); the
+red **Stop sending** in the title bar stops it at any time.
 In a third terminal, the reference app (SDK only) waits while no commands exist or while it is not
 authorized, and moves once the router is on and you have authorized it:
 
@@ -127,28 +130,30 @@ preset. Full researcher steps, including calibration with the center-out cue tas
 
 ## The 5-minute simulated demo, step by step
 
-1. **Console loads** — status line *No source connected*; *Command output* shows the
+1. **Console loads** — status line *No source connected*; *Send to apps* shows the
    Communication Board connected and *waiting for: selection*.
-2. **Connect a source → Simulated Profile A.** *Signal integrity* shows *Good* and four of
+2. **Choose a source → Simulated Profile A** (or **Try it with demo data** on the welcome
+   card). *Signal check* shows *Good* and four of
    the 32 synthetic channels; the session log records the connection. Click **Open participant
-   screen** (in *Command output*): the communication board opens in its own window, for a
+   screen** (in *Send to apps*): the communication board opens in its own window, for a
    second screen facing the participant, and switches to **pointer mode**. (It is also under
-   **Advanced → Communication board**.)
-3. **Control the board.** Open **Advanced → Simulator controls**; drag inside the pad (or
+   **More tools → Participant screen preview**.)
+3. **Control the board.** Under **More tools → Practice**, click **Show** next to **Simulator
+   controls**; drag inside the pad (or
    hold arrow keys / WASD) to move the board's cursor; press **Select** (or Space) to activate
-   a tile. In **Advanced → Event stream**, click any row to inspect its envelope — note
+   a tile. In **More tools → Live message feed** (**Show**), click any row to inspect its envelope — note
    `provenance.kind = simulated_intent`.
 4. **Inject a link drop** (Simulator controls). The status line shows *Source link lost,
    reconnecting*, then *Streaming*; the session log records both.
 5. **Change source → Simulated Profile B.** The runtime renegotiates: no `pointer_intent`,
    but `text_intent`. The board — unchanged code — switches to **scan mode**; Select picks the
    highlighted tile; *Send text* types into the message.
-6. **Advanced → Recording**: record a few seconds, stop, then **Change source** → the new
-   recording under *Session recordings*. Replayed events are marked `↺` / `replayed: true`
+6. **More tools → Record data**: record a few seconds, stop, then **Change source** → the new
+   recording under *Your recordings*. Replayed events are marked `↺` / `replayed: true`
    and still drive the board.
-7. **Advanced → Diagnostics**: measured rates, pipeline/delivery/client latency percentiles,
-   drops, contract violations, switch durations, errors. **Capability contract**: capability
-   matrix and provenance rules. **Tests**: results of the last `make test` / `make e2e`.
+7. **More tools → Health check**: measured rates, pipeline/delivery/client latency percentiles,
+   drops, contract violations, switch durations, errors. **Source capabilities**: capability
+   matrix and provenance rules. **Self-tests**: results of the last `make test` / `make e2e`.
 
 ## Bring your own decoder
 
@@ -168,7 +173,8 @@ In the console, **Start decoding** lists every decoder:
 - each decoder's compatibility verdict for the chosen processing;
 - the explicit channel mapping by label, offered only when it applies.
 
-**Calibrate…** starts from the output you need (continuous movement, discrete classes, click).
+**Train a decoder…** starts from the output you need (continuous movement, discrete classes,
+click).
 Pickle / joblib files are refused unless you mark the exact file trusted. Guide:
 [docs/DECODER_SDK.md](DECODER_SDK.md). Example plugin:
 [examples/decoders/concord-example-decoder](../examples/decoders/concord-example-decoder/README.md).
@@ -198,7 +204,7 @@ plugins), the validation level its evidence supports and that evidence. Levels a
 fixed rules, never typed in; nothing is at level 3 (hardware-verified) or 4 (human-participant
 validated). `make compat` regenerates it, `make compat-check` (run in CI) fails when it is
 stale; `GET /api/v1/compatibility` serves it with this installation's status, and the console
-shows it under Advanced → Compatibility. See
+shows it under More tools → Compatibility. See
 [docs/COMPATIBILITY.md](COMPATIBILITY.md#registry-m5-f).
 
 ## Acquisition verification with concord-hwval

@@ -17,15 +17,17 @@ each one does, when it appears and what to do with it.
 
 The guide follows the screen from top to bottom:
 
-- Section 1 shows the whole console with its eight numbered areas.
-- Sections 2 to 8 describe areas 1 to 7, in that order: area *N* is in section *N* + 1.
+- Section 1 shows the whole console with its ten numbered areas.
+- Section 2 describes the title bar and the use notice under it, section 3 the session strip,
+  sections 4 to 7 the four numbered steps (**Data source**, **Signal check**, **Decoder**,
+  **Send to apps**) and section 8 the session log.
 - Section 9 lists every way to stop.
-- Section 10 describes area 8, **Advanced**.
+- Section 10 describes **More tools**, at the bottom of the page.
 - Sections 11 to 16 cover the communication board, common situations, the desktop app, the
   `concord` command, the configuration file and the data folders.
 
-Looking for one control, for example **Dead-zone**? The [control index](#control-index) at the
-end lists every label in this guide from A to Z, with where it is on the screen and the section
+Looking for one control, for example **Ignore small movements (dead-zone)**? The
+[control index](#control-index) at the end lists every label in this guide from A to Z, with where it is on the screen and the section
 that explains it.
 
 Conventions:
@@ -38,7 +40,7 @@ Conventions:
 - A linked technical term, such as [held-out](GLOSSARY.md#held-out), leads to a plain-language
   explanation in the [glossary](GLOSSARY.md).
 - "The data folder" is the folder where Concord keeps your data. Its exact path is at the top of
-  **Advanced → Stored data** (shown as *Data directory …*) and in
+  **More tools → Saved data** (shown as *Data directory …*) and in
   [section 16](#16-data-folders-ports-and-network).
 
 ## Contents
@@ -46,13 +48,13 @@ Conventions:
 1. [The console at a glance](#1-the-console-at-a-glance)
 2. [The title bar and its states](#2-the-title-bar-and-its-states)
 3. [Research sessions and export (the session strip)](#3-research-sessions-and-export-the-session-strip)
-4. [Acquisition source](#4-acquisition-source)
-5. [Signal integrity](#5-signal-integrity)
-6. [Decoder](#6-decoder)
-7. [Command output](#7-command-output)
+4. [Step 1: Data source](#4-step-1-data-source)
+5. [Step 2: Signal check](#5-step-2-signal-check)
+6. [Step 3: Decoder](#6-step-3-decoder)
+7. [Step 4: Send to apps](#7-step-4-send-to-apps)
 8. [The session log](#8-the-session-log)
 9. [Stopping safely](#9-stopping-safely)
-10. [Advanced](#10-advanced)
+10. [More tools](#10-more-tools)
 11. [The communication board](#11-the-communication-board)
 12. [Common situations](#12-common-situations)
 13. [The desktop app](#13-the-desktop-app)
@@ -69,44 +71,64 @@ Conventions:
 The console is the operator's screen. It opens in your web browser at http://127.0.0.1:8000
 when Concord starts (the browser tab is called *Concord Runtime Console*).
 
-![The console on first launch, with its eight areas numbered](images/01-console-first-launch.png)
+![The console on first launch, with its ten areas numbered](images/01-console-first-launch.png)
 
 | # | Area | What it is for | Section |
 | --- | --- | --- | --- |
-| 1 | **Title bar** | Concord's version, the connected source, its state, *· Recording*, and **Stop control** | [2](#2-the-title-bar-and-its-states) |
-| 2 | **Session strip** | The [research session](GLOSSARY.md#research-session) (**New session**, **Session and export…**) and **Safe stop & disconnect** | [3](#3-research-sessions-and-export-the-session-strip) |
-| 3 | **Acquisition source** | Where the data comes from: connect, change, pause or disconnect a [source](GLOSSARY.md#acquisition-source) | [4](#4-acquisition-source) |
-| 4 | **Signal integrity** | Whether data arrives complete and on time | [5](#5-signal-integrity) |
-| 5 | **Decoder** | Processing and [decoding](GLOSSARY.md#decoder): **Start decoding**, **Calibrate…** | [6](#6-decoder) |
-| 6 | **Command output** | Whether decoded output may reach applications ([command output](GLOSSARY.md#command-output)), its settings, and the applications you [authorize](GLOSSARY.md#authorize-revoke) | [7](#7-command-output) |
-| 7 | **Session log** | What happened, newest first | [8](#8-the-session-log) |
-| 8 | **Advanced** | Twelve sections of details and tools (thirteen while Simulated Profile A or B is connected) | [10](#10-advanced) |
+| 1 | **Title bar** | Concord's version, the connected source, its state, *· Recording*, **Help** and **Stop sending** | [2](#2-the-title-bar-and-its-states) |
+| 2 | **Use notice** | *Research preview. Not a medical device. Not for clinical, diagnostic or commercial use. Not yet tested with real recording equipment or with people.*, with **Details** | [2.1](#21-controls-in-the-title-bar) |
+| 3 | **Welcome card** | For first-time users: the four steps, **Try it with demo data**, **Read the 2-minute guide**, **Hide this** | [1](#1-the-console-at-a-glance) (below the table) |
+| 4 | **Session strip** | The [research session](GLOSSARY.md#research-session) (**Start a session**, **Session and export…**) and **Stop everything** | [3](#3-research-sessions-and-export-the-session-strip) |
+| 5 | **Step 1 · Data source** | Where the data comes from: connect, change, pause or disconnect a [source](GLOSSARY.md#acquisition-source) | [4](#4-step-1-data-source) |
+| 6 | **Step 2 · Signal check** | Whether data arrives complete and on time | [5](#5-step-2-signal-check) |
+| 7 | **Step 3 · Decoder** | Processing and [decoding](GLOSSARY.md#decoder): **Start decoding**, **Train a decoder…** | [6](#6-step-3-decoder) |
+| 8 | **Step 4 · Send to apps** | Whether decoded output may reach applications (the [command output](GLOSSARY.md#command-output)), its settings, and the applications you [authorize](GLOSSARY.md#authorize-revoke) | [7](#7-step-4-send-to-apps) |
+| 9 | **Session log** | What happened, newest first | [8](#8-the-session-log) |
+| 10 | **More tools** | Twelve tools in groups (thirteen while Simulated Profile A or B is connected), each opened with its own **Show** button | [10](#10-more-tools) |
+
+**The welcome card** sits at the top of the page until you hide it. It lists the four steps
+(*Choose a data source*, *Check the signal*, *Start a decoder*, *Send to apps*) and offers:
+
+- **Try it with demo data**: connects Simulated Profile A (shown only while nothing is
+  connected; if Profile A is not available it opens the source panel instead);
+- **Read the 2-minute guide**: opens the in-app guide at *Try it in two minutes*;
+- **Hide this**: hides the card for good in this browser (it is remembered in the browser's
+  storage; a private window shows it again).
+
+**The in-app guide.** **Help** in the title bar opens *How Concord works*, a plain-language guide
+inside the console. Its sections: *What Concord is*, *Try it in two minutes*, the four steps,
+*Sessions, recordings and stopping*, *More tools*, *Words you will see*, and *Limits, safety and
+privacy*. Each step's **What is this?** link, the **Details** link of the use notice and
+**About these tools** under **More tools** open it at the matching section. It covers what you
+need to use Concord; this user guide is the complete reference.
 
 Things that work the same everywhere in the console:
 
 - **Most buttons appear only when they can be used.** For example, **Start decoding** and
-  **Calibrate…** appear once a source is connected. Some buttons are always shown and are greyed
+  **Train a decoder…** appear once a source is connected. Some buttons are always shown and are greyed
   out while they cannot be used:
-  - **Stop control** and **Safe stop & disconnect**: hover over them to see why (*Command output
-    is off*, *Nothing is running*).
+  - **Stop sending** and **Stop everything**: hover over them to see why (*Nothing is being
+    sent to apps. This button turns red while sending is on (step 4).*, *Nothing is running*).
   - Buttons inside panels: **Start session** (until a session name is typed), **Start
     recording** (until a recordable source streams), **Check labels** and **Train decoder** (until
     a recording is chosen), **Add source** (until the form is complete).
-  - Rows that cannot act yet say why in a grey line under the row's heading, for example
-    *Connect a source first.* or *Start decoding with a model first.*
-- **Panels that slide in from the right** (called [sheets](GLOSSARY.md#sheet): **Connect a
-  source**, **Start decoding**, **Calibrate a decoder**, **New research session**,
-  **Session · …**) close with their **Close** button, with the Escape key, or by clicking the grey
+  - Steps that cannot act yet say why in a grey line under the step's heading, for example
+    *Connect a source in step 1 first.* or *Start a decoder with a model in step 3 first.*
+- **Panels that slide in from the right** (called [sheets](GLOSSARY.md#sheet): **Choose a
+  data source**, **Start decoding**, **Train a decoder**, **Start a session**,
+  **Session · …**, and the in-app guide) close with their **Close** button, with the Escape key, or by clicking the grey
   area beside them.
-- **A small triangle (▸) before a label** (for example **Options**, **Settings**, **Advanced**)
-  means the part is folded. Click the label to open it, click again to fold it.
+- **A small triangle (▸) before a label** (for example **Adjust how the cursor moves** in
+  **Send to apps**, or **Find LSL streams on this network** in the source panel) means the part
+  is folded. Click the label to open it, click again to fold it. The tools under **More tools**
+  open with their own **Show** button instead (**Hide** closes them).
 - **Hover** over a source, a figure or a status to see a longer explanation.
 - **A refused action** shows its reason in a grey box, under the control or at the top of the
   panel. The reason starts with a code such as *capability_unsupported:*, *protocol_error:* or
   *device_error:*. It is also written to the session log as *Refused: …*.
 - **Errors are not shown in red.** Errors and refusals appear as dark text in a light-grey box.
-  Look for that box, not for red text. Red marks only the stop buttons (**Stop control** while
-  command output is on; **Safe stop & disconnect**, filled red while something runs and greyed
+  Look for that box, not for red text. Red marks only the stop buttons (**Stop sending** while
+  sending to apps is on; **Stop everything**, filled red while something runs and greyed
   with a red outline otherwise), the final **Delete**
   and **End session now** confirmations, and the dots (title bar, session log) of a source that
   stopped with an error.
@@ -124,15 +146,21 @@ Things that work the same everywhere in the console:
 | --- | --- | --- | --- |
 | **Concord** | The name | Always | |
 | Version (for example *0.3.1*) | The version of the Concord that serves this console | Once the console is connected | Hover: *The version of the Concord that serves this console*. Use it to spot an old copy that is still running. |
-| **Research use only** | A reminder | Always | Hover: *Not a medical device. Read-only: Concord never writes to or stimulates a device.* |
+| **Research use only** | A reminder | Always | Hover: *Research software. Not a medical device. Not for clinical or commercial use. Read-only: Concord never writes to or stimulates a device.* |
 | Source name | The connected source's name | While a source is connected | Long names end in "…"; hover for the full name. Several files share one name (below the table). |
 | Coloured dot and state | What Concord is doing now | Always | Every state is listed in [2.2](#22-every-state-the-title-bar-can-show). Hover over it for a description of the [data kind](GLOSSARY.md#data-kind). |
-| *· Recording* | A recording is being written | While recording | See [10.5](#105-recording). |
-| **Stop control** | Turns command output off at once: no decoded command reaches any application after this | Always | Greyed out (hover: *Command output is off*) while command output is off; red while it is on. It changes nothing else: decoding, the source and recordings keep running. While decoding keeps running, the **Command output** row then says *Last stopped: stopped by operator (console).* |
+| *· Recording* | A recording is being written | While recording | See [10.5](#105-record-data). |
+| **Help** | Opens the in-app guide, *How Concord works* ([1](#1-the-console-at-a-glance)) | Always | |
+| **Stop sending** | Turns command output off at once: no decoded command reaches any application after this | Always | Greyed out (hover: *Nothing is being sent to apps. This button turns red while sending is on (step 4).*) while sending to apps is off; red while it is on (hover: *Stop sending decoded actions to apps, now*). It changes nothing else: decoding, the source and recordings keep running. While decoding keeps running, the **Send to apps** row then says *Last stopped: stopped by operator (console).* |
 
 Shared source names: both [FALCON H1](GLOSSARY.md#falcon-h1) files are called *Recorded Human
 Intracranial Data — Offline Replay*, and all four [T15](GLOSSARY.md#t15) blocks *Recorded Human Intracortical Data (cursor + click) — Offline
-Replay*. The **Acquisition source** row says which file is playing.
+Replay*. The **Data source** row says which file is playing.
+
+**The use notice** is the bar directly under the title bar, always visible: *Research preview.
+Not a medical device. Not for clinical, diagnostic or commercial use. Not yet tested with real
+recording equipment or with people.* Its **Details** link opens the in-app guide at *Limits,
+safety and privacy*.
 
 ### 2.2 Every state the title bar can show
 
@@ -144,15 +172,15 @@ connection to Concord; the others are about the source.
 | *Connecting to Concord* | grey | The page is connecting to Concord | Wait a second. |
 | *Connection to Concord lost, reconnecting* | amber | The console lost its connection: Concord was stopped, crashed or is restarting | If you quit Concord, close this tab. Otherwise wait; the console reconnects by itself and logs *Reconnected to Concord*. |
 | *Not connected to Concord* | amber | The connection was closed or refused | Check that Concord is running (`concord status`), then reload the page. |
-| *No source connected* | light grey | Concord runs, no source is connected | Click **Connect a source**. |
-| *Connecting to the source* | grey | Concord is opening the source | Wait. If it fails, the reason appears in the **Connect a source** panel. |
+| *No source connected* | light grey | Concord runs, no source is connected | Click **Choose a source**. |
+| *Connecting to the source* | grey | Concord is opening the source | Wait. If it fails, the reason appears in the **Choose a data source** panel. |
 | *Streaming · Simulated data* | green | A source is delivering [synthetic](GLOSSARY.md#simulated-data-synthetic) data (a simulated profile, or a test stream declared synthetic) | Normal. |
 | *Streaming · Recorded human data, offline replay* | green | A public human recording is being replayed from a file ([offline replay](GLOSSARY.md#offline-replay)) | Normal. It is never live. |
 | *Streaming · Recorded data, offline replay* | green | A recording without "human" in its name is replayed from a file (for example your recording of a non-simulated source) | Normal. |
 | *Streaming · Recorded data, streamed replay (declared)* | green | A live stream whose publisher [declares](GLOSSARY.md#declared) that it replays prerecorded data (for example `concord publish falcon`) | Normal. Concord cannot check the declaration. |
 | *Streaming · Live stream, origin unverified* | green | A live stream ([LSL](GLOSSARY.md#lsl-lab-streaming-layer), Open Ephys, some plugins) with no declaration | Normal. Concord cannot tell hardware from a file player or a simulator. |
 | *Streaming · Device data* | green | A non-simulated source that is neither a stream nor a replay (some plugins) | Normal. |
-| *Paused · …* | amber | You paused the source (**Pause**); command output was turned off | Click **Resume** (in **Options** or **Playback**). |
+| *Paused · …* | amber | You paused the source (**Pause**); command output was turned off | Click **Resume** (under the source in step 1). |
 | *Source link lost, reconnecting* | amber | The connection to the source dropped. Concord tries to reconnect three times (see below the table) | Wait: this can take up to about 17 s. Command output was turned off and stays off. The session log shows *Link lost, reconnecting: …* and then either *Streaming (reconnected after N attempt(s))* or an error. |
 | *Disconnecting* | grey | The source is being closed | Wait. |
 | *Source stopped with an error* | red | The source failed and could not be restored | See [2.3](#23-source-stopped-with-an-error-and-reset). |
@@ -170,7 +198,7 @@ When a source fails for good (for example after **Link failure** in the simulato
 LSL publisher or the Open Ephys GUI stops and does not come back):
 
 - the title bar shows a red dot and *Source stopped with an error*;
-- the **Acquisition source** row shows the error in a grey box under the source. After a lost
+- the **Data source** row shows the error in a grey box under the source. After a lost
   link it reads *link lost; 3 reconnect attempts failed:* followed by the last attempt's error:
   its message, for example *sim-a: simulated link failure (device not responding)*, or the
   error's type when it has no message, for example *TimeoutError*;
@@ -183,7 +211,7 @@ ends the same way, with *connect failed: …* in the grey box.
 
 **What to do:** read the error, fix the cause (restart the publisher, check the cable or the
 network), then click **Reset**. Reset clears the failed source: the title bar returns to *No
-source connected* and the button reads **Connect a source** again. Connect the source again from
+source connected* and the button reads **Choose a source** again. Connect the source again from
 there. You can also click **Change source** to pick another source directly.
 
 ---
@@ -200,15 +228,15 @@ exported as one zip file. Concord works without one; a session is for keeping a 
 
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
-| *No research session. A session groups recordings, decoders and a log, and can be exported for reproduction.* | Says that no session is open | No session | |
-| **New session** | Opens *New research session* ([3.2](#32-new-research-session)) | No session | |
+| *Not in a session. Start one to keep this sitting's recordings, decoders and notes together and export them as one file.* | Says that no session is open | No session | |
+| **Start a session** | Opens *Start a session* ([3.2](#32-start-a-session)) | No session | |
 | *Research session* · name · operator · *started HH:MM:SS* · *N recordings* · *N models* | The active session | A session is active | Counts include recordings and models made during the session. |
 | **Session and export…** | Opens the session panel ([3.3](#33-session-and-export)) | A session is active | **End session…** is inside this panel. |
-| **Safe stop & disconnect** | Turns command output off, closes the recording, stops decoding and disconnects the source, in that order | Always; filled red when something runs | Greyed out with a red outline (hover: *Nothing is running*) when nothing runs. No confirmation is asked. The research session stays open. Logged as *Safe stop: stopped decoding, source* (what it actually stopped); the session log may list the other resulting entries in a different order, and that *Safe stop: …* line is the summary. |
+| **Stop everything** | Turns command output off, closes the recording, stops decoding and disconnects the source, in that order | Always; filled red when something runs | Hover: *Stop sending to apps, close the recording, stop decoding and disconnect the source*. Greyed out with a red outline (hover: *Nothing is running*) when nothing runs. No confirmation is asked. The research session stays open. Logged as *Safe stop: stopped decoding, source* (what it actually stopped); the session log may list the other resulting entries in a different order, and that *Safe stop: …* line is the summary. |
 
-### 3.2 New research session
+### 3.2 Start a session
 
-![The New research session panel](images/06-new-session.png)
+![The Start a session panel](images/06-new-session.png)
 
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
@@ -234,17 +262,18 @@ logged either way.
 | **Started**, **Operator**, **Notes** | As entered | Always | Operator and Notes only if given. |
 | **Recordings** | Recordings made during the session, with sizes | Always | *(deleted)* or *incomplete* when that applies. |
 | **Decoder models** | Models trained during the session | Always | *none yet* otherwise. |
+| **Export** | The heading of the export part of the panel, with a short explanation of what the zip holds | Always | |
 | **Include the session's recordings (N, size) — neural data; needed to re-run the evaluation** | Puts the recordings into the zip | Always | Off by default (recordings can be large and identifying). Without it, recordings are *listed by hash only*. The label says "neural data" even for simulated recordings. |
 | **Include the operator name and notes** | Puts operator and notes into the zip | Always | Off by default. |
 | **Create export bundle** | Writes the zip | Always | Logged as *Session exported: \<file>*. |
 | Result box | The zip's name (a download link), size, number of files, its [SHA-256](GLOSSARY.md#sha-256), *Recordings included: …* | After an export | |
 | Export list | Every export of this session, with download links | After an export | The newest export therefore appears twice: in the result box and in the list. |
 | **Session log** | The last 12 entries of the session's own log, oldest first, and *N entries in the session folder* | Always | Short technical notes such as *Source sim-a: streaming*, *pipeline start*, *router*, *Recording started: …* or *POST /api/v1/calibration/check* (a request the console made); *(refused 409)* marks refused actions. |
-| **End session…** | Asks for confirmation | Always | *Ending turns command output off, closes any recording, stops decoding and disconnects the source.* |
+| **End session…** | Asks for confirmation | Always | *Ending stops sending to apps, closes any recording, stops decoding and disconnects the source.* |
 | **End session now** (red) / **Cancel** | Ends the session (after a safe stop) / keeps it | After **End session…** | Logged as *Research session ended: \<name>*. |
 
 **Download the zip before you end the session.** Afterwards this panel is gone; the exports
-stay in the data folder under `sessions/<session id>/exports/`, and **Advanced → Stored data**
+stay in the data folder under `sessions/<session id>/exports/`, and **More tools → Saved data**
 counts them but has no download link.
 
 ### 3.4 What is in the export, and what reproducible means
@@ -314,9 +343,11 @@ It prints one line per check, then a result. Each check starts with a tag of fou
 
 ---
 
-## 4. Acquisition source
+## 4. Step 1: Data source
 
-Where the data comes from. One [source](GLOSSARY.md#acquisition-source) is connected at a time.
+*Where the brain signals come from: demo data, a recording, or your lab's live equipment.* The
+first of the four steps; **What is this?** opens the in-app guide at *Step 1 · Data source*.
+One [source](GLOSSARY.md#acquisition-source) is connected at a time.
 
 ### 4.1 The row
 
@@ -324,7 +355,7 @@ Where the data comes from. One [source](GLOSSARY.md#acquisition-source) is conne
 
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
-| **Connect a source** | Opens the **Connect a source** panel ([4.3](#43-the-connect-a-source-panel)) | No source connected | |
+| **Choose a source** | Opens the **Choose a data source** panel ([4.3](#43-the-choose-a-data-source-panel)) | No source connected | Next to it: *Nothing connected yet. Not sure where to start? Choose a source, then Simulated Profile A.* |
 | **Change source** | Opens the same panel, titled **Change source**, where the buttons read **Switch** | A source is connected, or in error | Switching stops decoding and command output, and closes any recording. Applications stay connected and are told what the new source provides. |
 | **Disconnect** | Stops the source | A source is connected | Decoding and command output stop; a recording is closed. |
 | **Reset** | Clears a failed or ended source | After *Source stopped with an error* or *Source ended* (replaces **Disconnect**) | See [2.3](#23-source-stopped-with-an-error-and-reset). |
@@ -335,15 +366,13 @@ Where the data comes from. One [source](GLOSSARY.md#acquisition-source) is conne
 | Modality tag (last line) | The kind of recording, as the source declares it: *Intracortical, implanted*, *ECoG, implanted*, *EEG, noninvasive*, … | Sources that declare a [modality](GLOSSARY.md#modality), and every plugin | Concord shows what the source says; it cannot check it. A plugin that declares nothing shows *modality not declared*. |
 | Plugin line | *Plugin · package@version · isolated* before the modality | Plugin sources | *isolated*: the plugin runs in its own process, separate from Concord ([isolated](GLOSSARY.md#isolated)). |
 | Error text (grey box) | Why the source stopped, for example *link lost; 3 reconnect attempts failed: …* or *connect failed: open timed out* | After an error | See [2.3](#23-source-stopped-with-an-error-and-reset). |
-| **Options** | Folded; contains **Pause** / **Resume** | Simulated profiles, T15 blocks, LSL, Open Ephys, plugins | Nothing else is in it. |
-| **Playback** | Folded; contains a progress bar, **Pause** / **Resume** and the speeds | FALCON and AJILE12 files, session recordings | |
-| **Pause** | Pauses the source; command output turns off | Inside **Options** or **Playback**, while streaming | The verdict becomes *Paused*; the log says *Paused (paused by operator)*. Data arriving from a live source while paused is discarded and counted. |
+| **Pause** | Pauses the source; command output turns off | Always visible under the source, while connected (greyed out unless streaming) | The verdict becomes *Paused*; the log says *Paused (paused by operator)*. Data arriving from a live source while paused is discarded and counted. |
 | **Resume** | Continues | While paused | Command output stays off: start it again if you need it. |
-| **0.5× 1× 2× 4× 8×** | Replay speed | **Playback** only | Default 1×. The highlighted button is the current speed. T15 blocks have no speed control. |
-| Progress bar | How far the replay is | **Playback** only | Display only: you cannot drag it to move in the file. Replays loop: at the end they start again from the beginning, without a log entry. |
+| **0.5× 1× 2× 4× 8×** (*Playback speed*) | Replay speed | Next to **Pause**, for FALCON and AJILE12 files and session recordings | Default 1×. The highlighted button is the current speed. T15 blocks have no speed control. |
+| Progress bar | How far the replay is | Above **Pause**, for FALCON and AJILE12 files and session recordings | Display only: you cannot drag it to move in the file. Replays loop: at the end they start again from the beginning, without a log entry. |
 
-When a source declares a modality, the tag is the last line of text above **Options** or
-**Playback**: the fourth line for FALCON and T15 files (which also have a file line), the third
+When a source declares a modality, the tag is the last line of text above **Pause**: the
+fourth line for FALCON and T15 files (which also have a file line), the third
 for other sources. On a plugin it is added to the end of the plugin line, and reads *modality
 not declared* when the plugin declares none (for example *Plugin · concord-brainflow@0.1.0 ·
 isolated · modality not declared*). "Intracranial" in the FALCON source name is the
@@ -352,23 +381,26 @@ cortex). See [intracortical, intracranial](GLOSSARY.md#intracortical-intracrania
 
 ### 4.2 What the row shows for each kind of source
 
-| Source | Title bar state | Second line (file) | Folded controls | Notes |
+| Source | Title bar state | Second line (file) | Controls under the source | Notes |
 | --- | --- | --- | --- | --- |
-| Simulated Profile A or B | *Streaming · Simulated data* | — | **Options** (Pause) | **Advanced → Simulator controls** appears. |
-| FALCON H1 file | *Streaming · Recorded human data, offline replay* | *Session … · DANDI 000954 · held-in-calib* | **Playback** | Position, speeds. |
-| AJILE12 ECoG extract | *Streaming · Recorded human data, offline replay* | *Session … · DANDI 000055* | **Playback** | Position, speeds. |
-| T15 cursor + click block | *Streaming · Recorded human data, offline replay* | *Cursor + click · Day 468 · block N · …* | **Options** (Pause only) | No position, no speed. The **Decoder** row says the recording carries a historical decoder's output ([6.1](#61-the-row)). |
-| Session recording | depends on what was recorded | — | **Playback** | Every event is marked replayed. |
-| LSL stream | *Live stream, origin unverified*, or what the publisher declares | — | **Options** (Pause) | **Data received (%)** is measured. |
-| Open Ephys | *Live stream, origin unverified* | — | **Options** (Pause) | **Data received (%)** is measured. |
-| Plugin | what the plugin declares | — | **Options** (Pause) | Plugin line and modality tag. No **Simulator controls**, even for a plugin's synthetic board. |
+| Simulated Profile A or B | *Streaming · Simulated data* | — | **Pause** | **More tools → Simulator controls** appears. |
+| FALCON H1 file | *Streaming · Recorded human data, offline replay* | *Session … · DANDI 000954 · held-in-calib* | Progress bar, **Pause**, speeds | Position. |
+| AJILE12 ECoG extract | *Streaming · Recorded human data, offline replay* | *Session … · DANDI 000055* | Progress bar, **Pause**, speeds | Position. |
+| T15 cursor + click block | *Streaming · Recorded human data, offline replay* | *Cursor + click · Day 468 · block N · …* | **Pause** only | No position, no speed. The **Decoder** row says the recording carries a historical decoder's output ([6.1](#61-the-row)). |
+| Session recording | depends on what was recorded | — | Progress bar, **Pause**, speeds | Every event is marked replayed. |
+| LSL stream | *Live stream, origin unverified*, or what the publisher declares | — | **Pause** | **Data received (%)** is measured. |
+| Open Ephys | *Live stream, origin unverified* | — | **Pause** | **Data received (%)** is measured. |
+| Plugin | what the plugin declares | — | **Pause** | Plugin line and modality tag. No **Simulator controls**, even for a plugin's synthetic board. |
 
-### 4.3 The Connect a source panel
+### 4.3 The Choose a data source panel
 
-![The Connect a source panel on a fresh installation](images/02-connect-a-source.png)
+![The Choose a data source panel on a fresh installation](images/02-connect-a-source.png)
 
-The panel lists every source Concord can use now, in groups. Its title is **Connect a source**
-when nothing is connected and **Change source** otherwise.
+The panel lists every source Concord can use now, in groups: **Demo data (simulated)**, **Real
+recordings (played back)**, **Your recordings** (once you have made one), **Other sources** (when
+there are any), **Live equipment** and **Add-ons (plugins)**. Each group starts with a sentence
+saying what it holds. The panel's title is **Choose a data source** when nothing is connected
+and **Change source** otherwise.
 
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
@@ -382,7 +414,7 @@ when nothing is connected and **Change source** otherwise.
 What the hover shows:
 
 - Simulated profiles: a one-line description.
-- FALCON files: the file name and dataset, for example *sub-HumanPitt-held-in-calib_ses-19250108T110520.nwb (DANDI 000954)*. The checksum result is in **Advanced → Acquisition details**.
+- FALCON files: the file name and dataset, for example *sub-HumanPitt-held-in-calib_ses-19250108T110520.nwb (DANDI 000954)*. The checksum result is in **More tools → Source details**.
 - T15 blocks: the file name, dataset, block, task, *includes computer assistance* or *fully neural*, the duration, and that the SHA-256 is verified when the file is opened.
 - Session recordings: *Replay of a recording from \<source> (\<source id>). Events are marked replayed.*
 - LSL sources: the stream name, the host and the `source_id`.
@@ -390,15 +422,17 @@ What the hover shows:
   simulator.
 - Plugin devices: no hover; their description is printed on the row.
 
-### 4.4 Simulated profiles
+### 4.4 Demo data (simulated)
 
-*Synthetic data for demonstrations and testing. Not brain data.* You stand in for the
-participant with **Advanced → Simulator controls** ([10.8](#108-simulator-controls)).
+*Made-up signals generated by Concord, for trying things out. No equipment needed. Not brain
+data. New here? Start with Profile A.* Each profile says what it does, for example *Moves a
+pointer and makes selections*. You stand in for the participant with **Simulator controls**
+under **More tools** ([10.8](#108-simulator-controls)).
 
 | Source | Shown as | What it provides | Board method it gets |
 | --- | --- | --- | --- |
-| **Simulated Profile A** | *32 channels · 1,000 Hz* | A raw signal, continuous pointer movement (50 times per second; with the pad at rest only small simulated noise), a select action, simulated device health once per second | **Pointer and click** |
-| **Simulated Profile B** | *8 channels · 250 Hz* | A raw signal, a select action and text, no pointer; device health every 5 s | **Scanning** (Direct selection can be chosen) |
+| **Simulated Profile A** | *Moves a pointer and makes selections · 32 channels · 1,000 Hz* | A raw signal, continuous pointer movement (50 times per second; with the pad at rest only small simulated noise), a select action, simulated device health once per second | **Pointer and click** |
+| **Simulated Profile B** | *Makes selections and types letters · 8 channels · 250 Hz* | A raw signal, a select action and text, no pointer; device health every 5 s | **Scanning** (Direct selection can be chosen) |
 
 Neither profile is a model of a real device. Their events are labelled
 [`simulated_intent`](GLOSSARY.md#simulated-intent) and
@@ -406,9 +440,11 @@ Neither profile is a model of a real device. Their events are labelled
 **without** command output or authorization (it is labelled *simulated input* on the board); only
 decoded output needs them ([7.1](#71-when-commands-reach-an-application)).
 
-### 4.5 Recorded human data (offline replay)
+### 4.5 Real recordings (played back)
 
-*Verified files from a public dataset, replayed. Not a live implant.* Files appear here as soon
+*Brain recordings from public research studies, played back from files on this computer. Nobody
+is connected: they are labelled offline replay. Concord checks each file against a published
+fingerprint.* Files appear here as soon
 as they are in the data folder's `datasets` folder (or any folder inside it) and you reload the
 page. How to download them: [Getting started](GETTING_STARTED.md) and [Datasets](DATASETS.md).
 The datasets: [FALCON H1](GLOSSARY.md#falcon-h1) and [AJILE12](GLOSSARY.md#ajile12) (both
@@ -427,51 +463,52 @@ The datasets: [FALCON H1](GLOSSARY.md#falcon-h1) and [AJILE12](GLOSSARY.md#ajile
 | *Cursor + click · Day 468 · block 2 · radial-8 calibration* | T15 block 2: fully neural calibration, 180 s | T15 files in `datasets/` | |
 | *Cursor + click · Day 468 · block 3 · grid evaluation* | T15 block 3: choosing targets on a grid, fully neural, 180 s | T15 files in `datasets/` | The block to use with the board ([7.7](#77-example-the-t15-recorded-decoder-on-the-board)). |
 | *Checking the recorded datasets… The first time after Concord starts, this takes a few seconds.* | Concord is still verifying the files | Right after Concord starts | Wait; the list replaces it. |
-| *No recorded datasets yet. Put downloaded dataset files in `<folder>` (create the folder if needed; Getting started, section 4), then reload this page.* | Tells you where the files go | No dataset file found | The message names the real folder on your computer. |
+| *No recordings on this computer yet. To add the two starter recordings (9 MB):* | Step-by-step instructions: 1. download both FALCON H1 starter files (two links, to the DANDI archive, with their sizes); 2. move them into the datasets folder, named exactly (*create it if it does not exist*); 3. reload the page | No dataset file found | The folder shown is the real folder on your computer. A line below reminds you of the dataset's terms: do not try to identify or contact the participant, and do not share the files. |
 
 A FALCON file's name is the recording's session time stamp; the dataset shifted the dates to 1925
 for de-identification. *held-in-calib* is FALCON's name for its calibration split.
 
 Every FALCON and AJILE12 file is checked against a pinned [SHA-256](GLOSSARY.md#sha-256)
-checksum (a fingerprint of the published file); the result is shown in **Advanced → Acquisition
-details** ([10.3](#103-acquisition-details)). T15 files are checked when you connect them;
-Acquisition details has no dataset or citation panel for T15 (the citation is in
+checksum (a fingerprint of the published file); the result is shown in **More tools → Source
+details** ([10.3](#103-source-details)). T15 files are checked when you connect them;
+Source details has no dataset or citation panel for T15 (the citation is in
 [Datasets](DATASETS.md)).
 
-![A FALCON replay with Playback open](images/09-recorded-human-data.png)
+![A FALCON replay with its playback controls](images/09-recorded-human-data.png)
 
-### 4.6 Session recordings (replay) and Other sources
+### 4.6 Your recordings and Other sources
 
-**Session recordings (replay)**: *Recordings made with this console, replayed through the same
-pipeline.* Each row is named *Replay · \<recording name>*, with what was recorded (for example
-*Simulated data*). This group appears once you have made a recording ([10.5](#105-recording)).
-Every replayed event is marked [replayed](GLOSSARY.md#replayed) (↺ in the event stream).
+**Your recordings**: *Recordings you made with Concord, played back the same way as a live
+source.* Each row is named *Replay · \<recording name>*, with what was recorded (for example
+*Simulated data*). This group appears once you have made a recording ([10.5](#105-record-data)).
+Every replayed event is marked [replayed](GLOSSARY.md#replayed) (↺ in the **Live message feed**).
 
 **A recording that contains pipeline features cannot be replayed cleanly in 0.3.1.** That is
 every recording made while decoding runs, including every recording made from the
-**Calibrate…** panel. On replay:
+**Train a decoder…** panel. On replay:
 
 - the session log fills with *Undeclared capability: adapter emitted features.binned* (or
   *features.vector*) *but did not declare neural_features*, and, if a model was running while
   you recorded, the same for *intent.kinematics* (and for *intent.pointer* if command output was
   also on and the source has no pointer of its own);
-- **Advanced → Diagnostics → Contract violations** keeps rising (a
+- **More tools → Health check → Contract violations** keeps rising (a
   [contract violation](GLOSSARY.md#contract-violation) means the source sent something it had not
   declared);
 - if it was recorded with **Features and labels only**, the console also shows *No signal*.
 
-Use such recordings to train a decoder ([6.5](#65-the-calibrate-panel)). To make a recording for
+Use such recordings to train a decoder ([6.5](#65-the-train-a-decoder-panel)). To make a recording for
 replay, record with decoding off.
 
 **Other sources**: any other offline source Concord finds. It is empty in a standard
 installation and then not shown.
 
-### 4.7 Live streams: LSL
+### 4.7 Live equipment: LSL
 
-*Lab Streaming Layer or Open Ephys. Concord only receives; nothing is sent to the acquisition
-system.* The one exception is Open Ephys: an Open Ephys source sends a short
+*Connect to recording software already running in your lab, if it shares its data over Lab
+Streaming Layer (LSL) or Open Ephys. Concord only listens: nothing is sent to your equipment.*
+The one exception is Open Ephys: an Open Ephys source sends a short
 [heartbeat](GLOSSARY.md#heartbeat), a "still listening" message, to the GUI's plugin
-([4.8](#48-live-streams-open-ephys)). Nothing is ever sent to an LSL stream.
+([4.8](#48-live-equipment-open-ephys)). Nothing is ever sent to an LSL stream.
 [LSL](GLOSSARY.md#lsl-lab-streaming-layer) is a common way to stream data between programs on a
 lab network. Setting up your own equipment:
 [Connect your equipment](CONNECT_YOUR_EQUIPMENT.md) and [Lab guide](LAB_GUIDE.md). To rehearse
@@ -480,7 +517,7 @@ without hardware, start a [test stream](GLOSSARY.md#test-stream) with
 ([14.2](#142-test-streams-concord-publish)).
 
 **The list of live sources.** Registered LSL and Open Ephys sources are listed at the top of the
-**Live streams** group, each with **Remove** and **Connect** (or **Switch**). A row reads, for
+**Live equipment** group, each with **Remove** and **Connect** (or **Switch**). A row reads, for
 example, *LSL · Concord synthetic ephys (EEG) — declared synthetic* with *Simulated data · 32
 channels · 30,000 Hz*. Two streams can have the same name: hover over a row to see its
 [`source_id`](GLOSSARY.md#source_id) and host. This list is kept only while Concord runs; after
@@ -488,8 +525,8 @@ a restart, search again.
 
 #### Connect an LSL stream, step by step
 
-1. Open **Find LSL streams** and click **Search the network**. It shows *Searching…* for about
-   1.5 s.
+1. Open **Find LSL streams on this network** and click **Search the network**. It shows
+   *Searching…* for about 1.5 s.
 2. The results table lists every stream found. **At the same time, every stream that can be a
    signal is added to the list of live sources above, ready to connect.** For a signal stream
    without attachments, just click **Connect** (or **Switch**) on its row. You are done.
@@ -501,16 +538,16 @@ a restart, search again.
    **Behavior stream (optional)** and **Marker stream (optional)**, and click **Add source**.
    This does **not** add a new row: it updates the signal stream's existing row with the
    attachments. The session log says *Registered LSL · …*. Then click **Connect** on that row.
-4. To check the attachments: **Advanced → Capability contract** shows *behavior: Yes* in that
-   source's column. Once connected, **Advanced → Acquisition details** lists one line per stream
+4. To check the attachments: **More tools → Source capabilities** shows *behavior: Yes* in that
+   source's column. Once connected, **More tools → Source details** lists one line per stream
    (*signal*, *behavior*, *markers*).
 
-#### The Find LSL streams panel
+#### The Find LSL streams on this network panel
 
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
-| **Find LSL streams** | Opens the search | Panel open | |
-| **Search the network** | Looks for LSL streams on your network for about 1.5 s | Inside **Find LSL streams** | Next to it: *Not searched yet*, or *Last search 4 s ago · 7 streams*. The search uses [multicast](GLOSSARY.md#multicast) on your local network. |
+| **Find LSL streams on this network** | Opens the search | Panel open | |
+| **Search the network** | Looks for LSL streams on your network for about 1.5 s | Inside **Find LSL streams on this network** | Next to it: *Not searched yet*, or *Last search 4 s ago · 7 streams*. The search uses [multicast](GLOSSARY.md#multicast) on your local network. |
 | *No LSL streams found on the network.* | Nothing was found | After a search | Check that the publisher runs and that both computers are on the same network ([LAB_SETUP.md](LAB_SETUP.md)). |
 | Results: **Stream** | The stream's name and, below it, its type (EEG, Behavior, SpikeCounts, Markers, …) | After a search | Hover a row: its key, host, `source_id` and number format. |
 | Results: **Channels** | Number of channels | After a search | |
@@ -525,19 +562,19 @@ a restart, search again.
 | **Add source** | Registers the signal with its attachments | After **Use** | Updates the existing row; does not connect. |
 | **Remove** | Removes a registered source from the list | Each row that is not connected | |
 
-### 4.8 Live streams: Open Ephys
+### 4.8 Live equipment: Open Ephys
 
-**Add Open Ephys source** registers the Open Ephys GUI's *ZMQ Interface* plugin as a source
+**Connect to Open Ephys** registers the Open Ephys GUI's *ZMQ Interface* plugin as a source
 ([Open Ephys GUI, ZMQ Interface](GLOSSARY.md#open-ephys-gui-zmq-interface);
 [ZMQ](GLOSSARY.md#zmq) is the messaging library it uses). Setup in the GUI:
 [OPEN_EPHYS.md](OPEN_EPHYS.md).
 
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
-| **Host** | The computer running the Open Ephys GUI | **Add Open Ephys source** open | Default 127.0.0.1 (this computer). |
-| **Data port** | The plugin's data port | **Add Open Ephys source** open | Default 5556 (1–65534). Concord sends [heartbeats](GLOSSARY.md#heartbeat) to the next port, 5557 by default. |
-| **Sample unit** | The unit the GUI sends | **Add Open Ephys source** open | Default **Unknown (pass through unscaled)**. See the note below the table. |
-| **Add source** | Registers *Open Ephys (ZMQ) · host:port* in the live-sources list | **Add Open Ephys source** open | Adding does not connect. Then click **Connect** on its row. |
+| **Host** | The computer running the Open Ephys GUI | **Connect to Open Ephys** open | Default 127.0.0.1 (this computer). |
+| **Data port** | The plugin's data port | **Connect to Open Ephys** open | Default 5556 (1–65534). Concord sends [heartbeats](GLOSSARY.md#heartbeat) to the next port, 5557 by default. |
+| **Sample unit** | The unit the GUI sends | **Connect to Open Ephys** open | Default **Unknown (pass through unscaled)**. See the note below the table. |
+| **Add source** | Registers *Open Ephys (ZMQ) · host:port* in the live-sources list | **Connect to Open Ephys** open | Adding does not connect. Then click **Connect** on its row. |
 
 - **Heartbeat**: a short "still listening" message. It is the only message Concord ever sends to
   any acquisition system.
@@ -549,10 +586,10 @@ The Open Ephys protocol cannot carry a "synthetic" or "prerecorded" declaration,
 Ephys source is always shown as *Live stream, origin unverified*, even the test stream from
 `concord publish openephys`.
 
-### 4.9 Plugins
+### 4.9 Add-ons (plugins)
 
-*Sources from installed adapter packages. Each plugin runs in its own process and only delivers
-data to Concord; what it declares and sends is checked before use.* (A
+*Extra connectors installed separately, for example for BCI2000. Each runs on its own, and
+Concord checks everything it sends before using it.* (A
 [plugin](GLOSSARY.md#plugin) is an [adapter](GLOSSARY.md#adapter) that someone else wrote.)
 
 The desktop app includes the BCI2000 plugin. BrainFlow, BCI2000 and the certification tools are
@@ -579,10 +616,12 @@ are explained in [ECOSYSTEMS.md](ECOSYSTEMS.md).
 
 ---
 
-## 5. Signal integrity
+## 5. Step 2: Signal check
 
-*Whether the data is arriving complete and on time.* Laid out like a patient monitor: live traces
-on the left, the verdict and three measured numbers on the right.
+*Is the data arriving complete and on time? A green light means yes.* The second of the four
+steps; **What is this?** opens the in-app guide at *Step 2 · Signal check*. Laid out like a
+patient monitor: live traces on the left, the verdict, a plain sentence explaining it, and three
+measured numbers on the right.
 
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
@@ -590,38 +629,41 @@ on the left, the verdict and three measured numbers on the right.
 | Traces (feature sources) | Four channels' counts per [bin](GLOSSARY.md#bin), on a common scale | FALCON, T15, LSL spike-count streams | Caption: *Showing 4 of 176 channels with the most activity · spike count per 20 ms bin, last 5 s*. The four most active channels are chosen once, after the first second. |
 | *Waiting for data* | No data to draw yet | Just after connecting, or a source with nothing drawable | |
 | Verdict (*Good*, *Gaps detected*, …) | A one-word summary | Always | Hover for the exact rules (table below). |
-| **Channels** | Channels in the latest data block, of the channels the source declares: *32 of 32* | Connected | A smaller first number means channels are missing from the stream. |
+| Sentence under the verdict | What the verdict means and, where useful, what to do, for example *Data is arriving and nothing was lost in the last 10 seconds.* | Always | Without a source: *Connect a source in step 1 to see its signal here.* The other sentences are in the verdict table below. |
+| **Channels arriving** | Channels in the latest block of data, out of the channels the source says it has: *32 of 32* | Connected | A smaller first number means channels are missing from the stream. |
 | **Data received (%)** | Share of the data that arrived | Connected | Measured only for LSL and Open Ephys; *—* for every other source. See the note below the table. |
-| **Delay to this screen (ms)** | Median time from Concord receiving an event to this browser tab receiving it, over the last 1,000 events | Connected | Measured in this browser, not from the brain or the device. A value that keeps growing means this tab is falling behind. |
+| **Delay (ms)** | How long data takes from reaching Concord to reaching this screen: the median over the last 1,000 events | Connected | Measured in this browser, not from the brain or the device. A value that keeps growing means this tab is falling behind. |
 
 - **Data received (%)**: for LSL, samples received compared with samples estimated missing from
   time-stamp gaps; for Open Ephys, messages received compared with messages missed. Other sources
   do not report losses, so nothing is estimated and the figure shows *—*.
-- **Delay to this screen** is never shown below 0: on one computer, clock rounding could
+- **Delay (ms)** is never shown below 0: on one computer, clock rounding could
   otherwise produce tiny negative values.
 
 | Verdict | When | What to do |
 | --- | --- | --- |
-| *Good* | None of the conditions below | Nothing. |
-| *Gaps detected* | A loss counter rose in the last 10 s (the list is below the table) | Look at **Advanced → Acquisition details** (source losses) and **Advanced → Diagnostics → Subscriber drops**. |
-| *No signal* | No raw-signal or feature data arrived in the last 2 s (also shown when nothing is connected) | Check the source. A replayed features-only recording also shows this ([4.6](#46-session-recordings-replay-and-other-sources)). |
-| *Paused* | You paused the source | **Resume**. |
-| *Interrupted — reconnecting* | Concord is reconnecting to the source | Wait; see [2.2](#22-every-state-the-title-bar-can-show). |
+| *Good* | None of the conditions below. Sentence: *Data is arriving and nothing was lost in the last 10 seconds.* | Nothing. |
+| *Gaps detected* | A loss counter rose in the last 10 s (the list is below the table). Sentence: *Some data was lost in the last 10 seconds. Check the cables, the network or the recording software.* | Look at **More tools → Source details** (source losses) and **More tools → Health check → Subscriber drops**. |
+| *No signal* | No raw-signal or feature data arrived in the last 2 s (also shown when nothing is connected). Sentence: *Nothing has arrived for 2 seconds. Check that the source is sending data.* | Check the source. A replayed features-only recording also shows this ([4.6](#46-your-recordings-and-other-sources)). |
+| *Paused* | You paused the source. Sentence: *The source is paused. Click Resume in step 1 to continue.* | **Resume**. |
+| *Interrupted — reconnecting* | Concord is reconnecting to the source. Sentence: *The connection dropped. Concord is trying to reconnect.* | Wait; see [2.2](#22-every-state-the-title-bar-can-show). |
 
 *Gaps detected* counts these losses: stream gaps, estimated missing samples, missed messages,
 incomplete blocks, inputs the pipeline dropped, and events an application or console tab could
 not take in time ([subscriber drops](GLOSSARY.md#subscriber-drops)). If **Data received (%)**
-shows *—* or 100, the cause is usually a slow application: check **Advanced → Connected
-applications** for a non-zero *dropped*, and close console or board tabs you don't need.
+shows *—* or 100, the cause is usually a slow application: check **More tools → Connected
+apps** for a non-zero *dropped*, and close console or board tabs you don't need.
 
 Concord counts every loss and reconnect; it never fills gaps silently. Detailed per-stream
-counters are in [10.3](#103-acquisition-details).
+counters are in [10.3](#103-source-details).
 
 ---
 
-## 6. Decoder
+## 6. Step 3: Decoder
 
-*Turns brain activity into intended movement.* This row starts the processing
+*Turns brain activity into intended actions, such as moving a cursor. It needs a trained model.*
+The third of the four steps; **What is this?** opens the in-app guide at *Step 3 · Decoder*.
+This step starts the processing
 [pipeline](GLOSSARY.md#pipeline) (filters and [feature](GLOSSARY.md#features) extraction) and,
 optionally, a [decoder](GLOSSARY.md#decoder) model. What decoders are and how they are evaluated:
 [How Concord works](CONCEPTS.md#5-decoders-from-brain-activity-to-intended-movement).
@@ -632,22 +674,23 @@ optionally, a [decoder](GLOSSARY.md#decoder) model. What decoders are and how th
 | --- | --- | --- | --- |
 | **Start decoding** | Opens the **Start decoding** panel ([6.2](#62-the-start-decoding-panel)) | A source is connected, decoding is off | |
 | **Stop decoding** | Stops processing and the decoder | Decoding runs | Command output turns off with it. |
-| **Calibrate…** | Opens the **Calibrate a decoder** panel ([6.5](#65-the-calibrate-panel)) | A source is connected | |
-| *Off* / *Connect a source first.* | Nothing runs | Decoding off | |
+| **Train a decoder…** | Opens the **Train a decoder** panel ([6.5](#65-the-train-a-decoder-panel)) | A source is connected | |
+| *Off* / *Connect a source in step 1 first.* | Nothing runs | Decoding off | |
+| *Next: Start decoding and pick a model, or Train a decoder to make one.* | What to do next | A source is connected, decoding off | |
 | *Unavailable: …* | Decoding cannot run in this installation, with the reason | Rare | |
 | *Running · \<processing>* | Decoding runs with that [processing preset](GLOSSARY.md#processing-preset) | Decoding | Green dot. |
-| *No model: features only.* | Only features are computed; nothing can become a command | Decoding without a model | Useful for watching or recording features. |
+| *No model: Concord computes features only, which you can record to train one.* | Only features are computed; nothing can become a command | Decoding without a model | Useful for watching or recording features. |
 | *Model \<id> · offline held-out R² 0.xxx* | The running model and its [offline held-out score](GLOSSARY.md#offline-held-out-score) ([R²](GLOSSARY.md#r-squared)), as reported by the model file | Decoding with a movement model | [Classifiers](GLOSSARY.md#classifier) and click models show other scores (below the table). |
 | Origin line | For example *Concord-trained · ridge regression · in Concord · compatible with this source* | With a model | The possible values are below the table. |
 | *Trained on …* | The recording(s) the model was fitted on | With a model | |
 | *Historical decoder replay (original research system): t15-historical-velocity → vx, vy (velocity, 271 received)* | A decoder output the source carries, passed through unchanged; the count is how many outputs arrived since decoding started | **Source decoder outputs (passthrough)** | One line per decoder output; T15 has two (velocity and click). See [historical](GLOSSARY.md#historical-model-origin). |
-| *T15-historical-velocity: no declared output scale; the router uses its values as they are.* (amber) | The source does not say in what units its output is | Passthrough of such an output | **Gain** and **Dead-zone** are then in the decoder's own units ([7.3](#73-settings-for-movement-decoders)). |
-| *Estimating thresholds (0.6 s left).* | The spike-band preset measures each channel's noise level during the first second | Spike-band preset, first second | |
+| *T15-historical-velocity: no declared output scale; the router uses its values as they are.* (amber) | The source does not say in what units its output is | Passthrough of such an output | **Speed (gain)** and **Ignore small movements (dead-zone)** are then in the decoder's own units ([7.3](#73-settings-for-movement-decoders)). |
+| *Getting used to the signal level (0.6 s left).* | The spike-band preset measures each channel's noise level during the first second | Spike-band preset, first second | |
 | *Drift monitor warming up (N bins)* | The [drift monitor](GLOSSARY.md#drift-monitor) compares incoming features with the model's training data; it needs some data first | With a Concord model | Then *No drift from the training data detected*, or (amber) *Recalibration recommended: …* with the reason. *Drift monitor: …* means it cannot check (for example no training statistics). |
 | *Cross-source override: decoded output is marked as reduced quality.* (amber) | You allowed a model trained on another source ([cross-source model](GLOSSARY.md#cross-source-model)) | After **Allow a model trained on a different source** | |
 | Compatibility warnings (amber) | Differences between the model and the source that do not prevent running | With a model | |
 | *Decoder stopped: …* (grey box) | The decoder failed; command output turned off | After a decoder failure | Check the reason; start decoding again. |
-| *This recording carries the replayed output of an offline decoder (\<model>); it is not used for control.* | The file contains a decoder's recorded output (T15: the original research system's decoders) | Such a file, decoding off | It reaches command output only if you choose **Source decoder outputs ([passthrough](GLOSSARY.md#passthrough))** and start control ([7.7](#77-example-the-t15-recorded-decoder-on-the-board)). Only one of the recording's decoders is named: T15 carries two (velocity and click), and passthrough passes both. |
+| *This recording carries the replayed output of an offline decoder (\<model>); it is not used for control.* | The file contains a decoder's recorded output (T15: the original research system's decoders) | Such a file, decoding off | It reaches command output only if you choose **Source decoder outputs ([passthrough](GLOSSARY.md#passthrough))** and click **Start sending** ([7.7](#77-example-the-t15-recorded-decoder-on-the-board)). Only one of the recording's decoders is named: T15 carries two (velocity and click), and passthrough passes both. |
 
 - **Other scores.** A classifier shows *classes … · offline held-out balanced accuracy …
   (chance …)* ([balanced accuracy](GLOSSARY.md#balanced-accuracy),
@@ -659,6 +702,10 @@ optionally, a [decoder](GLOSSARY.md#decoder) model. What decoders are and how th
   enabled)* when you chose **Map channels by label**.
 
 ### 6.2 The Start decoding panel
+
+The panel opens with a short explanation: a decoder has two parts, **Processing** (raw signal to
+features, preselected for the source) and a **model** (features to intended actions); with no
+model yet, start without one to record training data, then use **Train a decoder**.
 
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
@@ -672,7 +719,7 @@ optionally, a [decoder](GLOSSARY.md#decoder) model. What decoders are and how th
 | **Allow a model trained on a different source** | Runs a model calibrated on another source or session | A model is chosen | For deliberate cross-source tests only. Its output is not expected to be meaningful; decoded events are marked reduced quality. |
 | **Mark this file trusted** / **Withdraw trust** | Allows (or no longer allows) a [pickle or joblib](GLOSSARY.md#pickle-joblib) model file to load | Such a file is chosen | See the note below the table. |
 | **Start decoding** | Starts | The source is streaming or paused | Otherwise: *Connect a source (streaming or paused) first.* A refusal is shown in a grey box (example below the table). |
-| **Search for decoder plugins** | Looks again for installed decoder plugins | Always | *Installed decoder plugins and model files are listed with the models.* |
+| **Search for decoder add-ons** | Looks again for installed decoder plugins | Always | *Decoder add-ons (plugins) are installed separately; none come with Concord. Installed add-ons and model files are listed with the models.* |
 | **Close** | Closes the panel without starting | Always | |
 
 - **Trust.** Pickle and joblib files run code from the file when loaded, so Concord refuses them
@@ -690,7 +737,7 @@ optionally, a [decoder](GLOSSARY.md#decoder) model. What decoders are and how th
 | **High-gamma band power** | [ECoG](GLOSSARY.md#ecog), [sEEG](GLOSSARY.md#seeg), [LFP](GLOSSARY.md#lfp), at least 400 Hz | Mains [notch](GLOSSARY.md#notch-filter) at 60 Hz and its harmonics (or the mains frequency the source declares), common average reference without channels the source marks bad, 70–150 Hz band, log10 mean power per bin | Raw rate 400 Hz to 10 kHz (Simulated Profile A, AJILE12) | **Bin (ms)** 50 |
 | **Band power** | Any rate | log10 mean power in one band you choose, per bin (common average reference with 8 or more channels) | Raw rate below 400 Hz (Simulated Profile B) | **Bin (ms)** 50, **Band low (Hz)**, **Band high (Hz)** (required) |
 | **Source features (passthrough)** | Sources that already deliver binned features | No processing | The source delivers features (FALCON, T15, LSL spike counts) | None |
-| **Source decoder outputs (passthrough)** | Sources that carry a decoder's output | No features and no model: the source's own decoder outputs go to **Command output** unchanged, keeping their model name and origin | Never preselected; listed only when the source carries decoder outputs (T15) | None |
+| **Source decoder outputs (passthrough)** | Sources that carry a decoder's output | No features and no model: the source's own decoder outputs go to **Send to apps** unchanged, keeping their model name and origin | Never preselected; listed only when the source carries decoder outputs (T15) | None |
 
 A raw preset on a source without a raw signal, or a preset below its minimum rate, is refused
 with the reason. **Source decoder outputs** passes on a research system's recorded decoder (T15)
@@ -700,14 +747,14 @@ or an external system's live decoder; see [passthrough](GLOSSARY.md#passthrough)
 
 The **Decoder model** list shows every model Concord can run:
 
-- **Concord-trained** models: made with **Calibrate…** ([6.5](#65-the-calibrate-panel)) or, in a
+- **Concord-trained** models: made with **Train a decoder…** ([6.5](#65-the-train-a-decoder-panel)) or, in a
   source installation, `make model`. Saved as JSON files in the data folder's `models` folder.
 - **Imported model files** ([ONNX](GLOSSARY.md#onnx), scikit-learn via
   [skops](GLOSSARY.md#skops), [TorchScript](GLOSSARY.md#torchscript),
   [safetensors](GLOSSARY.md#safetensors); [pickle and joblib](GLOSSARY.md#pickle-joblib) only
   after **Mark this file trusted**): copy the file and its `<id>.manifest.json` into the `models`
   folder. They run in an [isolated](GLOSSARY.md#isolated) process.
-- **Decoder plugins**: installed packages; **Search for decoder plugins** finds new ones.
+- **Decoder plugins**: installed packages; **Search for decoder add-ons** finds new ones.
 
 The list is read again each time you open the panel. How to bring your own model:
 [DECODER_SDK.md](DECODER_SDK.md).
@@ -725,25 +772,30 @@ Model details, shown when you pick a model:
 | Compatibility line | *Compatible with this processing (… preview).*, or *Not compatible with this processing (… preview).* followed by the reasons in a grey box, or *Compatibility is checked against the pipeline output when it starts.* |
 | Errors (grey box), warnings (amber) | Why it cannot run, or what to be careful about |
 
-### 6.5 The Calibrate panel
+### 6.5 The Train a decoder panel
 
-**Calibrate…** opens *Calibrate a decoder*: record labelled data from the connected source, then
-fit a decoder on it ([calibration](GLOSSARY.md#calibration)). Step by step with a lab setup:
+**Train a decoder…** opens *Train a decoder*: record labelled data from the connected source, then
+fit a decoder on it (training, also called [calibration](GLOSSARY.md#calibration)). The panel
+starts with a short explanation, then has two parts, **1. Record a training session** and
+**2. Train a model on a recording**. Step by step with a lab setup:
 [LAB_GUIDE.md](LAB_GUIDE.md).
 
 The labels come from a [behavior stream](GLOSSARY.md#behavior-stream): an LSL behavior stream
-you attached ([4.7](#47-live-streams-lsl)), BCI2000 states, or a test stream. Simulated profiles
+you attached ([4.7](#47-live-equipment-lsl)), BCI2000 states, or a test stream. Simulated profiles
 carry no labels.
 
 **To rehearse without hardware:**
 
 1. Start `concord publish lsl-ephys` (a synthetic signal plus a "latent velocity" behavior
    stream; [14.2](#142-test-streams-concord-publish)).
-2. Connect its signal stream with the behavior stream attached ([4.7](#47-live-streams-lsl)).
+2. Connect its signal stream with the behavior stream attached ([4.7](#47-live-equipment-lsl)).
 3. **Start decoding** with **Spike-band threshold crossings** and **None (features only)**.
 4. Record and train here (steps 1 and 2 below).
 
-#### Step 1: Record a calibration session
+#### Step 1: Record a training session
+
+*Saves the features and what the person was asked to do (not the raw signal), for up to an hour.
+With a raw source, first start decoding without a model, so that Concord computes the features.*
 
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
@@ -757,7 +809,7 @@ carry no labels.
 - The recording is named after the source and the time, for example
   *lsl-concord-synthetic-ephys-20261109-024115* for the `concord publish lsl-ephys` test stream.
 
-#### Step 2: Train
+#### Step 2: Train a model on a recording
 
 *The first part of the data trains the decoder; the chronological tail, after a gap, is held out
 for scoring.* ([Held-out](GLOSSARY.md#held-out) data is used only to score the decoder, never to
@@ -822,10 +874,13 @@ features.vector)*. Record again while decoding runs.
 
 ---
 
-## 7. Command output
+## 7. Step 4: Send to apps
 
-*Lets the decoder send commands to the applications you authorize. Off unless you start it.*
-[Command output](GLOSSARY.md#command-output) is the only path from a decoder to an application.
+*Lets the decoder's actions reach the apps you authorize, such as the communication board. Off
+until you start it.* The last of the four steps; **What is this?** opens the in-app guide at
+*Step 4 · Send to apps*. The mechanism behind this step, the
+[command output](GLOSSARY.md#command-output) (command router), is the only path from a decoder to
+an application.
 Background: [How Concord works](CONCEPTS.md#6-command-output-the-only-way-decoded-data-reaches-an-app).
 Every rule and stop path in detail: [CONTROL_BRIDGE.md](CONTROL_BRIDGE.md).
 
@@ -834,63 +889,63 @@ Every rule and stop path in detail: [CONTROL_BRIDGE.md](CONTROL_BRIDGE.md).
 A decoded command reaches an application only while **all three** hold:
 
 1. a decoder runs: a model, or **Source decoder outputs (passthrough)**;
-2. you clicked **Start control** (command output is *On*);
+2. you clicked **Start sending** (command output is *On*);
 3. you clicked **Authorize** for that application ([authorize](GLOSSARY.md#authorize-revoke)).
 
 **Simulated profiles are different.** Their pointer, select and text input is simulated (the
 operator standing in for a participant), not decoded, so it reaches the board directly, without
 command output and without authorization. That is why, with a simulated profile, the board row
 can read *Receiving pointer movement, discrete actions.* next to an **Authorize** button, and why
-**Stop control** stays grey: there is no command output to stop. To stop simulated input, pause
+**Stop sending** stays grey: there is no command output to stop. To stop simulated input, pause
 or disconnect the source.
 
 ### 7.2 The row
 
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
-| **Start control** | Turns command output on with the current settings | A decoder runs and command output is off | Turning it off is the title bar's **Stop control**. A refusal appears in a grey box under the settings (example below the table). |
+| **Start sending** | Turns command output on with the current settings | A decoder runs and command output is off | Turning it off is the title bar's **Stop sending**. A refusal appears in a grey box under the settings (example below the table). |
 | **Open participant screen** | Opens the communication board in its own window (1280 × 800), for a second screen facing the participant | Always | Clicking again brings the same window forward. If the browser blocks pop-ups, it opens in a new tab instead. |
 | *Off* / *On · …* | Whether command output is on, and what it sends | Always | Notation below the table. |
-| *Start decoding with a model first.* | Why it cannot start | Nothing is decoding | |
-| *The decoder has no model. Start decoding with a model.* | Why it cannot start | Decoding with **None (features only)** | |
-| *Last stopped: …* | Why command output last turned off | A decoder with a model (or **Source decoder outputs**) runs and command output is off, once command output has been on since Concord started | Reasons in [7.6](#76-why-command-output-turned-off-last-stopped). |
-| *When started, the cursor in authorized apps follows the decoder's vx/vy output.* | What starting would do | A movement decoder runs, output off | For a classifier: *When started, authorized apps receive select when left is held, …*, or *Choose in Settings which class triggers which action.* |
-| **Settings** | Folded mapping settings | A decoder runs | [7.3](#73-settings-for-movement-decoders) for movement decoders, [7.4](#74-settings-for-classifiers) for [classifiers](GLOSSARY.md#classifier). |
-| **Authorized applications** | Every application that asks for commands, with **Authorize** / **Revoke** | Applications are connected | [7.5](#75-authorized-applications). |
+| *Start a decoder with a model in step 3 first.* | Why it cannot start | Nothing is decoding | |
+| *The decoder has no model. In step 3, stop and start decoding with a model.* | Why it cannot start | Decoding with **None (features only)** | |
+| *Last stopped: …* | Why command output last turned off | A decoder with a model (or **Source decoder outputs**) runs and command output is off, once command output has been on since Concord started | Reasons in [7.6](#76-why-sending-turned-off-last-stopped). |
+| *When started, the cursor in authorized apps follows the decoder's vx/vy output.* | What starting would do | A movement decoder runs, output off | For a classifier: *When started, authorized apps receive select when left is held, …*, or *Open "Choose what each decoded choice does" below to set which choice triggers which action.* |
+| **Adjust how the cursor moves** / **Choose what each decoded choice does** | Folded mapping settings: the first for movement decoders, the second for [classifiers](GLOSSARY.md#classifier) | A decoder runs | [7.3](#73-settings-for-movement-decoders), [7.4](#74-settings-for-classifiers). |
+| **Apps you authorize** | Every application that asks for commands, with **Authorize** / **Revoke** | Applications are connected | [7.5](#75-apps-you-authorize). |
 | Footer line | *N applications connected*, then *\<app> waiting for: …* for each one that cannot run | Always | The console itself is not counted. |
 
-**Refusal example** for **Start control**: *protocol_error: decoder … declares +y up; the
-pointer workspace's +y is down: enable invert_y (console: Command output → Settings → Invert
-y)*.
+**Refusal example** for **Start sending**: *protocol_error: decoder … declares +y up; the
+pointer workspace's +y is down: enable invert_y (console: Send to apps → Adjust how the cursor
+moves → Flip up and down)*.
 
 **Reading the status line.** *On · x ← vx, y ← vy (inverted), gain 1.09; click ← click* means:
 the horizontal pointer velocity comes from the decoder output `vx`, the vertical from `vy`
 (inverted), multiplied by a gain of 1.09, and clicks come from the output `click`. For a
 classifier it reads like *select ← left; activate ← right* (action ← class).
 
-![Command output settings for the T15 replay](images/15-command-output-settings.png)
+![Send to apps settings for the T15 replay](images/15-command-output-settings.png)
 
 ### 7.3 Settings for movement decoders
 
-For decoders with continuous output (velocity). Open **Settings** to see them. The pointer moves
+For decoders with continuous output (velocity). Open **Adjust how the cursor moves** to see them. The pointer moves
 in the application's [workspace](GLOSSARY.md#workspace): the board's tile area, counted as 1 wide
 and 1 high, with y pointing down.
 
 | Control | What it does | Default; allowed values |
 | --- | --- | --- |
 | **Horizontal (x) from**, **Vertical (y) from** | Which decoder outputs drive the pointer. Both must come from the same decoder. | The decoder's first and second outputs |
-| **Gain** | Multiplies the decoder output to give pointer velocity. Its units depend on the decoder (below the table). | 1; above 0 and up to 10 |
-| **Dead-zone** | Outputs smaller than this are treated as zero, before the gain. Use 0 to pass every movement. | 0.3; 0 to just below 3 |
-| **Max speed** | Upper limit of the pointer speed on each axis, in workspaces per second (2 = across the whole board in half a second). | 2; above 0 and up to 10 |
-| **Invert y** | Flips the vertical direction. | Ticked automatically when the decoder declares that its +y points up; otherwise unticked |
+| **Speed (gain)** | Multiplies the decoder output to give pointer velocity. Its units depend on the decoder (below the table). | 1; above 0 and up to 10 |
+| **Ignore small movements (dead-zone)** | Outputs smaller than this are treated as zero, before the gain. Use 0 to pass every movement. | 0.3; 0 to just below 3 |
+| **Top speed** | Upper limit of the pointer speed on each axis, in workspaces per second (2 = across the whole board in half a second). | 2; above 0 and up to 10 |
+| **Flip up and down (invert y)** | Flips the vertical direction. | Ticked automatically when the decoder declares that its +y points up; otherwise unticked |
 | **Click from** | A decoder output that is a click probability or a 0/1 click decision (details below the table). | The running decoder's click output if it has one; otherwise **No click** |
 | **Click threshold** | The click output must reach this value. Shown once a click output is chosen. | 0.5; above 0 and up to 1 |
-| **Minimum confidence** | Clicks whose confidence is below this are not sent; they are counted as *clicks gated* ([10.2](#102-pipeline-details)). Shown once a click output is chosen. | 0; 0 to 1 |
+| **Minimum confidence** | Clicks whose confidence is below this are not sent; they are counted as *clicks gated* ([10.2](#102-decoder-details)). Shown once a click output is chosen. | 0; 0 to 1 |
 | **Click pause (ms)** | Minimum time between two clicks. Shown once a click output is chosen. | 300; 0 to 10000 |
-| **Apply settings** | Applies changed settings. Shown while command output is on; while it is off, the settings apply when you click **Start control**. | |
-| Problem line (amber) | *Check the settings: 0 < gain ≤ 10, 0 ≤ dead-zone < 3, 0 < max speed ≤ 10.*, *Check the click: …*, or *The click cannot come from a dimension that moves the pointer.* **Start control** stays grey until it is fixed. | |
+| **Apply settings** | Applies changed settings. Shown while command output is on; while it is off, the settings apply when you click **Start sending**. | |
+| Problem line (amber) | *Check the settings: 0 < gain ≤ 10, 0 ≤ dead-zone < 3, 0 < max speed ≤ 10.*, *Check the click: …*, or *The click cannot come from a dimension that moves the pointer.* **Start sending** stays grey until it is fixed. | |
 
-**Units of Gain and Dead-zone.** They depend on the decoder:
+**Units of speed (gain) and dead-zone.** They depend on the decoder:
 
 - **Concord-trained model**: the output is first divided by its training standard deviation.
   Gain 1 turns a typical training movement into 1 workspace per second, and the dead-zone is in
@@ -899,8 +954,8 @@ and 1 high, with y pointing down.
   Gain 1 means one of the decoder's own units per second, and the dead-zone is in the decoder's
   own units.
 
-**Invert y.** The screen's +y points down. When the decoder declares that its +y points up,
-**Invert y** is ticked for you, and starting without it is refused.
+**Flip up and down (invert y).** The screen's +y points down. When the decoder declares that its +y points up,
+**Flip up and down (invert y)** is ticked for you, and starting without it is refused.
 
 **Click from** lists the outputs of **every running decoder** other than the two pointer outputs,
 including a second decoder such as a recording's click decoder. Without a click, the board can
@@ -908,13 +963,14 @@ still select by dwelling ([11.8](#118-input-methods)).
 
 **The settings reset every time decoding starts.** They are filled in with their defaults when
 decoding starts, also when you restart the same decoder, and are kept while you edit. So after
-**Stop decoding** → **Start decoding**, enter your values again before **Start control** (for
-the T15 example in [7.7](#77-example-the-t15-recorded-decoder-on-the-board): **Gain** 1.09,
-**Dead-zone** 0, **Max speed** 10).
+**Stop decoding** → **Start decoding**, enter your values again before **Start sending** (for
+the T15 example in [7.7](#77-example-the-t15-recorded-decoder-on-the-board): **Speed (gain)** 1.09,
+**Ignore small movements (dead-zone)** 0, **Top speed** 10).
 
 ### 7.4 Settings for classifiers
 
-For decoders that output classes (for example rest, left, right). *The decoder estimates how
+For decoders that output classes (for example rest, left, right). Open **Choose what each
+decoded choice does** to see them. *The decoder estimates how
 likely each class is. An action is sent when a class stays above its threshold for the hold
 time; it can repeat only after the class drops back and the pause has passed.*
 
@@ -936,9 +992,9 @@ The actions for **When \<class> is held**:
   **Move down**, **Move left**, **Move right**;
 - text: **Type text**.
 
-### 7.5 Authorized applications
+### 7.5 Apps you authorize
 
-*Decoded commands reach only the applications you authorize here, until you revoke them.* Each
+*Decoded actions reach only the apps you authorize here, until you revoke them.* Each
 application that asks for commands is listed once by name, even if several windows of it are
 open: all windows of one application share one authorization.
 
@@ -957,35 +1013,35 @@ open: all windows of one application share one authorization.
 | *Authorized for … .* | Authorized; it will receive commands when command output provides them. |
 | *Authorized for … . Nothing to receive now.* | Authorized, but command output is off or provides none of these. |
 | *… It cannot run without …, which command output does not provide now.* | A capability it requires is missing. |
-| *Not connected. Authorized for … .* | Authorized, but no window of it is open. (For the Communication Board you will not see this while a console tab is open: each console tab contains a board, see [10.9](#109-communication-board-embedded).) |
+| *Not connected. Authorized for … .* | Authorized, but no window of it is open. (For the Communication Board you will not see this while a console tab is open: each console tab contains a board, see [10.9](#109-participant-screen-preview).) |
 
 **Why *1 application connected* (or more) shows before you open any board.** Every console tab
-contains an embedded copy of the communication board (**Advanced → Communication board**), which
-connects as an application. The footer counts every connection: each console tab's embedded
+contains an embedded copy of the communication board (**More tools → Participant screen
+preview**), which connects as an application. The footer counts every connection: each console tab's embedded
 board, plus each participant window. They all appear under the one name *Communication Board*
 and share its authorization. Close console tabs you don't use.
 
-### 7.6 Why Command output turned off (Last stopped)
+### 7.6 Why sending turned off (Last stopped)
 
 The line appears while a decoder runs and command output is off. It shows the most recent stop
 since Concord started, which can come from an earlier decoder or source.
 
 | *Last stopped: …* reason | Cause |
 | --- | --- |
-| *stopped by operator (console)* | You clicked **Stop control** |
+| *stopped by operator (console)* | You clicked **Stop sending** |
 | *source paused* | You paused the source |
 | *source link lost* | The source connection dropped; command output stays off after Concord reconnects |
 | *input stalled: no decoder input for N ms (limit L)* | No decoder input arrived for longer than the limit (1000 ms, or three bins if longer): a [router stall](GLOSSARY.md#router-stall) |
 | *decoder \<model> failed: …* | The decoder failed |
 | *stopped by operator* | You clicked **Stop decoding** while command output was on (or it was stopped through the programming interface without a reason) |
 | *device disconnected (…)* | The source was switched or disconnected while command output was on |
-| *safe stop by operator* | **Safe stop & disconnect**, **End session now**, quitting the app or `concord stop` |
+| *safe stop by operator* | **Stop everything**, **End session now**, quitting the app or `concord stop` |
 | *runtime error: …*, *source ended* | The source failed or ended |
 | *pipeline restarted*, *decoder failed to start*, *decoder start timed out* | Decoding was restarted, or its decoder could not start |
 | *disabled by operator* | A program using Concord's programming interface turned it off |
 
 After decoding stops, the source changes or a safe stop runs, command output stays off: start
-decoding and control again when you need them.
+decoding and sending again when you need them.
 
 ### 7.7 Example: the T15 recorded decoder on the board
 
@@ -995,17 +1051,18 @@ The [T15](GLOSSARY.md#t15) blocks carry the original research system's decoder o
 board:
 
 1. Connect **Cursor + click · Day 468 · block 3 · grid evaluation**.
-2. Click **Open participant screen** (in the **Command output** row). In the board window, click
+2. Click **Open participant screen** (in the **Send to apps** row). In the board window, click
    **Settings**, set **Layout** to **Task grid (N × N words)** (**Grid size N** is 14 by default),
    then **Close** ([11.6](#116-the-task-grid)).
 3. Back in the console: **Start decoding** → **Processing**: **Source decoder outputs
    (passthrough)** → **Start decoding**.
-4. **Command output → Settings**: **Gain** 1.09 (1 / 0.92: the original decoder's units are
-   screen heights per second, with targets in a square 0.92 screen heights wide;
-   [CONTROL_BRIDGE.md](CONTROL_BRIDGE.md#native-pointer-scale)), **Dead-zone** 0, **Max speed**
-   10. **Invert y** and **Click from** `click` are already set for you. If you stop and start
-   decoding again, these three values go back to their defaults: enter them again.
-5. **Start control**, then **Authorize** next to *Communication Board*.
+4. **Send to apps → Adjust how the cursor moves**: **Speed (gain)** 1.09 (1 / 0.92: the
+   original decoder's units are screen heights per second, with targets in a square 0.92 screen
+   heights wide; [CONTROL_BRIDGE.md](CONTROL_BRIDGE.md#native-pointer-scale)), **Ignore small
+   movements (dead-zone)** 0, **Top speed** 10. **Flip up and down (invert y)** and **Click
+   from** `click` are already set for you. If you stop and start decoding again, these three
+   values go back to their defaults: enter them again.
+5. **Start sending**, then **Authorize** next to *Communication Board*.
 
 The board then shows *Pointer and click* and *Input: historical decoder replay (original
 research system) · recorded data replay*, and labels the text *demonstration — not the
@@ -1015,7 +1072,7 @@ own screen was.
 
 ![The board driven by the replayed T15 decoder](images/16-board-t15.png)
 
-When you are done: **Stop control** (title bar), **Revoke**, **Stop decoding**.
+When you are done: **Stop sending** (title bar), **Revoke**, **Stop decoding**.
 
 ---
 
@@ -1056,12 +1113,12 @@ tab that stayed open and reconnected does not show them: reload it.
 
 | Control | Where | Effect |
 | --- | --- | --- |
-| **Stop control** | Title bar | Command output off immediately; nothing else changes |
-| **Revoke** | Command output → Authorized applications | That application stops receiving decoded commands |
-| **Pause** | Acquisition source → Options or Playback | The source pauses and command output turns off; **Resume** continues (control stays off) |
-| **Stop decoding** | Decoder row | Processing and decoder stop; command output turns off |
-| **Disconnect** | Acquisition source | The source stops; decoding and command output stop; any recording closes |
-| **Safe stop & disconnect** | Session strip | Command output off, recording closed, decoding stopped, source disconnected, in that order |
+| **Stop sending** | Title bar | Command output off immediately; nothing else changes |
+| **Revoke** | Step 4 · Send to apps → Apps you authorize | That application stops receiving decoded commands |
+| **Pause** | Step 1 · Data source, under the source | The source pauses and command output turns off; **Resume** continues (sending stays off) |
+| **Stop decoding** | Step 3 · Decoder | Processing and decoder stop; command output turns off |
+| **Disconnect** | Step 1 · Data source | The source stops; decoding and command output stop; any recording closes |
+| **Stop everything** | Session strip | Command output off, recording closed, decoding stopped, source disconnected, in that order |
 | **End session now** | Session panel | A safe stop, then the research session is closed |
 | Quitting the desktop app, or `concord stop` | Desktop app window, or a terminal | A safe stop, then Concord ends |
 
@@ -1069,17 +1126,37 @@ Simulated input is not command output: to stop it, pause or disconnect the simul
 
 ---
 
-## 10. Advanced
+## 10. More tools
 
-**Advanced** is the last part of the page, folded until you click it. Each section inside opens
-when you click its name. **Simulator controls** is listed only while Simulated Profile A or B is
-connected (not after an error).
+**More tools** is the last part of the page, always visible: *Everything else Concord can do.
+Each tool says what it is for; click Show to open it.* **About these tools** opens the in-app
+guide at its *More tools* section. Each tool is listed by name with what it does and when to use
+it, and opens with its own **Show** button (**Hide** closes it again). A closed tool shows
+nothing, except the **Participant screen preview**, which stays connected while hidden.
 
-![Advanced, with its sections folded](images/11-advanced.png)
+The tools are grouped:
 
-### 10.1 Event stream
+| Group | Tools |
+| --- | --- |
+| *Practice* | **Simulator controls** ([10.8](#108-simulator-controls)); the group is shown only while Simulated Profile A or B is connected (not after an error) |
+| *Watch what is happening* | **Participant screen preview** ([10.9](#109-participant-screen-preview)), **Live message feed** ([10.1](#101-live-message-feed)), **Source details** ([10.3](#103-source-details)), **Decoder details** ([10.2](#102-decoder-details)) |
+| *Record and manage data* | **Record data** ([10.5](#105-record-data)), **Saved data** ([10.12](#1012-saved-data)) |
+| *Apps* | **Connected apps** ([10.7](#107-connected-apps)) |
+| *Check and troubleshoot* | **Health check** ([10.4](#104-health-check)), **Source capabilities** ([10.6](#106-source-capabilities)), **Compatibility** ([10.11](#1011-compatibility)), **Self-tests** ([10.10](#1010-self-tests)), **Support report** ([10.13](#1013-support-report)) |
 
-Every piece of data Concord handles is an [event](GLOSSARY.md#event). This section lists the
+The sections below keep their earlier numbering; the screen shows the tools in the order of the
+table. In this guide, "**More tools → Record data**" means: under **More tools**, click **Show**
+next to **Record data**.
+
+![More tools, with every tool listed and closed](images/11-more-tools.png)
+
+### 10.1 Live message feed
+
+Group *Watch what is happening*. Its description in the list: *Every message passing through
+Concord, as it happens, each labelled with where it came from.* *When you want to see exactly
+what a source is sending.*
+
+Every piece of data Concord handles is an [event](GLOSSARY.md#event). This tool lists the
 latest 60 events this console receives, newest first (*Latest 60 events. Select a row to inspect
 its envelope.*).
 
@@ -1137,7 +1214,11 @@ Fields of the full event (the [envelope](GLOSSARY.md#envelope)):
 | `provenance.replayed` | Played back from a recording |
 | `payload` | The data itself (raw frames are shortened in this view) |
 
-### 10.2 Pipeline details
+### 10.2 Decoder details
+
+Group *Watch what is happening*. Its description in the list: *The full settings and counters of
+the running decoder: processing steps, timing and dropped data.* *When the decoder behaves
+unexpectedly.*
 
 What the decoding [pipeline](GLOSSARY.md#pipeline) is doing. All numbers are counted since
 decoding last started.
@@ -1181,9 +1262,13 @@ The latency table is headed **Measured**. Columns p50, p95, p99 and max ([latenc
 value that 50 %, 95 %, 99 % and all measurements stayed under; n: how many measurements.
 Compatibility warnings and *Last error: …* follow.
 
-### 10.3 Acquisition details
+### 10.3 Source details
 
-What this section shows depends on the source. Jump to:
+Group *Watch what is happening*. Its description in the list: *Everything known about the
+connected source: the file being played, live stream counters, or simulator readings.* *When you
+want more than the summary in step 1.*
+
+What this tool shows depends on the source. Jump to:
 [FALCON and AJILE12 files](#falcon-and-ajile12-files-recorded-data-source) ·
 [the activity plot](#the-activity-plot) · [T15 blocks](#t15-blocks) ·
 [simulated profiles](#simulated-profiles-device-telemetry) ·
@@ -1192,7 +1277,7 @@ What this section shows depends on the source. Jump to:
 
 #### FALCON and AJILE12 files: Recorded data source
 
-![Acquisition details of a FALCON file](images/10-dataset-details.png)
+![Source details of a FALCON file](images/10-dataset-details.png)
 
 | Line | Meaning |
 | --- | --- |
@@ -1236,7 +1321,7 @@ pipeline computes from a raw source). Band-power features are not drawn here.
 For the T15 blocks this plot is of limited use in 0.3.1: their recorded behavior is cursor and
 target position (not velocity), and the dashed line shows whichever of the two historical
 decoders reported last for each bin (usually the click decision). To see the historical outputs
-themselves, use the [Event stream](#101-event-stream) (`intent.kinematics` rows).
+themselves, use the [Live message feed](#101-live-message-feed) (`intent.kinematics` rows).
 
 #### T15 blocks
 
@@ -1293,7 +1378,10 @@ used to align streams ([time correction](GLOSSARY.md#time-correction)).
 *Device telemetry* (usually *No telemetry for the current session.*) and, when the plugin
 delivers features, the activity plot. Plugins have no live-counter panel in 0.3.1.
 
-### 10.4 Diagnostics
+### 10.4 Health check
+
+Group *Check and troubleshoot*. Its description in the list: *Speed, delays, dropped data and
+recent errors inside Concord.* *When something seems slow, stuck or incomplete.*
 
 *Every number below is measured live in this process (runtime) or this browser (client).*
 
@@ -1303,8 +1391,8 @@ delivers features, the activity plot. Plugins have no live-counter panel in 0.3.
 | **Runtime pipeline p50**, **p99** | Time from the adapter reading a packet to the checked event being queued for every application (median, 99th percentile; see [p50, p99](GLOSSARY.md#latency-p50-p95-p99)) | Growing steadily |
 | **Delivery p95** | Time from queued to written to the network connection | Growing steadily |
 | **Client p50**, **Client p95** | Time from Concord receiving an event to this tab receiving it, in ms | Growing steadily |
-| **Contract violations** | Sum of decode errors, validation errors and undeclared-capability events ([contract violation](GLOSSARY.md#contract-violation)) | Any increase, except after a deliberate **Malformed packet**, or while replaying a recording made during decoding ([4.6](#46-session-recordings-replay-and-other-sources)) |
-| **Subscriber drops** | Events dropped because an application or console tab could not take them in time (each keeps up to 2,048 waiting events; [subscriber drops](GLOSSARY.md#subscriber-drops)) | Any increase: see [10.7](#107-connected-applications) for which one |
+| **Contract violations** | Sum of decode errors, validation errors and undeclared-capability events ([contract violation](GLOSSARY.md#contract-violation)) | Any increase, except after a deliberate **Malformed packet**, or while replaying a recording made during decoding ([4.6](#46-your-recordings-and-other-sources)) |
+| **Subscriber drops** | Events dropped because an application or console tab could not take them in time (each keeps up to 2,048 waiting events; [subscriber drops](GLOSSARY.md#subscriber-drops)) | Any increase: see [10.7](#107-connected-apps) for which one |
 | **Reconnects ok / tried** | Successful / attempted source reconnections | Amber after any link error |
 | **Uptime** | Seconds since Concord started | |
 
@@ -1330,11 +1418,15 @@ p99, max), **Device switches** (time, from → to, how long the switch took; *No
 **Recent errors** (the last 15: time, kind, source, message; *No errors recorded.*), and
 **Process** (Python version, platform, machine, process id).
 
-### 10.5 Recording
+### 10.5 Record data
+
+Group *Record and manage data*. Its description in the list: *Save the data from the connected
+source to a file, and see earlier recordings.* *To keep a copy of a session, or to play it back
+later as a source.*
 
 Writes the events of the connected source to the data folder's `recordings` folder, including
 features and decoder output while decoding runs. A recording made while decoding runs is for
-training a decoder; in 0.3.1 it does not replay cleanly ([4.6](#46-session-recordings-replay-and-other-sources)).
+training a decoder; in 0.3.1 it does not replay cleanly ([4.6](#46-your-recordings-and-other-sources)).
 To make a recording for replay, record with decoding off.
 
 | Control | What it does | When you see it | Notes / units / defaults |
@@ -1353,10 +1445,14 @@ To make a recording for replay, record with decoding off.
 A recording that reaches a limit stops cleanly and is complete and replayable; the session log
 says *Recording stopped: \<name>* (the console does not say which limit). Limits can be raised in
 the [configuration file](#15-configuration-file), up to 24 hours and 100 GiB. Recordings appear
-under **Session recordings (replay)** and in the **Calibrate…** panel. For long raw archival,
+under **Your recordings** and in the **Train a decoder…** panel. For long raw archival,
 use your acquisition software.
 
-### 10.6 Capability contract
+### 10.6 Source capabilities
+
+Group *Check and troubleshoot*. Its description in the list: *What each available source says it
+can provide, for example raw signals, pointer movement or selections.* *To see why an app or
+decoder cannot use a source.*
 
 What every source can provide, in Concord's vocabulary of [capabilities](GLOSSARY.md#capability).
 What capabilities are and why they matter:
@@ -1365,7 +1461,7 @@ What capabilities are and why they matter:
 **Capability matrix**: one row per capability, and one column per source in Concord's list, not
 only the connected one. The columns come in this order: the simulated profiles, your session
 recordings, the dataset files (FALCON before T15), then the registered live sources. This is not
-quite the order of the **Connect a source** panel, which lists session recordings after the
+quite the order of the **Choose a data source** panel, which lists session recordings after the
 dataset files. *Yes* plus its details means the source declares it; *—* means it does not.
 Several columns can have the same heading (for example the FALCON files); tell them apart by
 their order. A connected plugin source is added as the last column.
@@ -1405,7 +1501,10 @@ events carry each, and which can ever reach an application. The links */api/v1/s
 (the event format as JSON Schema; [schema](GLOSSARY.md#schema)) and */docs* (the programming
 interface) are for developers.
 
-### 10.7 Connected applications
+### 10.7 Connected apps
+
+Group *Apps*. Its description in the list: *The apps connected to Concord and what each one
+asked for and was given.* *When an app does not respond to the decoder.*
 
 Every program connected to Concord, including each console tab itself (*Operator Console*) and
 each communication board (embedded or in its own window). When a program connects, Concord gives
@@ -1422,12 +1521,16 @@ it the capabilities it asked for that the source provides
 
 ### 10.8 Simulator controls
 
+Group *Practice*. Its description in the list: *Steer the simulated device by hand: drag to move
+the pointer, click to select, or add faults such as dropouts.* *To practise with the participant
+screen, or to see how Concord reacts to problems.*
+
 You stand in for the participant's intent ([simulated intent](GLOSSARY.md#simulated-intent)).
 No neural decoding is involved. Shown only while Simulated Profile A or B is connected (not after
 an error). It is not shown for other synthetic sources, such as the LSL test stream or a plugin's
-synthetic board: nothing can be simulated or injected there. It has two parts: **Simulated
-intention** (the pad, **Select** and the text field) and **Fault injection** (the fault
-buttons).
+synthetic board: nothing can be simulated or injected there. It has two parts: **Play the
+participant** (the pad, **Select** and the text field) and **Try a problem (fault injection)**
+(the fault buttons, each explained under its heading).
 
 ![Simulator controls](images/04-simulator-controls.png)
 
@@ -1435,32 +1538,41 @@ buttons).
 | --- | --- | --- | --- |
 | Pad | **A joystick**: pull the dot away from the centre and the board's cursor keeps moving in that direction, faster the further you pull; let go and it springs back. Profile A adds a little random noise to every movement, so even at rest the cursor drifts slowly | Profile A | Use small, short pulls: holding the dot off-centre makes the cursor overshoot. *Simulated Profile B has no pointer intent* on Profile B. |
 | **Select** | Sends one select action | Both profiles | On the board this chooses (Pointer and click, Scanning) or moves (Direct selection). |
-| Keyboard | Arrow keys or W A S D move (like the dot pulled 60 % of the way); Space or Enter selects | While this section is open and the console window has focus | Not while typing in a text field. While this section is open, Space and Enter send **Select** even if a console button has keyboard focus. |
+| Keyboard | Arrow keys or W A S D move (like the dot pulled 60 % of the way); Space or Enter selects | While this tool is shown and the console window has focus | Not while typing in a text field. While this tool is shown, Space and Enter send **Select** even if a console button has keyboard focus. |
 | *Velocity 0.00, 0.00 · N sent* | The current joystick velocity, and how many selections and texts were sent | Always | *sent* does not count movements. |
 | Text field and **Send text** | Sends up to 32 characters of text to the board | Profile B | Placeholder *Text intent, for example: hi*; on Profile A *This profile has no text intent* (greyed out). |
 
-**Fault injection** ([fault injection](GLOSSARY.md#fault-injection)) tests how Concord and
+**Try a problem (fault injection)** ([fault injection](GLOSSARY.md#fault-injection)) tests how Concord and
 applications react. Each fault is logged as *Injected fault: …*.
 
 | Button | What happens | What you see | How to recover |
 | --- | --- | --- | --- |
-| **Link drop** | The link drops once | Within a second: *Link lost, reconnecting: sim-a: simulated link drop*, then *Streaming (reconnected after 1 attempt(s))*. Too fast to see in the title bar; **Diagnostics** counts it (*Reconnects ok / tried*, *link errors*). | Nothing: Concord reconnects by itself. Command output, if it was on, stays off. |
-| **Link failure** | The link drops and every reconnect fails | After about 2 s: *Source stopped with an error* (red dot) in the title bar, the error in a grey box in the source row, **Reset** | Click **Reset**, then **Connect a source** ([2.3](#23-source-stopped-with-an-error-and-reset)). |
+| **Link drop** | The link drops once | Within a second: *Link lost, reconnecting: sim-a: simulated link drop*, then *Streaming (reconnected after 1 attempt(s))*. Too fast to see in the title bar; **Health check** counts it (*Reconnects ok / tried*, *link errors*). | Nothing: Concord reconnects by itself. Command output, if it was on, stays off. |
+| **Link failure** | The link drops and every reconnect fails | After about 2 s: *Source stopped with an error* (red dot) in the title bar, the error in a grey box in the source row, **Reset** | Click **Reset**, then **Choose a source** ([2.3](#23-source-stopped-with-an-error-and-reset)). |
 | **Malformed packet** | The next packet is corrupt | *Decode error: CRC mismatch*; **Contract violations** +1 | Nothing: the packet is dropped and counted. |
 | **Clock regression** | The next packet's device clock jumps back | *Timestamp regression: device clock went backwards by … ms*; the event is flagged | Nothing. |
 
-### 10.9 Communication board (embedded)
+### 10.9 Participant screen preview
 
-*A separate demo app with its own connection. It uses only the SDK and adapts to the
-capabilities the runtime grants; it contains no device-specific code.* A full copy of the
-communication board inside the console, for watching what the participant sees.
+Group *Watch what is happening*. Its description in the list: *A live copy of the communication
+board, the screen the person using the BCI sees.* *Watch the board from this screen. For the
+person using it, use Open participant screen instead.*
+
+*This is a preview. For the person using the BCI, click Open participant screen in step 4, or
+open it in a new tab.* A full copy of the communication board inside the console, for watching
+what the participant sees. It is a separate demo app with its own connection: it uses only the
+SDK, adapts to the capabilities Concord grants, and contains no device-specific code.
 
 - It is a separate application: it counts as one more *Communication Board* connection, and it
   shares the board's authorization and its saved settings ([11.10](#1110-how-settings-are-stored-and-url-options)).
-- It stays connected even while folded.
-- **Open in a new window** opens the board in a new browser tab.
+- It stays connected even while hidden.
+- The link **open it in a new tab** opens the board in a new browser tab.
 
-### 10.10 Tests
+### 10.10 Self-tests
+
+Group *Check and troubleshoot*. Its description in the list: *The results of Concord's own
+automated tests, when this copy was built from source.* *To confirm a developer build passed its
+checks.*
 
 Shows the results of Concord's own automated test suite. In an installed Concord it says: *No
 test results on this computer. This section shows the results of Concord's own test suite when
@@ -1472,6 +1584,10 @@ skipped · duration · when), **Show N test cases** / **Hide**, and **Reload**. 
 itself.
 
 ### 10.11 Compatibility
+
+Group *Check and troubleshoot*. Its description in the list: *Which recording systems and
+formats Concord has been tested with, and how far each was tested.* *Before using Concord with
+your own equipment.*
 
 Every integration Concord has (simulated profiles, recording replay, the datasets, LSL, Open
 Ephys, the example plugin, BrainFlow, BCI2000) and the [validation level](GLOSSARY.md#validation-level)
@@ -1491,11 +1607,15 @@ levels: [VALIDATION_LEVELS.md](VALIDATION_LEVELS.md); the full table:
 **Reload** reads the registry again. No entry has reached hardware or human-participant
 validation.
 
-### 10.12 Stored data
+### 10.12 Saved data
+
+Group *Record and manage data*. Its description in the list: *What Concord has stored on this
+computer, how much space it uses, and how to delete it.* *To free up space or remove recordings
+you no longer need.*
 
 What Concord keeps in the data folder, and deletion.
 
-![Stored data and support report](images/12-stored-data-and-support.png)
+![Saved data and support report](images/12-stored-data-and-support.png)
 
 | Control | What it does | When you see it | Notes / units / defaults |
 | --- | --- | --- | --- |
@@ -1509,11 +1629,14 @@ What Concord keeps in the data folder, and deletion.
 | **Delete** | Asks *Delete \<name> permanently?* | Each item | An active recording and the active session have no **Delete**; Concord refuses to delete anything else in use. |
 | **Delete** (red) / **Cancel** | Deletes / keeps | After **Delete** | Logged as *Deleted … (size)*. |
 
-The lists are read when you open the section; fold and open it again to refresh. *Deleting
+The lists are read when you open the tool; click **Hide** and **Show** again to refresh. *Deleting
 removes the files from the data directory. It does not erase copies elsewhere: exports you
 shared, backups or snapshots.* More on what is and is not protected: [SECURITY.md](SECURITY.md).
 
 ### 10.13 Support report
+
+Group *Check and troubleshoot*. Its description in the list: *A file describing your setup and
+recent errors, without your recordings or notes.* *When asking someone for help with a problem.*
 
 For whoever helps you with your installation; the same report as `concord doctor`.
 
@@ -1536,9 +1659,9 @@ capabilities the connected source and command output provide.
 
 | How | Where | Notes |
 | --- | --- | --- |
-| **Open participant screen** | Command output row | A 1280 × 800 window for a second screen facing the participant; a new tab if pop-ups are blocked. |
-| **Advanced → Communication board** | Inside the console | The embedded copy ([10.9](#109-communication-board-embedded)). |
-| **Open in a new window** | Advanced → Communication board | A new tab. |
+| **Open participant screen** | Send to apps (step 4) | A 1280 × 800 window for a second screen facing the participant; a new tab if pop-ups are blocked. |
+| **More tools → Participant screen preview** | Inside the console | The embedded copy ([10.9](#109-participant-screen-preview)). |
+| **open it in a new tab** (link) | More tools → Participant screen preview | A new tab. |
 | http://127.0.0.1:8000/board.html | Any browser on this computer | Add URL options ([11.10](#1110-how-settings-are-stored-and-url-options)). |
 
 Make the window wider than 900 pixels to see the **History** panel.
@@ -1550,7 +1673,7 @@ Make the window wider than 900 pixels to see the **History** panel.
 | Part | What it shows | Notes |
 | --- | --- | --- |
 | *Communication board* | Name | |
-| *Research use only* | Reminder | |
+| *Research use only · not a medical device* | Reminder | Hover: *Research software. Not a medical device. Not for clinical or commercial use.* |
 | Method (green dot when active) | The input method in use: *Pointer and click*, *Pointer with dwell selection*, *Directional navigation*, *Direct selection*, *Scanning*, or *Waiting* | |
 | Connection | *Connected to Concord*, *Connecting*, *Reconnecting*, *Disconnected*, *Not connected*, *Connection refused* | *Reconnecting* after Concord quits; close the window then. |
 | **Settings** | Opens **Board settings** ([11.9](#119-board-settings)) | For the caregiver or experimenter. |
@@ -1582,7 +1705,7 @@ The board reacts only to input from Concord (the simulator, or decoded commands 
 output). Clicking a tile with the mouse or pressing keys on the board does nothing, by design:
 every choice on the board must come from the source, so that what is recorded and shown is what
 the source produced. The only mouse-operated parts are **Settings** and the settings panel. To
-try the board by hand, connect a simulated profile and use **Advanced → Simulator controls**.
+try the board by hand, connect a simulated profile and use **More tools → Simulator controls**.
 
 ### 11.4 The phrases page
 
@@ -1696,7 +1819,7 @@ The board picks the first method the source supports, in this order, unless you 
 
 In every method, a cancel action undoes the last change (or cancels a pending confirmation, or
 returns row scanning to rows). The cursor speed is not a board setting: it is set by the
-operator in **Command output → Settings** ([7.3](#73-settings-for-movement-decoders)).
+operator in **Send to apps → Adjust how the cursor moves** ([7.3](#73-settings-for-movement-decoders)).
 
 ### 11.9 Board settings
 
@@ -1764,15 +1887,15 @@ The full reference for evaluation harnesses: [APPLICATIONS.md](APPLICATIONS.md).
 
 | You see | Why | What to do |
 | --- | --- | --- |
-| A *Communication Board* is listed under **Authorized applications**, and *1 application connected* shows before you opened any board (one more per extra console tab or participant screen) | Each console tab contains the embedded board, which counts as one application | Normal ([7.5](#75-authorized-applications)). Close console tabs you don't use. |
+| A *Communication Board* is listed under **Apps you authorize**, and *1 application connected* shows before you opened any board (one more per extra console tab or participant screen) | Each console tab contains the embedded board, which counts as one application | Normal ([7.5](#75-apps-you-authorize)). Close console tabs you don't use. |
 | *Receiving pointer movement, discrete actions.* next to **Authorize** | A simulated profile drives the board without authorization | Normal ([7.1](#71-when-commands-reach-an-application)). |
-| **Stop control** is grey | Command output is off | Nothing to stop. |
+| **Stop sending** is grey | Sending to apps (command output) is off | Nothing to stop. |
 | **Data received (%)** shows *—* | Only LSL and Open Ephys report losses | Normal for other sources. |
-| *Gaps detected* although the source is fine | An application or console tab fell behind and dropped events | **Advanced → Connected applications**: find the one with *dropped* rising; close it. |
+| *Gaps detected* although the source is fine | An application or console tab fell behind and dropped events | **More tools → Connected apps**: find the one with *dropped* rising; close it. |
 | The board's cursor moves but never clicks | No click output is mapped | Choose **Click from** ([7.3](#73-settings-for-movement-decoders)), or use dwell selection. |
 | Clicking tiles on the board does nothing | By design | [11.3](#113-mouse-clicks-on-tiles-do-nothing). |
-| **Start recording** is grey | A file replay is connected | Record a simulated or live source ([10.5](#105-recording)). |
-| A replayed recording logs many *Undeclared capability* entries (and may show *No signal*) | It was recorded while decoding ran, or with features and labels only | Use it for training, not replay ([4.6](#46-session-recordings-replay-and-other-sources)). To make a recording for replay, record with decoding off. |
+| **Start recording** is grey | A file replay is connected | Record a simulated or live source ([10.5](#105-record-data)). |
+| A replayed recording logs many *Undeclared capability* entries (and may show *No signal*) | It was recorded while decoding ran, or with features and labels only | Use it for training, not replay ([4.6](#46-your-recordings-and-other-sources)). To make a recording for replay, record with decoding off. |
 | The board keeps old words from another source | The message keeps everything until cleared | Press **Clear** before changing source. |
 | An export disappeared after **End session now** | The session panel closes with the session | It is in `sessions/<id>/exports/` in the data folder. |
 | The console says *Connection to Concord lost, reconnecting* | Concord stopped | Start Concord again, or close the tab if you quit it. |
@@ -1860,7 +1983,7 @@ rehearsing the console workflow; they are not hardware tests. Stop one with Ctrl
 | --- | --- | --- | --- |
 | `concord publish lsl-ephys` | A synthetic broadband signal over LSL (stream *Concord synthetic ephys*, type EEG) plus a 2-dimensional *latent velocity* behavior stream that the signal encodes | `--channels` 32, `--rate` 30000, `--chunk-ms` 10, `--source-id` concord-synthetic-ephys, `--unit` microvolts (`none` to omit), `--seed` 0, `--no-latent` (no behavior stream) | *LSL · Concord synthetic ephys (EEG) — declared synthetic*; title bar *Simulated data*. Good for rehearsing calibration. |
 | `concord publish falcon <file.nwb>` | A FALCON H1 file over LSL in real time: spike counts (*SpikeCounts*), kinematics (*Behavior*) and trial markers (*Markers*) | `--speed` 1, `--loop`, `--source-prefix` | *Recorded data, streamed replay (declared)* |
-| `concord publish openephys` | The Open Ephys ZMQ Interface format with a synthetic signal | `--host` 127.0.0.1, `--port` 5556 (heartbeat on the next port), `--channels` 16, `--rate` 30000, `--block-size` 1024, `--seed` 0 | Add it with **Add Open Ephys source** (same port). Shown as *Live stream, origin unverified*: the protocol cannot carry the declaration. |
+| `concord publish openephys` | The Open Ephys ZMQ Interface format with a synthetic signal | `--host` 127.0.0.1, `--port` 5556 (heartbeat on the next port), `--channels` 16, `--rate` 30000, `--block-size` 1024, `--seed` 0 | Add it with **Connect to Open Ephys** (same port). Shown as *Live stream, origin unverified*: the protocol cannot carry the declaration. |
 
 FALCON files downloaded with `concord dataset` are in `<data folder>/datasets/dandi-000954/`;
 files you put there yourself may be directly in `datasets/`. Give the full path. More rehearsal
@@ -1919,7 +2042,7 @@ Command-line options (`--port`, `--data-dir`, …) override both for one run.
 `~/Library`, `AppData` and `~/.local` are hidden folders. On a Mac, use Finder's **Go → Go to
 Folder…**; on Windows, type `%LOCALAPPDATA%\Concord\data` in File Explorer's address bar; on
 Linux, press Ctrl+L in the file manager and paste the path. The exact path is shown in
-**Advanced → Stored data**.
+**More tools → Saved data**.
 
 | Folder in the data folder | Content |
 | --- | --- |
@@ -1973,328 +2096,344 @@ explains it. Labels that appear in several places list each section.
 | Label | Where | Section |
 | --- | --- | --- |
 | **.** | Board letters page (full-stop tile) | [11.5](#115-the-letters-page-and-word-prediction) |
-| **0.5× 1× 2× 4× 8×** | Acquisition source → Playback | [4.1](#41-the-row) |
-| **↺** | Advanced → Event stream (Provenance column) | [10.1](#101-event-stream) |
-| **Acquisition details** | Advanced | [10.3](#103-acquisition-details) |
-| **Acquisition source** | Area 3 | [4](#4-acquisition-source) |
-| **Activate** | Command output → Settings → When \<class> is held | [7.4](#74-settings-for-classifiers) |
-| **Add Open Ephys source** | Connect a source panel → Live streams | [4.8](#48-live-streams-open-ephys) |
-| **Add source** | Find LSL streams; Add Open Ephys source | [4.7](#47-live-streams-lsl), [4.8](#48-live-streams-open-ephys) |
-| **Advanced** | Bottom of the console (area 8) | [10](#10-advanced) |
-| **All feature events in the recording** | Calibrate a decoder → Feature source | [6.5](#65-the-calibrate-panel) |
+| **0.5× 1× 2× 4× 8×** | Data source (step 1), under the source | [4.1](#41-the-row) |
+| **↺** | More tools → Live message feed (Provenance column) | [10.1](#101-live-message-feed) |
+| **About these tools** | More tools | [10](#10-more-tools) |
+| **Activate** | Send to apps → Choose what each decoded choice does → When \<class> is held | [7.4](#74-settings-for-classifiers) |
+| **Add source** | Find LSL streams on this network; Connect to Open Ephys | [4.7](#47-live-equipment-lsl), [4.8](#48-live-equipment-open-ephys) |
+| **Add-ons (plugins)** | Choose a data source panel (group) | [4.9](#49-add-ons-plugins) |
+| **Adjust how the cursor moves** | Send to apps (step 4), movement decoders | [7.2](#72-the-row), [7.3](#73-settings-for-movement-decoders) |
+| **All feature events in the recording** | Train a decoder → Feature source | [6.5](#65-the-train-a-decoder-panel) |
 | **Allow a model trained on a different source** | Start decoding panel | [6.2](#62-the-start-decoding-panel) |
-| **Apply settings** | Command output → Settings | [7.3](#73-settings-for-movement-decoders), [7.4](#74-settings-for-classifiers) |
+| **Apply settings** | Send to apps → Adjust how the cursor moves | [7.3](#73-settings-for-movement-decoders), [7.4](#74-settings-for-classifiers) |
+| **Apps you authorize** | Send to apps (step 4) | [7.2](#72-the-row), [7.5](#75-apps-you-authorize) |
 | **Audio tick on every selection** | Board settings | [11.9](#119-board-settings) |
-| **Authorize** | Command output → Authorized applications | [7.5](#75-authorized-applications) |
-| **Authorized applications** | Command output row | [7.2](#72-the-row), [7.5](#75-authorized-applications) |
+| **Authorize** | Send to apps → Apps you authorize | [7.5](#75-apps-you-authorize) |
 | **Automatic (now: …)** | Board settings → Input method | [11.8](#118-input-methods), [11.9](#119-board-settings) |
 | **Band high (Hz)** | Start decoding panel | [6.2](#62-the-start-decoding-panel) |
 | **Band low (Hz)** | Start decoding panel | [6.2](#62-the-start-decoding-panel) |
 | **Band power** | Start decoding panel → Processing | [6.3](#63-processing-presets) |
-| **Behavior** | Advanced → Acquisition details (FALCON, AJILE12) | [10.3](#103-acquisition-details) |
-| **Behavior stream (optional)** | Find LSL streams, after Use | [4.7](#47-live-streams-lsl) |
+| **Behavior** | More tools → Source details (FALCON, AJILE12) | [10.3](#103-source-details) |
+| **Behavior stream (optional)** | Find LSL streams on this network, after Use | [4.7](#47-live-equipment-lsl) |
 | **Bin (ms)** | Start decoding panel | [6.2](#62-the-start-decoding-panel) |
-| **Bins** | Calibration report | [6.5](#65-the-calibrate-panel) |
+| **Bins** | Train a decoder → report | [6.5](#65-the-train-a-decoder-panel) |
 | **Board settings** | Board → Settings | [11.9](#119-board-settings) |
-| **Calibrate a decoder** | Panel opened by Calibrate… | [6.5](#65-the-calibrate-panel) |
-| **Calibrate…** | Decoder row | [6.1](#61-the-row), [6.5](#65-the-calibrate-panel) |
-| **Cancel** | Session panel, after End session…; When \<class> is held; Advanced → Stored data | [3.3](#33-session-and-export), [7.4](#74-settings-for-classifiers), [10.12](#1012-stored-data) |
-| **Capability contract** | Advanced | [10.6](#106-capability-contract) |
-| **Capability matrix** | Advanced → Capability contract | [10.6](#106-capability-contract) |
-| **Capability vocabulary** | Advanced → Capability contract | [10.6](#106-capability-contract) |
-| **Change source** | Acquisition source row; panel title | [4.1](#41-the-row), [4.3](#43-the-connect-a-source-panel) |
-| **Channels** | Find LSL streams results; Signal integrity | [4.7](#47-live-streams-lsl), [5](#5-signal-integrity) |
-| **Channels (N)** | Advanced → Acquisition details (FALCON) | [10.3](#103-acquisition-details) |
-| **Check labels** | Calibrate a decoder | [6.5](#65-the-calibrate-panel) |
-| **Class names (optional)** | Calibrate a decoder | [6.5](#65-the-calibrate-panel) |
+| **Cancel** | Session panel, after End session…; When \<class> is held; More tools → Saved data | [3.3](#33-session-and-export), [7.4](#74-settings-for-classifiers), [10.12](#1012-saved-data) |
+| **Capability matrix** | More tools → Source capabilities | [10.6](#106-source-capabilities) |
+| **Capability vocabulary** | More tools → Source capabilities | [10.6](#106-source-capabilities) |
+| **Change source** | Data source (step 1); panel title | [4.1](#41-the-row), [4.3](#43-the-choose-a-data-source-panel) |
+| **Channels** | Find LSL streams on this network results | [4.7](#47-live-equipment-lsl) |
+| **Channels (N)** | More tools → Source details (FALCON) | [10.3](#103-source-details) |
+| **Channels arriving** | Signal check (step 2) | [5](#5-step-2-signal-check) |
+| **Check labels** | Train a decoder | [6.5](#65-the-train-a-decoder-panel) |
+| **Choose a data source** | Title of the source panel | [4.3](#43-the-choose-a-data-source-panel) |
+| **Choose a source** | Data source (step 1) | [4.1](#41-the-row) |
+| **Choose what each decoded choice does** | Send to apps (step 4), classifiers | [7.2](#72-the-row), [7.4](#74-settings-for-classifiers) |
+| **Class names (optional)** | Train a decoder | [6.5](#65-the-train-a-decoder-panel) |
 | **Clear** | Board phrases and letters pages (tile) | [11.4](#114-the-phrases-page), [11.5](#115-the-letters-page-and-word-prediction) |
 | **Clear history** | Board settings | [11.9](#119-board-settings) |
-| **Click** | Calibrate a decoder → What the decoder should output | [6.5](#65-the-calibrate-panel) |
+| **Click** | Train a decoder → What the decoder should output | [6.5](#65-the-train-a-decoder-panel) |
 | **Click / switch debounce (ms)** | Board settings | [11.9](#119-board-settings) |
-| **click classifier** | Calibrate a decoder → Decoder family | [6.5](#65-the-calibrate-panel) |
-| **Click events (held-out)** | Calibration report | [6.5](#65-the-calibrate-panel) |
-| **Click from** | Command output → Settings | [7.3](#73-settings-for-movement-decoders) |
-| **Click pause (ms)** | Command output → Settings | [7.3](#73-settings-for-movement-decoders) |
-| **Click threshold** | Command output → Settings | [7.3](#73-settings-for-movement-decoders) |
-| **clicks gated** | Advanced → Pipeline details | [10.2](#102-pipeline-details) |
-| **Client p50**, **Client p95** | Advanced → Diagnostics | [10.4](#104-diagnostics) |
-| **Clock offset** | Advanced → Acquisition details (Open Ephys) | [10.3](#103-acquisition-details) |
-| **Clock regression** | Advanced → Simulator controls | [10.8](#108-simulator-controls) |
-| **Close** | Every panel that slides in; Board settings; Event stream envelope | [1](#1-the-console-at-a-glance), [4.3](#43-the-connect-a-source-panel), [11.9](#119-board-settings), [10.1](#101-event-stream) |
-| **Command output** | Area 6 | [7](#7-command-output) |
-| **Command router** | Advanced → Pipeline details | [10.2](#102-pipeline-details) |
-| **commands out** | Advanced → Pipeline details | [10.2](#102-pipeline-details) |
-| **Communication board** | Advanced (embedded board) | [10.9](#109-communication-board-embedded), [11](#11-the-communication-board) |
-| **Compatibility** | Advanced | [10.11](#1011-compatibility) |
+| **click classifier** | Train a decoder → Decoder family | [6.5](#65-the-train-a-decoder-panel) |
+| **Click events (held-out)** | Train a decoder → report | [6.5](#65-the-train-a-decoder-panel) |
+| **Click from** | Send to apps → Adjust how the cursor moves | [7.3](#73-settings-for-movement-decoders) |
+| **Click pause (ms)** | Send to apps → Adjust how the cursor moves | [7.3](#73-settings-for-movement-decoders) |
+| **Click threshold** | Send to apps → Adjust how the cursor moves | [7.3](#73-settings-for-movement-decoders) |
+| **clicks gated** | More tools → Decoder details | [10.2](#102-decoder-details) |
+| **Client p50**, **Client p95** | More tools → Health check | [10.4](#104-health-check) |
+| **Clock offset** | More tools → Source details (Open Ephys) | [10.3](#103-source-details) |
+| **Clock regression** | More tools → Simulator controls | [10.8](#108-simulator-controls) |
+| **Close** | Every panel that slides in; Board settings; Live message feed envelope | [1](#1-the-console-at-a-glance), [4.3](#43-the-choose-a-data-source-panel), [11.9](#119-board-settings), [10.1](#101-live-message-feed) |
+| **Command router** | More tools → Decoder details | [10.2](#102-decoder-details) |
+| **commands out** | More tools → Decoder details | [10.2](#102-decoder-details) |
+| **Compatibility** | More tools | [10.11](#1011-compatibility) |
 | **Concord** | Title bar; desktop app window | [2.1](#21-controls-in-the-title-bar), [13](#13-the-desktop-app) |
 | **Confirm within (ms)** | Board settings | [11.9](#119-board-settings) |
 | **Confirmation** | Board settings | [11.9](#119-board-settings) |
-| **Confusion** | Calibration report | [6.5](#65-the-calibrate-panel) |
-| **Connect** | Connect a source panel | [4.3](#43-the-connect-a-source-panel) |
-| **Connect a source** | Acquisition source row; panel title | [4.1](#41-the-row), [4.3](#43-the-connect-a-source-panel) |
-| **Connected applications** | Advanced | [10.7](#107-connected-applications) |
-| **Continuous movement** | Calibrate a decoder → What the decoder should output | [6.5](#65-the-calibrate-panel) |
-| **Contract violations** | Advanced → Diagnostics | [10.4](#104-diagnostics) |
-| **Counters** | Advanced → Diagnostics | [10.4](#104-diagnostics) |
+| **Confusion** | Train a decoder → report | [6.5](#65-the-train-a-decoder-panel) |
+| **Connect** | Choose a data source panel | [4.3](#43-the-choose-a-data-source-panel) |
+| **Connect to Open Ephys** | Choose a data source panel → Live equipment | [4.8](#48-live-equipment-open-ephys) |
+| **Connected apps** | More tools | [10.7](#107-connected-apps) |
+| **Continuous movement** | Train a decoder → What the decoder should output | [6.5](#65-the-train-a-decoder-panel) |
+| **Contract violations** | More tools → Health check | [10.4](#104-health-check) |
+| **Counters** | More tools → Health check | [10.4](#104-health-check) |
 | **Create export bundle** | Session panel | [3.3](#33-session-and-export) |
-| **Create support report** | Advanced → Support report | [10.13](#1013-support-report) |
-| **Data port** | Add Open Ephys source | [4.8](#48-live-streams-open-ephys) |
-| **Data received (%)** | Signal integrity | [5](#5-signal-integrity) |
-| **Dataset** | Advanced → Acquisition details (FALCON, AJILE12) | [10.3](#103-acquisition-details) |
-| **Dead-zone** | Command output → Settings | [7.3](#73-settings-for-movement-decoders) |
-| **Declared** | Find LSL streams results | [4.7](#47-live-streams-lsl) |
-| **decoded in** | Advanced → Pipeline details | [10.2](#102-pipeline-details) |
-| **decoded out** | Advanced → Pipeline details | [10.2](#102-pipeline-details) |
-| **Decoder** | Area 5; model details; Pipeline details; Acquisition details (FALCON) | [6](#6-decoder), [6.4](#64-decoder-models), [10.2](#102-pipeline-details), [10.3](#103-acquisition-details) |
-| **decoder failures** | Advanced → Pipeline details | [10.2](#102-pipeline-details) |
-| **Decoder family** | Calibrate a decoder | [6.5](#65-the-calibrate-panel) |
+| **Create support report** | More tools → Support report | [10.13](#1013-support-report) |
+| **Data port** | Connect to Open Ephys | [4.8](#48-live-equipment-open-ephys) |
+| **Data received (%)** | Signal check | [5](#5-step-2-signal-check) |
+| **Data source** | Area 5 | [4](#4-step-1-data-source) |
+| **Dataset** | More tools → Source details (FALCON, AJILE12) | [10.3](#103-source-details) |
+| **Declared** | Find LSL streams on this network results | [4.7](#47-live-equipment-lsl) |
+| **decoded in** | More tools → Decoder details | [10.2](#102-decoder-details) |
+| **decoded out** | More tools → Decoder details | [10.2](#102-decoder-details) |
+| **Decoder** | Area 7; model details; Decoder details; Source details (FALCON) | [6](#6-step-3-decoder), [6.4](#64-decoder-models), [10.2](#102-decoder-details), [10.3](#103-source-details) |
+| **Decoder details** | More tools | [10.2](#102-decoder-details) |
+| **decoder failures** | More tools → Decoder details | [10.2](#102-decoder-details) |
+| **Decoder family** | Train a decoder | [6.5](#65-the-train-a-decoder-panel) |
 | **Decoder model** | Start decoding panel | [6.2](#62-the-start-decoding-panel), [6.4](#64-decoder-models) |
-| **Decoder models** | Session panel; Advanced → Stored data | [3.3](#33-session-and-export), [10.12](#1012-stored-data) |
-| **Default (LDA classifier)** | Calibrate a decoder → Decoder family | [6.5](#65-the-calibrate-panel) |
-| **Default (ridge regression)** | Calibrate a decoder → Decoder family | [6.5](#65-the-calibrate-panel) |
-| **Delay to this screen (ms)** | Signal integrity | [5](#5-signal-integrity) |
-| **Delete** | Advanced → Stored data; board letters page (tile) | [10.12](#1012-stored-data), [11.5](#115-the-letters-page-and-word-prediction) |
+| **Decoder models** | Session panel; More tools → Saved data | [3.3](#33-session-and-export), [10.12](#1012-saved-data) |
+| **Default (LDA classifier)** | Train a decoder → Decoder family | [6.5](#65-the-train-a-decoder-panel) |
+| **Default (ridge regression)** | Train a decoder → Decoder family | [6.5](#65-the-train-a-decoder-panel) |
+| **Delay (ms)** | Signal check | [5](#5-step-2-signal-check) |
+| **Delete** | More tools → Saved data; board letters page (tile) | [10.12](#1012-saved-data), [11.5](#115-the-letters-page-and-word-prediction) |
 | **Delete word** | Board phrases page (tile) | [11.4](#114-the-phrases-page) |
-| **Delivery p95** | Advanced → Diagnostics | [10.4](#104-diagnostics) |
-| **Device** | Advanced → Event stream | [10.1](#101-event-stream) |
-| **Device switches** | Advanced → Diagnostics | [10.4](#104-diagnostics) |
-| **Device telemetry** | Advanced → Acquisition details (simulated profiles, T15 blocks, session recordings, plugins) | [10.3](#103-acquisition-details) |
-| **Diagnostics** | Advanced | [10.4](#104-diagnostics) |
+| **Delivery p95** | More tools → Health check | [10.4](#104-health-check) |
+| **Demo data (simulated)** | Choose a data source panel (group) | [4.4](#44-demo-data-simulated) |
+| **Details** | Use notice, under the title bar | [2.1](#21-controls-in-the-title-bar) |
+| **Device** | More tools → Live message feed | [10.1](#101-live-message-feed) |
+| **Device switches** | More tools → Health check | [10.4](#104-health-check) |
+| **Device telemetry** | More tools → Source details (simulated profiles, T15 blocks, session recordings, plugins) | [10.3](#103-source-details) |
 | **Direct selection** | Board settings → Input method | [11.8](#118-input-methods) |
 | **Directional navigation** | Board settings → Input method | [11.8](#118-input-methods) |
-| **Disconnect** | Acquisition source row | [4.1](#41-the-row), [9](#9-stopping-safely) |
-| **Discrete classes** | Calibrate a decoder → What the decoder should output | [6.5](#65-the-calibrate-panel) |
-| **Download JSON** | Advanced → Support report | [10.13](#1013-support-report) |
-| **Download Markdown** | Advanced → Support report | [10.13](#1013-support-report) |
-| **dropped inputs** | Advanced → Pipeline details | [10.2](#102-pipeline-details) |
+| **Disconnect** | Data source (step 1) | [4.1](#41-the-row), [9](#9-stopping-safely) |
+| **Discrete classes** | Train a decoder → What the decoder should output | [6.5](#65-the-train-a-decoder-panel) |
+| **Download JSON** | More tools → Support report | [10.13](#1013-support-report) |
+| **Download Markdown** | More tools → Support report | [10.13](#1013-support-report) |
+| **dropped inputs** | More tools → Decoder details | [10.2](#102-decoder-details) |
 | **Dwell time (ms)** | Board settings | [11.9](#119-board-settings) |
-| **Electrodes (N)** | Advanced → Acquisition details (AJILE12) | [10.3](#103-acquisition-details) |
+| **Electrodes (N)** | More tools → Source details (AJILE12) | [10.3](#103-source-details) |
 | **End session now** | Session panel, after End session… | [3.3](#33-session-and-export), [9](#9-stopping-safely) |
 | **End session…** | Session panel | [3.3](#33-session-and-export) |
-| **Endpoint** | Advanced → Acquisition details (Open Ephys) | [10.3](#103-acquisition-details) |
-| **errors** | Advanced → Pipeline details | [10.2](#102-pipeline-details) |
-| **Est. missing** | Advanced → Acquisition details (LSL stream table) | [10.3](#103-acquisition-details) |
-| **Event stream** | Advanced | [10.1](#101-event-stream) |
-| **Event types (5 s rolling rate)** | Advanced → Diagnostics | [10.4](#104-diagnostics) |
-| **Events published** | Advanced → Diagnostics | [10.4](#104-diagnostics) |
-| **Evidence** | Advanced → Compatibility | [10.11](#1011-compatibility) |
+| **Endpoint** | More tools → Source details (Open Ephys) | [10.3](#103-source-details) |
+| **errors** | More tools → Decoder details | [10.2](#102-decoder-details) |
+| **Est. missing** | More tools → Source details (LSL stream table) | [10.3](#103-source-details) |
+| **Event types (5 s rolling rate)** | More tools → Health check | [10.4](#104-health-check) |
+| **Events published** | More tools → Health check | [10.4](#104-health-check) |
+| **Evidence** | More tools → Compatibility | [10.11](#1011-compatibility) |
 | **Expects** | Start decoding panel → model details | [6.4](#64-decoder-models) |
-| **Extract** | Advanced → Acquisition details (AJILE12) | [10.3](#103-acquisition-details) |
-| **Fault injection** | Advanced → Simulator controls | [10.8](#108-simulator-controls) |
-| **Feature source** | Calibrate a decoder | [6.5](#65-the-calibrate-panel) |
-| **Features and labels only (for calibration)** | Advanced → Recording | [10.5](#105-recording) |
-| **Features computed by the Concord pipeline** | Calibrate a decoder → Feature source | [6.5](#65-the-calibrate-panel) |
-| **Features delivered by an LSL stream** | Calibrate a decoder → Feature source | [6.5](#65-the-calibrate-panel) |
-| **features out** | Advanced → Pipeline details | [10.2](#102-pipeline-details) |
+| **Export** | Session panel | [3.3](#33-session-and-export) |
+| **Extract** | More tools → Source details (AJILE12) | [10.3](#103-source-details) |
+| **Feature source** | Train a decoder | [6.5](#65-the-train-a-decoder-panel) |
+| **Features and labels only (for calibration)** | More tools → Record data | [10.5](#105-record-data) |
+| **Features computed by the Concord pipeline** | Train a decoder → Feature source | [6.5](#65-the-train-a-decoder-panel) |
+| **Features delivered by an LSL stream** | Train a decoder → Feature source | [6.5](#65-the-train-a-decoder-panel) |
+| **features out** | More tools → Decoder details | [10.2](#102-decoder-details) |
 | **Feedback and speech** | Board settings (group) | [11.9](#119-board-settings) |
-| **File** | Advanced → Acquisition details (FALCON, AJILE12) | [10.3](#103-acquisition-details) |
-| **Find LSL streams** | Connect a source panel → Live streams | [4.7](#47-live-streams-lsl) |
-| **Freeze view** | Advanced → Event stream | [10.1](#101-event-stream) |
-| **Gain** | Command output → Settings | [7.3](#73-settings-for-movement-decoders) |
-| **Gap (bins)** | Calibrate a decoder | [6.5](#65-the-calibrate-panel) |
-| **Gaps** | Advanced → Acquisition details (LSL stream table) | [10.3](#103-acquisition-details) |
-| **Granted** | Advanced → Connected applications | [10.7](#107-connected-applications) |
+| **File** | More tools → Source details (FALCON, AJILE12) | [10.3](#103-source-details) |
+| **Find LSL streams on this network** | Choose a data source panel → Live equipment | [4.7](#47-live-equipment-lsl) |
+| **Flip up and down (invert y)** | Send to apps → Adjust how the cursor moves | [7.3](#73-settings-for-movement-decoders) |
+| **Freeze view** | More tools → Live message feed | [10.1](#101-live-message-feed) |
+| **Gap (bins)** | Train a decoder | [6.5](#65-the-train-a-decoder-panel) |
+| **Gaps** | More tools → Source details (LSL stream table) | [10.3](#103-source-details) |
+| **Granted** | More tools → Connected apps | [10.7](#107-connected-apps) |
 | **Grid size N** | Board settings | [11.6](#116-the-task-grid), [11.9](#119-board-settings) |
-| **Heartbeat** | Advanced → Acquisition details (Open Ephys) | [10.3](#103-acquisition-details) |
-| **Held-out balanced accuracy** | Calibration report | [6.5](#65-the-calibrate-panel) |
-| **Hide** | Advanced → Tests (source installation) | [10.10](#1010-tests) |
+| **Health check** | More tools | [10.4](#104-health-check) |
+| **Heartbeat** | More tools → Source details (Open Ephys) | [10.3](#103-source-details) |
+| **Held-out balanced accuracy** | Train a decoder → report | [6.5](#65-the-train-a-decoder-panel) |
+| **Help** | Title bar | [1](#1-the-console-at-a-glance), [2.1](#21-controls-in-the-title-bar) |
+| **Hide** | More tools (each open tool); More tools → Self-tests (source installation) | [10](#10-more-tools), [10.10](#1010-self-tests) |
+| **Hide this** | Welcome card | [1](#1-the-console-at-a-glance) |
 | **High-gamma band power** | Start decoding panel → Processing | [6.3](#63-processing-presets) |
 | **History** | Board (windows wider than 900 pixels) | [11.2](#112-the-parts-of-the-board) |
-| **Hold (ms)** | Command output → Settings (classifiers) | [7.4](#74-settings-for-classifiers) |
-| **Horizontal (x) from** | Command output → Settings | [7.3](#73-settings-for-movement-decoders) |
-| **Host** | Add Open Ephys source | [4.8](#48-live-streams-open-ephys) |
+| **Hold (ms)** | Send to apps → Choose what each decoded choice does | [7.4](#74-settings-for-classifiers) |
+| **Horizontal (x) from** | Send to apps → Adjust how the cursor moves | [7.3](#73-settings-for-movement-decoders) |
+| **Host** | Connect to Open Ephys | [4.8](#48-live-equipment-open-ephys) |
+| **Ignore small movements (dead-zone)** | Send to apps → Adjust how the cursor moves | [7.3](#73-settings-for-movement-decoders) |
 | **Include the operator name and notes** | Session panel | [3.3](#33-session-and-export) |
 | **Include the session's recordings (N, size) — neural data; needed to re-run the evaluation** | Session panel | [3.3](#33-session-and-export) |
-| **Input** | Advanced → Pipeline details | [10.2](#102-pipeline-details) |
-| **input event → derived event** | Advanced → Pipeline details | [10.2](#102-pipeline-details) |
+| **Input** | More tools → Decoder details | [10.2](#102-decoder-details) |
+| **input event → derived event** | More tools → Decoder details | [10.2](#102-decoder-details) |
 | **Input method** | Board settings | [11.9](#119-board-settings) |
-| **input samples** | Advanced → Pipeline details | [10.2](#102-pipeline-details) |
-| **inputs** | Advanced → Pipeline details | [10.2](#102-pipeline-details) |
-| **Integration** | Advanced → Compatibility | [10.11](#1011-compatibility) |
-| **Interpreted as** | Advanced → Acquisition details (LSL, Open Ephys) | [10.3](#103-acquisition-details) |
-| **Invert y** | Command output → Settings | [7.3](#73-settings-for-movement-decoders) |
-| **join dropped** | Advanced → Pipeline details | [10.2](#102-pipeline-details) |
-| **Kalman filter** | Calibrate a decoder → Decoder family | [6.5](#65-the-calibrate-panel) |
-| **Kind** | Advanced → Compatibility | [10.11](#1011-compatibility) |
-| **Label dimension (optional)** | Calibrate a decoder | [6.5](#65-the-calibrate-panel) |
-| **labels in** | Advanced → Pipeline details | [10.2](#102-pipeline-details) |
+| **input samples** | More tools → Decoder details | [10.2](#102-decoder-details) |
+| **inputs** | More tools → Decoder details | [10.2](#102-decoder-details) |
+| **Integration** | More tools → Compatibility | [10.11](#1011-compatibility) |
+| **Interpreted as** | More tools → Source details (LSL, Open Ephys) | [10.3](#103-source-details) |
+| **join dropped** | More tools → Decoder details | [10.2](#102-decoder-details) |
+| **Kalman filter** | Train a decoder → Decoder family | [6.5](#65-the-train-a-decoder-panel) |
+| **Kind** | More tools → Compatibility | [10.11](#1011-compatibility) |
+| **Label dimension (optional)** | Train a decoder | [6.5](#65-the-train-a-decoder-panel) |
+| **labels in** | More tools → Decoder details | [10.2](#102-decoder-details) |
 | **Large (3 × 3)**, **Standard (4 × 4)**, **Small (5 × 5)** | Board settings → Tile size | [11.4](#114-the-phrases-page) |
-| **Last message #** | Advanced → Acquisition details (Open Ephys) | [10.3](#103-acquisition-details) |
-| **Last timestamp** | Advanced → Acquisition details (LSL stream table) | [10.3](#103-acquisition-details) |
-| **Latency percentiles in µs (last 4,096 events)** | Advanced → Diagnostics | [10.4](#104-diagnostics) |
+| **Last message #** | More tools → Source details (Open Ephys) | [10.3](#103-source-details) |
+| **Last timestamp** | More tools → Source details (LSL stream table) | [10.3](#103-source-details) |
+| **Latency percentiles in µs (last 4,096 events)** | More tools → Health check | [10.4](#104-health-check) |
 | **Layout** | Board settings | [11.9](#119-board-settings) |
-| **LDA classifier** | Calibrate a decoder → Decoder family | [6.5](#65-the-calibrate-panel) |
+| **LDA classifier** | Train a decoder → Decoder family | [6.5](#65-the-train-a-decoder-panel) |
 | **Letters** | Board phrases page (tile) | [11.4](#114-the-phrases-page) |
-| **Level** | Advanced → Compatibility | [10.11](#1011-compatibility) |
-| **Library** | Advanced → Acquisition details (LSL) | [10.3](#103-acquisition-details) |
-| **Link drop** | Advanced → Simulator controls | [10.8](#108-simulator-controls) |
-| **Link failure** | Advanced → Simulator controls | [10.8](#108-simulator-controls) |
-| **Live streams** | Connect a source panel (group) | [4.7](#47-live-streams-lsl) |
-| **Malformed packet** | Advanced → Simulator controls | [10.8](#108-simulator-controls) |
+| **Level** | More tools → Compatibility | [10.11](#1011-compatibility) |
+| **Library** | More tools → Source details (LSL) | [10.3](#103-source-details) |
+| **Link drop** | More tools → Simulator controls | [10.8](#108-simulator-controls) |
+| **Link failure** | More tools → Simulator controls | [10.8](#108-simulator-controls) |
+| **Live equipment** | Choose a data source panel (group) | [4.7](#47-live-equipment-lsl) |
+| **Live message feed** | More tools | [10.1](#101-live-message-feed) |
+| **Malformed packet** | More tools → Simulator controls | [10.8](#108-simulator-controls) |
 | **Map channels by label (the model's channels are taken from the source by name)** | Start decoding panel | [6.2](#62-the-start-decoding-panel) |
 | **Mark this file trusted** | Start decoding panel | [6.2](#62-the-start-decoding-panel) |
-| **Marker stream (optional)** | Find LSL streams, after Use | [4.7](#47-live-streams-lsl) |
-| **Max speed** | Command output → Settings | [7.3](#73-settings-for-movement-decoders) |
-| **Measured** | Advanced → Pipeline details (latency table) | [10.2](#102-pipeline-details) |
-| **Metadata notes (N): corrections and what the file does not provide** | Advanced → Acquisition details | [10.3](#103-acquisition-details) |
-| **Minimum confidence** | Command output → Settings | [7.3](#73-settings-for-movement-decoders) |
-| **Move to next**, **Move to previous**, **Move up**, **Move down**, **Move left**, **Move right** | Command output → Settings → When \<class> is held | [7.4](#74-settings-for-classifiers) |
-| **Native format** | Advanced → Capability contract | [10.6](#106-capability-contract) |
-| **New session** | Session strip | [3.1](#31-the-strip) |
-| **No action** | Command output → Settings → When \<class> is held | [7.4](#74-settings-for-classifiers) |
-| **No click** | Command output → Settings → Click from | [7.3](#73-settings-for-movement-decoders) |
-| **None** | Behavior / Marker stream lists | [4.7](#47-live-streams-lsl) |
+| **Marker stream (optional)** | Find LSL streams on this network, after Use | [4.7](#47-live-equipment-lsl) |
+| **Measured** | More tools → Decoder details (latency table) | [10.2](#102-decoder-details) |
+| **Metadata notes (N): corrections and what the file does not provide** | More tools → Source details | [10.3](#103-source-details) |
+| **Minimum confidence** | Send to apps → Adjust how the cursor moves | [7.3](#73-settings-for-movement-decoders) |
+| **More tools** | Bottom of the console (area 10) | [10](#10-more-tools) |
+| **Move to next**, **Move to previous**, **Move up**, **Move down**, **Move left**, **Move right** | Send to apps → Choose what each decoded choice does → When \<class> is held | [7.4](#74-settings-for-classifiers) |
+| **Native format** | More tools → Source capabilities | [10.6](#106-source-capabilities) |
+| **No action** | Send to apps → Choose what each decoded choice does → When \<class> is held | [7.4](#74-settings-for-classifiers) |
+| **No click** | Send to apps → Adjust how the cursor moves → Click from | [7.3](#73-settings-for-movement-decoders) |
+| **None** | Behavior / Marker stream lists | [4.7](#47-live-equipment-lsl) |
 | **None (features only)** | Start decoding panel → Decoder model | [6.2](#62-the-start-decoding-panel) |
 | **None: choose at once** | Board settings → Confirmation | [11.9](#119-board-settings) |
-| **Not granted** | Advanced → Connected applications | [10.7](#107-connected-applications) |
-| **Not included in the report** | Advanced → Support report | [10.13](#1013-support-report) |
-| **Not tested** | Advanced → Compatibility | [10.11](#1011-compatibility) |
-| **Notes** | Session panel; Acquisition details (live sources) | [3.3](#33-session-and-export), [10.3](#103-acquisition-details) |
-| **Notes (optional)** | New research session panel | [3.2](#32-new-research-session) |
+| **Not granted** | More tools → Connected apps | [10.7](#107-connected-apps) |
+| **Not included in the report** | More tools → Support report | [10.13](#1013-support-report) |
+| **Not tested** | More tools → Compatibility | [10.11](#1011-compatibility) |
+| **Notes** | Session panel; Source details (live sources) | [3.3](#33-session-and-export), [10.3](#103-source-details) |
+| **Notes (optional)** | Start a session panel | [3.2](#32-start-a-session) |
 | **Offline held-out balanced accuracy** | Start decoding panel → model details | [6.4](#64-decoder-models) |
-| **Offline held-out R²** | Model details; calibration report | [6.4](#64-decoder-models), [6.5](#65-the-calibrate-panel) |
+| **Offline held-out R²** | Model details; calibration report | [6.4](#64-decoder-models), [6.5](#65-the-train-a-decoder-panel) |
 | **Open console** | Desktop app window | [13](#13-the-desktop-app) |
-| **Open in a new window** | Advanced → Communication board | [10.9](#109-communication-board-embedded), [11.1](#111-opening-the-board) |
-| **Open participant screen** | Command output row | [7.2](#72-the-row), [11.1](#111-opening-the-board) |
+| **open it in a new tab** | More tools → Participant screen preview | [10.9](#109-participant-screen-preview), [11.1](#111-opening-the-board) |
+| **Open participant screen** | Send to apps (step 4) | [7.2](#72-the-row), [11.1](#111-opening-the-board) |
 | **Operator** | Session panel | [3.3](#33-session-and-export) |
-| **Operator (optional)** | New research session panel | [3.2](#32-new-research-session) |
-| **Options** | Acquisition source row (Pause); plugin device rows | [4.1](#41-the-row), [4.9](#49-plugins) |
-| **Other sources** | Connect a source panel (group) | [4.6](#46-session-recordings-replay-and-other-sources) |
-| **Output** | Advanced → Pipeline details | [10.2](#102-pipeline-details) |
+| **Operator (optional)** | Start a session panel | [3.2](#32-start-a-session) |
+| **Options** | Add-ons (plugins): plugin device rows | [4.9](#49-add-ons-plugins) |
+| **Other sources** | Choose a data source panel (group) | [4.6](#46-your-recordings-and-other-sources) |
+| **Output** | More tools → Decoder details | [10.2](#102-decoder-details) |
 | **Outputs** | Start decoding panel → model details | [6.4](#64-decoder-models) |
-| **Pause** | Acquisition source → Options or Playback | [4.1](#41-the-row), [9](#9-stopping-safely) |
-| **Pause (ms)** | Command output → Settings (classifiers) | [7.4](#74-settings-for-classifiers) |
-| **Payload** | Advanced → Event stream | [10.1](#101-event-stream) |
-| **Per class** | Calibration report | [6.5](#65-the-calibrate-panel) |
-| **Per dimension** | Calibration report | [6.5](#65-the-calibrate-panel) |
+| **Participant screen preview** | More tools → Watch what is happening | [10.9](#109-participant-screen-preview), [11](#11-the-communication-board) |
+| **Pause** | Data source (step 1), under the source | [4.1](#41-the-row), [9](#9-stopping-safely) |
+| **Pause (ms)** | Send to apps → Choose what each decoded choice does | [7.4](#74-settings-for-classifiers) |
+| **Payload** | More tools → Live message feed | [10.1](#101-live-message-feed) |
+| **Per class** | Train a decoder → report | [6.5](#65-the-train-a-decoder-panel) |
+| **Per dimension** | Train a decoder → report | [6.5](#65-the-train-a-decoder-panel) |
 | **Phrases** | Board letters page (tile) | [11.5](#115-the-letters-page-and-word-prediction) |
 | **Phrases and letters** | Board settings → Layout | [11.4](#114-the-phrases-page) |
-| **Pipeline details** | Advanced | [10.2](#102-pipeline-details) |
-| **Pipeline features** | Advanced → Acquisition details (plot) | [10.3](#103-acquisition-details) |
-| **Playback** | Acquisition source row (file replays) | [4.1](#41-the-row) |
-| **Plugins** | Connect a source panel (group) | [4.9](#49-plugins) |
+| **Pipeline features** | More tools → Source details (plot) | [10.3](#103-source-details) |
+| **Play the participant** | More tools → Simulator controls | [10.8](#108-simulator-controls) |
 | **Pointer and click** | Board settings → Input method | [11.8](#118-input-methods) |
 | **Pointer with dwell selection** | Board settings → Input method | [11.8](#118-input-methods) |
-| **Process** | Advanced → Diagnostics | [10.4](#104-diagnostics) |
+| **Process** | More tools → Health check | [10.4](#104-health-check) |
 | **Processing** | Start decoding panel | [6.2](#62-the-start-decoding-panel), [6.3](#63-processing-presets) |
-| **processing per input** | Advanced → Pipeline details | [10.2](#102-pipeline-details) |
-| **Provenance** | Advanced → Event stream | [10.1](#101-event-stream) |
-| **Provenance separation** | Advanced → Capability contract | [10.6](#106-capability-contract) |
-| **Quality** | Advanced → Event stream | [10.1](#101-event-stream) |
-| **queue depth** | Advanced → Pipeline details | [10.2](#102-pipeline-details) |
-| **Rate** | Find LSL streams results; Acquisition details (Open Ephys) | [4.7](#47-live-streams-lsl), [10.3](#103-acquisition-details) |
+| **processing per input** | More tools → Decoder details | [10.2](#102-decoder-details) |
+| **Provenance** | More tools → Live message feed | [10.1](#101-live-message-feed) |
+| **Provenance separation** | More tools → Source capabilities | [10.6](#106-source-capabilities) |
+| **Quality** | More tools → Live message feed | [10.1](#101-live-message-feed) |
+| **queue depth** | More tools → Decoder details | [10.2](#102-decoder-details) |
+| **Rate** | Find LSL streams on this network results; Source details (Open Ephys) | [4.7](#47-live-equipment-lsl), [10.3](#103-source-details) |
+| **Read the 2-minute guide** | Welcome card | [1](#1-the-console-at-a-glance) |
 | **Read the message aloud on Speak — computer speech (not neural speech decoding)** | Board settings | [11.9](#119-board-settings) |
-| **Received** | Advanced → Acquisition details (LSL stream table) | [10.3](#103-acquisition-details) |
-| **Recent errors** | Advanced → Diagnostics | [10.4](#104-diagnostics) |
-| **Reconnects ok / tried** | Advanced → Diagnostics | [10.4](#104-diagnostics) |
-| **Recorded data source** | Advanced → Acquisition details (heading of the dataset panel) | [10.3](#103-acquisition-details) |
-| **Recorded human data (offline replay)** | Connect a source panel (group) | [4.5](#45-recorded-human-data-offline-replay) |
-| **Recorded neural activity (offline replay)** | Advanced → Acquisition details (plot) | [10.3](#103-acquisition-details) |
-| **Recording** | Acquisition details (FALCON, AJILE12); Advanced | [10.3](#103-acquisition-details), [10.5](#105-recording) |
-| **Recordings** | Session panel; Advanced → Stored data | [3.3](#33-session-and-export), [10.12](#1012-stored-data) |
-| **recordings**, **models**, **sessions**, **exports** | Advanced → Stored data | [10.12](#1012-stored-data) |
-| **rejected inputs** | Advanced → Pipeline details | [10.2](#102-pipeline-details) |
-| **Reload** | Advanced → Tests; Advanced → Compatibility | [10.10](#1010-tests), [10.11](#1011-compatibility) |
-| **Remove** | Live streams rows | [4.7](#47-live-streams-lsl) |
-| **Research sessions** | Advanced → Stored data | [10.12](#1012-stored-data) |
-| **Research use only** | Title bar; board header | [2.1](#21-controls-in-the-title-bar), [11.2](#112-the-parts-of-the-board) |
-| **Reset** | Acquisition source row, after an error | [2.3](#23-source-stopped-with-an-error-and-reset), [4.1](#41-the-row) |
-| **Resume** | Acquisition source → Options or Playback | [4.1](#41-the-row) |
-| **Resume view** | Advanced → Event stream | [10.1](#101-event-stream) |
-| **Revoke** | Command output → Authorized applications | [7.5](#75-authorized-applications), [9](#9-stopping-safely) |
-| **ridge regression** | Calibrate a decoder → Decoder family | [6.5](#65-the-calibrate-panel) |
-| **Role** | Advanced → Acquisition details (LSL stream table) | [10.3](#103-acquisition-details) |
-| **router stalls** | Advanced → Pipeline details | [10.2](#102-pipeline-details) |
+| **Real recordings (played back)** | Choose a data source panel (group) | [4.5](#45-real-recordings-played-back) |
+| **Received** | More tools → Source details (LSL stream table) | [10.3](#103-source-details) |
+| **Recent errors** | More tools → Health check | [10.4](#104-health-check) |
+| **Reconnects ok / tried** | More tools → Health check | [10.4](#104-health-check) |
+| **Record data** | More tools → Record and manage data | [10.5](#105-record-data) |
+| **Recorded data source** | More tools → Source details (heading of the dataset panel) | [10.3](#103-source-details) |
+| **Recorded neural activity (offline replay)** | More tools → Source details (plot) | [10.3](#103-source-details) |
+| **Recording** | Source details (FALCON, AJILE12) | [10.3](#103-source-details) |
+| **Recordings** | Session panel; More tools → Saved data | [3.3](#33-session-and-export), [10.12](#1012-saved-data) |
+| **recordings**, **models**, **sessions**, **exports** | More tools → Saved data | [10.12](#1012-saved-data) |
+| **rejected inputs** | More tools → Decoder details | [10.2](#102-decoder-details) |
+| **Reload** | More tools → Self-tests; More tools → Compatibility | [10.10](#1010-self-tests), [10.11](#1011-compatibility) |
+| **Remove** | Live equipment rows | [4.7](#47-live-equipment-lsl) |
+| **Research sessions** | More tools → Saved data | [10.12](#1012-saved-data) |
+| **Research use only** | Title bar | [2.1](#21-controls-in-the-title-bar) |
+| **Research use only · not a medical device** | Board header | [11.2](#112-the-parts-of-the-board) |
+| **Reset** | Data source (step 1), after an error | [2.3](#23-source-stopped-with-an-error-and-reset), [4.1](#41-the-row) |
+| **Resume** | Data source (step 1), under the source | [4.1](#41-the-row) |
+| **Resume view** | More tools → Live message feed | [10.1](#101-live-message-feed) |
+| **Revoke** | Send to apps → Apps you authorize | [7.5](#75-apps-you-authorize), [9](#9-stopping-safely) |
+| **ridge regression** | Train a decoder → Decoder family | [6.5](#65-the-train-a-decoder-panel) |
+| **Role** | More tools → Source details (LSL stream table) | [10.3](#103-source-details) |
+| **router stalls** | More tools → Decoder details | [10.2](#102-decoder-details) |
 | **Row, then column** | Board settings → Scan pattern | [11.8](#118-input-methods), [11.9](#119-board-settings) |
-| **Runtime (since start)** | Advanced → Acquisition details (LSL, Open Ephys) | [10.3](#103-acquisition-details) |
-| **Runtime pipeline p50**, **p99** | Advanced → Diagnostics | [10.4](#104-diagnostics) |
-| **Safe stop & disconnect** | Session strip | [3.1](#31-the-strip), [9](#9-stopping-safely) |
-| **Sample unit** | Add Open Ephys source | [4.8](#48-live-streams-open-ephys) |
+| **Runtime (since start)** | More tools → Source details (LSL, Open Ephys) | [10.3](#103-source-details) |
+| **Runtime pipeline p50**, **p99** | More tools → Health check | [10.4](#104-health-check) |
+| **Sample unit** | Connect to Open Ephys | [4.8](#48-live-equipment-open-ephys) |
 | **Save** | Board phrases and letters pages (tile) | [11.4](#114-the-phrases-page) |
+| **Saved data** | More tools | [10.12](#1012-saved-data) |
 | **Scan interval (ms)** | Board settings | [11.9](#119-board-settings) |
 | **Scan pattern** | Board settings | [11.9](#119-board-settings) |
 | **Scanning** | Board settings → Input method | [11.8](#118-input-methods) |
-| **Search again** | Connect a source panel → Plugins | [4.9](#49-plugins) |
-| **Search for decoder plugins** | Start decoding panel | [6.2](#62-the-start-decoding-panel) |
-| **Search the network** | Find LSL streams | [4.7](#47-live-streams-lsl) |
+| **Search again** | Choose a data source panel → Add-ons (plugins) | [4.9](#49-add-ons-plugins) |
+| **Search for decoder add-ons** | Start decoding panel | [6.2](#62-the-start-decoding-panel) |
+| **Search the network** | Find LSL streams on this network | [4.7](#47-live-equipment-lsl) |
 | **Select** | When \<class> is held; Simulator controls | [7.4](#74-settings-for-classifiers), [10.8](#108-simulator-controls) |
 | **Select the same tile twice** | Board settings → Confirmation | [11.9](#119-board-settings) |
-| **selections out**, **texts out**, **navigations out** | Advanced → Pipeline details | [10.2](#102-pipeline-details) |
-| **Send text** | Advanced → Simulator controls | [10.8](#108-simulator-controls) |
-| **Seq** | Advanced → Event stream | [10.1](#101-event-stream) |
-| **Session** | Advanced → Acquisition details (FALCON, AJILE12) | [10.3](#103-acquisition-details) |
+| **selections out**, **texts out**, **navigations out** | More tools → Decoder details | [10.2](#102-decoder-details) |
+| **Self-tests** | More tools | [10.10](#1010-self-tests) |
+| **Send text** | More tools → Simulator controls | [10.8](#108-simulator-controls) |
+| **Send to apps** | Area 8 | [7](#7-step-4-send-to-apps) |
+| **Seq** | More tools → Live message feed | [10.1](#101-live-message-feed) |
+| **Session** | More tools → Source details (FALCON, AJILE12) | [10.3](#103-source-details) |
 | **Session and export…** | Session strip | [3.1](#31-the-strip) |
 | **Session id** | Session panel | [3.3](#33-session-and-export) |
-| **Session log** | Session panel; right-hand column of the console | [3.3](#33-session-and-export), [8](#8-the-session-log) |
-| **Session name** | New research session panel | [3.2](#32-new-research-session) |
-| **Session recordings (replay)** | Connect a source panel (group) | [4.6](#46-session-recordings-replay-and-other-sources) |
-| **Session strip** | Under the title bar (area 2) | [3](#3-research-sessions-and-export-the-session-strip) |
-| **Settings** | Command output row; board header | [7.2](#72-the-row), [11.2](#112-the-parts-of-the-board) |
+| **Session log** | Session panel; right-hand column of the console (area 9) | [3.3](#33-session-and-export), [8](#8-the-session-log) |
+| **Session name** | Start a session panel | [3.2](#32-start-a-session) |
+| **Session strip** | Under the welcome card (area 4) | [3](#3-research-sessions-and-export-the-session-strip) |
+| **Settings** | Board header | [11.2](#112-the-parts-of-the-board) |
+| **Show** | More tools (each tool) | [10](#10-more-tools) |
 | **Show all (N)** | Session log | [8](#8-the-session-log) |
-| **Show all N files** | Connect a source panel | [4.5](#45-recorded-human-data-offline-replay) |
+| **Show all N files** | Choose a data source panel | [4.5](#45-real-recordings-played-back) |
 | **Show latest only** | Session log | [8](#8-the-session-log) |
-| **Show N test cases** | Advanced → Tests (source installation) | [10.10](#1010-tests) |
-| **Signal** | Advanced → Acquisition details (FALCON, AJILE12) | [10.3](#103-acquisition-details) |
-| **Signal integrity** | Area 4 | [5](#5-signal-integrity) |
-| **Simulated intention** | Advanced → Simulator controls | [10.8](#108-simulator-controls) |
-| **Simulated Profile A** | Connect a source panel | [4.4](#44-simulated-profiles) |
-| **Simulated Profile B** | Connect a source panel | [4.4](#44-simulated-profiles) |
-| **Simulated profiles** | Connect a source panel (group) | [4.4](#44-simulated-profiles) |
-| **Simulator controls** | Advanced (Simulated Profile A or B only) | [10.8](#108-simulator-controls) |
-| **Source** | Model details; calibration report; Acquisition details | [6.4](#64-decoder-models), [6.5](#65-the-calibrate-panel), [10.3](#103-acquisition-details) |
+| **Show N test cases** | More tools → Self-tests (source installation) | [10.10](#1010-self-tests) |
+| **Signal** | More tools → Source details (FALCON, AJILE12) | [10.3](#103-source-details) |
+| **Signal check** | Area 6 | [5](#5-step-2-signal-check) |
+| **Simulated Profile A** | Choose a data source panel | [4.4](#44-demo-data-simulated) |
+| **Simulated Profile B** | Choose a data source panel | [4.4](#44-demo-data-simulated) |
+| **Simulator controls** | More tools → Practice (Simulated Profile A or B only) | [10.8](#108-simulator-controls) |
+| **Source** | Model details; calibration report; Source details | [6.4](#64-decoder-models), [6.5](#65-the-train-a-decoder-panel), [10.3](#103-source-details) |
+| **Source capabilities** | More tools | [10.6](#106-source-capabilities) |
 | **Source decoder outputs (passthrough)** | Start decoding panel → Processing | [6.3](#63-processing-presets) |
-| **Source features** | Advanced → Acquisition details (plot) | [10.3](#103-acquisition-details) |
+| **Source details** | More tools | [10.3](#103-source-details) |
+| **Source features** | More tools → Source details (plot) | [10.3](#103-source-details) |
 | **Source features (passthrough)** | Start decoding panel → Processing | [6.3](#63-processing-presets) |
 | **Space** | Board letters page (tile) | [11.5](#115-the-letters-page-and-word-prediction) |
 | **Speak** | Board phrases and letters pages (tile) | [11.4](#114-the-phrases-page) |
 | **Speech rate** | Board settings | [11.9](#119-board-settings) |
-| **Spike bins from Open Ephys** | Calibrate a decoder → Feature source | [6.5](#65-the-calibrate-panel) |
+| **Speed (gain)** | Send to apps → Adjust how the cursor moves | [7.3](#73-settings-for-movement-decoders) |
+| **Spike bins from Open Ephys** | Train a decoder → Feature source | [6.5](#65-the-train-a-decoder-panel) |
 | **Spike-band threshold crossings** | Start decoding panel → Processing | [6.3](#63-processing-presets) |
-| **Stages** | Advanced → Pipeline details | [10.2](#102-pipeline-details) |
-| **Start control** | Command output row | [7.2](#72-the-row) |
-| **Start decoding** | Decoder row; Start decoding panel | [6.1](#61-the-row), [6.2](#62-the-start-decoding-panel) |
-| **Start recording** | Calibrate a decoder; Advanced → Recording | [6.5](#65-the-calibrate-panel), [10.5](#105-recording) |
-| **Start session** | New research session panel | [3.2](#32-new-research-session) |
+| **Stages** | More tools → Decoder details | [10.2](#102-decoder-details) |
+| **Start a session** | Session strip | [3.1](#31-the-strip) |
+| **Start decoding** | Decoder (step 3); Start decoding panel | [6.1](#61-the-row), [6.2](#62-the-start-decoding-panel) |
+| **Start recording** | Train a decoder; More tools → Record data | [6.5](#65-the-train-a-decoder-panel), [10.5](#105-record-data) |
+| **Start sending** | Send to apps (step 4) | [7.2](#72-the-row) |
+| **Start session** | Start a session panel | [3.2](#32-start-a-session) |
 | **Started** | Session panel | [3.3](#33-session-and-export) |
 | **Stop and quit** | Desktop app window | [13](#13-the-desktop-app) |
-| **Stop control** | Title bar | [2.1](#21-controls-in-the-title-bar), [9](#9-stopping-safely) |
-| **Stop decoding** | Decoder row | [6.1](#61-the-row), [9](#9-stopping-safely) |
-| **Stop recording** | Calibrate a decoder; Advanced → Recording | [6.5](#65-the-calibrate-panel), [10.5](#105-recording) |
-| **Stored data** | Advanced | [10.12](#1012-stored-data) |
-| **Stream** | Find LSL streams results; Acquisition details (Open Ephys) | [4.7](#47-live-streams-lsl), [10.3](#103-acquisition-details) |
-| **Subscriber drops** | Advanced → Diagnostics | [10.4](#104-diagnostics) |
-| **Support report** | Advanced | [10.13](#1013-support-report) |
-| **Switch** | Connect a source panel | [4.3](#43-the-connect-a-source-panel) |
+| **Stop decoding** | Decoder (step 3) | [6.1](#61-the-row), [9](#9-stopping-safely) |
+| **Stop everything** | Session strip | [3.1](#31-the-strip), [9](#9-stopping-safely) |
+| **Stop recording** | Train a decoder; More tools → Record data | [6.5](#65-the-train-a-decoder-panel), [10.5](#105-record-data) |
+| **Stop sending** | Title bar | [2.1](#21-controls-in-the-title-bar), [9](#9-stopping-safely) |
+| **Stream** | Find LSL streams on this network results; Source details (Open Ephys) | [4.7](#47-live-equipment-lsl), [10.3](#103-source-details) |
+| **Subscriber drops** | More tools → Health check | [10.4](#104-health-check) |
+| **Support report** | More tools | [10.13](#1013-support-report) |
+| **Switch** | Choose a data source panel | [4.3](#43-the-choose-a-data-source-panel) |
 | **Task grid (N × N words)** | Board settings → Layout | [11.6](#116-the-task-grid) |
-| **Tests** | Advanced | [10.10](#1010-tests) |
-| **Text** | Command output → Settings (classifiers) | [7.4](#74-settings-for-classifiers) |
+| **Text** | Send to apps → Choose what each decoded choice does | [7.4](#74-settings-for-classifiers) |
 | **Text size** | Board settings | [11.9](#119-board-settings) |
-| **Threshold** | Command output → Settings (classifiers) | [7.4](#74-settings-for-classifiers) |
+| **Threshold** | Send to apps → Choose what each decoded choice does | [7.4](#74-settings-for-classifiers) |
 | **Threshold (× RMS)** | Start decoding panel | [6.2](#62-the-start-decoding-panel) |
 | **Tile by tile** | Board settings → Scan pattern | [11.9](#119-board-settings) |
 | **Tile size (phrase page)** | Board settings | [11.4](#114-the-phrases-page), [11.9](#119-board-settings) |
-| **Time correction** | Advanced → Acquisition details (LSL stream table) | [10.3](#103-acquisition-details) |
+| **Time correction** | More tools → Source details (LSL stream table) | [10.3](#103-source-details) |
 | **Timing** | Board settings (group) | [11.9](#119-board-settings) |
 | **Title bar** | Top of the console (area 1) | [2](#2-the-title-bar-and-its-states) |
-| **Train decoder** | Calibrate a decoder | [6.5](#65-the-calibrate-panel) |
-| **Train fraction** | Calibrate a decoder | [6.5](#65-the-calibrate-panel) |
+| **Top speed** | Send to apps → Adjust how the cursor moves | [7.3](#73-settings-for-movement-decoders) |
+| **Train a decoder** | Panel opened by Train a decoder… | [6.5](#65-the-train-a-decoder-panel) |
+| **Train a decoder…** | Decoder (step 3) | [6.1](#61-the-row), [6.5](#65-the-train-a-decoder-panel) |
+| **Train decoder** | Train a decoder | [6.5](#65-the-train-a-decoder-panel) |
+| **Train fraction** | Train a decoder | [6.5](#65-the-train-a-decoder-panel) |
 | **Trained on** | Start decoding panel → model details | [6.4](#64-decoder-models) |
 | **Trained on data from** | Start decoding panel → model details | [6.4](#64-decoder-models) |
-| **Type** | Advanced → Event stream | [10.1](#101-event-stream) |
-| **Type text** | Command output → Settings → When \<class> is held | [7.4](#74-settings-for-classifiers) |
+| **Try a problem (fault injection)** | More tools → Simulator controls | [10.8](#108-simulator-controls) |
+| **Try it with demo data** | Welcome card | [1](#1-the-console-at-a-glance) |
+| **Type** | More tools → Live message feed | [10.1](#101-live-message-feed) |
+| **Type text** | Send to apps → Choose what each decoded choice does → When \<class> is held | [7.4](#74-settings-for-classifiers) |
 | **Undo** | Board phrases and letters pages (tile) | [11.4](#114-the-phrases-page), [11.5](#115-the-letters-page-and-word-prediction) |
-| **Unit** | Advanced → Acquisition details (LSL, Open Ephys) | [10.3](#103-acquisition-details) |
-| **Units** | Find LSL streams results | [4.7](#47-live-streams-lsl) |
-| **Unknown (pass through unscaled)** | Add Open Ephys source → Sample unit | [4.8](#48-live-streams-open-ephys) |
-| **Uptime** | Advanced → Diagnostics | [10.4](#104-diagnostics) |
-| **Use** | Find LSL streams results | [4.7](#47-live-streams-lsl) |
-| **Use every feature stream in the recording, joined per bin** | Calibrate a decoder | [6.5](#65-the-calibrate-panel) |
-| **uV**, **mV**, **V** | Add Open Ephys source → Sample unit | [4.8](#48-live-streams-open-ephys) |
-| **Velocity dimension** | Advanced → Acquisition details (activity plot) | [10.3](#103-acquisition-details) |
-| **Velocity error** | Calibration report | [6.5](#65-the-calibrate-panel) |
-| **Vertical (y) from** | Command output → Settings | [7.3](#73-settings-for-movement-decoders) |
-| **What the decoder should output** | Calibrate a decoder | [6.5](#65-the-calibrate-panel) |
-| **When \<class> is held** | Command output → Settings (classifiers) | [7.4](#74-settings-for-classifiers) |
-| **with its N recording(s)** | Advanced → Stored data | [10.12](#1012-stored-data) |
+| **Unit** | More tools → Source details (LSL, Open Ephys) | [10.3](#103-source-details) |
+| **Units** | Find LSL streams on this network results | [4.7](#47-live-equipment-lsl) |
+| **Unknown (pass through unscaled)** | Connect to Open Ephys → Sample unit | [4.8](#48-live-equipment-open-ephys) |
+| **Uptime** | More tools → Health check | [10.4](#104-health-check) |
+| **Use** | Find LSL streams on this network results | [4.7](#47-live-equipment-lsl) |
+| **Use every feature stream in the recording, joined per bin** | Train a decoder | [6.5](#65-the-train-a-decoder-panel) |
+| **Use notice** | Under the title bar (area 2) | [2.1](#21-controls-in-the-title-bar) |
+| **uV**, **mV**, **V** | Connect to Open Ephys → Sample unit | [4.8](#48-live-equipment-open-ephys) |
+| **Velocity dimension** | More tools → Source details (activity plot) | [10.3](#103-source-details) |
+| **Velocity error** | Train a decoder → report | [6.5](#65-the-train-a-decoder-panel) |
+| **Vertical (y) from** | Send to apps → Adjust how the cursor moves | [7.3](#73-settings-for-movement-decoders) |
+| **Welcome card** | Top of the page (area 3), until hidden | [1](#1-the-console-at-a-glance) |
+| **What is this?** | Each of the four steps | [1](#1-the-console-at-a-glance) |
+| **What the decoder should output** | Train a decoder | [6.5](#65-the-train-a-decoder-panel) |
+| **When \<class> is held** | Send to apps → Choose what each decoded choice does | [7.4](#74-settings-for-classifiers) |
+| **with its N recording(s)** | More tools → Saved data | [10.12](#1012-saved-data) |
 | **Withdraw trust** | Start decoding panel | [6.2](#62-the-start-decoding-panel) |
 | **Word list URL** | Board settings | [11.6](#116-the-task-grid), [11.9](#119-board-settings) |
+| **Your recordings** | Choose a data source panel (group) | [4.6](#46-your-recordings-and-other-sources) |

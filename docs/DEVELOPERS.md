@@ -79,12 +79,12 @@ concord start
 ```
 
 (`concord-server` runs the same server in the foreground.) Open http://127.0.0.1:8000 →
-**Connect a source → Plugins** (**Search again** if Concord was already running): the plugin is
+**Choose a source → Add-ons (plugins)** (**Search again** if Concord was already running): the plugin is
 listed with its validation result; open the device's **Options**, fill them in, **Connect**.
 The form labels are your options' descriptions. The source row shows
 `Plugin · <package>@<version> · isolated` and the declared modality. Everything downstream
 (signal integrity, recording, pipeline, decoders, calibration, command output) works unchanged;
-in 0.3.1 the console does not show a plugin's own counters (**Advanced → Acquisition details**
+in 0.3.1 the console does not show a plugin's own counters (**More tools → Source details**
 says *No telemetry*), they are in `GET /api/v1/devices/{id}/source`. The desktop app cannot load
 additional plugins (it includes only BCI2000's); use a Python installation. (From a repository
 checkout, `make setup && make run` does the same and also installs the BrainFlow and BCI2000

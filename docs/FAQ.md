@@ -27,7 +27,7 @@
 
 **Decoding and control**
 
-- [Why can I not start control, or why does the board not react?](#why-can-i-not-start-control-or-why-does-the-board-not-react)
+- [Why can I not start sending, or why does the board not react?](#why-can-i-not-start-sending-or-why-does-the-board-not-react)
 - [Can I use my own decoder?](#can-i-use-my-own-decoder)
 - [How good are the decoders?](#how-good-are-the-decoders)
 
@@ -154,7 +154,7 @@ On your computer only, in a folder readable only by your user account:
 | Linux bundle or Python install on Linux | `~/.local/share/concord/data` |
 | Source checkout | `data/` in the repository |
 
-**Advanced → Stored data** in the console shows the exact folder. Concord sends nothing to the
+**More tools → Saved data** in the console shows the exact folder. Concord sends nothing to the
 internet on its own. It contacts other computers only when you ask: downloading a public
 dataset, discovering LSL streams on your local network, or connecting to an Open Ephys GUI.
 Recordings are not encrypted; put the data folder on an encrypted disk if your protocol
@@ -171,7 +171,7 @@ repository: the archives' terms apply.
 ### How do I know a dataset file is genuine?
 
 Concord computes the SHA-256 checksum of every dataset file and compares it with the checksum
-pinned from the archive. **Advanced → Acquisition details** shows "SHA-256 matches DANDI …" only
+pinned from the archive. **More tools → Source details** shows "SHA-256 matches DANDI …" only
 on an exact match; any other file is still playable but labelled **unverified**.
 
 ### What does "Offline Replay" mean?
@@ -189,12 +189,12 @@ The file is complete. Raise the limits in the `[recording]` section of the confi
 
 ## Decoding and control
 
-### Why can I not start control, or why does the board not react?
+### Why can I not start sending, or why does the board not react?
 
 Decoded commands reach an application only when **all** of these hold: a decoder is running
-(**Decoder → Start decoding** with a model), command output is on (**Command output → Start
-control**), and you have **authorized** that application under *Authorized applications*.
-**Stop control** in the title bar turns command output off at once. Simulated profiles drive the
+(**Decoder → Start decoding** with a model), command output is on (**Send to apps → Start
+sending**), and you have **authorized** that application under *Apps you authorize*.
+**Stop sending** in the title bar turns command output off at once. Simulated profiles drive the
 board directly (as simulated input) so you can try the board without a decoder.
 [CONTROL_BRIDGE.md](CONTROL_BRIDGE.md) explains every rule.
 
@@ -203,7 +203,7 @@ board directly (as simulated input) so you can try the board without a decoder.
 Yes: as a model file (ONNX, scikit-learn via skops, TorchScript / safetensors) or as a decoder
 plugin, run in a separate process and checked against the source before it starts
 ([DECODER_SDK.md](DECODER_SDK.md)). Concord can also calibrate its own decoders from your
-recordings (**Decoder → Calibrate…**).
+recordings (**Decoder → Train a decoder…**).
 
 ### How good are the decoders?
 
@@ -217,7 +217,7 @@ protocol; that has not been done.
 
 ### How do I report a problem?
 
-Create a support report (**Advanced → Support report → Create support report**; it contains no
+Create a support report (**More tools → Support report → Create support report**; it contains no
 neural or personal data) and attach it to a
 [bug report](https://github.com/arnavhiteshpatel-cloud/concord/issues/new/choose). Security
 problems: see [SECURITY.md](../SECURITY.md) and do not open a public issue.
@@ -225,5 +225,5 @@ problems: see [SECURITY.md](../SECURITY.md) and do not open a public issue.
 ### How do I cite Concord?
 
 Use **Cite this repository** on the GitHub page (from [CITATION.cff](../CITATION.cff)), and cite
-each dataset you use; the console shows each dataset's citation under **Advanced → Acquisition
+each dataset you use; the console shows each dataset's citation under **More tools → Source
 details**.

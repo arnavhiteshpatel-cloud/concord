@@ -237,7 +237,7 @@ The IPC is not the bottleneck; converting 30 kHz frames to JSON events is (as fo
    `.venv/bin/python -m concord_adapter_sdk.host --check my-device [--device KEY] [--option k=v]`
    prints the manifest problems, devices, streams, per-stream sample rates and "OK" or the first
    violation. `--list` shows what discovery sees.
-4. **See it in Concord**: start Concord (`make run`), open *Connect a source* → *Plugins* (or
+4. **See it in Concord**: start Concord (`make run`), open *Choose a source* → *Add-ons (plugins)* (or
    *Search again* if Concord was already running), set options, *Connect*.
 5. **Test** in CI with `concord_adapter_sdk.client.SyncHostClient` (runs your plugin through
    a real host with Concord's validation; see the example's `tests/`).

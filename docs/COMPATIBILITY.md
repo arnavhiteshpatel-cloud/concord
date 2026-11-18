@@ -12,7 +12,7 @@ at level 3 or 4, and no certification report here contains `hardware_tested` or
 mean exactly that.
 
 The machine-readable form of this page is the [compatibility registry](#registry-m5-f)
-(`compat/registry.json`, `GET /api/v1/compatibility`, console: Advanced → Compatibility). Its
+(`compat/registry.json`, `GET /api/v1/compatibility`, console: More tools → Compatibility). Its
 levels are derived from evidence by fixed rules; where the hand-written matrix below and the
 registry disagree, the registry's derivation is the one CI checks.
 
@@ -138,7 +138,7 @@ by hand except where evidence lives; the level is **derived**.
 | Generator | `make compat` = `python -m concord.compat.build`; writes the registry, its schema and the generated section below |
 | Staleness | `make compat-check` = `python -m concord.compat.build --check`, run in CI (backend job, step "Workstream F: compatibility registry is current"): exit 1 when any generated file differs from what the checkout produces, 2 when the input is refused |
 | REST | `GET /api/v1/compatibility`: the registry plus, per entry, what this installation has (`live`) |
-| Console | Advanced → Compatibility: a read-only table (integration, kind, level, evidence, not tested) |
+| Console | More tools → Compatibility: a read-only table (integration, kind, level, evidence, not tested) |
 
 **What an entry holds.** id, kind (`builtin_adapter`, `source_plugin`, `offline_dataset`),
 ecosystem / protocol, package and the version the evidence is for, modalities as declared by

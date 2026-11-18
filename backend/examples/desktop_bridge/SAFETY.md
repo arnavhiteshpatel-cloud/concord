@@ -16,7 +16,7 @@ software. It has not been used with any participant and is not an accessibility 
   are not gated by operator authorization, so the bridge refuses them (counted as
   `refused_provenance`).
 - Authorize itself. Decoded commands reach the app id `desktop-bridge` only after the operator
-  authorized it in the Concord console (Command output → Authorized applications) and started
+  authorized it in the Concord console (Send to apps → Apps you authorize) and started
   command output. Until then it prints that it is waiting.
 - Type text, press keys, scroll, drag or hold a button down. `cancel` has no OS meaning and
   is ignored. A click is a press and release in one backend call.

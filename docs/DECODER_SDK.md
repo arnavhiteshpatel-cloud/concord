@@ -272,7 +272,7 @@ concord-decoder list                                 # what Concord will see
 2. `step()` must be causal and return the declared shape. Use `check_features(manifest, x)`.
 3. Ship parameters in the package. Prefer data files (numpy `.npz`, JSON, safetensors); a
    decoder plugin is code, and Concord runs it as code.
-4. In Concord: **Start decoding → Search for decoder plugins**. The decoder is listed with its
+4. In Concord: **Start decoding → Search for decoder add-ons**. The decoder is listed with its
    origin and the compatibility verdict for the chosen processing.
 5. For a model file instead of code:
 

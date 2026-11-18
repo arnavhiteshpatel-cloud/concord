@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useHelp } from "../context";
 import type { Tone } from "../wording";
 
 /** A sub-section inside Advanced or a sheet: a plain heading and its content. */
@@ -43,32 +44,105 @@ export function Dot({ tone }: { tone: Tone }) {
   return <span className={`dot dot-${tone}`} aria-hidden />;
 }
 
-/** One row of the session screen: research term, one plain line, values, actions. */
+/** One step of the session screen: step number, plain title, one plain line, a link to its
+ *  part of the guide, values and actions. `term` is the technical name, shown small. */
 export function Row({
   title,
   explain,
+  step,
+  term,
+  help,
   actions,
   children,
   testId,
 }: {
   title: string;
   explain: string;
+  step?: number;
+  term?: string;
+  /** guide section opened by "What is this?" */
+  help?: string;
   actions?: ReactNode;
   children?: ReactNode;
   testId: string;
 }) {
   const id = useId();
+  const openHelp = useHelp();
   return (
     <section className="row" aria-labelledby={id} data-testid={testId}>
       <div className="row-head">
-        <div>
-          <h2 id={id}>{title}</h2>
-          <p className="explain">{explain}</p>
+        <div className="row-title">
+          {step !== undefined && (
+            <span className="step" aria-hidden>
+              {step}
+            </span>
+          )}
+          <div>
+            <h2 id={id}>
+              {step !== undefined && <span className="visually-hidden">Step {step}: </span>}
+              {title}
+              {term && <span className="term">{term}</span>}
+            </h2>
+            <p className="explain">
+              {explain}{" "}
+              {help && (
+                <button type="button" className="link" onClick={() => openHelp(help)} data-testid={`${testId}-help`}>
+                  What is this?
+                </button>
+              )}
+            </p>
+          </div>
         </div>
         {actions && <div className="row-actions">{actions}</div>}
       </div>
       {children && <div className="row-body">{children}</div>}
     </section>
+  );
+}
+
+/** A tool in the "More tools" area: name, what it does and when to use it, and a Show/Hide
+ *  button. Closed tools render nothing unless `keepMounted` (e.g. an embedded app). */
+export function ToolCard({
+  title,
+  what,
+  when,
+  testId,
+  keepMounted = false,
+  children,
+}: {
+  title: string;
+  what: string;
+  when: string;
+  testId: string;
+  keepMounted?: boolean;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const id = useId();
+  return (
+    <div className={`tool ${open ? "tool-open" : ""}`} data-testid={testId} data-open={open}>
+      <div className="tool-head">
+        <div className="tool-text">
+          <h4>{title}</h4>
+          <p className="hint">
+            {what} {when}
+          </p>
+        </div>
+        <button
+          type="button"
+          className="btn btn-small"
+          aria-expanded={open}
+          aria-controls={id}
+          onClick={() => setOpen((o) => !o)}
+          data-testid={`${testId}-toggle`}
+        >
+          {open ? "Hide" : "Show"}
+        </button>
+      </div>
+      <div id={id} className="tool-body" hidden={!open}>
+        {(open || keepMounted) && children}
+      </div>
+    </div>
   );
 }
 
@@ -116,11 +190,13 @@ export function Sheet({
   onClose,
   children,
   testId,
+  wide = false,
 }: {
   title: string;
   onClose: () => void;
   children: ReactNode;
   testId?: string;
+  wide?: boolean;
 }) {
   const id = useId();
   const heading = useRef<HTMLHeadingElement>(null);
@@ -140,7 +216,7 @@ export function Sheet({
   }, []);
   return (
     <div className="sheet-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="sheet" role="dialog" aria-modal="true" aria-labelledby={id} data-testid={testId}>
+      <div className={`sheet ${wide ? "sheet-wide" : ""}`} role="dialog" aria-modal="true" aria-labelledby={id} data-testid={testId}>
         <header className="sheet-head">
           <h2 id={id} ref={heading} tabIndex={-1}>
             {title}

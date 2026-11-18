@@ -28,7 +28,7 @@ unfamiliar word in the [glossary](GLOSSARY.md).
 | [5. Let a recorded decoder drive the board](#5-let-a-recorded-decoder-drive-the-board-t15-cursor--click) | Cursor and clicks from a recording | 15 min | No (needs a free Dryad account) |
 | [6. Human ECoG](#6-human-ecog-ajile12-optional) (optional) | Replay a cortical-surface recording | 5 min | Yes, one command |
 | [7. A research session: record and export](#7-a-research-session-record-and-export) | Keep a reproducible record | 10 min | No (one optional command) |
-| [8. Stored data, support report and quitting](#8-stored-data-support-report-and-quitting) | Tidy up and quit | 5 min | No |
+| [8. Saved data, support report and quitting](#8-saved-data-support-report-and-quitting) | Tidy up and quit | 5 min | No |
 | [9. Where to go next](#9-where-to-go-next) | Your own equipment, every button | | |
 
 **What you need:**
@@ -178,25 +178,35 @@ Each command in this guide is written out for the Mac, Windows and Linux apps.
 ## 2. A tour of the console
 
 The console is the operator's screen: everything in this guide happens there. It is one page,
-top to bottom:
+top to bottom. The middle of the page is four numbered steps, in the order you use them: choose
+a data source, check the signal, start a decoder, send to apps.
 
 ![The console on first launch, with its parts numbered](images/01-console-first-launch.png)
 
 | # | Part | What it is for |
 | --- | --- | --- |
-| 1 | **Title bar** | **Concord** and its version; the connected source and its state (for example *Streaming · Simulated data*, *Paused*, *Recording*). On the right, **Stop control** stops decoded commands at once; it is grey until command output is running. |
-| 2 | **Session strip** | **New session** starts a *research session* that groups your recordings, decoders and a log for export (section 7). **Safe stop & disconnect** stops everything in a safe order. |
-| 3 | **Acquisition source** | Where the data comes from. **Connect a source** opens the list of sources. Once something is connected, the buttons become **Change source** and **Disconnect**. |
-| 4 | **Signal integrity** | Whether data is arriving complete and on time: a verdict (*Good*, *Gaps detected*, *No signal*…), live traces, the number of channels, data received and the delay. |
-| 5 | **Decoder** | Turns brain activity into intended movement or choices. **Start decoding** and **Calibrate…** appear once a source is connected. |
-| 6 | **Command output** | The gate between a decoder and applications: off until you click **Start control**, and only for applications you **Authorize**. **Open participant screen** opens the communication board in its own window. |
-| 7 | **Session log** | What happened, newest first. |
-| 8 | **Advanced** | At the very bottom of the page, closed until you click it. It holds the details: event stream, pipeline, acquisition details, diagnostics, recording, simulator, stored data, support report and more. |
+| 1 | **Title bar** | **Concord** and its version; the connected source and its state (for example *Streaming · Simulated data*, *Paused*, *Recording*). On the right, **Help** opens the in-app guide, and **Stop sending** stops decoded commands at once; it is grey until sending to apps is on. |
+| 2 | **Use notice** | Always visible: *Research preview. Not a medical device. Not for clinical, diagnostic or commercial use. Not yet tested with real recording equipment or with people.* **Details** opens the guide's section on limits and safety. |
+| 3 | **Welcome card** | For first-time users: the four steps in one line each. **Try it with demo data** connects Simulated Profile A, **Read the 2-minute guide** opens the in-app guide, and **Hide this** hides the card for good in this browser. |
+| 4 | **Session strip** | **Start a session** starts a *research session* that groups your recordings, decoders and a log for export (section 7). **Stop everything** stops everything in a safe order. |
+| 5 | **Step 1 · Data source** | Where the data comes from. **Choose a source** opens the list of sources. Once something is connected, the buttons become **Change source** and **Disconnect**. |
+| 6 | **Step 2 · Signal check** | Whether data is arriving complete and on time: a verdict (*Good*, *Gaps detected*, *No signal*…) with a plain sentence explaining it, live traces, the channels arriving, data received and the delay. |
+| 7 | **Step 3 · Decoder** | Turns brain activity into intended movement or choices. **Start decoding** and **Train a decoder…** appear once a source is connected. |
+| 8 | **Step 4 · Send to apps** | The gate between a decoder and applications: off until you click **Start sending**, and only for applications you **Authorize**. **Open participant screen** opens the communication board in its own window. |
+| 9 | **Session log** | What happened, newest first. |
+| 10 | **More tools** | At the bottom of the page, always visible. Every other tool, in groups (*Practice*, *Watch what is happening*, *Record and manage data*, *Apps*, *Check and troubleshoot*), each with what it does and when to use it. Click **Show** next to a tool to open it, **Hide** to close it. |
 
-**One thing that surprises everyone:** before you have opened anything, **Command output**
+Each step has a **What is this?** link that opens the in-app guide at that step.
+
+**The in-app guide covers everything you need without these documents.** Click **Help** in the
+title bar to open *How Concord works*: what Concord is, a two-minute tryout, the four steps,
+sessions, recordings and stopping, the tools under **More tools**, the words you will see, and
+limits, safety and privacy. This guide adds full step-by-step walkthroughs with real recordings.
+
+**One thing that surprises everyone:** before you have opened anything, **Send to apps**
 already lists a **Communication Board** with an **Authorize** button, and says
 "1 application connected · Communication Board waiting for: a source". That board is the
-preview built into **Advanced → Communication board**. **Do not click Authorize yet**:
+**Participant screen preview** under **More tools**. **Do not click Authorize yet**:
 section 5 explains when you need it.
 
 Every control is explained in the [user guide](USER_GUIDE.md).
@@ -211,35 +221,35 @@ participant and choose words on the communication board yourself.
 
 ### 3.1 Connect a simulated device
 
-1. In **Acquisition source**, click **Connect a source**. A panel lists every kind of source:
+1. In **Data source**, click **Choose a source**. A panel lists every kind of source:
 
-   ![The Connect a source panel on a fresh installation](images/02-connect-a-source.png)
+   ![The Choose a data source panel on a fresh installation](images/02-connect-a-source.png)
 
-   *Recorded human data* says "No recorded datasets yet" until you add recordings in
-   section 4. That is expected. The *Live streams* and *Plugins* parts are for your own
+   *Real recordings (played back)* says "No recordings on this computer yet", with download
+   links for two starter recordings, until you add recordings in section 4. That is expected. The *Live equipment* and *Add-ons (plugins)* parts are for your own
    equipment; you don't need them in this guide (see section 9). The BCI2000 plugin listed there
    comes with Concord.
-2. Under **Simulated profiles**, click **Connect** next to **Simulated Profile A** (32 channels at
+2. Under **Demo data (simulated)**, click **Connect** next to **Simulated Profile A** (32 channels at
    1,000 Hz, with a simulated pointer and click).
 
 **What you should see:**
 - The title bar says **Streaming · Simulated data**.
-- **Signal integrity** shows moving traces, the verdict **Good** and **Channels 32 of 32**.
+- **Signal check** shows moving traces, the verdict **Good** and **Channels arriving 32 of 32**.
 - The session log says the source connected.
 
 ![Simulated Profile A streaming](images/03-simulated-profile-streaming.png)
 
 What the figures mean:
-- **Channels**: how many channels arrived in the latest block, out of how many the source
+- **Channels arriving**: how many channels arrived in the latest block, out of how many the source
   declares.
 - **Data received (%)**: measured only for live LSL and Open Ephys streams; for simulated and
   recorded sources it shows **—**.
-- **Delay to this screen (ms)**: how long data takes from Concord to this page; a few
+- **Delay (ms)**: how long data takes from Concord to this page; a few
   milliseconds is normal.
 
 ### 3.2 Open the participant screen (the communication board)
 
-In **Command output**, click **Open participant screen**. A second window opens with the
+In **Send to apps**, click **Open participant screen**. A second window opens with the
 **communication board**, the screen a participant would use to compose messages. Put it next
 to the console and make it at least about 1280 × 800 pixels, or maximise it, so every tile
 and the **History** column fit. If nothing opens, your browser
@@ -251,7 +261,7 @@ blocked the pop-up: allow pop-ups for `127.0.0.1:8000`.
 message bar.)*
 
 What is on the board:
-- **Header:** *Communication board*, *Research use only*, the input method in use (here
+- **Header:** *Communication board*, *Research use only · not a medical device*, the input method in use (here
   *Pointer and click*), the connection (*Connected to Concord*) and **Settings**.
 - **Input line:** where the input comes from, here *Input: simulated input · synthetic data*.
 - **Message bar:** the message being composed. Once a word is chosen, a label under it says
@@ -266,14 +276,14 @@ because that is how a participant would use it. In this section the input comes 
 through the simulator. (The board's hint *click to choose it* means the participant's click:
 here, **Select** in the simulator.)
 
-In the console, **Command output** now says **2 applications connected**: the board window and
-the preview built into **Advanced → Communication board**. **Authorized applications** still
+In the console, **Send to apps** now says **2 applications connected**: the board window and
+the preview built into **More tools → Participant screen preview**. **Apps you authorize** still
 shows one **Communication Board** row; don't click its **Authorize** yet (section 5).
 
 ### 3.3 Move the cursor and choose a word
 
-1. In the console, scroll to the bottom, click **Advanced** to open it, then click **Simulator
-   controls**. This section is listed only while a simulated profile is connected.
+1. In the console, scroll to **More tools** at the bottom. Under *Practice*, click **Show** next
+   to **Simulator controls**. This tool is listed only while a simulated profile is connected.
 
    ![Simulator controls](images/04-simulator-controls.png)
 
@@ -294,18 +304,18 @@ shows one **Communication Board** row; don't click its **Authorize** yet (sectio
 under the pad counts your selections.
 
 Simulated input reaches the board directly because no brain data is involved. Decoded brain
-data never does: it needs **Start control** and **Authorize** (section 5).
+data never does: it needs **Start sending** and **Authorize** (section 5).
 
 ### 3.4 Try a fault (optional)
 
-Under **Fault injection**, each button makes the simulated device misbehave, so you can see how
-Concord reacts. Each fault is also counted in **Advanced → Diagnostics → Counters** (*link
+Under **Try a problem (fault injection)**, each button makes the simulated device misbehave, so you can see how
+Concord reacts. Each fault is also counted in **More tools → Health check → Counters** (*link
 errors*, *decode errors*, *timestamp regressions*).
 
 | Button | What it simulates | What you should see |
 | --- | --- | --- |
-| **Link drop** | A brief loss of connection | The session log shows *Link lost, reconnecting*, then *Streaming (reconnected after 1 attempt(s))*. It takes a fraction of a second, so the title bar barely changes. The counts are in **Advanced → Diagnostics** (*Reconnects ok / tried*). |
-| **Link failure** | A connection that cannot be restored | The title bar says *Source stopped with an error*; the source row shows the error and a **Reset** button. Click **Reset**, then **Connect a source → Connect** next to **Simulated Profile A**, and reopen **Advanced → Simulator controls** to try the next fault. |
+| **Link drop** | A brief loss of connection | The session log shows *Link lost, reconnecting*, then *Streaming (reconnected after 1 attempt(s))*. It takes a fraction of a second, so the title bar barely changes. The counts are in **More tools → Health check** (*Reconnects ok / tried*). |
+| **Link failure** | A connection that cannot be restored | The title bar says *Source stopped with an error*; the source row shows the error and a **Reset** button. Click **Reset**, then **Choose a source → Connect** next to **Simulated Profile A**, and click **Show** next to **Simulator controls** again to try the next fault. |
 | **Malformed packet** | A corrupted data packet | The session log shows *Decode error: CRC mismatch*; the bad packet is dropped and counted. |
 | **Clock regression** | A timestamp that goes backwards | The session log shows *Timestamp regression*; the event is flagged in its quality. |
 
@@ -313,7 +323,7 @@ errors*, *decode errors*, *timestamp regressions*).
 
 1. On the board, the message stays until you clear it, so the next words don't mix with these:
    press **Clear** by moving the cursor onto it and selecting, or close the board window.
-2. In the console, click **Disconnect** in **Acquisition source**. The board says
+2. In the console, click **Disconnect** in **Data source**. The board says
    *Paused — device disconnected (operator disconnect)*.
 
 ---
@@ -336,7 +346,9 @@ the cued reach-and-grasp movements the participant attempted.
 
 ### 4.1 Download the two files
 
-Click each link; your browser downloads one file directly from the DANDI archive:
+Click each link; your browser downloads one file directly from the DANDI archive. (The same two
+links are in the console: **Choose a source** → *Real recordings (played back)* lists them while
+no recordings are present.)
 - [sub-HumanPitt-held-in-calib_ses-19250108T110520.nwb](https://api.dandiarchive.org/api/assets/e40a2eca-883d-4c80-81e3-4203a49506b5/download/) (5.8 MB)
 - [sub-HumanPitt-held-in-calib_ses-19250108T111022.nwb](https://api.dandiarchive.org/api/assets/98f1e471-ad68-4006-b090-9a3e347852e6/download/) (3.3 MB)
 
@@ -355,8 +367,8 @@ Concord keeps everything in one **data folder**. Recordings you download go in a
 
 Without a terminal:
 
-1. **See where the folder is.** Click **Connect a source**. Under *Recorded human data*,
-   Concord shows the folder to use, for example
+1. **See where the folder is.** Click **Choose a source**. Under *Real recordings (played back)*,
+   the download steps name the exact folder to use, for example
    `/Users/you/Library/Application Support/Concord/data/datasets` (Mac),
    `C:\Users\you\AppData\Local\Concord\data\datasets` (Windows) or
    `/home/you/.local/share/concord/data/datasets` (Linux). Close the panel.
@@ -374,15 +386,15 @@ Without a terminal:
 
 If the panel shows a different folder than these, another copy of Concord is running: see
 *Another copy already running?* in section 1. (The data folder is also the first line,
-**Data directory**, of **Advanced → Stored data**.)
+**Data directory**, of **More tools → Saved data**.)
 
 ### 4.3 Connect a recording
 
-1. Reload the console page (⌘R or Ctrl+R), then click **Connect a source**. (Reloading clears
+1. Reload the console page (⌘R or Ctrl+R), then click **Choose a source**. (Reloading clears
    the on-screen Session log; what happened is still in Concord's log files and, during a
    research session, in the session's log.) Right after Concord starts, the list may say
    *Checking the recorded datasets…* for a few seconds while Concord verifies each file.
-2. Under **Recorded human data (offline replay)** you now see **Session 19250108T110520** and
+2. Under **Real recordings (played back)** you now see **Session 19250108T110520** and
    **Session 19250108T111022**, each with "DANDI 000954 · held-in-calib · 176 channels · 20 ms
    bins". They are two blocks from the same day; either works. The numbers are the recording's
    date and time, which the dataset shifted to 1925 to protect the participant's identity, and
@@ -393,7 +405,7 @@ If the panel shows a different folder than these, another copy of Concord is run
 - The title bar says **Streaming · Recorded human data, offline replay**.
 - The source row shows the source type *Recorded Human Intracranial Data — Offline Replay* and,
   on the next line, which session is playing.
-- **Signal integrity** shows the spike counts of the most active channels.
+- **Signal check** shows the spike counts of the most active channels.
 
 ![A recorded human session replaying](images/09-recorded-human-data.png)
 
@@ -402,16 +414,16 @@ redistributed, so the documentation shows none of it. On your screen you see the
 
 ### 4.4 Control the replay
 
-Open **Playback** in the source row:
+Under the source, always visible:
 - **Pause** / **Resume**;
-- speed **0.5×, 1×, 2×, 4×, 8×**.
+- the playback speed buttons **0.5×, 1×, 2×, 4×, 8×**.
 
 The position (for example *0:43.0 of 2:15.7*) is shown in the line above. The bar shows
 progress but cannot be dragged. At the end, the replay starts again from the beginning.
 
 ### 4.5 See exactly what you are replaying
 
-Open **Advanced → Acquisition details**:
+Under **More tools**, click **Show** next to **Source details**:
 
 ![Dataset details with checksum verification](images/10-dataset-details.png)
 
@@ -461,9 +473,9 @@ your browser makes. Concord skips duplicates, because the same block cannot be l
 
 ### 5.2 Connect the grid block
 
-1. Reload the console, click **Connect a source** (or **Change source** if something is
+1. Reload the console, click **Choose a source** (or **Change source** if something is
    connected).
-2. Under **Recorded human data (offline replay)** the four blocks are listed by day, block and
+2. Under **Real recordings (played back)** the four blocks are listed by day, block and
    task:
    - **Cursor + click · Day 468 · block 0 · radial-8 calibration** (and blocks 1 and 2);
    - **Cursor + click · Day 468 · block 3 · grid evaluation**.
@@ -479,9 +491,9 @@ your browser makes. Concord skips duplicates, because the same block cannot be l
 - The Decoder row says *This recording carries the replayed output of an offline decoder
   (t15-historical-click); it is not used for control.* "Offline" here means recorded: it is the
   original research system's decoder, replayed from the file. That is the starting state: in 5.4 you choose to pass this recorded
-  output on, and only **Start control** in 5.5 lets it move the board. (The row names only
+  output on, and only **Start sending** in 5.5 lets it move the board. (The row names only
   *t15-historical-click*; the velocity decoder appears in 5.4.)
-- **Signal integrity** shows the threshold crossings of the most active channels (a threshold
+- **Signal check** shows the threshold crossings of the most active channels (a threshold
   crossing is counted each time an electrode's voltage dips below a set level, roughly one
   nearby neuron firing).
 
@@ -489,7 +501,7 @@ The file's checksum is verified when you connect; a file that does not match is 
 citation is in [DATASETS.md](DATASETS.md).
 
 T15 replays at real speed: block 3 lasts 3 minutes and then starts again. You can **Pause**
-under **Options**. (Unlike FALCON, the T15 row shows no position, progress bar or speed
+it with the button under the source. (Unlike FALCON, the T15 row shows no position, progress bar or speed
 choice.)
 
 ### 5.3 Set the board to the task's grid
@@ -532,30 +544,30 @@ A note says the velocity has "no declared output scale"; the next step sets the 
 
 ### 5.5 Set up command output
 
-1. In **Command output**, open **Settings**:
+1. In **Send to apps**, open **Adjust how the cursor moves**:
 
-   ![Command output settings for the T15 replay](images/15-command-output-settings.png)
+   ![Send to apps settings for the T15 replay](images/15-command-output-settings.png)
 
 2. **Change three fields** (they start at 1, 0.3 and 2; the picture shows them already
    changed):
-   - **Gain**: `1.09`. The recorded velocity is in screen heights per second, and the task's
+   - **Speed (gain)**: `1.09`. The recorded velocity is in screen heights per second, and the task's
      targets filled a square 0.92 screen heights wide. Multiplying by 1 / 0.92 = 1.09 makes the
      board's square match that grid.
-   - **Dead-zone**: `0` (don't ignore small movements).
-   - **Max speed**: `10` (don't cap the recorded movements).
+   - **Ignore small movements (dead-zone)**: `0` (don't ignore small movements).
+   - **Top speed**: `10` (don't cap the recorded movements).
 
    **Leave the others as they are**: **Horizontal (x) from** `vx`, **Vertical (y) from** `vy`,
-   **Invert y** ticked (ticked for you, because the decoder counts "up" as positive y while the
+   **Flip up and down (invert y)** ticked (ticked for you, because the decoder counts "up" as positive y while the
    screen counts "down"), **Click from** `click` (selected for you), **Click threshold** `0.5`,
    **Minimum confidence** `0`, **Click pause (ms)** `300`.
-3. Click **Start control**.
-4. Under **Authorized applications**, click **Authorize** next to **Communication Board**.
+3. Click **Start sending**.
+4. Under **Apps you authorize**, click **Authorize** next to **Communication Board**.
 
 If you change a value later, click **Apply settings** under the fields.
 
 **What you should see:**
-- **Command output** says *On · x ← vx, y ← vy (inverted), gain 1.09; click ← click*.
-- The title bar's **Stop control** button turns red.
+- **Send to apps** says *On · x ← vx, y ← vy (inverted), gain 1.09; click ← click*.
+- The title bar's **Stop sending** button turns red.
 - On the board:
   - the input line reads *historical decoder replay (original research system) · recorded data
     replay*;
@@ -573,11 +585,11 @@ the comparison is described in [NEURAL_COMMUNICATION.md](NEURAL_COMMUNICATION.md
 
 ### 5.6 Stop and tidy up
 
-1. Click **Stop control** (top right). Decoded commands stop at once; the board says it is
+1. Click **Stop sending** (top right). Decoded commands stop at once; the board says it is
    paused.
-2. Under **Authorized applications**, click **Revoke**. Authorization lasts until you revoke it,
+2. Under **Apps you authorize**, click **Revoke**. Authorization lasts until you revoke it,
    even if you change source or session.
-3. Click **Stop decoding** in the **Decoder** row, then **Disconnect** in **Acquisition
+3. Click **Stop decoding** in the **Decoder** row, then **Disconnect** in **Data
    source**. The board says *Paused — device disconnected (operator disconnect)*.
 4. On the board, open **Settings → Layout → Phrases and letters** and set **Text size** back to
    100% to get the normal board back (the settings are saved in this browser). Then close the board window: that removes the
@@ -625,8 +637,8 @@ running while you run it.
 - It prints *verified* twice and ends with *2 extract(s) ready in …/datasets/dandi-000055*.
 
 Then:
-1. Reload the console and click **Connect a source**.
-2. **Recorded human data** now also lists **Session 5** and **Session 6** ("DANDI 000055 ·
+1. Reload the console and click **Choose a source**.
+2. **Real recordings (played back)** now also lists **Session 5** and **Session 6** ("DANDI 000055 ·
    64 channels · 500 Hz"). Connect one: the source row says *Recorded Human ECoG — Offline
    Replay* and the title bar *Streaming · Recorded human data, offline replay*.
 3. When you are done, click **Disconnect**.
@@ -640,7 +652,7 @@ Background and decoding results: [ECOG.md](ECOG.md).
 A **research session** keeps a reproducible record of what you do: recordings, decoders,
 settings and a log, in one folder you can export as a zip file.
 
-1. In the session strip, click **New session**. Enter a **Session name** (required; **Start
+1. In the session strip, click **Start a session**. Enter a **Session name** (required; **Start
    session** stays grey until you do), optionally the **Operator** and **Notes**. **Never enter
    participant identifiers.** Click **Start session**.
 
@@ -648,15 +660,15 @@ settings and a log, in one folder you can export as a zip file.
 
    The strip now shows the session's name, the operator, the start time and how many recordings
    and models it holds.
-2. Connect **Simulated Profile A** (**Connect a source**, or **Change source → Switch** if
+2. Connect **Simulated Profile A** (**Choose a source**, or **Change source → Switch** if
    something is connected). Source changes are written to the session's log.
-3. Open **Advanced → Recording**, leave **Features and labels only** unticked, and click
+3. Under **More tools**, click **Show** next to **Record data**, leave **Features and labels only** unticked, and click
    **Start recording**. The title bar adds **· Recording**. The size in the list of recordings
    updates when the recording stops.
 
    ![A session with a recording in progress](images/07-session-recording.png)
 
-4. After a minute, click **Safe stop & disconnect**. It stops command output, closes the
+4. After a minute, click **Stop everything**. It stops command output, closes the
    recording, stops decoding and disconnects the source, in that order. The session stays open.
 
    > **About recording limits.** A recording with raw samples stops by itself after 5 minutes or
@@ -688,7 +700,7 @@ settings and a log, in one folder you can export as a zip file.
 6. At the bottom of the same panel, click **End session…** and then **End session now**.
 
    **What you should see:** the session strip returns to *No research session…*. The session's
-   folder stays in **Advanced → Stored data**.
+   folder stays in **More tools → Saved data**.
 
 **Reproducing an export (optional, needs a terminal).** Give the `reproduce` command the zip's
 full path. Its name is long: type the start, `~/Downloads/concord-session-`, then press **Tab**
@@ -707,19 +719,19 @@ panel counts 7 files: the 6 checked here plus `manifest.json` itself.)
 
 ---
 
-## 8. Stored data, support report and quitting
+## 8. Saved data, support report and quitting
 
-**Advanced → Stored data** shows the data folder, your recordings, decoder models and research
+**More tools → Saved data** shows the data folder, your recordings, decoder models and research
 sessions with their sizes, and deletes what you no longer need (it asks for confirmation).
 Downloaded datasets are not listed there: delete them from the `datasets` folder yourself.
 
-**Advanced → Support report → Create support report** checks the installation: versions,
+**More tools → Support report → Create support report** checks the installation: versions,
 optional parts, ports, folder permissions, disk space and recent problems. It contains **no
 neural or personal data**. If you tried the faults in section 3.4, the report lists them under *Recent log problems* as
 warnings and errors; that is expected. Download it as JSON or Markdown and attach it when you
 [report a problem](https://github.com/arnavhiteshpatel-cloud/concord/issues/new/choose).
 
-![Stored data and support report](images/12-stored-data-and-support.png)
+![Saved data and support report](images/12-stored-data-and-support.png)
 
 **Quitting:**
 - **Mac:** click **Stop and quit** in the small Concord window, or press ⌘Q.
@@ -744,7 +756,7 @@ the next start keeps the complete part of an interrupted recording and marks it 
 | Understand the ideas: sources, data kinds, capabilities, decoders, command output | [How Concord works](CONCEPTS.md) |
 | Know what every button, field and message does | [User guide](USER_GUIDE.md) |
 | Connect your own equipment: LSL, Open Ephys, BrainFlow, BCI2000, your own device | [Connect your equipment](CONNECT_YOUR_EQUIPMENT.md) |
-| Calibrate a decoder from your own recordings | [User guide: Calibrate](USER_GUIDE.md#65-the-calibrate-panel) |
+| Train a decoder from your own recordings | [User guide: Train a decoder](USER_GUIDE.md#65-the-train-a-decoder-panel) |
 | See every demo dataset, its license and how to cite it | [DATASETS.md](DATASETS.md) |
 | Fix a problem | [TROUBLESHOOTING.md](TROUBLESHOOTING.md), [FAQ.md](FAQ.md) |
 | Know what has been validated, and what has not | [VALIDATION_LEVELS.md](VALIDATION_LEVELS.md), [LIMITATIONS.md](../LIMITATIONS.md) |

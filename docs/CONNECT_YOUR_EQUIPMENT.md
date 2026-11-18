@@ -47,7 +47,7 @@ Find your setup in the left column:
 | The **Open Ephys GUI** (version 0.6 or later) | **Open Ephys**, built in ([4.2](#42-open-ephys-gui)) | Raw continuous signal, TTL events, and spikes the GUI detected (counted per electrode by Concord) | The GUI's **ZMQ Interface** plugin |
 | A board that **BrainFlow** supports | **BrainFlow plugin** ([4.3](#43-brainflow-boards)) | Raw signal of the board's main sensors | The Python installation (not in the desktop app) |
 | **BCI2000** | **BCI2000 plugin** ([4.4](#44-bci2000)) | BCI2000's **control signal** (the output of its own signal processing) and selected task states. **Not raw signal.** | Included in the desktop app |
-| Recorded files (NWB) | **Recorded human data (offline replay)** | A replay of the file, labelled *Offline Replay* | See [Getting started](GETTING_STARTED.md) |
+| Recorded files (NWB) | **Real recordings (played back)** | A replay of the file, labelled *Offline Replay* | See [Getting started](GETTING_STARTED.md) |
 | Anything else | Publish it over LSL if your software can, or a **source plugin** written by a developer ([4.5](#45-your-own-device-a-source-plugin)) | What the plugin declares | A developer, once |
 
 Some terms:
@@ -194,7 +194,7 @@ stream runs until you stop it.
 For the other test streams, replace `lsl-ephys` with:
 
 - `falcon "<data folder>/datasets/<file>.nwb" --loop`. `<data folder>` is the folder shown in
-  **Advanced → Stored data → Data directory**; the FALCON files are the ones you put in its
+  **More tools → Saved data → Data directory**; the FALCON files are the ones you put in its
   `datasets` folder ([Getting started §4](GETTING_STARTED.md#4-replay-a-real-human-recording-falcon-h1)).
   If you downloaded them with the `dataset` command, they are in `datasets/dandi-000954/`. Keep
   the quotes if the path contains spaces (the Mac's `Application Support` does). `--loop`
@@ -237,13 +237,13 @@ terminal prints a summary (`pushed … samples per channel`, `published … bins
 If you stop the stream while Concord is still connected, Concord behaves as it would with a
 real outlet that went away. The title bar shows **Source link lost, reconnecting**; after about
 17 seconds of failed attempts it shows **Source stopped with an error**. Click **Reset** in the
-*Acquisition source* row.
+*Data source* row.
 
 ---
 
 ## 4. Connect your equipment, route by route
 
-All routes start in the console: **Acquisition source → Connect a source**. If a source is
+All routes start in the console: **Data source** (step 1) **→ Choose a source**. If a source is
 already connected, the button reads **Change source** and the buttons in the list read
 **Switch**.
 
@@ -275,8 +275,8 @@ console without writing code (step 2 below).
 
 1. **Start streaming** in your acquisition software (and your task software, if it publishes
    cues or markers).
-2. In the console: **Connect a source** → *Live streams* → **Find LSL streams** → **Search the
-   network**. Concord listens for about 1.5 seconds.
+2. In the console: **Choose a source** → *Live equipment* → **Find LSL streams on this
+   network** → **Search the network**. Concord listens for about 1.5 seconds.
 
    **What you should see:**
    - a line *Last search 2 s ago · 3 streams*, and a table with a row per stream: *Stream*
@@ -285,7 +285,7 @@ console without writing code (step 2 below).
      declaration*);
    - **Use** next to every stream that can be the signal. Other rows give the reason instead,
      for example *… carries strings; use it as a marker stream*;
-   - at the same time, every stream that can be a signal appears at the top of *Live streams*
+   - at the same time, every stream that can be a signal appears at the top of *Live equipment*
      as an entry such as *LSL · MyAmp EEG (EEG)*, with **Remove** and **Connect**. Such an entry
      is the stream alone, without behavior or marker streams.
 
@@ -316,13 +316,13 @@ console without writing code (step 2 below).
    - the title bar shows the stream's name and **Streaming · Live stream, origin unverified**
      for real equipment (*Simulated data* or *Recorded data, streamed replay (declared)* for
      streams that declare it);
-   - under **Signal integrity**: four live traces; the verdict **Good**; **Channels** *32 of 32*;
-     **Data received (%)** *100*; **Delay to this screen (ms)**, a few milliseconds on one
+   - under **Signal check**: four live traces; the verdict **Good**; **Channels arriving** *32 of 32*;
+     **Data received (%)** *100*; **Delay (ms)**, a few milliseconds on one
      computer.
 
-   ![The console connected to the lsl-ephys test stream: title bar, source, signal integrity Good, 32 of 32 channels, 100 % received, and the session log](images/connect-lsl-connected.png)
+   ![The console connected to the lsl-ephys test stream: title bar, source, signal check Good, 32 of 32 channels, 100 % received, and the session log](images/connect-lsl-connected.png)
 
-7. Open **Advanced → Acquisition details** (at the bottom of the console) and compare with your
+7. Under **More tools** (at the bottom of the console), click **Show** next to **Source details**, and compare with your
    acquisition software's own display.
 
    | Line | Meaning |
@@ -337,7 +337,7 @@ console without writing code (step 2 below).
    | *discarded while paused* | Samples dropped while you paused the source (**Options → Pause**) |
    | *Role* table | One row per stream: *signal*, *behavior*, *markers*, with samples received, gaps, the time correction applied and the last timestamp. **Your attachments appear here.** |
 
-The **Signal integrity** verdicts: **Good**; **Gaps detected** (a loss counter rose in the last
+The **Signal check** verdicts: **Good**; **Gaps detected** (a loss counter rose in the last
 10 s); **No signal** (no signal or feature data in the last 2 s); **Paused**; **Interrupted —
 reconnecting**.
 
@@ -372,7 +372,7 @@ Concord reads the stream that the Open Ephys GUI's **ZMQ Interface** plugin publ
 
 #### In the console
 
-1. **Connect a source** → *Live streams* → **Add Open Ephys source**.
+1. **Choose a source** → *Live equipment* → **Connect to Open Ephys**.
 2. Fill in:
 
    | Field | What to enter |
@@ -386,16 +386,16 @@ Concord reads the stream that the Open Ephys GUI's **ZMQ Interface** plugin publ
    **What you should see:** a new entry *Open Ephys (ZMQ) · 127.0.0.1:5556*, labelled *Live
    stream, origin unverified*, with **Remove** and **Connect**.
 
-   ![Add Open Ephys source with Host, Data port and Sample unit filled in, and the new Open Ephys entry in the Live streams list](images/connect-openephys.png)
+   ![Connect to Open Ephys with Host, Data port and Sample unit filled in, and the new Open Ephys entry in the Live equipment list](images/connect-openephys.png)
 
 4. Click **Connect**. Concord listens for about half a second to learn the stream's layout
    (stream name, rate, channels), then starts.
 
    **What you should see:** the title bar reads **Streaming · Live stream, origin unverified**,
    always: the protocol cannot tell an acquisition board from the GUI's File Reader. *Signal
-   integrity* shows the traces, **Good**, the channel count and *Data received* 100 %. The ZMQ
+   check* shows the traces, **Good**, the channel count and *Data received* 100 %. The ZMQ
    Interface lists Concord among its clients.
-5. Check **Advanced → Acquisition details**: *Endpoint*; *Stream* (the GUI's stream name);
+5. Check **More tools → Source details**: *Endpoint*; *Stream* (the GUI's stream name);
    *Rate*; *Unit* (for example *configured uV → emitted uV*); *Heartbeat* *ok*; *Last message #*;
    *Clock offset*. The counters include *messages*, *data messages*, *ttl events*, *spikes*,
    *missed messages*, *missing samples* and *incomplete blocks*. Any loss counter above 0 means
@@ -421,16 +421,16 @@ each board.
 1. **Install** the Python installation with the BrainFlow plugin
    ([2.1](#the-python-installation-needed-for-brainflow-optional-otherwise)). The desktop app does
    not include BrainFlow.
-2. **Start Concord** (`concord start`). If it was already running, open **Connect a source →
-   Plugins** and click **Search again**.
+2. **Start Concord** (`concord start`). If it was already running, open **Choose a source → Add-ons
+   (plugins)** and click **Search again**.
 
-   **What you should see** under **Plugins**: *BrainFlow*, *concord-brainflow@0.1.0 ·
+   **What you should see** under **Add-ons (plugins)**: *BrainFlow*, *concord-brainflow@0.1.0 ·
    compatible · brainflow · uses the network*, with four entries: **BrainFlow synthetic board**,
    **BrainFlow playback file**, **BrainFlow streaming board**, **Configure a BrainFlow board**.
    BrainFlow cannot detect boards, so these are always listed; none of them means a board was
    found.
 
-   ![The Plugins section: BCI2000 App Connector and BrainFlow, both compatible, each with Connect and Options](images/connect-plugins.png)
+   ![The Add-ons (plugins) section: BCI2000 App Connector and BrainFlow, both compatible, each with Connect and Options](images/connect-plugins.png)
 
 3. **Try the synthetic board first:** click **Connect** next to **BrainFlow synthetic board**.
 
@@ -475,7 +475,7 @@ What BrainFlow delivers, and what it does not:
 - **Modality not declared** appears when BrainFlow's description of the board lists the same
   rows as EEG, EMG and ECG at once (32 of BrainFlow's board descriptions do, the synthetic board
   among them). Concord does not guess.
-- For plugin sources, *Data received (%)* shows "—", and **Acquisition details** shows *No
+- For plugin sources, *Data received (%)* shows "—", and **Source details** shows *No
   telemetry for the current session*. In 0.3.1 the console shows no loss counters for plugin
   sources, and the **Gaps detected** verdict does not use them. Lost samples are still flagged
   in the data and in recordings (the frame after a gap is marked *dropped samples*).
@@ -505,7 +505,7 @@ the desktop app; for the Python installation it is the `concord-bci2000` wheel.
 
 #### In the console
 
-1. **Connect a source** → **Plugins** → *BCI2000 App Connector* → **Options**, under **BCI2000
+1. **Choose a source** → **Add-ons (plugins)** → *BCI2000 App Connector* → **Options**, under **BCI2000
    App Connector (UDP)**:
 
    | Label in the console (starts with) | What to enter |
@@ -528,7 +528,7 @@ the desktop app; for the Python installation it is the `concord-bci2000` wheel.
    **What you should see:** the title bar shows *BCI2000 App Connector (UDP)* and
    **Streaming · Live stream, origin unverified** (*Simulated data* if you ticked the
    SignalGenerator box); *Plugin · concord-bci2000@0.1.0 · isolated · modality not declared*.
-   **Signal integrity stays at *Waiting for data* / *No signal*: this is expected**, because
+   **Signal check stays at *Waiting for data* / *No signal*: this is expected**, because
    BCI2000 sends a control signal, not a brain signal.
 3. **See the control signal:** **Decoder → Start decoding** → **Processing: Source decoder
    outputs (passthrough)** (in 0.3.1 the menu starts on *Band power*, which does not apply here;
@@ -559,8 +559,8 @@ the desktop app; for the Python installation it is the `concord-bci2000` wheel.
    [ADAPTER_SDK.md §8](ADAPTER_SDK.md#8-step-by-step-create--install--see-in-concord--test).
    `concord-certify` then produces a report on the plugin ([CERTIFICATION.md](CERTIFICATION.md)).
 3. **Use it:** plugins work with the **Python installation** (the desktop app contains only the
-   BCI2000 plugin). Install the plugin into the same environment as Concord, then **Connect a
-   source → Plugins → Search again**. The plugin is listed with its version and *compatible*, or
+   BCI2000 plugin). Install the plugin into the same environment as Concord, then **Choose a source
+   → Add-ons (plugins) → Search again**. The plugin is listed with its version and *compatible*, or
    with the reason it was rejected. Fill in its **Options** and click **Connect**. The source row
    shows *Plugin · `<package>@<version>` · isolated · `<modality>`*.
 
@@ -577,16 +577,16 @@ control.
 
 ### 5.1 Record and calibrate
 
-**A research session first** (optional, recommended): **New session** in the strip above the
+**A research session first** (optional, recommended): **Start a session** in the strip above the
 rows. It groups your recordings, decoder models and a log, and can be exported.
 
-**Recording** writes what Concord receives to a file in the data folder's `recordings` folder.
+**Record data** (under **More tools**) writes what Concord receives to a file in the data folder's `recordings` folder.
 The file name is made from the source and the time, for example
 `lsl-concord-synthetic-ephys-20261109-013054` or `openephys-127-0-0-1-5556-20261109-014918`.
 (Version 0.3.0 refused to record live sources with *invalid recording name*; 0.3.1 records
 them.)
 
-- **Advanced → Recording → Start recording**, then **Stop recording**. With a raw high-rate
+- **More tools → Record data → Show → Start recording**, then **Stop recording**. With a raw high-rate
   source, tick **Features and labels only (for calibration)**: raw frames fill the default size
   limit (200 MiB) in seconds. For example, 32 channels at 30 kHz stopped after about 10 seconds.
   For longer raw recordings (validation), raise `max_size_mb` and `max_duration_s` in the
@@ -602,11 +602,11 @@ predict that from the brain data.
    decoding**, keep **Decoder model: None (features only)**, click **Start decoding** (presets:
    5.2). If your source already sends features (spike counts over LSL), the preset is **Source
    features (passthrough)**.
-2. **Decoder → Calibrate…** → *1. Record a calibration session* → **Start recording**. Run your
-   task, then **Stop recording**. This records features and behavior labels only, for up to an
+2. **Decoder → Train a decoder…** → *1. Record a training session* → **Start recording**. Run
+   your task, then **Stop recording**. This records features and behavior labels only, for up to an
    hour.
-3. Under *2. Train*: tick the recording; choose **What the decoder should output**
-   (**Continuous movement**, **Discrete classes** or **Click**) and the **Decoder family**; keep
+3. Under *2. Train a model on a recording*: tick the recording; choose **What the decoder
+   should output** (**Continuous movement**, **Discrete classes** or **Click**) and the **Decoder family**; keep
    **Train fraction** (0.8) and **Gap (bins)** (12) unless you have a reason; click **Check
    labels**.
 
@@ -650,13 +650,15 @@ To change the model, click **Stop decoding**, then **Start decoding** again.
 Decoder output is never a command by itself. It reaches an application only through **command
 output**, which you start, and only to applications you **authorize**.
 
-1. **Command output → Start control.** This button appears while a decoder with a model runs,
+1. **Send to apps → Start sending.** This button appears while a decoder with a model runs,
    or while **Source decoder outputs (passthrough)** runs.
-   - **Settings** (before or after starting): **Horizontal (x) from** and **Vertical (y)
-     from** (which decoder outputs move the cursor), **Gain**, **Dead-zone**, **Max speed**,
-     **Invert y** (ticked for you when the decoder declares that +y is up), and **Click from**.
-     **Click from** lists the outputs of every running decoder and preselects a click output when
-     one exists. With control on, **Apply settings** applies changes.
+   - **Adjust how the cursor moves** (before or after starting): **Horizontal (x) from** and
+     **Vertical (y) from** (which decoder outputs move the cursor), **Speed (gain)**, **Ignore
+     small movements (dead-zone)**, **Top speed**, **Flip up and down (invert y)** (ticked for
+     you when the decoder declares that +y is up), and **Click from**. **Click from** lists the
+     outputs of every running decoder and preselects a click output when one exists. With
+     sending on, **Apply settings** applies changes. (For a classifier the settings are under
+     **Choose what each decoded choice does**.)
 
    **What you should see:** *On · x ← vx, y ← vy, gain 1*.
 2. **Open participant screen** opens the communication board in its own window, for a second
@@ -668,15 +670,15 @@ output**, which you start, and only to applications you **authorize**.
    the cursor (no click output) makes the board use **Pointer with dwell selection**: a tile is
    chosen by resting on it.
 4. **Stopping**:
-   - **Stop control**, at the top right, turns command output off at once. It is grey and
-     disabled (*Command output is off*) while command output is off, and red while it is on.
+   - **Stop sending**, at the top right, turns command output off at once. It is grey and
+     disabled while sending to apps is off, and red while it is on.
      Afterwards the row reads *Last stopped: stopped by operator (console).*
    - **Revoke** withdraws the board's authorization. Authorizations last until you revoke them
      or Concord restarts.
    - **Stop decoding** stops the pipeline; **Disconnect** stops receiving.
-   - **Safe stop & disconnect** does all of these in order.
+   - **Stop everything** does all of these in order.
 
-   Command output also turns itself off after any source change, pause, link loss or decoder
+   Sending to apps (command output) also turns itself off after any source change, pause, link loss or decoder
    change, and when the decoder gets no input for 1 s.
 
 More on command output: [CONTROL_BRIDGE.md](CONTROL_BRIDGE.md), [APPLICATIONS.md](APPLICATIONS.md).
@@ -686,7 +688,7 @@ More on command output: [CONTROL_BRIDGE.md](CONTROL_BRIDGE.md), [APPLICATIONS.md
 ## 6. Troubleshooting
 
 Start with `concord doctor` (desktop app: `/Applications/Concord.app/Contents/MacOS/Concord
-doctor`, Linux bundle `./Concord/Concord doctor`, or **Advanced → Support report**). It checks
+doctor`, Linux bundle `./Concord/Concord doctor`, or **More tools → Support report**). It checks
 liblsl, pyzmq, BrainFlow, the BCI2000 port, the plugins and recent log problems, and contains no
 neural or personal data. The session log (right column) shows every refusal with its reason.
 
@@ -697,7 +699,7 @@ neural or personal data. The session log (right column) shows every refusal with
 | The title bar says **Source stopped with an error**; the source row shows the reason and **Reset** | The source failed and could not reconnect | Fix the cause, click **Reset**, then connect again |
 | `recording_error: invalid recording name 'lsl:…'` (or `openephys:`, `plugin:`) | A bug in 0.3.0 | Update to 0.3.1 |
 | A raw recording stops after a few seconds | The default size limit (200 MiB) | Tick **Features and labels only**, or raise `[recording] max_size_mb` / `max_duration_s` in the config file |
-| After a recording stopped at its limit, the title bar still says *· Recording* and **Stop recording** answers `recording_error: not recording` | The console did not notice the automatic stop (0.3.1) | Reload the console page. The recording is complete; **Advanced → Recording** lists it. |
+| After a recording stopped at its limit, the title bar still says *· Recording* and **Stop recording** answers `recording_error: not recording` | The console did not notice the automatic stop (0.3.1) | Reload the console page. The recording is complete; **More tools → Record data** lists it. |
 | **Start recording** says a recorded file cannot be recorded again | FALCON, T15 and session recordings are already recordings | Record a live or simulated source |
 | `incompatible_decoder`, or a model marked *(incompatible)* | Different channels, bin size or feature; the model's own training session; or a different source | Read the reason under **Decoder model**; calibrate on this source (5.1) |
 
@@ -732,7 +734,7 @@ neural or personal data. The session log (right column) shows every refusal with
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| No *BrainFlow* under **Plugins** | Desktop app (no BrainFlow); or the plugin is installed in another Python environment; or Concord started before you installed it | Use the Python installation (2.1); install into Concord's environment; **Search again** or restart |
+| No *BrainFlow* under **Add-ons (plugins)** | Desktop app (no BrainFlow); or the plugin is installed in another Python environment; or Concord started before you installed it | Use the Python installation (2.1); install into Concord's environment; **Search again** or restart |
 | `pip install concord-brainflow` says *No matching distribution found* | Concord's packages are not on PyPI | Install from the release wheels with `--find-links` (2.1) |
 | `BrainFlow prepare_session failed for CYTON_BOARD: UNABLE_TO_OPEN_PORT_ERROR …` | Wrong serial port; board off or not plugged in; another program has the board open; on Linux, no permission for the serial port | Check the port name; close other programs (the board's own GUI); on Linux add your user to the group that owns the port (often `dialout`) |
 | Messages such as *PLAYBACK_FILE_BOARD needs option 'file'* or *STREAMING_BOARD needs options 'ip_address' …* | Required fields missing | Fill in the fields the message names |
@@ -746,7 +748,7 @@ neural or personal data. The session log (right column) shows every refusal with
 | --- | --- | --- |
 | `plugin did not answer 'open' within 4 s; host stopped` | Nothing arrived within about 4 s: no run active, wrong `ConnectorOutputAddress`, or the port is blocked | Check the address and port; click **Connect**, then start the run right away |
 | `cannot receive on 127.0.0.1:20321: … Is another program (or another Concord session) already bound to it?` | Another program uses that UDP port | Choose another port in both BCI2000 and the **Options** |
-| Connected, but **Signal integrity** shows *Waiting for data* / *No signal* | BCI2000 sends a control signal, not a brain signal | Expected. Use **Source decoder outputs (passthrough)** to see it (4.4). |
+| Connected, but **Signal check** shows *Waiting for data* / *No signal* | BCI2000 sends a control signal, not a brain signal | Expected. Use **Source decoder outputs (passthrough)** to see it (4.4). |
 | `BCI2000 does not send state(s) …; it sends: …` | A state name in the behavior or marker field does not exist in your BCI2000 configuration | Use names from the list in the message, or `auto` |
 | *give both 'sampling_rate_hz' and 'sample_block_size' …, or neither* | Only one of the two fields was filled | Fill both or leave both at 0 |
 | Data stopped after Concord reconnected | BCI2000 3.6 stops sending for the rest of a run once its receiver was unreachable | Stop and start the BCI2000 run, then **Connect** again |
@@ -817,7 +819,7 @@ installation from the release wheels, Linux, Chromium) against test sources only
 acquisition hardware:
 
 - `concord publish lsl-ephys` and `concord publish falcon`: found, registered with behavior and
-  marker streams, connected; recorded through **Advanced → Recording** and **Calibrate…**; a
+  marker streams, connected; recorded through **More tools → Record data** and **Train a decoder…**; a
   decoder trained from a FALCON-over-LSL recording of one block, then run on the other block and
   routed to the communication board;
 - `concord publish openephys`: connected and recorded;

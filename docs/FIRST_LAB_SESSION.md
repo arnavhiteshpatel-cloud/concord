@@ -35,7 +35,7 @@ Decide and write down, in advance:
       Concord's port.
 - [ ] Acquisition software name, version, and settings (sample rate, channel map, filters,
       units, reference) recorded.
-- [ ] **New session** in Concord (name without participant identifiers).
+- [ ] **Start a session** in Concord (name without participant identifiers).
 
 ## 2. Signal verification against the acquisition software
 
@@ -43,14 +43,14 @@ Use a known signal: a signal generator or the amplifier's test signal into a def
 channels (e.g. a 10 Hz sine of known amplitude), other channels shorted or grounded as your
 amplifier's manual describes.
 
-1. Connect the source in Concord. In *Signal integrity* and **Advanced → Acquisition
+1. Connect the source in Concord. In *Signal check* and **More tools → Source
    details**, compare with the acquisition software's own display:
    - [ ] channel count and labels, sample rate, units (Concord shows `arbitrary` if your
          source does not declare a voltage unit for every channel — it never guesses);
    - [ ] the traces show the test signal on the expected channels with the expected shape.
 2. Record the **same interval** in both systems: start the acquisition software's own
    recording (e.g. LabRecorder XDF for LSL, Open Ephys binary format), then
-   **Advanced → Recording → Start recording** in Concord; run for 60 s; stop Concord first,
+   **More tools → Record data → Show → Start recording** in Concord; run for 60 s; stop Concord first,
    then the acquisition recording. Note wall-clock start/stop times in both.
 3. Offline, compare the two files (your lab's analysis tools; a Concord recording is one JSON
    object per line, `recording.frame` events carry `first_sample_index`, `samples`,
@@ -70,25 +70,25 @@ amplifier's manual describes.
       pulse generator into a digital input that your acquisition software records and
       publishes as markers). In the Concord recording, compare each `recording.annotation`
       time with the reference's marker time: report mean offset and jitter.
-- [ ] **Delay to Concord**: *Signal integrity* "delay" and **Advanced → Diagnostics**
+- [ ] **Delay to Concord**: *Signal check* **Delay (ms)** and **More tools → Health check**
       (pipeline and delivery latency percentiles); for LSL compare Concord's device
       timestamps with LabRecorder's for the same samples.
 - [ ] **Display latency** of the participant screen is *not* measured by Concord. If it
       matters for your task, measure it with a photodiode.
 - [ ] With the processing pipeline running at your intended settings: `dropped_inputs`
       stays 0 and processing time stays below the bin duration
-      (**Advanced → Pipeline details**) over at least 10 minutes.
+      (**More tools → Decoder details**) over at least 10 minutes.
 
 ## 4. Stop procedures (rehearse each; time each)
 
 | Procedure | Expected effect | Check |
 | --- | --- | --- |
-| **Stop control** (red, title bar) | command output off at once; queued commands withdrawn | apps stop moving; *Command output* reads Off |
-| **Safe stop & disconnect** | command output off, recording closed, decoding stopped, source disconnected | session log line "Safe stop: stopped …"; *Acquisition source* empty |
+| **Stop sending** (red, title bar) | command output off at once; queued commands withdrawn | apps stop moving; *Send to apps* reads Off |
+| **Stop everything** | command output off, recording closed, decoding stopped, source disconnected | session log line "Safe stop: stopped …"; *Data source* empty |
 | **Revoke** an application | that app receives no further commands | the app reports *not authorized* |
 | Unplug / stop the acquisition stream | Concord reconnects or ends in *error*; control is turned off by any link loss | control Off; session log entry |
 | Quit Concord (app: ⌘Q; pip: `concord stop`) | safe stop, then Concord exits; the recording is complete | next start lists the recording as complete |
-| Force-quit / kill Concord | nothing is sent to devices (Concord never sends); at the next start the recording is kept and marked *incomplete* | Advanced → Stored data |
+| Force-quit / kill Concord | nothing is sent to devices (Concord never sends); at the next start the recording is kept and marked *incomplete* | More tools → Saved data |
 
 Record for each: who triggered it, time to effect, anything unexpected. A participant-facing
 application must stop by itself when commands stop (the SDK's `CommandGuard` does).

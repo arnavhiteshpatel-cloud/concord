@@ -103,7 +103,8 @@ export function SessionBar({
           </>
         ) : (
           <span className="value-muted" data-testid="no-session">
-            No research session. A session groups recordings, decoders and a log, and can be exported for reproduction.
+            Not in a session. Start one to keep this sitting&apos;s recordings, decoders and notes together and export them
+            as one file.
           </span>
         )}
       </div>
@@ -114,7 +115,7 @@ export function SessionBar({
           </button>
         ) : (
           <button type="button" className="btn btn-small" onClick={() => setSheet("new")} data-testid="new-session">
-            New session
+            Start a session
           </button>
         )}
         <button
@@ -123,13 +124,13 @@ export function SessionBar({
           disabled={action.busy || !running}
           title={
             running
-              ? "Turn command output off, close the recording, stop decoding and disconnect the source"
+              ? "Stop sending to apps, close the recording, stop decoding and disconnect the source"
               : "Nothing is running"
           }
           onClick={safeStop}
           data-testid="safe-stop"
         >
-          Safe stop &amp; disconnect
+          Stop everything
         </button>
       </div>
       {action.error && <p className="error-text session-bar-error">{action.error}</p>}
@@ -170,11 +171,11 @@ function NewSessionSheet({ onClose, onCreated }: { onClose: () => void; onCreate
     if (s) onCreated(s);
   };
   return (
-    <Sheet title="New research session" onClose={onClose} testId="new-session-sheet">
+    <Sheet title="Start a session" onClose={onClose} testId="new-session-sheet">
       <form onSubmit={submit}>
         <p className="explain">
-          Creates a session folder in the data directory. While the session is active, Concord logs source changes,
-          decoding and control settings, recordings and calibrations into it.
+          A session is a folder for one sitting. While it is open, Concord notes in it every source you connect, the
+          decoder and sending settings, recordings and trained decoders. At the end you can export it all as one file.
         </p>
         <div className="form-grid">
           <label className="span-all">
@@ -323,11 +324,11 @@ function SessionSheet({
         </dl>
       </section>
       <section className="group" data-testid="session-export">
-        <h3>Export for reproduction</h3>
+        <h3>Export</h3>
         <p className="explain">
-          A zip with the session log, versions and package fingerprints, sources, pipeline settings, decoder models with
-          their calibration reports, and a REPRODUCE.md. <code>concord reproduce &lt;file&gt;</code> verifies it and re-runs
-          the evaluation.
+          Packs the session into one zip file that someone else can use to check and repeat your results: the log, the
+          exact software versions, the sources, decoder settings and trained models with their scores, and instructions
+          (REPRODUCE.md). <code>concord reproduce &lt;file&gt;</code> checks it and re-runs the evaluation.
         </p>
         <label className="check">
           <input
@@ -400,7 +401,7 @@ function SessionSheet({
       </section>
       <section className="group">
         <h3>End session</h3>
-        <p className="explain">Ending turns command output off, closes any recording, stops decoding and disconnects the source.</p>
+        <p className="explain">Ending stops sending to apps, closes any recording, stops decoding and disconnects the source.</p>
         {confirmEnd ? (
           <div className="btn-row">
             <button type="button" className="btn btn-danger" disabled={action.busy} onClick={end} data-testid="session-end-confirm">

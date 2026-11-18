@@ -106,7 +106,7 @@ concord status
 Follow [Connect your equipment §4](CONNECT_YOUR_EQUIPMENT.md#4-connect-your-equipment-route-by-route):
 LSL, Open Ephys, BrainFlow, BCI2000 and your own plugin, with the exact console steps. Plugins
 must be installed in the same Python environment as Concord; the desktop app includes only the
-BCI2000 plugin. Check the *Signal integrity* row and **Advanced → Acquisition details** against
+BCI2000 plugin. Check the *Signal check* row and **More tools → Source details** against
 your acquisition software's own display.
 
 Rehearse without hardware first with `concord publish` (desktop app:
@@ -124,7 +124,7 @@ concord publish lsl-ephys --channels 32 --rate 30000
 concord publish falcon "<data folder>/datasets/sub-HumanPitt-held-in-calib_ses-19250108T111022.nwb" --loop
 ```
 
-`<data folder>` is shown in **Advanced → Stored data** (*Data directory*); files downloaded with
+`<data folder>` is shown in **More tools → Saved data** (*Data directory*); files downloaded with
 `concord dataset` are in its `datasets/dandi-000954/` subfolder.
 
 ```bash
@@ -135,15 +135,15 @@ Details, what you should see and how to stop: [Connect your equipment §3](CONNE
 
 ## 5. A research session, step by step
 
-1. **New session** (strip above the rows): a name (no participant identifiers), the operator,
+1. **Start a session** (strip above the four steps): a name (no participant identifiers), the operator,
    notes. Concord creates a private session folder and logs into it from now on.
-2. **Connect a source**, check signal integrity.
-3. **Decoder → Start decoding** (processing preset), **Decoder → Calibrate…**: record features
+2. **Choose a source** (step 1), then look at **Signal check** (step 2).
+3. **Decoder → Start decoding** (processing preset), **Decoder → Train a decoder…**: record features
    and labels, train; the report gives held-out R² and controls (LAB_GUIDE.md §5).
-4. **Stop decoding**, then **Start decoding** with the new model; **Command output → Start
-   control**; **Authorize** the application(s) that should receive commands.
-5. **Stop control** (title bar; grey and disabled while command output is off, red while it is
-   on) stops commands at once; **Safe stop & disconnect** stops everything: command output,
+4. **Stop decoding**, then **Start decoding** with the new model; **Send to apps → Start
+   sending**; **Authorize** the application(s) that should receive commands.
+5. **Stop sending** (title bar; grey and disabled while sending to apps is off, red while it
+   is on) stops commands at once; **Stop everything** stops everything: command output,
    recording, decoding, the source.
 6. **Session and export… → Create export bundle** (tick *Include the session's recordings* to
    make it reproducible): a zip with the session log, versions, sources, pipeline settings,
@@ -173,6 +173,6 @@ Run it yourself with `make lab-acceptance` (CI job **lab-acceptance**).
 
 Everything is written under the data directory (0700; files 0600): `recordings/`, `models/`,
 `sessions/<id>/` (session.json, log.jsonl, exports/), `logs/`, `support/`. Recordings can
-contain neural data. Delete with **Advanced → Stored data** (or `DELETE /api/v1/recordings/{name}?confirm={name}`);
+contain neural data. Delete with **More tools → Saved data** (or `DELETE /api/v1/recordings/{name}?confirm={name}`);
 deletion is not secure erasure. A recording interrupted by a crash is kept, marked
 *incomplete*. Details: [SECURITY.md](SECURITY.md).

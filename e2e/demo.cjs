@@ -13,8 +13,8 @@
 //      model, Start control, authorize the board app (M4 default deny), Stop control from the
 //      title bar, revoke.
 //
-// The console is one session screen: title bar (status line, Stop control), four rows,
-// the session log, and an Advanced section; the steps open Advanced sections (event stream,
+// The console is one session screen: title bar (status line, Help, Stop sending), four numbered steps,
+// the session log, and "More tools"; the steps open tools (event stream,
 // simulator controls, communication board, …) where they need them. Review screenshots of
 // the redesign go to e2e/screenshots/redesign/ (1440×900, 2× pixels).
 //
@@ -154,18 +154,17 @@ async function main() {
   /** the runtime state, as the title-bar status line reports it */
   const expectState = (value, timeout = 8000) => waitAttr(status, "data-state", value, timeout);
   const expanded = async (testId) => (await page.getByTestId(`${testId}-toggle`).getAttribute("aria-expanded")) === "true";
-  /** Opens a disclosure (and the Advanced section first, for an Advanced section). */
+  /** Opens a disclosure or a "More tools" tool (Show). Playback controls are always visible. */
   const open = async (testId) => {
-    if (testId.startsWith("adv-") && !(await expanded("advanced"))) await page.getByTestId("advanced-toggle").click();
+    if (testId === "source-options") return page.getByTestId(testId).waitFor({ timeout: 5000 });
     await page.getByTestId(`${testId}-toggle`).waitFor({ timeout: 5000 });
     if (!(await expanded(testId))) await page.getByTestId(`${testId}-toggle`).click();
   };
   const closeAll = async () => {
     if (await page.getByTestId("source-picker").count()) await page.getByTestId("sheet-close").click();
-    // collapse every open Advanced section, then Advanced itself
+    // hide every open tool
     const openSection = page.locator('[data-testid^="adv-"][data-testid$="-toggle"][aria-expanded="true"]');
     while (await openSection.count()) await openSection.first().click();
-    if (await expanded("advanced")) await page.getByTestId("advanced-toggle").click();
     await page.evaluate(() => window.scrollTo(0, 0));
   };
   const openPicker = async () => {
@@ -202,11 +201,18 @@ async function main() {
       // M5-C: the board requires nothing (it adapts to pointer, navigation or selection)
       await expectText(page.getByTestId("apps-line"), /Communication Board waiting for: a source/);
       await expectText(board().getByTestId("board-mode"), /Waiting/);
-      // the default view: four rows, the session log, one collapsed Advanced section
-      if (await expanded("advanced")) throw new Error("Advanced is open by default");
-      if ((await page.getByTestId("stop-control").isDisabled()) !== true) throw new Error("Stop control enabled with output off");
+      // the default view: use notice, four numbered steps, the session log, every tool listed and closed
+      await expectText(page.getByTestId("use-notice"), /Not for clinical, diagnostic or commercial use/);
+      if (await page.locator('[data-testid^="adv-"][data-testid$="-toggle"][aria-expanded="true"]').count())
+        throw new Error("a tool is open by default");
+      if ((await page.getByTestId("stop-control").isDisabled()) !== true) throw new Error("Stop sending enabled with output off");
       await designShot("1-no-source", { fullPage: true });
-      return "board negotiated: no_device; Advanced collapsed; Stop control disabled";
+      // the in-app guide opens from Help and closes again
+      await page.getByTestId("open-guide").click();
+      await page.getByTestId("guide-safety").waitFor({ timeout: 5000 });
+      await designShot("6-guide");
+      await page.getByTestId("sheet-close").click();
+      return "board negotiated: no_device; tools closed; Stop sending disabled; guide opens";
     });
 
     await step("2. connect Simulated Profile A", async () => {
@@ -286,6 +292,8 @@ async function main() {
     });
 
     await step("5. events carry provenance simulated_intent", async () => {
+      // the feed keeps the latest 60 events (under a second at this rate): select now, then look
+      await page.getByTestId("sim-select").click();
       const row = page.locator('[data-event-type="intent.selection"]').first();
       await row.waitFor({ timeout: 5000 });
       const prov = await text(row.locator(".prov"));
@@ -686,9 +694,9 @@ async function main() {
       await page.waitForTimeout(1500);
       await designShot("3-falcon-lsl-decoding-control-on", { fullPage: true });
       await open("adv-pipeline");
-      // the Advanced heading just below the sticky title bar
+      // the tool just below the sticky title bar
       await page.evaluate(() => {
-        const el = document.querySelector('[data-testid="advanced"]');
+        const el = document.querySelector('[data-testid="adv-pipeline"]');
         if (el) window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 72);
       });
       await page.waitForTimeout(500);

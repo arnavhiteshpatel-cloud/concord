@@ -1,4 +1,4 @@
-// Row 4 — Command output: the command router, the only path from decoded output to an
+// Step 4 — Send to apps (command output): the command router, the only path from decoded output to an
 // application command, and the applications the operator authorizes to receive it. Off unless
 // the operator starts it; stopped from the title bar's Stop control.
 
@@ -171,8 +171,8 @@ function AuthorizedApps({ control, onChange }: { control: ControlStatus; onChang
   };
   return (
     <div className="control-apps" data-testid="control-apps">
-      <h3 className="minor">Authorized applications</h3>
-      <p className="hint">Decoded commands reach only the applications you authorize here, until you revoke them.</p>
+      <h3 className="minor">Apps you authorize</h3>
+      <p className="hint">Decoded actions reach only the apps you authorize here, until you revoke them.</p>
       {apps.map((a) => {
         const canAuthorize = a.connections > 0 && a.requested.some((c) => !a.authorized.includes(c));
         return (
@@ -283,7 +283,11 @@ export function ControlRow({ pipeline, apps }: { pipeline: PipelineState; apps: 
     pipeline.set(res); // the session log entry comes from the status change
   };
 
-  const reason = !st?.running ? "Start decoding with a model first." : !decoder ? "The decoder has no model. Start decoding with a model." : null;
+  const reason = !st?.running
+    ? "Start a decoder with a model in step 3 first."
+    : !decoder
+      ? "The decoder has no model. In step 3, stop and start decoding with a model."
+      : null;
 
   // When on, stopping is the title bar's Stop control (one red button on screen, not two).
   const actions = (
@@ -296,7 +300,7 @@ export function ControlRow({ pipeline, apps }: { pipeline: PipelineState; apps: 
           onClick={() => spec && apply(spec)}
           data-testid="router-on"
         >
-          Start control
+          Start sending
         </button>
       )}
       <a
@@ -317,13 +321,15 @@ export function ControlRow({ pipeline, apps }: { pipeline: PipelineState; apps: 
   const what = classes
     ? chosen.length
       ? `When started, authorized apps receive ${chosen.map((r) => `${actionLabel({ action: r.action as DiscreteAction, text: r.text })} when ${r.output} is held`).join(", ")}.`
-      : "Choose in Settings which class triggers which action."
+      : "Open \"Choose what each decoded choice does\" below to set which choice triggers which action."
     : `When started, the cursor in authorized apps follows the decoder's ${form.x_dim || "x"}/${form.y_dim || "y"} output.`;
 
   return (
     <Row
-      title="Command output"
-      explain="Lets the decoder send commands to the applications you authorize. Off unless you start it."
+      step={4}
+      title="Send to apps"
+      explain="Lets the decoder's actions reach the apps you authorize, such as the communication board. Off until you start it."
+      help="control"
       testId="row-control"
       actions={actions}
     >
@@ -343,7 +349,7 @@ export function ControlRow({ pipeline, apps }: { pipeline: PipelineState; apps: 
         </p>
       )}
       {decoder && !classes && (
-        <Disclosure title="Settings" testId="control-settings" className="inline">
+        <Disclosure title="Adjust how the cursor moves" testId="control-settings" className="inline">
           <div className="form-grid">
             <label>
               Horizontal (x) from
@@ -365,16 +371,16 @@ export function ControlRow({ pipeline, apps }: { pipeline: PipelineState; apps: 
                 ))}
               </select>
             </label>
-            <label title="Workspace per second per training-standard-deviation unit (0 < gain ≤ 10)">
-              Gain
+            <label title="How fast the cursor moves for a given decoder output (0 < gain ≤ 10)">
+              Speed (gain)
               <input value={form.gain} onChange={(e) => set({ gain: e.target.value })} data-testid="router-gain" />
             </label>
-            <label title="In training-standard-deviation units (0 ≤ dead-zone < 3)">
-              Dead-zone
+            <label title="Small decoder outputs below this are ignored, so the cursor holds still (0 ≤ dead-zone < 3)">
+              Ignore small movements (dead-zone)
               <input value={form.deadzone} onChange={(e) => set({ deadzone: e.target.value })} data-testid="router-deadzone" />
             </label>
-            <label title="0 < max speed ≤ 10">
-              Max speed
+            <label title="The cursor never moves faster than this (0 < max speed ≤ 10)">
+              Top speed
               <input value={form.max_speed} onChange={(e) => set({ max_speed: e.target.value })} data-testid="router-max" />
             </label>
             <label className="check">
@@ -384,7 +390,7 @@ export function ControlRow({ pipeline, apps }: { pipeline: PipelineState; apps: 
                 onChange={(e) => set({ invert_y: e.target.checked })}
                 data-testid="router-invert"
               />
-              Invert y
+              Flip up and down (invert y)
             </label>
             <label title="A decoder output that is a click probability or a 0/1 click decision (optional)">
               Click from
@@ -431,13 +437,13 @@ export function ControlRow({ pipeline, apps }: { pipeline: PipelineState; apps: 
           )}
           {problem && <p className="caution-text">{problem}</p>}
           <p className="hint">
-            Decoded output is never an app command by itself. Only while control is on, two decoder dimensions are
-            mapped to pointer velocity and delivered to authorized applications, marked as decoded with the model id.
+            Decoded output never reaches an app by itself. Only while sending is on, two decoder outputs move the cursor
+            in the apps you authorized, and every movement is labelled as decoded, with the model that produced it.
           </p>
         </Disclosure>
       )}
       {decoder && classes && (
-        <Disclosure title="Settings" testId="control-settings" className="inline">
+        <Disclosure title="Choose what each decoded choice does" testId="control-settings" className="inline">
           <p className="hint">
             The decoder estimates how likely each class is. An action is sent when a class stays above its threshold for
             the hold time; it can repeat only after the class drops back and the pause has passed.
