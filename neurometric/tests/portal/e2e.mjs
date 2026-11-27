@@ -117,7 +117,9 @@ async function main() {
       const page = await ctx.newPage();
       page.__errors = [];
       page.on('pageerror', (e) => page.__errors.push(e.message));
-      page.on('console', (m) => { if (m.type() === 'error') page.__errors.push(m.text()); });
+      // 401/403 resource errors are expected where the test probes forbidden endpoints or a wrong
+      // re-authentication password; anything else logged as an error fails the run.
+      page.on('console', (m) => { if (m.type() === 'error' && !/status of 40[13]/.test(m.text())) page.__errors.push(m.text()); });
       return page;
     };
     const login = async (page, username, password = pw) => {
@@ -375,9 +377,9 @@ async function main() {
       await page.locator('summary', { hasText: 'Show exactly what was stored' }).first().click();
       check(role, '"review what was sent" shows stored payload', (await page.locator('#sec-telemetry pre').first().textContent()).includes('active_minutes'));
       // consent scope withdrawal
-      await page.getByRole('button', { name: 'Stop this: Future research' }).click();
+      await page.getByRole('button', { name: /Stop this.*Future research/ }).click();
       await page.getByRole('button', { name: 'Stop this', exact: true }).click();
-      await page.waitForFunction(() => /Future research — • No/.test(document.querySelector('#sec-consent').innerText.replace(/\s+/g, ' ')));
+      await page.waitForFunction(() => { const c = document.querySelector('#sec-consent'); return c && /Future research — • No/.test(c.innerText.replace(/\s+/g, ' ')); });
       check(role, 'withdrawing one consent scope works', true);
       // keyboard-only questionnaire (NM-SESSION): Tab into each radio group, Space selects
       await page.getByRole('button', { name: /Fill in NeuroMetric post-session check/ }).focus();

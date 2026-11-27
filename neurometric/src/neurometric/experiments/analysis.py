@@ -134,7 +134,6 @@ def plot_sweep(df: pd.DataFrame, level_col: str, metrics: list[str], labels: dic
             ax.errorbar(mu.index, mu.values, yerr=1.96 * se.values, marker="o", capsize=2,
                         color=PALETTE[gi], label=str(g) if g is not None else None, lw=1.6)
         ax.set_title(labels.get(m, m), color=TEXT)
-        ax.set_xlabel(xlabel, color=TEXT2)
         if logx:
             ax.set_xscale("symlog")
     for ax in list(axes.flat)[n:]:
@@ -143,6 +142,7 @@ def plot_sweep(df: pd.DataFrame, level_col: str, metrics: list[str], labels: dic
         axes.flat[0].legend(fontsize=7)
     fig.suptitle(title + "  (simulation; mean ± 95% CI over virtual participants)", fontsize=10,
                  color=TEXT)
+    fig.supxlabel(xlabel, fontsize=9, color=TEXT2)
     fig.tight_layout()
     fig.savefig(path)
     plt.close(fig)

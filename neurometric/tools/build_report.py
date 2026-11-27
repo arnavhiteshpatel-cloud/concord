@@ -8,6 +8,11 @@ from neurometric.reports.pdf import render_markdown_pdf  # noqa: E402
 src = ROOT / "docs" / "report" / "NeuroMetric_Report.md"
 out = ROOT / "deliverables" / "NeuroMetric_Report.pdf"
 md = src.read_text()
+reg = (ROOT / "EXPERIMENT_REGISTRY.md").read_text().replace("](experiments/results", "](../../experiments/results")
+reg = reg.replace("# EXPERIMENT REGISTRY", "# Appendix A. Experiment registry (generated from result files)", 1)
+reg = "\n".join(("#" + l) if l.startswith("## ") else l for l in reg.splitlines())
+led = (ROOT / "EVIDENCE_LEDGER.md").read_text().replace("# EVIDENCE LEDGER", "# Appendix B. Evidence ledger", 1)
+md = md + "\n\n<!-- pagebreak -->\n\n" + reg + "\n\n<!-- pagebreak -->\n\n" + led
 render_markdown_pdf(md, out, base_dir=src.parent, title="NeuroMetric — founder report",
                     footer="NeuroMetric founder report, 27 Nov 2026 — simulation results are not clinical evidence; nothing here is a regulatory submission",
                     cover={"kicker": "PROJECT NEUROMETRIC · FOUNDER REPORT · 27 NOVEMBER 2026",
