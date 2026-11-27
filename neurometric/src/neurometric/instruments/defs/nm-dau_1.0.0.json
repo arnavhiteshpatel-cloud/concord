@@ -1,0 +1,239 @@
+{
+  "id": "NM-DAU",
+  "version": "1.0.0",
+  "title": "NeuroMetric digital activity & assistance diary",
+  "respondent_type": "PRO",
+  "status": "original, unvalidated research questionnaire",
+  "license": {
+    "status": "original",
+    "holder": "NeuroMetric project",
+    "citation": "NeuroMetric original item set (2026)",
+    "notes": "Written for NeuroMetric; no third-party items reproduced. Not psychometrically validated."
+  },
+  "recall_period": "today",
+  "languages": {
+    "en": "source",
+    "es": "authorized translation required",
+    "fr": "authorized translation required"
+  },
+  "accessibility": {
+    "estimated_minutes": 4,
+    "screen_reader_labels": true,
+    "switch_scanning_compatible": true,
+    "min_target_px": 64,
+    "read_aloud_permitted": true,
+    "proxy_entry_allowed": true,
+    "one_item_per_screen_option": true,
+    "no_time_limit": true
+  },
+  "schedule": {
+    "default": "daily_or_per_home_visit"
+  },
+  "items": [
+    {
+      "id": "activities",
+      "type": "multi_choice",
+      "text": "Which digital activities did you do today?",
+      "required": true,
+      "options": [
+        {
+          "value": "messaging",
+          "label": "Messages / email"
+        },
+        {
+          "value": "web",
+          "label": "Web browsing"
+        },
+        {
+          "value": "video_call",
+          "label": "Video calls"
+        },
+        {
+          "value": "media",
+          "label": "Music, video, reading"
+        },
+        {
+          "value": "smart_home",
+          "label": "Controlling home devices"
+        },
+        {
+          "value": "work_study",
+          "label": "Work or study"
+        },
+        {
+          "value": "games",
+          "label": "Games"
+        },
+        {
+          "value": "health_admin",
+          "label": "Health portal / appointments"
+        },
+        {
+          "value": "other",
+          "label": "Other"
+        }
+      ]
+    },
+    {
+      "id": "minutes_digital_total",
+      "type": "minutes",
+      "text": "About how many minutes in total did you use a computer, tablet or phone today?",
+      "min": 0,
+      "max": 1440,
+      "required": true
+    },
+    {
+      "id": "minutes_independent",
+      "type": "minutes",
+      "text": "Of those, about how many minutes did you manage without anyone's help?",
+      "min": 0,
+      "max": 1440,
+      "required": true
+    },
+    {
+      "id": "minutes_with_assistance",
+      "type": "minutes",
+      "text": "About how many minutes needed someone's help?",
+      "min": 0,
+      "max": 1440,
+      "required": true
+    },
+    {
+      "id": "assistance_types",
+      "type": "multi_choice",
+      "text": "What kinds of help did you have today?",
+      "required": true,
+      "options": [
+        {
+          "value": "setup",
+          "label": "Setting up the device"
+        },
+        {
+          "value": "physical",
+          "label": "Physical help (e.g. moving the mouse, positioning)"
+        },
+        {
+          "value": "verbal",
+          "label": "Spoken prompts or instructions"
+        },
+        {
+          "value": "troubleshooting",
+          "label": "Fixing a problem"
+        },
+        {
+          "value": "calibration",
+          "label": "Calibration"
+        },
+        {
+          "value": "task_completion",
+          "label": "Someone did part of the activity for me"
+        },
+        {
+          "value": "none",
+          "label": "No help"
+        }
+      ]
+    },
+    {
+      "id": "minutes_care_partner_help",
+      "type": "minutes",
+      "text": "About how many minutes did a care partner or family member spend helping with the device or computer today?",
+      "min": 0,
+      "max": 1440,
+      "required": false
+    },
+    {
+      "id": "main_access_method",
+      "type": "choice",
+      "text": "Which access method did you mostly use today?",
+      "required": true,
+      "options": [
+        {
+          "value": "bci",
+          "label": "Brain-computer interface"
+        },
+        {
+          "value": "eye_gaze",
+          "label": "Eye gaze"
+        },
+        {
+          "value": "switch",
+          "label": "Switch(es)"
+        },
+        {
+          "value": "head_pointer",
+          "label": "Head pointer"
+        },
+        {
+          "value": "standard",
+          "label": "Standard mouse / touch / keyboard"
+        },
+        {
+          "value": "voice",
+          "label": "Voice control"
+        },
+        {
+          "value": "other",
+          "label": "Other"
+        }
+      ]
+    },
+    {
+      "id": "independence_rating",
+      "type": "numeric",
+      "text": "How independently could you do the digital activities you wanted to do today?",
+      "min": 0,
+      "max": 10,
+      "required": true,
+      "anchors": {
+        "0": "Not at all independently",
+        "10": "Completely independently"
+      }
+    },
+    {
+      "id": "unmet_activity",
+      "type": "yes_no",
+      "text": "Was there a digital activity you wanted to do today but could not?",
+      "required": true
+    },
+    {
+      "id": "notes",
+      "type": "free_text",
+      "text": "Anything you want to add? (optional; only stored if you agreed to free-text collection)",
+      "required": false,
+      "sensitive": true,
+      "max_length": 500
+    }
+  ],
+  "scoring": {
+    "scales": [
+      {
+        "id": "independence",
+        "label": "Self-rated independence (0-10)",
+        "method": "mean",
+        "items": [
+          "independence_rating"
+        ],
+        "min_answered": 1
+      },
+      {
+        "id": "assisted_minutes",
+        "label": "Minutes with assistance",
+        "method": "sum",
+        "items": [
+          "minutes_with_assistance"
+        ],
+        "min_answered": 1
+      },
+      {
+        "id": "care_partner_minutes",
+        "label": "Care-partner help minutes",
+        "method": "sum",
+        "items": [
+          "minutes_care_partner_help"
+        ],
+        "min_answered": 1
+      }
+    ]
+  }
+}

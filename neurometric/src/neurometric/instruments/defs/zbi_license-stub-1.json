@@ -1,0 +1,28 @@
+{
+  "id": "ZBI",
+  "version": "license-stub-1",
+  "title": "Zarit Burden Interview",
+  "respondent_type": "ObsRO",
+  "status": "licensed instrument - metadata only; items must be loaded by a licensee",
+  "license": {
+    "status": "license_required",
+    "holder": "Distributed under licence (Mapi Research Trust / ePROVIDE) [UNR - verify current licensor]",
+    "citation": "Zarit SH, Reever KE, Bach-Peterson J. Relatives of the impaired elderly: correlates of feelings of burden. Gerontologist. 1980;20:649-655. [PK]",
+    "notes": "Copyrighted. No item text reproduced. Short forms (12, 4 items) exist [PK]."
+  },
+  "item_count": 22,
+  "recall_period": "per licensed version",
+  "languages": {
+    "en": "source"
+  },
+  "accessibility": {
+    "note": "per licensed version"
+  },
+  "schedule": {
+    "default": "per protocol"
+  },
+  "items": [],
+  "scoring": {
+    "scales": []
+  }
+}

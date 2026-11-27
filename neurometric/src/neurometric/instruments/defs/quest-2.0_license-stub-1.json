@@ -1,0 +1,28 @@
+{
+  "id": "QUEST-2.0",
+  "version": "license-stub-1",
+  "title": "Quebec User Evaluation of Satisfaction with assistive Technology (QUEST 2.0)",
+  "respondent_type": "PRO",
+  "status": "licensed instrument - metadata only; items must be loaded by a licensee",
+  "license": {
+    "status": "license_required",
+    "holder": "Copyright L. Demers et al. [UNR - verify licensor and terms]",
+    "citation": "Demers L, Weiss-Lambrou R, Ska B. Item analysis of the Quebec User Evaluation of Satisfaction with Assistive Technology (QUEST). Assist Technol. 2000;12:96-105. [PK]",
+    "notes": "No item text reproduced. 8 device + 4 services items [PK]."
+  },
+  "item_count": 12,
+  "recall_period": "per licensed version",
+  "languages": {
+    "en": "source"
+  },
+  "accessibility": {
+    "note": "per licensed version"
+  },
+  "schedule": {
+    "default": "per protocol"
+  },
+  "items": [],
+  "scoring": {
+    "scales": []
+  }
+}

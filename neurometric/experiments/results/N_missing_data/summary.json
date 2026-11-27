@@ -1,0 +1,165 @@
+{
+  "experiment": "N_missing_data",
+  "generated_utc": "2026-11-27T07:00:10Z",
+  "software": {
+    "neurometric": "0.1.0",
+    "python": "3.13.18",
+    "numpy": "2.5.3",
+    "pandas": "3.0.5"
+  },
+  "synthetic": true,
+  "disclaimer": "Simulation results. They characterise the measurement system under modelled input degradation; they are not human or clinical data.",
+  "design": "8 virtual participants x 24 scored ISO selections (bci_moderate)",
+  "results": [
+    {
+      "missing_frac_target": 0.0,
+      "mechanism": "MCAR",
+      "actual_missing_frac": 0.0,
+      "participants_with_data": 8,
+      "mt_bias_ms": 0.0,
+      "mt_rmse_ms": 0.0,
+      "success_bias": 0.0,
+      "mt_rank_corr_with_full": 1.0
+    },
+    {
+      "missing_frac_target": 0.0,
+      "mechanism": "MNAR_slow_abandon",
+      "actual_missing_frac": 0.0,
+      "participants_with_data": 8,
+      "mt_bias_ms": 0.0,
+      "mt_rmse_ms": 0.0,
+      "success_bias": 0.0,
+      "mt_rank_corr_with_full": 1.0
+    },
+    {
+      "missing_frac_target": 0.0,
+      "mechanism": "MAR_fatigue_late",
+      "actual_missing_frac": 0.0,
+      "participants_with_data": 8,
+      "mt_bias_ms": 0.0,
+      "mt_rmse_ms": 0.0,
+      "success_bias": 0.0,
+      "mt_rank_corr_with_full": 1.0
+    },
+    {
+      "missing_frac_target": 0.1,
+      "mechanism": "MCAR",
+      "actual_missing_frac": 0.078125,
+      "participants_with_data": 8,
+      "mt_bias_ms": 46.83815831571235,
+      "mt_rmse_ms": 104.9655021489284,
+      "success_bias": 0.00792572463768116,
+      "mt_rank_corr_with_full": 0.9761904761904762
+    },
+    {
+      "missing_frac_target": 0.1,
+      "mechanism": "MNAR_slow_abandon",
+      "actual_missing_frac": 0.46875,
+      "participants_with_data": 8,
+      "mt_bias_ms": 995.8101825915967,
+      "mt_rmse_ms": 1952.5595562317806,
+      "success_bias": 0.0012654518329070774,
+      "mt_rank_corr_with_full": 0.5238095238095238
+    },
+    {
+      "missing_frac_target": 0.1,
+      "mechanism": "MAR_fatigue_late",
+      "actual_missing_frac": 0.125,
+      "participants_with_data": 8,
+      "mt_bias_ms": 20.00814804633444,
+      "mt_rmse_ms": 185.11721779589809,
+      "success_bias": 0.01352990306794654,
+      "mt_rank_corr_with_full": 0.9047619047619048
+    },
+    {
+      "missing_frac_target": 0.25,
+      "mechanism": "MCAR",
+      "actual_missing_frac": 0.18229166666666663,
+      "participants_with_data": 8,
+      "mt_bias_ms": 91.85506696741174,
+      "mt_rmse_ms": 248.24735925451614,
+      "success_bias": 0.015624158702382547,
+      "mt_rank_corr_with_full": 0.8571428571428571
+    },
+    {
+      "missing_frac_target": 0.25,
+      "mechanism": "MNAR_slow_abandon",
+      "actual_missing_frac": 0.609375,
+      "participants_with_data": 8,
+      "mt_bias_ms": 550.6359058879082,
+      "mt_rmse_ms": 1605.237829494651,
+      "success_bias": -0.03645833333333334,
+      "mt_rank_corr_with_full": 0.23809523809523808
+    },
+    {
+      "missing_frac_target": 0.25,
+      "mechanism": "MAR_fatigue_late",
+      "actual_missing_frac": 0.21875,
+      "participants_with_data": 8,
+      "mt_bias_ms": 162.7230549520791,
+      "mt_rmse_ms": 292.73346894598563,
+      "success_bias": 0.016549492604059163,
+      "mt_rank_corr_with_full": 0.9285714285714286
+    },
+    {
+      "missing_frac_target": 0.4,
+      "mechanism": "MCAR",
+      "actual_missing_frac": 0.35416666666666663,
+      "participants_with_data": 8,
+      "mt_bias_ms": -106.95562757862535,
+      "mt_rmse_ms": 422.84377473902777,
+      "success_bias": -0.006577760152644059,
+      "mt_rank_corr_with_full": 0.8095238095238095
+    },
+    {
+      "missing_frac_target": 0.4,
+      "mechanism": "MNAR_slow_abandon",
+      "actual_missing_frac": 0.7447916666666667,
+      "participants_with_data": 7,
+      "mt_bias_ms": 995.2070178559226,
+      "mt_rmse_ms": 1642.2261145180912,
+      "success_bias": -0.040625,
+      "mt_rank_corr_with_full": 0.10714285714285714
+    },
+    {
+      "missing_frac_target": 0.4,
+      "mechanism": "MAR_fatigue_late",
+      "actual_missing_frac": 0.41666666666666663,
+      "participants_with_data": 8,
+      "mt_bias_ms": 28.575591202593387,
+      "mt_rmse_ms": 305.44742510666646,
+      "success_bias": -0.05673076923076924,
+      "mt_rank_corr_with_full": 0.7380952380952381
+    },
+    {
+      "missing_frac_target": 0.6,
+      "mechanism": "MCAR",
+      "actual_missing_frac": 0.5833333333333333,
+      "participants_with_data": 8,
+      "mt_bias_ms": -209.58703783503557,
+      "mt_rmse_ms": 484.8939536383986,
+      "success_bias": -0.02152014652014652,
+      "mt_rank_corr_with_full": 0.9047619047619048
+    },
+    {
+      "missing_frac_target": 0.6,
+      "mechanism": "MNAR_slow_abandon",
+      "actual_missing_frac": 0.7864583333333334,
+      "participants_with_data": 7,
+      "mt_bias_ms": 1408.1628398117448,
+      "mt_rmse_ms": 2212.7698341223904,
+      "success_bias": 0.027083333333333348,
+      "mt_rank_corr_with_full": 0.21428571428571427
+    },
+    {
+      "missing_frac_target": 0.6,
+      "mechanism": "MAR_fatigue_late",
+      "actual_missing_frac": 0.5677083333333333,
+      "participants_with_data": 8,
+      "mt_bias_ms": 39.75247681697897,
+      "mt_rmse_ms": 519.6610456695795,
+      "success_bias": 0.019711538461538468,
+      "mt_rank_corr_with_full": 0.6428571428571429
+    }
+  ]
+}

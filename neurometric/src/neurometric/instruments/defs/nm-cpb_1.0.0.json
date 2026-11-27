@@ -1,0 +1,263 @@
+{
+  "id": "NM-CPB",
+  "version": "1.0.0",
+  "title": "NeuroMetric care-partner assistance time & strain (original items; not the Zarit Burden Interview)",
+  "respondent_type": "ObsRO",
+  "respondent": "care_partner",
+  "status": "original, unvalidated research questionnaire",
+  "license": {
+    "status": "original",
+    "holder": "NeuroMetric project",
+    "citation": "NeuroMetric original item set (2026)",
+    "notes": "Written for NeuroMetric; no third-party items reproduced. Not psychometrically validated."
+  },
+  "recall_period": "the past 7 days",
+  "languages": {
+    "en": "source",
+    "es": "authorized translation required",
+    "fr": "authorized translation required"
+  },
+  "accessibility": {
+    "estimated_minutes": 4,
+    "screen_reader_labels": true,
+    "switch_scanning_compatible": true,
+    "min_target_px": 64,
+    "read_aloud_permitted": true,
+    "proxy_entry_allowed": false,
+    "one_item_per_screen_option": true,
+    "no_time_limit": true
+  },
+  "schedule": {
+    "default": "per_visit"
+  },
+  "items": [
+    {
+      "id": "cp_minutes_setup_per_day",
+      "type": "minutes",
+      "text": "On a typical day in the past 7 days, how many minutes did you spend setting up, positioning or calibrating the device?",
+      "min": 0,
+      "max": 1440,
+      "required": true
+    },
+    {
+      "id": "cp_minutes_help_per_day",
+      "type": "minutes",
+      "text": "On a typical day, how many minutes did you spend helping with computer or device activities (other than setup)?",
+      "min": 0,
+      "max": 1440,
+      "required": true
+    },
+    {
+      "id": "cp_calls_per_day",
+      "type": "numeric",
+      "text": "On a typical day, how many times were you called to help with the device or computer?",
+      "min": 0,
+      "max": 50,
+      "required": true,
+      "anchors": {
+        "0": "0",
+        "50": "50 or more"
+      }
+    },
+    {
+      "id": "s1",
+      "type": "likert",
+      "text": "Helping with the device or computer took time I needed for other things.",
+      "required": true,
+      "options": [
+        {
+          "value": 0,
+          "label": "Never"
+        },
+        {
+          "value": 1,
+          "label": "Rarely"
+        },
+        {
+          "value": 2,
+          "label": "Sometimes"
+        },
+        {
+          "value": 3,
+          "label": "Often"
+        },
+        {
+          "value": 4,
+          "label": "Almost always"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "type": "likert",
+      "text": "I felt tense about whether the device would work when it was needed.",
+      "required": true,
+      "options": [
+        {
+          "value": 0,
+          "label": "Never"
+        },
+        {
+          "value": 1,
+          "label": "Rarely"
+        },
+        {
+          "value": 2,
+          "label": "Sometimes"
+        },
+        {
+          "value": 3,
+          "label": "Often"
+        },
+        {
+          "value": 4,
+          "label": "Almost always"
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "type": "likert",
+      "text": "I had to stay nearby in case help with the device was needed.",
+      "required": true,
+      "options": [
+        {
+          "value": 0,
+          "label": "Never"
+        },
+        {
+          "value": 1,
+          "label": "Rarely"
+        },
+        {
+          "value": 2,
+          "label": "Sometimes"
+        },
+        {
+          "value": 3,
+          "label": "Often"
+        },
+        {
+          "value": 4,
+          "label": "Almost always"
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "type": "likert",
+      "text": "Helping with the device interrupted my sleep or rest.",
+      "required": true,
+      "options": [
+        {
+          "value": 0,
+          "label": "Never"
+        },
+        {
+          "value": 1,
+          "label": "Rarely"
+        },
+        {
+          "value": 2,
+          "label": "Sometimes"
+        },
+        {
+          "value": 3,
+          "label": "Often"
+        },
+        {
+          "value": 4,
+          "label": "Almost always"
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "type": "likert",
+      "text": "I felt confident helping with the device.",
+      "required": true,
+      "options": [
+        {
+          "value": 0,
+          "label": "Never"
+        },
+        {
+          "value": 1,
+          "label": "Rarely"
+        },
+        {
+          "value": 2,
+          "label": "Sometimes"
+        },
+        {
+          "value": 3,
+          "label": "Often"
+        },
+        {
+          "value": 4,
+          "label": "Almost always"
+        }
+      ]
+    },
+    {
+      "id": "s6",
+      "type": "likert",
+      "text": "Device or computer problems caused frustration at home.",
+      "required": true,
+      "options": [
+        {
+          "value": 0,
+          "label": "Never"
+        },
+        {
+          "value": 1,
+          "label": "Rarely"
+        },
+        {
+          "value": 2,
+          "label": "Sometimes"
+        },
+        {
+          "value": 3,
+          "label": "Often"
+        },
+        {
+          "value": 4,
+          "label": "Almost always"
+        }
+      ]
+    }
+  ],
+  "scoring": {
+    "scales": [
+      {
+        "id": "cp_strain",
+        "label": "Device-related care-partner strain (0-24, higher = more strain)",
+        "method": "sum",
+        "items": [
+          "s1",
+          "s2",
+          "s3",
+          "s4",
+          "s5",
+          "s6"
+        ],
+        "reverse_items": [
+          "s5"
+        ],
+        "min_answered": 5,
+        "prorate": true
+      },
+      {
+        "id": "cp_minutes_per_day",
+        "label": "Care-partner device minutes per day",
+        "method": "sum",
+        "items": [
+          "cp_minutes_setup_per_day",
+          "cp_minutes_help_per_day"
+        ],
+        "min_answered": 2
+      }
+    ]
+  }
+}

@@ -1,0 +1,198 @@
+{
+  "id": "NM-DEV",
+  "version": "1.0.0",
+  "title": "NeuroMetric device use context (completed with staff at each session)",
+  "respondent_type": "ClinRO",
+  "status": "original, unvalidated research questionnaire",
+  "license": {
+    "status": "original",
+    "holder": "NeuroMetric project",
+    "citation": "NeuroMetric original item set (2026)",
+    "notes": "Written for NeuroMetric; no third-party items reproduced. Not psychometrically validated."
+  },
+  "recall_period": "this session",
+  "languages": {
+    "en": "source",
+    "es": "authorized translation required",
+    "fr": "authorized translation required"
+  },
+  "accessibility": {
+    "estimated_minutes": 3,
+    "screen_reader_labels": true,
+    "switch_scanning_compatible": true,
+    "min_target_px": 64,
+    "read_aloud_permitted": true,
+    "proxy_entry_allowed": true,
+    "one_item_per_screen_option": true,
+    "no_time_limit": true
+  },
+  "schedule": {
+    "default": "per_visit"
+  },
+  "items": [
+    {
+      "id": "setting",
+      "type": "choice",
+      "text": "Where did the session take place?",
+      "required": true,
+      "options": [
+        {
+          "value": "home",
+          "label": "Home"
+        },
+        {
+          "value": "clinic",
+          "label": "Clinic"
+        },
+        {
+          "value": "lab",
+          "label": "Research lab"
+        },
+        {
+          "value": "other",
+          "label": "Other"
+        }
+      ]
+    },
+    {
+      "id": "position",
+      "type": "choice",
+      "text": "Participant position",
+      "required": true,
+      "options": [
+        {
+          "value": "wheelchair",
+          "label": "Seated in wheelchair"
+        },
+        {
+          "value": "chair",
+          "label": "Seated in chair"
+        },
+        {
+          "value": "reclined",
+          "label": "Reclined"
+        },
+        {
+          "value": "lying",
+          "label": "Lying"
+        },
+        {
+          "value": "other",
+          "label": "Other"
+        }
+      ]
+    },
+    {
+      "id": "display",
+      "type": "choice",
+      "text": "Display used",
+      "required": true,
+      "options": [
+        {
+          "value": "monitor",
+          "label": "Desktop monitor"
+        },
+        {
+          "value": "laptop",
+          "label": "Laptop"
+        },
+        {
+          "value": "tablet",
+          "label": "Tablet"
+        },
+        {
+          "value": "phone",
+          "label": "Phone"
+        },
+        {
+          "value": "tv",
+          "label": "TV"
+        },
+        {
+          "value": "other",
+          "label": "Other"
+        }
+      ]
+    },
+    {
+      "id": "mount_used",
+      "type": "yes_no",
+      "text": "Was a mount or positioning aid used for the display or input device?",
+      "required": true
+    },
+    {
+      "id": "setup_minutes",
+      "type": "minutes",
+      "text": "Minutes from arrival to ready-to-start (setup)",
+      "min": 0,
+      "max": 240,
+      "required": true
+    },
+    {
+      "id": "calibration_minutes",
+      "type": "minutes",
+      "text": "Minutes spent on calibration before or during the session",
+      "min": 0,
+      "max": 240,
+      "required": true
+    },
+    {
+      "id": "setup_by",
+      "type": "choice",
+      "text": "Who mainly did the setup?",
+      "required": true,
+      "options": [
+        {
+          "value": "participant",
+          "label": "Participant"
+        },
+        {
+          "value": "care_partner",
+          "label": "Care partner"
+        },
+        {
+          "value": "staff",
+          "label": "Study staff"
+        },
+        {
+          "value": "technician",
+          "label": "Device technician"
+        }
+      ]
+    },
+    {
+      "id": "interruptions",
+      "type": "numeric",
+      "text": "Number of interruptions (any cause)",
+      "min": 0,
+      "max": 50,
+      "required": true,
+      "anchors": {
+        "0": "0",
+        "50": "50 or more"
+      }
+    },
+    {
+      "id": "notes",
+      "type": "free_text",
+      "text": "Notes (avoid identifying information)",
+      "required": false,
+      "sensitive": true,
+      "max_length": 500
+    }
+  ],
+  "scoring": {
+    "scales": [
+      {
+        "id": "setup_total_minutes",
+        "label": "Setup + calibration minutes",
+        "method": "sum",
+        "items": [
+          "setup_minutes",
+          "calibration_minutes"
+        ],
+        "min_answered": 2
+      }
+    ]
+  }
+}

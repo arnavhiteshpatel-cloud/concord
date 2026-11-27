@@ -1,0 +1,16 @@
+{
+  "experiment": "P_reproducibility",
+  "generated_utc": "2026-11-27T07:00:05Z",
+  "software": {
+    "neurometric": "0.1.0",
+    "python": "3.13.18",
+    "numpy": "2.5.3",
+    "pandas": "3.0.5"
+  },
+  "synthetic": true,
+  "disclaimer": "Simulation results. They characterise the measurement system under modelled input degradation; they are not human or clinical data.",
+  "hash_in_process": "a1be683a2cfd3081a2225b93aa7a5c5a78f240dbd5c69970689d36ecb72ff7f7",
+  "hash_in_pool": "a1be683a2cfd3081a2225b93aa7a5c5a78f240dbd5c69970689d36ecb72ff7f7",
+  "identical": true,
+  "different_seed_differs": true
+}

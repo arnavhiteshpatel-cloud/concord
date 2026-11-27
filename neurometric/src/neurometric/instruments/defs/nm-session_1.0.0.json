@@ -1,0 +1,145 @@
+{
+  "id": "NM-SESSION",
+  "version": "1.0.0",
+  "title": "NeuroMetric post-session check (fatigue, effort, satisfaction)",
+  "respondent_type": "PRO",
+  "status": "original, unvalidated research questionnaire",
+  "license": {
+    "status": "original",
+    "holder": "NeuroMetric project",
+    "citation": "NeuroMetric original item set (2026)",
+    "notes": "Written for NeuroMetric; no third-party items reproduced. Not psychometrically validated."
+  },
+  "recall_period": "the session just completed",
+  "languages": {
+    "en": "source",
+    "es": "authorized translation required",
+    "fr": "authorized translation required"
+  },
+  "accessibility": {
+    "estimated_minutes": 2,
+    "screen_reader_labels": true,
+    "switch_scanning_compatible": true,
+    "min_target_px": 64,
+    "read_aloud_permitted": true,
+    "proxy_entry_allowed": true,
+    "one_item_per_screen_option": true,
+    "no_time_limit": true
+  },
+  "schedule": {
+    "default": "after_each_functional_session"
+  },
+  "items": [
+    {
+      "id": "fatigue",
+      "type": "numeric",
+      "text": "How tired do you feel right now, after the session?",
+      "min": 0,
+      "max": 10,
+      "required": true,
+      "anchors": {
+        "0": "Not at all tired",
+        "10": "Extremely tired"
+      }
+    },
+    {
+      "id": "effort",
+      "type": "numeric",
+      "text": "How much effort did the tasks take today?",
+      "min": 0,
+      "max": 10,
+      "required": true,
+      "anchors": {
+        "0": "No effort",
+        "10": "The most effort I can imagine"
+      }
+    },
+    {
+      "id": "frustration",
+      "type": "numeric",
+      "text": "How frustrated did you feel during the tasks?",
+      "min": 0,
+      "max": 10,
+      "required": true,
+      "anchors": {
+        "0": "Not at all",
+        "10": "Extremely"
+      }
+    },
+    {
+      "id": "satisfaction",
+      "type": "numeric",
+      "text": "How satisfied are you with how well you could do the tasks today?",
+      "min": 0,
+      "max": 10,
+      "required": true,
+      "anchors": {
+        "0": "Not at all satisfied",
+        "10": "Completely satisfied"
+      }
+    },
+    {
+      "id": "comfort",
+      "type": "numeric",
+      "text": "How comfortable were you (position, screen, equipment) during the session?",
+      "min": 0,
+      "max": 10,
+      "required": false,
+      "anchors": {
+        "0": "Very uncomfortable",
+        "10": "Very comfortable"
+      }
+    },
+    {
+      "id": "device_problem",
+      "type": "yes_no",
+      "text": "Did the device or computer cause problems during the session?",
+      "required": true
+    },
+    {
+      "id": "comment",
+      "type": "free_text",
+      "text": "Anything else about today's session? (optional; only stored if you agreed to free-text collection)",
+      "required": false,
+      "sensitive": true,
+      "max_length": 500
+    }
+  ],
+  "scoring": {
+    "scales": [
+      {
+        "id": "session_burden",
+        "label": "Session burden (0-10, higher = more burden)",
+        "method": "mean",
+        "items": [
+          "fatigue",
+          "effort",
+          "frustration",
+          "satisfaction"
+        ],
+        "reverse_items": [
+          "satisfaction"
+        ],
+        "min_answered": 3
+      },
+      {
+        "id": "fatigue",
+        "label": "Fatigue item",
+        "method": "mean",
+        "items": [
+          "fatigue"
+        ],
+        "min_answered": 1
+      },
+      {
+        "id": "satisfaction",
+        "label": "Satisfaction item",
+        "method": "mean",
+        "items": [
+          "satisfaction"
+        ],
+        "min_answered": 1
+      }
+    ]
+  }
+}

@@ -1,0 +1,335 @@
+{
+  "id": "SUS",
+  "version": "1.0.0",
+  "title": "System Usability Scale (SUS)",
+  "respondent_type": "PRO",
+  "status": "published instrument (Brooke 1996); freely usable with attribution [PK]",
+  "license": {
+    "status": "free_with_attribution",
+    "holder": "J. Brooke",
+    "citation": "Brooke J. SUS: a 'quick and dirty' usability scale. In: Jordan PW et al. (eds) Usability Evaluation in Industry. Taylor & Francis; 1996:189-194.",
+    "notes": "Brooke stated SUS may be used freely provided the source is acknowledged [PK - verify before publication]. Item wording as published; 'system' may be replaced by the product name."
+  },
+  "recall_period": "the system just used",
+  "languages": {
+    "en": "source",
+    "es": "authorized translation required",
+    "fr": "authorized translation required"
+  },
+  "accessibility": {
+    "estimated_minutes": 3,
+    "screen_reader_labels": true,
+    "switch_scanning_compatible": true,
+    "min_target_px": 64,
+    "read_aloud_permitted": true,
+    "proxy_entry_allowed": true,
+    "one_item_per_screen_option": true,
+    "no_time_limit": true
+  },
+  "schedule": {
+    "default": "end_of_visit"
+  },
+  "items": [
+    {
+      "id": "sus1",
+      "type": "likert",
+      "text": "I think that I would like to use this system frequently.",
+      "required": true,
+      "options": [
+        {
+          "value": 1,
+          "label": "Strongly disagree"
+        },
+        {
+          "value": 2,
+          "label": "Disagree"
+        },
+        {
+          "value": 3,
+          "label": "Neither agree nor disagree"
+        },
+        {
+          "value": 4,
+          "label": "Agree"
+        },
+        {
+          "value": 5,
+          "label": "Strongly agree"
+        }
+      ]
+    },
+    {
+      "id": "sus2",
+      "type": "likert",
+      "text": "I found the system unnecessarily complex.",
+      "required": true,
+      "options": [
+        {
+          "value": 1,
+          "label": "Strongly disagree"
+        },
+        {
+          "value": 2,
+          "label": "Disagree"
+        },
+        {
+          "value": 3,
+          "label": "Neither agree nor disagree"
+        },
+        {
+          "value": 4,
+          "label": "Agree"
+        },
+        {
+          "value": 5,
+          "label": "Strongly agree"
+        }
+      ]
+    },
+    {
+      "id": "sus3",
+      "type": "likert",
+      "text": "I thought the system was easy to use.",
+      "required": true,
+      "options": [
+        {
+          "value": 1,
+          "label": "Strongly disagree"
+        },
+        {
+          "value": 2,
+          "label": "Disagree"
+        },
+        {
+          "value": 3,
+          "label": "Neither agree nor disagree"
+        },
+        {
+          "value": 4,
+          "label": "Agree"
+        },
+        {
+          "value": 5,
+          "label": "Strongly agree"
+        }
+      ]
+    },
+    {
+      "id": "sus4",
+      "type": "likert",
+      "text": "I think that I would need the support of a technical person to be able to use this system.",
+      "required": true,
+      "options": [
+        {
+          "value": 1,
+          "label": "Strongly disagree"
+        },
+        {
+          "value": 2,
+          "label": "Disagree"
+        },
+        {
+          "value": 3,
+          "label": "Neither agree nor disagree"
+        },
+        {
+          "value": 4,
+          "label": "Agree"
+        },
+        {
+          "value": 5,
+          "label": "Strongly agree"
+        }
+      ]
+    },
+    {
+      "id": "sus5",
+      "type": "likert",
+      "text": "I found the various functions in this system were well integrated.",
+      "required": true,
+      "options": [
+        {
+          "value": 1,
+          "label": "Strongly disagree"
+        },
+        {
+          "value": 2,
+          "label": "Disagree"
+        },
+        {
+          "value": 3,
+          "label": "Neither agree nor disagree"
+        },
+        {
+          "value": 4,
+          "label": "Agree"
+        },
+        {
+          "value": 5,
+          "label": "Strongly agree"
+        }
+      ]
+    },
+    {
+      "id": "sus6",
+      "type": "likert",
+      "text": "I thought there was too much inconsistency in this system.",
+      "required": true,
+      "options": [
+        {
+          "value": 1,
+          "label": "Strongly disagree"
+        },
+        {
+          "value": 2,
+          "label": "Disagree"
+        },
+        {
+          "value": 3,
+          "label": "Neither agree nor disagree"
+        },
+        {
+          "value": 4,
+          "label": "Agree"
+        },
+        {
+          "value": 5,
+          "label": "Strongly agree"
+        }
+      ]
+    },
+    {
+      "id": "sus7",
+      "type": "likert",
+      "text": "I would imagine that most people would learn to use this system very quickly.",
+      "required": true,
+      "options": [
+        {
+          "value": 1,
+          "label": "Strongly disagree"
+        },
+        {
+          "value": 2,
+          "label": "Disagree"
+        },
+        {
+          "value": 3,
+          "label": "Neither agree nor disagree"
+        },
+        {
+          "value": 4,
+          "label": "Agree"
+        },
+        {
+          "value": 5,
+          "label": "Strongly agree"
+        }
+      ]
+    },
+    {
+      "id": "sus8",
+      "type": "likert",
+      "text": "I found the system very cumbersome to use.",
+      "required": true,
+      "options": [
+        {
+          "value": 1,
+          "label": "Strongly disagree"
+        },
+        {
+          "value": 2,
+          "label": "Disagree"
+        },
+        {
+          "value": 3,
+          "label": "Neither agree nor disagree"
+        },
+        {
+          "value": 4,
+          "label": "Agree"
+        },
+        {
+          "value": 5,
+          "label": "Strongly agree"
+        }
+      ]
+    },
+    {
+      "id": "sus9",
+      "type": "likert",
+      "text": "I felt very confident using the system.",
+      "required": true,
+      "options": [
+        {
+          "value": 1,
+          "label": "Strongly disagree"
+        },
+        {
+          "value": 2,
+          "label": "Disagree"
+        },
+        {
+          "value": 3,
+          "label": "Neither agree nor disagree"
+        },
+        {
+          "value": 4,
+          "label": "Agree"
+        },
+        {
+          "value": 5,
+          "label": "Strongly agree"
+        }
+      ]
+    },
+    {
+      "id": "sus10",
+      "type": "likert",
+      "text": "I needed to learn a lot of things before I could get going with this system.",
+      "required": true,
+      "options": [
+        {
+          "value": 1,
+          "label": "Strongly disagree"
+        },
+        {
+          "value": 2,
+          "label": "Disagree"
+        },
+        {
+          "value": 3,
+          "label": "Neither agree nor disagree"
+        },
+        {
+          "value": 4,
+          "label": "Agree"
+        },
+        {
+          "value": 5,
+          "label": "Strongly agree"
+        }
+      ]
+    }
+  ],
+  "scoring": {
+    "scales": [
+      {
+        "id": "sus_score",
+        "label": "SUS score (0-100)",
+        "method": "sus",
+        "items": [
+          "sus1",
+          "sus2",
+          "sus3",
+          "sus4",
+          "sus5",
+          "sus6",
+          "sus7",
+          "sus8",
+          "sus9",
+          "sus10"
+        ]
+      }
+    ]
+  }
+}

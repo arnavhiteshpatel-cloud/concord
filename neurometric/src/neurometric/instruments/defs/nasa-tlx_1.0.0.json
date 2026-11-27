@@ -1,0 +1,210 @@
+{
+  "id": "NASA-TLX",
+  "version": "1.0.0",
+  "title": "NASA Task Load Index (NASA-TLX)",
+  "respondent_type": "PRO",
+  "status": "published instrument (Hart & Staveland 1988); NASA public-domain material [PK]",
+  "license": {
+    "status": "public_domain",
+    "holder": "NASA Ames Research Center (US Government work)",
+    "citation": "Hart SG, Staveland LE. Development of NASA-TLX: results of empirical and theoretical research. Adv Psychol. 1988;52:139-183.",
+    "notes": "Distributed publicly by NASA; US Government work [PK - verify before publication]. Ratings recorded 0-100 in steps of 5 (21 gradations). Performance anchors run Perfect (0) to Failure (100)."
+  },
+  "recall_period": "the task just completed",
+  "languages": {
+    "en": "source",
+    "es": "authorized translation required",
+    "fr": "authorized translation required"
+  },
+  "accessibility": {
+    "estimated_minutes": 3,
+    "screen_reader_labels": true,
+    "switch_scanning_compatible": true,
+    "min_target_px": 64,
+    "read_aloud_permitted": true,
+    "proxy_entry_allowed": true,
+    "one_item_per_screen_option": true,
+    "no_time_limit": true
+  },
+  "schedule": {
+    "default": "after_selected_tasks"
+  },
+  "items": [
+    {
+      "id": "mental",
+      "type": "numeric",
+      "text": "Mental Demand: How mentally demanding was the task?",
+      "min": 0,
+      "max": 100,
+      "required": true,
+      "anchors": {
+        "0": "Very Low",
+        "100": "Very High"
+      },
+      "step": 5,
+      "label": "Mental Demand"
+    },
+    {
+      "id": "physical",
+      "type": "numeric",
+      "text": "Physical Demand: How physically demanding was the task?",
+      "min": 0,
+      "max": 100,
+      "required": true,
+      "anchors": {
+        "0": "Very Low",
+        "100": "Very High"
+      },
+      "step": 5,
+      "label": "Physical Demand"
+    },
+    {
+      "id": "temporal",
+      "type": "numeric",
+      "text": "Temporal Demand: How hurried or rushed was the pace of the task?",
+      "min": 0,
+      "max": 100,
+      "required": true,
+      "anchors": {
+        "0": "Very Low",
+        "100": "Very High"
+      },
+      "step": 5,
+      "label": "Temporal Demand"
+    },
+    {
+      "id": "performance",
+      "type": "numeric",
+      "text": "Performance: How successful were you in accomplishing what you were asked to do?",
+      "min": 0,
+      "max": 100,
+      "required": true,
+      "anchors": {
+        "0": "Perfect",
+        "100": "Failure"
+      },
+      "step": 5,
+      "label": "Performance"
+    },
+    {
+      "id": "effort",
+      "type": "numeric",
+      "text": "Effort: How hard did you have to work to accomplish your level of performance?",
+      "min": 0,
+      "max": 100,
+      "required": true,
+      "anchors": {
+        "0": "Very Low",
+        "100": "Very High"
+      },
+      "step": 5,
+      "label": "Effort"
+    },
+    {
+      "id": "frustration",
+      "type": "numeric",
+      "text": "Frustration: How insecure, discouraged, irritated, stressed, and annoyed were you?",
+      "min": 0,
+      "max": 100,
+      "required": true,
+      "anchors": {
+        "0": "Very Low",
+        "100": "Very High"
+      },
+      "step": 5,
+      "label": "Frustration"
+    },
+    {
+      "id": "w_mental",
+      "type": "numeric",
+      "text": "Weight for Mental Demand (number of times chosen in the 15 pairwise comparisons)",
+      "min": 0,
+      "max": 5,
+      "step": 1,
+      "required": false
+    },
+    {
+      "id": "w_physical",
+      "type": "numeric",
+      "text": "Weight for Physical Demand (number of times chosen in the 15 pairwise comparisons)",
+      "min": 0,
+      "max": 5,
+      "step": 1,
+      "required": false
+    },
+    {
+      "id": "w_temporal",
+      "type": "numeric",
+      "text": "Weight for Temporal Demand (number of times chosen in the 15 pairwise comparisons)",
+      "min": 0,
+      "max": 5,
+      "step": 1,
+      "required": false
+    },
+    {
+      "id": "w_performance",
+      "type": "numeric",
+      "text": "Weight for Performance (number of times chosen in the 15 pairwise comparisons)",
+      "min": 0,
+      "max": 5,
+      "step": 1,
+      "required": false
+    },
+    {
+      "id": "w_effort",
+      "type": "numeric",
+      "text": "Weight for Effort (number of times chosen in the 15 pairwise comparisons)",
+      "min": 0,
+      "max": 5,
+      "step": 1,
+      "required": false
+    },
+    {
+      "id": "w_frustration",
+      "type": "numeric",
+      "text": "Weight for Frustration (number of times chosen in the 15 pairwise comparisons)",
+      "min": 0,
+      "max": 5,
+      "step": 1,
+      "required": false
+    }
+  ],
+  "scoring": {
+    "scales": [
+      {
+        "id": "tlx_raw",
+        "label": "Raw TLX (mean of 6 subscales, 0-100)",
+        "method": "nasa_tlx_raw",
+        "items": [
+          "mental",
+          "physical",
+          "temporal",
+          "performance",
+          "effort",
+          "frustration"
+        ]
+      },
+      {
+        "id": "tlx_weighted",
+        "label": "Weighted TLX (0-100)",
+        "method": "nasa_tlx_weighted",
+        "items": [
+          "mental",
+          "physical",
+          "temporal",
+          "performance",
+          "effort",
+          "frustration"
+        ],
+        "weight_items": [
+          "w_mental",
+          "w_physical",
+          "w_temporal",
+          "w_performance",
+          "w_effort",
+          "w_frustration"
+        ]
+      }
+    ]
+  }
+}

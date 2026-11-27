@@ -1,0 +1,28 @@
+{
+  "id": "PIADS",
+  "version": "license-stub-1",
+  "title": "Psychosocial Impact of Assistive Devices Scale",
+  "respondent_type": "PRO",
+  "status": "licensed instrument - metadata only; items must be loaded by a licensee",
+  "license": {
+    "status": "license_required",
+    "holder": "Copyright J. Jutai & H. Day [UNR - verify licensor and terms]",
+    "citation": "Jutai J, Day H. Psychosocial Impact of Assistive Devices Scale (PIADS). Technol Disabil. 2002;14:107-111. [PK]",
+    "notes": "No item text reproduced. Subscales: competence, adaptability, self-esteem [PK]."
+  },
+  "item_count": 26,
+  "recall_period": "per licensed version",
+  "languages": {
+    "en": "source"
+  },
+  "accessibility": {
+    "note": "per licensed version"
+  },
+  "schedule": {
+    "default": "per protocol"
+  },
+  "items": [],
+  "scoring": {
+    "scales": []
+  }
+}
