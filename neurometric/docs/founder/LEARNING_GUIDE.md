@@ -146,7 +146,7 @@ Exercises (repository)
    `degradation=mod.degradation.with_(latency_ms=300)` to `run_iso` and record the change.
 3. Run one registered sweep:
    `python -m neurometric.experiments.registry C_latency --n 20 --processes 2`
-   and inspect `experiments/results/C_latency/`. Write which metrics are most and least sensitive to
+   and inspect `experiments/results/C_latency/` (created by the run). Write which metrics are most and least sensitive to
    latency, and why (KNOWLEDGE_BASE §4.3).
 
 Deliverable: a one-page comparison table of interface classes for an investor.
@@ -233,7 +233,7 @@ Exercises (repository)
 4. Halve the between-person SD (0.5 → 0.25) and rerun. The SEM barely changes; the ICC falls. Write down why
    this matters when a sponsor compares reliability across populations.
 5. Run the simulated test–retest experiment: `python -m neurometric.experiments.registry I_test_retest --n 40`
-   and read `experiments/results/I_test_retest/summary.json`. Which metrics would pass an ICC ≥ 0.70 criterion
+   and read `experiments/results/I_test_retest/summary.json` (created by the run). Which metrics would pass an ICC ≥ 0.70 criterion
    in *simulation*? Write why simulation reliability is an upper bound, not an estimate, of human reliability.
 
 ---
