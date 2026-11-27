@@ -350,23 +350,63 @@ floor/ceiling pattern (32.6% / 67.4%). Tracking lag, blind to noise (§3.1), was
 latency (ρ −0.738) but only detectable from 300 ms. Target re-entries were non-monotone (ρ +0.135),
 presumably because with long latency trials time out before re-entering [INF].
 
-[RESULT PENDING: experiments/results/C2_latency_mouse/summary.json — same rows for the position-control user; contrast velocity vs position control]
+**Position-control (mouse-like) user** (`experiments/results/C2_latency_mouse/summary.json`, 07:38Z):
+latency was less destructive than for the velocity user. CCPM (ρ −0.824), ADL time (−0.850),
+achieved bitrate (−0.790) and overshoot (−0.802) declined, but first reached |d_z| ≥ 0.5 at 120 ms
+rather than 60 ms; ADL completion stayed at ceiling in 86.7% of sessions; and effective throughput
+was undefined in 60.5% of sessions, because errors rose (error rate ρ −0.695) when users clicked
+without waiting for the delayed cursor. The same latency therefore has a different signature for
+open-loop-ballistic and closed-loop-velocity control.
 
 ### 3.3 Availability and selection faults (Studies D, F, F2)
-[RESULT PENDING: experiments/results/D_dropout/summary.json — ρ for iso_timeout_rate, iso_mt_ms, grid_bitrate_bps, adl_time_s]
+Source files: `experiments/results/D_dropout/summary.json` (07:38Z),
+`experiments/results/F_false_activation/summary.json` (07:40Z),
+`experiments/results/F2_missed_selection/summary.json` (07:40Z).
 
-[RESULT PENDING: experiments/results/F_false_activation/summary.json — ρ for false_activations_per_min, grid_accuracy, grid_bitrate_bps, type_total_error_rate, adl_wrong_selections]
+| Metric | Dropout ρ | False activations ρ | Missed selections ρ |
+|---|---|---|---|
+| ISO error rate | +0.104 | **−0.798** | −0.058 |
+| Movement time (ISO) | −0.379 | **+0.653** (shorter: false clicks end trials early) | −0.394 |
+| Effective throughput | −0.239 | −0.675 | −0.329 |
+| Grid accuracy | — | −0.520 (ceiling 65.6%) | +0.053 (ceiling 96.7%) |
+| Achieved bitrate | −0.405 | −0.137 | −0.297 |
+| Empty-space selections/min (observable false-activation proxy) | — | −0.423 (floor 74.7%) | −0.066 |
+| Typing total error rate | — | −0.732 | +0.097 |
+| CCPM | −0.442 | −0.272 | −0.355 |
+| Dial-in time | −0.202 | +0.380 | −0.475 |
+| ADL time | −0.356 | −0.172 | −0.416 |
+| ADL completion | constant (100% ceiling) | constant (100% ceiling) | constant (100% ceiling) |
+| Tracking RMS error | −0.669 | −0.013 | +0.039 |
 
-[RESULT PENDING: experiments/results/F2_missed_selection/summary.json — ρ for iso_mt_ms, iso_dial_in_ms, grid_time_ms, type_ccpm]
+Within the ranges simulated, dropout (≤ 0.8 episodes/s of 500 ms) and missed selections (≤ 0.6)
+produced only weak responses (|ρ| ≤ 0.67 and ≤ 0.48). False activations were detected by error
+metrics but **moved kinematic metrics in the "better" direction** (shorter MT, higher path
+efficiency ρ +0.551): an unwanted click ends a trial early. A battery scored only on speed or path
+would read a device with spurious clicks as improved. The observable proxy for false activations
+(empty-space selections per minute) was floor-bound (74.7% of sessions at 0) and only moderately
+sensitive (ρ −0.423), because most false clicks land on items, not empty space.
 
 ### 3.4 Calibration drift, bias, update rate, gain (Studies E, B2, B3, B4)
-[RESULT PENDING: experiments/results/E_drift/summary.json — ρ for iso_tp_bps, iso_path_efficiency, grid_bitrate_bps, type_ccpm]
+Sources: `experiments/results/E_drift/summary.json` (07:39Z), `B2_bias/summary.json` (07:41Z),
+`B3_update_rate/summary.json` (07:42Z), `B4_gain/summary.json` (07:43Z; ρ against |log gain|).
 
-[RESULT PENDING: experiments/results/B2_bias/summary.json — ρ for iso_path_efficiency, iso_movement_variability_px, iso_tp_bps]
+| Metric | Drift ρ | Bias ρ | Update interval ρ | Gain ρ (vs abs log gain) |
+|---|---|---|---|---|
+| Movement variability | −0.956 | −0.978 | −0.686 | −0.572 |
+| Movement time | −0.921 | −0.908 | −0.727 | −0.559 |
+| Overshoot | +0.344 | −0.949 | −0.782 | +0.190 |
+| Path efficiency | −0.479 | −0.649 | −0.822 | +0.302 |
+| Dial-in time | −0.305 | −0.033 | −0.770 | +0.250 |
+| Achieved bitrate | −0.909 | −0.943 | −0.661 | −0.472 |
+| CCPM | −0.852 | −0.944 | −0.676 | −0.527 |
+| ADL time | −0.620 | −0.832 | −0.628 | −0.249 |
+| ADL completion (ceiling) | −0.864 (59.3%) | −0.797 (67.0%) | constant (100%) | −0.279 (90.8%) |
+| Tracking RMS error | −0.930 | −0.897 | −0.540 | −0.492 |
 
-[RESULT PENDING: experiments/results/B3_update_rate/summary.json — ρ for track_rms_px, iso_tp_bps, iso_submovements]
-
-[RESULT PENDING: experiments/results/B4_gain/summary.json — ρ against |log gain| for iso_tp_bps, iso_overshoot_px, iso_dial_in_ms]
+Drift and bias were detected by most rate and kinematic metrics (bias already at 15°). Update
+interval was best detected by path efficiency, overshoot and dial-in time (from 20–50 ms), not by
+completion (ceiling 100%) or grid accuracy (ceiling 93.7%). Gain errors were the hardest to see:
+closed-loop users compensate, and no metric exceeded |ρ| = 0.6 against |log gain|.
 
 ### 3.5 Cross-degradation comparison (Study G)
 [RESULT PENDING: experiments/results/G_metric_comparison/ranking.csv — Table 3: top 10 metrics by mean_sensitivity with min_sensitivity, mean_monotone_frac, max_ceiling_frac, median_retest_icc; Figure 2: experiments/results/G_metric_comparison/sensitivity_heatmap.png]
