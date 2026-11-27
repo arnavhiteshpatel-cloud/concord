@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Research and methods</title>
+  <meta name="description" content="NeuroMetric | NeuroMetric's computational research programme: metric definitions, the simulated-decoder methods, the experiment programme and, prominently, its limitations. Simulation is not clinical evidence.">
+  <meta name="referrer" content="no-referrer">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/site.css">
+  <script>document.documentElement.classList.add("js");</script>
+  <script src="assets/js/site.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="index.html"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="2" y="2" width="28" height="28" rx="8"/><path d="M7 21.5 12 15l4.5 3.5L25 9.5"/><circle cx="7" cy="21.5" r="1.6" fill="currentColor"/><circle cx="12" cy="15" r="1.6" fill="currentColor"/><circle cx="16.5" cy="18.5" r="1.6" fill="currentColor"/><circle cx="25" cy="9.5" r="1.6" fill="currentColor"/></svg><span>NeuroMetric</span><small>Research prototype</small></a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 6h18M3 12h18M3 18h18"/></svg>Menu</button>
+      <nav id="site-nav" class="site-nav" aria-label="Main">
+        <ul>
+        <li><a href="approach.html">Approach</a></li>
+        <li><a href="modalities.html">Modalities</a></li>
+        <li><a href="research.html" aria-current="page">Research</a></li>
+        <li><a href="results.html">Results</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+        <li><a href="status.html">Status</a></li>
+        <li><a href="demo.html">Demo</a></li>
+        <li><a href="collaborate.html">Collaborate</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="notice-bar">
+      <div class="wrap">
+        <p><strong>Research software in development.</strong> No clinical validation. No partnerships. No regulatory clearance. Not a medical device.</p>
+      </div>
+    </div>
+  </header>
+  <!-- BEGIN:main -->
+  <main id="main" tabindex="-1">
+    <div class="page-head">
+      <div class="wrap">
+        <p class="eyebrow">Research</p>
+        <h1>Testing the measurements before testing with people</h1>
+        <p class="lead">The current work is computational: it asks whether NeuroMetric&rsquo;s metrics behave as good measurements should under controlled, simulated conditions, and whether the software processes real recorded movement data correctly.</p>
+      </div>
+    </div>
+
+    <section class="section" id="limitations" aria-labelledby="lim-title">
+      <div class="wrap">
+        <div class="callout callout-warn callout-strong">
+          <h2 id="lim-title" class="callout-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg> Limitations: read these first</h2>
+          <p><strong>Simulation is not clinical evidence.</strong> Every result on this site comes from synthetic virtual users, software verification, or non-clinical public data. None comes from people who use BCIs or assistive technology.</p>
+          <ul>
+            <li><strong>No human participants.</strong> Reliability, validity and responsiveness in people have not been measured. That requires an IRB-approved study.</li>
+            <li><strong>No physiology.</strong> Simulated noise is not derived from neural tuning, spike counts or electrode properties. The simulator models no specific device.</li>
+            <li><strong>Simplified users.</strong> Each modality uses one control law. Real people switch strategies, slow down near targets, learn a decoder&rsquo;s quirks and adapt across sessions; the model does not, except through explicit parameter changes.</li>
+            <li><strong>Selection is modelled as a separate channel.</strong> Real click decoders may couple clicking with movement.</li>
+            <li><strong>Assumed population structure.</strong> Simulated reliability depends on an assumed latent-ability structure; real between-person variation may be larger or differently shaped.</li>
+            <li><strong>Modality models are partial.</strong> The gaze model ignores blinks, head movement and calibration; the scanning model ignores anticipation strategies used by experienced switch users.</li>
+            <li><strong>No hardware testing.</strong> Browser input adapters have been exercised with synthetic input only.</li>
+            <li><strong>No clinically important change.</strong> NeuroMetric does not compute MCIDs; that requires anchor-based clinical evidence.</li>
+            <li><strong>Calibration targets are approximate.</strong> Simulator profiles were tuned to sit within broad published ranges recalled from the literature; these ranges still need to be checked against primary sources before any publication.</li>
+          </ul>
+          <p>What simulation can show: that a metric responds in the expected direction and with adequate sensitivity under the defined conditions, and that analysis code recovers known truth. What it cannot show: that the metric is reliable, valid or meaningful for any person.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="prog-title">
+      <div class="wrap">
+        <h2 id="prog-title">The computational programme</h2>
+        <div class="grid grid-2">
+          <div class="card">
+            <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 17l5-6 4 3 7-9"/><path d="M4 21h16"/></svg> Degradation sweeps</h3>
+            <p>Each sweep worsens one property of the simulated input in steps (noise, latency, dropouts, calibration drift, false activations, missed selections, directional bias, update rate, gain) and runs the same virtual participants through the battery at every level.</p>
+          </div>
+          <div class="card">
+            <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Measurement properties</h3>
+            <p>Simulated test&ndash;retest reliability versus test length, responsiveness to a known simulated improvement, comparability across simulated modalities, device-versus-user variance, the effect of incomplete sessions, and fixed versus adaptive difficulty.</p>
+          </div>
+          <div class="card">
+            <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 6 9 17l-5-5"/></svg> Software verification</h3>
+            <p>Monte-Carlo checks of the statistical estimators (bias, error and confidence-interval coverage under known truth), bit-identical reproducibility across processes, and event-processing throughput.</p>
+          </div>
+          <div class="card">
+            <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h6"/></svg> Real public data</h3>
+            <p>Reprocessing of an openly licensed movement dataset to check the event pipeline and metrics on real recorded trajectories. The dataset used so far is a non-human primate hand-control recording: not BCI control and not a clinical population.</p>
+          </div>
+        </div>
+        <div class="actions">
+          <a class="btn btn-primary" href="results.html">View computational results <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="props-title">
+      <div class="wrap prose">
+        <h2 id="props-title">How a degradation sweep is summarised</h2>
+        <p>Each metric is first oriented so that higher means better. Across the levels of a sweep we then report:</p>
+        <dl class="facts">
+          <dt>Spearman &rho;</dt><dd>Rank correlation between the score and the degradation level. Expected to be negative.</dd>
+          <dt>Monotone fraction</dt><dd>Share of adjacent levels whose mean moves in the expected direction.</dd>
+          <dt>First-step effect (d)</dt><dd>Standardised paired difference between the baseline and the first degraded level, for the same virtual participants.</dd>
+          <dt>Minimum detectable level</dt><dd>The lowest level at which the effect versus baseline reaches |d| &ge; 0.5.</dd>
+          <dt>Adjacent-level AUC</dt><dd>Mean probability that a score at one level beats a score at the next, worse level (0.5 means no discrimination).</dd>
+          <dt>Undefined, floor, ceiling</dt><dd>Share of scores that are undefined (for example no successful trials) or sit at the natural bound of the metric.</dd>
+          <dt>Simulated retest ICC</dt><dd>Agreement between two repetitions with the same virtual participants. This reflects the simulator&rsquo;s assumptions, not human reliability.</dd>
+        </dl>
+      </div>
+    </section>
+
+    <section class="section" id="metrics" aria-labelledby="metrics-title">
+      <div class="wrap">
+        <h2 id="metrics-title">Metric definitions (v1)</h2>
+        <p class="section-intro">Raw measurements are recorded directly (sample positions and times, selections, keystrokes, markers, assistance events). Derived metrics are computed from them by published formulas, and every one can be recomputed from the stored event stream.</p>
+        <div class="table-wrap" role="region" aria-labelledby="met-cap" tabindex="0">
+          <table class="stack">
+            <caption id="met-cap">Selected derived metrics</caption>
+            <thead><tr><th scope="col">Metric</th><th scope="col">Definition</th><th scope="col">Notes</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Movement time</th><td data-label="Definition">Stimulus onset (or previous selection in sequences) to terminating selection</td><td data-label="Notes">Called selection time for assistive inputs</td></tr>
+              <tr><th scope="row">Path efficiency</th><td data-label="Definition">Straight-line distance &divide; path length</td><td data-label="Notes">Depends on sampling rate; compare at equal rates</td></tr>
+              <tr><th scope="row">Path measures</th><td data-label="Definition">Target re-entries, task-axis crossings, direction changes, movement variability, error and offset</td><td data-label="Notes">MacKenzie, Kauppinen &amp; Silfverberg (2001)</td></tr>
+              <tr><th scope="row">Fitts throughput</th><td data-label="Definition"><code>We = 4.133 &times; SD(endpoint error)</code>; <code>IDe = log2(De/We + 1)</code>; <code>TP = IDe / mean MT</code></td><td data-label="Notes">Soukoreff &amp; MacKenzie (2004), ISO 9241-411 style. Flagged when n &lt; 10, error rate &gt; 50% or dwell selection; reported as undefined, not zero, for scanning</td></tr>
+              <tr><th scope="row">Achieved bitrate</th><td data-label="Definition"><code>log2(N &minus; 1) &times; max(correct &minus; incorrect, 0) / t</code></td><td data-label="Notes">Penalises errors as if each needs a correction</td></tr>
+              <tr><th scope="row">Wolpaw ITR</th><td data-label="Definition">Standard formula</td><td data-label="Notes">Reported only with a flag; never a primary score, because its assumptions rarely hold for assistive or BCI use</td></tr>
+              <tr><th scope="row">Text entry</th><td data-label="Definition">Words per minute, correct characters per minute, minimum-string-distance error rate, corrected and uncorrected error rates, keystrokes per character</td><td data-label="Notes">Soukoreff &amp; MacKenzie (2003). Predefined phrases only</td></tr>
+              <tr><th scope="row">Everyday digital tasks</th><td data-label="Definition">Completed, time to complete, wrong selections, assisted</td><td data-label="Notes">Assisted is reported separately and is not failure</td></tr>
+              <tr><th scope="row">Session measures</th><td data-label="Definition">Active and rest minutes, interruptions, assistance by type and per hour, completion rate, within-session variability and trend</td><td data-label="Notes">A trend cannot separate fatigue from learning or device change, so it is never interpreted automatically</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="prose">
+          <p><strong>Observable-only rule.</strong> Metric functions take only data a real deployment can record. Simulation ground truth (intended selections, injected false activations, dropouts) is stored separately and used only to check the metrics.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="sim-methods-title">
+      <div class="wrap prose">
+        <h2 id="sim-methods-title">Simulation methods in brief</h2>
+        <p>The simulation is closed-loop with delayed perception: virtual users see the <em>degraded</em> cursor after a feedback delay and correct for it, as people do. A purely open-loop noise model would overstate the harm of bias and drift, which users partly compensate, and understate the harm of latency, which destabilises feedback control. This follows feedback-control models of BCI users used in decoder design (Willett et al., 2019).</p>
+        <p>Virtual-user models include a proportional feedback controller with signal-dependent noise (velocity control), minimum-jerk submovements with corrective submovements (position control), a saccade-and-fixation gaze model with dwell, and row&ndash;column or linear switch scanning with log-normal reaction times. Populations share one latent ability that scales speed and noise, plus individual variation; fatigue and learning are explicit, labelled parameter changes.</p>
+        <p>Each degradation parameter is checked by a unit test against its analytic expectation, and every simulated record carries a synthetic flag. Runs are seeded and reproducible.</p>
+      </div>
+    </section>
+  </main>
+  <!-- END:main -->
+  <footer class="site-footer">
+    <div class="wrap footer-grid">
+      <div>
+        <p><strong>NeuroMetric</strong> is a pre-incorporation research project led by an undergraduate founder at the University of Illinois Urbana-Champaign. It is not affiliated with, sponsored by or endorsed by the University of Illinois, Shirley Ryan AbilityLab, the iBCI Collaborative Community, or any device manufacturer. Organisations named on this site are cited as public sources or context only.</p>
+        <p>This website sets no cookies, runs no analytics or trackers, loads no external fonts or scripts, and has no forms.</p>
+        <p>&copy; 2026 the NeuroMetric project. Research software; not a medical device; not medical advice.</p>
+      </div>
+      <nav aria-label="Footer">
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="approach.html">Approach</a></li>
+          <li><a href="research.html">Research</a></li>
+          <li><a href="results.html">Results</a></li>
+          <li><a href="privacy.html">Privacy</a></li>
+          <li><a href="status.html">Status</a></li>
+          <li><a href="collaborate.html">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

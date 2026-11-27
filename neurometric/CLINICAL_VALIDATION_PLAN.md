@@ -231,7 +231,7 @@ inability to follow procedures, or if eligibility is lost.
 | 2 | $25 per visit (2 visits) = $50 | longer setup and calibration |
 | 3 | $20 per visit × 4 = $80, plus $10 if all visits completed (≤ 15% of total) | small completion bonus to cut attrition without coercion [HYP] |
 | 4 | $40 per visit (≈ $30/h) + parking/travel reimbursement + $20 per visit for an accompanying care partner | higher burden; travel with AT is costly [HYP] |
-| 5 | $30 setup + $15 per weekly home battery (×2) + $2 per diary day (care partner, up to $28) + $30 closeout interview ≈ $118–128 per dyad | prorated [HYP] |
+| 5 | $30 setup + $15 per home battery (×3: days 1, 8, 14) + $2 per diary day (care partner, up to $28) + $30 closeout interview ≈ $133 per dyad | prorated [HYP] |
 | 6 | Per partner protocol | — |
 
 Payment route (gift card or university payment system) and tax-reporting thresholds: [UNR],

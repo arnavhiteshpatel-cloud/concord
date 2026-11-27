@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Input modalities</title>
+  <meta name="description" content="NeuroMetric | Experimental input modalities supported by the NeuroMetric browser battery, and their honest testing status: browser-tested with synthetic input only; no hardware or participant testing yet.">
+  <meta name="referrer" content="no-referrer">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/site.css">
+  <script>document.documentElement.classList.add("js");</script>
+  <script src="assets/js/site.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="index.html"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="2" y="2" width="28" height="28" rx="8"/><path d="M7 21.5 12 15l4.5 3.5L25 9.5"/><circle cx="7" cy="21.5" r="1.6" fill="currentColor"/><circle cx="12" cy="15" r="1.6" fill="currentColor"/><circle cx="16.5" cy="18.5" r="1.6" fill="currentColor"/><circle cx="25" cy="9.5" r="1.6" fill="currentColor"/></svg><span>NeuroMetric</span><small>Research prototype</small></a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 6h18M3 12h18M3 18h18"/></svg>Menu</button>
+      <nav id="site-nav" class="site-nav" aria-label="Main">
+        <ul>
+        <li><a href="approach.html">Approach</a></li>
+        <li><a href="modalities.html" aria-current="page">Modalities</a></li>
+        <li><a href="research.html">Research</a></li>
+        <li><a href="results.html">Results</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+        <li><a href="status.html">Status</a></li>
+        <li><a href="demo.html">Demo</a></li>
+        <li><a href="collaborate.html">Collaborate</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="notice-bar">
+      <div class="wrap">
+        <p><strong>Research software in development.</strong> No clinical validation. No partnerships. No regulatory clearance. Not a medical device.</p>
+      </div>
+    </div>
+  </header>
+  <!-- BEGIN:main -->
+  <main id="main" tabindex="-1">
+    <div class="page-head">
+      <div class="wrap">
+        <p class="eyebrow">Modalities</p>
+        <h1>One battery, many ways to operate a computer</h1>
+        <p class="lead">The battery accepts any input the operating system presents as a pointer, a key or a switch. The modality is declared at setup and stamped on every recorded event, so results from different inputs stay distinguishable.</p>
+      </div>
+    </div>
+
+    <section class="section" aria-labelledby="status-title">
+      <div class="wrap">
+        <div class="callout callout-warn callout-strong">
+          <p class="callout-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg> Testing status for every modality below</p>
+          <p><strong>Browser-tested with synthetic input only.</strong> No modality has yet been tested with real assistive-technology hardware, with a BCI, or with participants. Support means &ldquo;the software is designed to accept and record this input&rdquo;, not &ldquo;this has been shown to work well for people who use it&rdquo;.</p>
+        </div>
+
+        <h2 id="status-title">Supported experimental modalities</h2>
+        <div class="table-wrap" role="region" aria-labelledby="mod-cap" tabindex="0">
+          <table class="stack">
+            <caption id="mod-cap">Modalities, how they reach the battery, and testing status
+              <span class="cap-note">&ldquo;Synthetic&rdquo; means scripted or simulated events in a browser, not a person using the device.</span></caption>
+            <thead>
+              <tr><th scope="col">Modality</th><th scope="col">How it reaches the battery</th><th scope="col">Selection method</th><th scope="col">Status</th></tr>
+            </thead>
+            <tbody>
+              <tr><th scope="row">Mouse and trackpad</th><td data-label="How it reaches the battery">Browser Pointer Events, including coalesced high-rate samples where available</td><td data-label="Selection method">Click</td><td data-label="Status"><span class="badge badge-sim">Synthetic input only</span></td></tr>
+              <tr><th scope="row">Touch and pen</th><td data-label="How it reaches the battery">Browser Pointer Events</td><td data-label="Selection method">Tap</td><td data-label="Status"><span class="badge badge-sim">Synthetic input only</span></td></tr>
+              <tr><th scope="row">Keyboard</th><td data-label="How it reaches the battery">Keyboard events on the task canvas only (never the whole page or other apps)</td><td data-label="Selection method">Keys; text tasks use predefined phrases</td><td data-label="Status"><span class="badge badge-sim">Synthetic input only</span></td></tr>
+              <tr><th scope="row">Switch scanning</th><td data-label="How it reaches the battery">Switch interfaces typically present as keys (for example Space or Enter); one or two switches</td><td data-label="Selection method">Auto-scan or step-scan, linear or row&ndash;column</td><td data-label="Status"><span class="badge badge-sim">Synthetic input only</span></td></tr>
+              <tr><th scope="row">Dwell selection</th><td data-label="How it reaches the battery">Any pointer held on an item for a set time, with a visible progress ring</td><td data-label="Selection method">Dwell; the item must be left before it can be selected again</td><td data-label="Status"><span class="badge badge-sim">Synthetic input only</span></td></tr>
+              <tr><th scope="row">Gamepad and joystick</th><td data-label="How it reaches the battery">Defined in the event schema; a joystick that emulates a mouse arrives as a pointer</td><td data-label="Selection method">Button or pointer click</td><td data-label="Status"><span class="badge badge-human">Schema defined; see note</span></td></tr>
+              <tr><th scope="row">Eye gaze</th><td data-label="How it reaches the battery">Via the eye tracker&rsquo;s operating-system pointer control</td><td data-label="Selection method">Dwell, or a separate switch</td><td data-label="Status"><span class="badge badge-sim">Synthetic input only</span></td></tr>
+              <tr><th scope="row">Head pointer</th><td data-label="How it reaches the battery">Via operating-system pointer control</td><td data-label="Selection method">Dwell, or a separate switch</td><td data-label="Status"><span class="badge badge-sim">Synthetic input only</span></td></tr>
+              <tr><th scope="row">Brain-computer interface</th><td data-label="How it reaches the battery">Via the operating system: as a pointer (for example a BCI exposed as a mouse) or as a switch</td><td data-label="Selection method">Click, dwell or switch, as the BCI provides</td><td data-label="Status"><span class="badge badge-sim">Synthetic input only</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="prose"><strong>Gamepad note:</strong> the canonical event schema includes gamepad and joystick modalities. A dedicated browser Gamepad API adapter was not part of the tested input adapters when this page was written; check the repository&rsquo;s <code>web/src/input/</code> folder for its current state.</p>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="why-title">
+      <div class="wrap prose">
+        <h2 id="why-title">Why the operating system is the boundary</h2>
+        <p>A web page cannot tell whether a pointer movement came from a mouse, an eye tracker, a head pointer or a BCI exposed as a mouse, or whether a Space key press came from a keyboard or a switch interface. NeuroMetric therefore asks for the modality at setup and records the browser&rsquo;s observed pointer type separately in session metadata.</p>
+        <p>This is a deliberate design choice. NeuroMetric works with the input the person already uses, through the access settings they already have, and never needs privileged access to a device. The cost is that it cannot see inside the device: decoder confidence, signal quality and similar values are only available if an authorised source supplies them, and are then stored as device metadata rather than recomputed.</p>
+        <p>Some platforms now offer BCI-specific routes. Apple, for example, documents a BCI Human Interface Device protocol that lets a BCI act as a switch for Switch Control on iOS, iPadOS and visionOS 26 and later. It is a firmware-side specification for device makers; we found no documented way for third-party apps to read BCI reports. From NeuroMetric&rsquo;s side, such a device still appears as a switch.</p>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="timing-title">
+      <div class="wrap prose">
+        <h2 id="timing-title">Timing, honestly</h2>
+        <ul>
+          <li>For switch scanning, dwell, eye gaze, head pointer and BCI input, the measured interval includes scan rate, dwell time or decoder latency. It is reported as <strong>selection time</strong>, never as reaction time, and these settings are stored with the session.</li>
+          <li>Hardware-validated studies find browser-recorded response times run tens of milliseconds late on average, with variability that depends on platform, browser and keyboard. NeuroMetric therefore makes within-participant, same-device, same-browser, same-modality comparisons, and does not claim millisecond-accurate absolute times.</li>
+          <li>Comparing raw times across people who used different modalities, devices or browsers requires modelling those factors.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="sim-title">
+      <div class="wrap prose">
+        <h2 id="sim-title">Modalities in simulation</h2>
+        <p>Separately from the browser, the <a href="approach.html#harness">simulated-decoder harness</a> models mouse-like, BCI-cursor-like, gaze-with-dwell and switch-scanning control with synthetic virtual users. These models exist to stress-test the metrics. They are not measurements of any device and are calibrated only to sit inside broad published ranges.</p>
+        <h3>What would change the status above</h3>
+        <ol>
+          <li>Bench testing with real switch interfaces, an eye tracker and a head pointer.</li>
+          <li>Usability review by assistive-technology clinicians.</li>
+          <li>An IRB-approved pilot with participants who use these inputs, run with a faculty principal investigator.</li>
+          <li>For BCIs, a collaboration with a research programme or device developer under an appropriate agreement.</li>
+        </ol>
+      </div>
+    </section>
+  </main>
+  <!-- END:main -->
+  <footer class="site-footer">
+    <div class="wrap footer-grid">
+      <div>
+        <p><strong>NeuroMetric</strong> is a pre-incorporation research project led by an undergraduate founder at the University of Illinois Urbana-Champaign. It is not affiliated with, sponsored by or endorsed by the University of Illinois, Shirley Ryan AbilityLab, the iBCI Collaborative Community, or any device manufacturer. Organisations named on this site are cited as public sources or context only.</p>
+        <p>This website sets no cookies, runs no analytics or trackers, loads no external fonts or scripts, and has no forms.</p>
+        <p>&copy; 2026 the NeuroMetric project. Research software; not a medical device; not medical advice.</p>
+      </div>
+      <nav aria-label="Footer">
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="approach.html">Approach</a></li>
+          <li><a href="research.html">Research</a></li>
+          <li><a href="results.html">Results</a></li>
+          <li><a href="privacy.html">Privacy</a></li>
+          <li><a href="status.html">Status</a></li>
+          <li><a href="collaborate.html">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

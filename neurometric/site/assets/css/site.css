@@ -595,3 +595,4 @@ a.card-link h3 { color: var(--link); }
 a.card-link:hover { border-color: var(--accent); }
 a.card-link p { color: var(--muted); }
 @media (max-width: 26rem) { .brand small { display: none; } }
+.callout h2.callout-title { font-family: var(--font-head); font-size: 1.4rem; margin-top: 0; }

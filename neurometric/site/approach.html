@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Approach</title>
+  <meta name="description" content="NeuroMetric | How NeuroMetric approaches functional-outcome measurement: an input-agnostic task battery, a simulated-decoder harness, consented aggregate home-use logging, care-partner capture and evidence packaging.">
+  <meta name="referrer" content="no-referrer">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/site.css">
+  <script>document.documentElement.classList.add("js");</script>
+  <script src="assets/js/site.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="index.html"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="2" y="2" width="28" height="28" rx="8"/><path d="M7 21.5 12 15l4.5 3.5L25 9.5"/><circle cx="7" cy="21.5" r="1.6" fill="currentColor"/><circle cx="12" cy="15" r="1.6" fill="currentColor"/><circle cx="16.5" cy="18.5" r="1.6" fill="currentColor"/><circle cx="25" cy="9.5" r="1.6" fill="currentColor"/></svg><span>NeuroMetric</span><small>Research prototype</small></a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 6h18M3 12h18M3 18h18"/></svg>Menu</button>
+      <nav id="site-nav" class="site-nav" aria-label="Main">
+        <ul>
+        <li><a href="approach.html" aria-current="page">Approach</a></li>
+        <li><a href="modalities.html">Modalities</a></li>
+        <li><a href="research.html">Research</a></li>
+        <li><a href="results.html">Results</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+        <li><a href="status.html">Status</a></li>
+        <li><a href="demo.html">Demo</a></li>
+        <li><a href="collaborate.html">Collaborate</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="notice-bar">
+      <div class="wrap">
+        <p><strong>Research software in development.</strong> No clinical validation. No partnerships. No regulatory clearance. Not a medical device.</p>
+      </div>
+    </div>
+  </header>
+  <!-- BEGIN:main -->
+  <main id="main" tabindex="-1">
+    <div class="page-head">
+      <div class="wrap">
+        <p class="eyebrow">Approach</p>
+        <h1>Measure the same things, the same way, whatever the input</h1>
+        <p class="lead">Five components, each designed to be checkable by someone other than us. All are research software at an early stage; none has been validated with people.</p>
+      </div>
+    </div>
+
+    <section class="section" aria-labelledby="toc-title">
+      <div class="wrap">
+        <h2 id="toc-title" class="visually-hidden">On this page</h2>
+        <div class="grid grid-3">
+          <a class="card card-link" href="#battery"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> 1. Task battery</h3><p>Input-agnostic digital tasks, scored the same way for every modality.</p></a>
+          <a class="card card-link" href="#harness"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 17l5-6 4 3 7-9"/><path d="M4 21h16"/></svg> 2. Simulated-decoder harness</h3><p>Controlled input degradation to test the measurements themselves.</p></a>
+          <a class="card card-link" href="#home"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg> 3. Home-use logging</h3><p>Consented, aggregate counts and minutes. Never content.</p></a>
+          <a class="card card-link" href="#care"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2a5 5 0 0 1 6 4.8"/></svg> 4. Care-partner capture</h3><p>Who helped, how, and for how long. Assistance is not failure.</p></a>
+          <a class="card card-link" href="#evidence"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h6"/></svg> 5. Evidence packaging</h3><p>Raw events, recomputable scores, audit trails.</p></a>
+          <a class="card card-link" href="#never"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg> What it never does</h3><p>No device control, no decoding, no diagnostic claims.</p></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="battery" aria-labelledby="battery-title">
+      <div class="wrap">
+        <h2 id="battery-title">1. An input-agnostic functional task battery</h2>
+        <div class="prose">
+          <p>Version 1 of the battery has 18 original tasks in six families, built from general human&ndash;computer interaction and rehabilitation principles. Every input method produces the same canonical event stream, and every task is scored from that stream by the same code. Stimuli are generated once from a seed, so the browser and the simulator present identical layouts.</p>
+          <p>The battery is <strong>experimental</strong>. It is not an implementation of the Shirley Ryan AbilityLab Digital Assessment Interface or of any licensed instrument, and it is not a validated clinical outcome assessment.</p>
+        </div>
+        <div class="table-wrap" role="region" aria-labelledby="battery-cap" tabindex="0">
+          <table class="stack">
+            <caption id="battery-cap">Task families in battery v1.0.0</caption>
+            <thead><tr><th scope="col">Family</th><th scope="col">Tasks</th><th scope="col">What it reflects</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Target acquisition</th><td data-label="Tasks">A1&ndash;A5: single target, multidirectional ring, dwell selection, grid among distractors, time-constrained</td><td data-label="What it reflects">Pointing and selecting: the basis of keyboards, menus and communication boards</td></tr>
+              <tr><th scope="row">Cursor control</th><td data-label="Tasks">B1 steering through a tunnel; B2 continuous tracking</td><td data-label="What it reflects">Constrained and continuous closed-loop control</td></tr>
+              <tr><th scope="row">Scrolling</th><td data-label="Tasks">C1 scroll to target</td><td data-label="What it reflects">Navigating long content</td></tr>
+              <tr><th scope="row">Drag and drop</th><td data-label="Tasks">D1 drag object to zone</td><td data-label="What it reflects">Holding a selection reliably while moving</td></tr>
+              <tr><th scope="row">Text and communication</th><td data-label="Tasks">E1 copy typing on an on-screen keyboard; E2 structured phrase selection</td><td data-label="What it reflects">Written and AAC-style communication rate and accuracy</td></tr>
+              <tr><th scope="row">Digital activities of daily living</th><td data-label="Tasks">F1&ndash;F7: select a contact, compose a predefined message, menu navigation, calendar booking, form completion, communication board, simulated web navigation</td><td data-label="What it reflects">Everyday digital activities, all simulated with predefined content and no personal data</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="prose">
+          <h3>Metrics, defined in the open</h3>
+          <p>Scores include success, errors and timeouts; movement time; path efficiency; target re-entries and other path measures; Fitts throughput using effective width (ISO 9241-411 style, with validity flags); achieved bitrate; text-entry rate, correct characters per minute and corrected/uncorrected error rates; and task completion for the everyday activities. Every derived metric can be recomputed from the stored event stream. Metric functions only use data a real deployment can record. The full definitions are on the <a href="research.html#metrics">research page</a>.</p>
+          <p>Timing collected in a browser is reported as <strong>selection time</strong>, not reaction time, and comparisons are made within the same participant, device, browser and modality. Published hardware validations find browser response times run tens of milliseconds late, with platform-dependent variability.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="harness" aria-labelledby="harness-title">
+      <div class="wrap">
+        <h2 id="harness-title">2. A simulated-decoder harness</h2>
+        <div class="prose">
+          <p>Before asking people to spend time on a measure, we want to know whether the measure behaves sensibly. The harness degrades a simulated input channel in controlled, unit-tested ways and runs synthetic &ldquo;virtual users&rdquo; through the battery in a closed loop: the virtual user sees the degraded cursor after a feedback delay and corrects for it.</p>
+          <p>Degradations include gain mismatch and decay, directional bias, white and correlated noise, drift, smoothing, quantisation, reduced update rate, latency and jitter, signal dropouts, temporary loss of control, and missed, delayed or false selections. Virtual users cover velocity-controlled (BCI-cursor-like), position-controlled (mouse-like), gaze-with-dwell and switch-scanning styles.</p>
+          <p>Questions the harness can answer: does a metric move in the expected direction as input quality worsens? How small a change can it detect? Does it hit a floor or ceiling? How reliable is it on retest under the model&rsquo;s assumptions?</p>
+        </div>
+        <div class="callout callout-warn">
+          <p class="callout-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg> Simulation is not clinical evidence</p>
+          <p>The harness is not a model of any device&rsquo;s physiology or of any patient population. Virtual users are never described as patients, and every simulated record is labelled synthetic. Simulation can show that a metric responds appropriately under defined conditions; it cannot establish reliability, validity or benefit in people. See <a href="research.html#limitations">limitations</a>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="home" aria-labelledby="home-title">
+      <div class="wrap">
+        <h2 id="home-title">3. Consented, aggregate home-use logging</h2>
+        <div class="prose">
+          <p>Whether a device is actually used at home, and for how long, is part of the evidence that is hardest to obtain credibly. NeuroMetric&rsquo;s home telemetry is opt-in, separately consented, and accepts only <strong>aggregate summaries</strong> for periods of up to 24 hours: active minutes, number of device sessions, counts of interactions by category (pointer, select, scroll, switch, dwell, and the number of text characters, never the characters themselves), interruptions, and self-reported assistance, fatigue and burden.</p>
+          <p>A strict allowlist rejects anything else. Payloads that look like content, such as text, URLs, window titles or keystroke arrays, are refused and never stored; only a receipt with reason codes is kept. By default telemetry covers the NeuroMetric application only. No operating-system-level monitoring ships enabled; cross-application measurement exists as documented designs for specific platforms, not as running software.</p>
+          <p><a href="privacy.html">Full privacy details</a>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="care" aria-labelledby="care-title">
+      <div class="wrap">
+        <h2 id="care-title">4. Care-partner and assistance capture</h2>
+        <div class="prose">
+          <p>Device activity alone never counts as independence. During tasks, the participant, a care partner or study staff can record assistance as it happens, by type: setup, physical, verbal, troubleshooting, calibration, or task completion. A task completed with help is recorded as <strong>assisted</strong>, never as failed.</p>
+          <p>Each task attempt can be placed on an ordered scale, from device unavailable or not connected, through not used, abandoned, completed with another input and completed with assistance, to completed independently. An assistance-weighted completion score exists in the software with fixed, versioned weights; it is labelled experimental until it has been checked against external evidence such as care-partner diaries, observed assistance and licensed independence measures.</p>
+          <p>Established questionnaires (for example care-partner burden scales) are copyrighted and require licences; NeuroMetric does not reproduce their items without permission.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="evidence" aria-labelledby="evidence-title">
+      <div class="wrap">
+        <h2 id="evidence-title">5. Evidence packaging</h2>
+        <div class="prose">
+          <ul>
+            <li>Canonical input events are stored verbatim with a SHA-256 checksum, so any score can be recomputed and checked.</li>
+            <li>Python is the single scoring source of truth; the browser&rsquo;s provisional scores are checked against Python reference fixtures.</li>
+            <li>Every record carries its provenance: simulated, replayed or live.</li>
+            <li>Changes to study records are written to an audit trail; consent, withdrawal and retention rules are enforced by the software.</li>
+            <li>Measurement-chain analyses separate within-person from between-person associations and report the assumptions they rely on.</li>
+          </ul>
+          <p>The design is oriented toward the expectations for electronic records in clinical investigations (21 CFR Part 11). It has <strong>not</strong> been formally validated or qualified, and NeuroMetric does not claim Part 11 compliance.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="never" aria-labelledby="never-title">
+      <div class="wrap">
+        <h2 id="never-title">What NeuroMetric never does</h2>
+        <ul class="xlist prose">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M18 6 6 18M6 6l12 12"/></svg> <strong>No device control.</strong> It never sends commands to a BCI, stimulator, eye tracker or any other device. Neuromodulation support is limited to records of therapy sessions and adherence.</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M18 6 6 18M6 6l12 12"/></svg> <strong>No decoding.</strong> It does not acquire or process neural signals. It sees only what the operating system presents: pointer movements, key or switch presses, selections.</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M18 6 6 18M6 6l12 12"/></svg> <strong>No diagnostic or treatment claims.</strong> It does not diagnose, monitor disease progression, or recommend therapy changes, and it does not compute clinically important change thresholds.</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M18 6 6 18M6 6l12 12"/></svg> <strong>No content capture.</strong> No keystroke content, screenshots, messages, passwords or browsing history.</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M18 6 6 18M6 6l12 12"/></svg> <strong>No unvalidated composite presented as validated.</strong> Experimental indices are labelled experimental.</li>
+        </ul>
+        <div class="callout callout-info">
+          <p class="callout-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg> Regulatory position (analysis, not a legal opinion)</p>
+          <p>Our reading of FDA guidance is that software which only measures and reports task performance for research, without diagnostic or treatment claims, is likely not itself a medical device, but must still be fit for purpose. Features that interpret data to monitor disease or adjust therapy could change that. No formal determination has been sought.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+  <!-- END:main -->
+  <footer class="site-footer">
+    <div class="wrap footer-grid">
+      <div>
+        <p><strong>NeuroMetric</strong> is a pre-incorporation research project led by an undergraduate founder at the University of Illinois Urbana-Champaign. It is not affiliated with, sponsored by or endorsed by the University of Illinois, Shirley Ryan AbilityLab, the iBCI Collaborative Community, or any device manufacturer. Organisations named on this site are cited as public sources or context only.</p>
+        <p>This website sets no cookies, runs no analytics or trackers, loads no external fonts or scripts, and has no forms.</p>
+        <p>&copy; 2026 the NeuroMetric project. Research software; not a medical device; not medical advice.</p>
+      </div>
+      <nav aria-label="Footer">
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="approach.html">Approach</a></li>
+          <li><a href="research.html">Research</a></li>
+          <li><a href="results.html">Results</a></li>
+          <li><a href="privacy.html">Privacy</a></li>
+          <li><a href="status.html">Status</a></li>
+          <li><a href="collaborate.html">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

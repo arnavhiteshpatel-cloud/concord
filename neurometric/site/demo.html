@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Interactive demo</title>
+  <meta name="description" content="NeuroMetric | How to run NeuroMetric's interactive demo locally: the browser task battery and simulated input degradation, with synthetic data only.">
+  <meta name="referrer" content="no-referrer">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/site.css">
+  <script>document.documentElement.classList.add("js");</script>
+  <script src="assets/js/site.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="index.html"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="2" y="2" width="28" height="28" rx="8"/><path d="M7 21.5 12 15l4.5 3.5L25 9.5"/><circle cx="7" cy="21.5" r="1.6" fill="currentColor"/><circle cx="12" cy="15" r="1.6" fill="currentColor"/><circle cx="16.5" cy="18.5" r="1.6" fill="currentColor"/><circle cx="25" cy="9.5" r="1.6" fill="currentColor"/></svg><span>NeuroMetric</span><small>Research prototype</small></a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 6h18M3 12h18M3 18h18"/></svg>Menu</button>
+      <nav id="site-nav" class="site-nav" aria-label="Main">
+        <ul>
+        <li><a href="approach.html">Approach</a></li>
+        <li><a href="modalities.html">Modalities</a></li>
+        <li><a href="research.html">Research</a></li>
+        <li><a href="results.html">Results</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+        <li><a href="status.html">Status</a></li>
+        <li><a href="demo.html" aria-current="page">Demo</a></li>
+        <li><a href="collaborate.html">Collaborate</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="notice-bar">
+      <div class="wrap">
+        <p><strong>Research software in development.</strong> No clinical validation. No partnerships. No regulatory clearance. Not a medical device.</p>
+      </div>
+    </div>
+  </header>
+  <!-- BEGIN:main -->
+  <main id="main" tabindex="-1">
+    <div class="page-head">
+      <div class="wrap">
+        <p class="eyebrow">Demo</p>
+        <h1>Try the battery on your own computer</h1>
+        <p class="lead">The interactive demo runs locally, served by the NeuroMetric research app. Nothing is sent anywhere else. It uses synthetic demo data only, and it is not a clinical tool.</p>
+      </div>
+    </div>
+
+    <section class="section" aria-labelledby="open-title">
+      <div class="wrap prose">
+        <h2 id="open-title">If the local app is already running</h2>
+        <p>The demo lives at the <code>/demo</code> path of the local NeuroMetric server. This link works only when this page is served by that app, not when the site is previewed on its own:</p>
+        <p><a class="btn btn-primary" href="/demo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><path d="m10 8 6 4-6 4z"/></svg> Open the demo at /demo</a></p>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="run-title">
+      <div class="wrap prose">
+        <h2 id="run-title">Run it locally</h2>
+        <p>You need Python 3.11 or later and Node.js. From the root of the repository:</p>
+        <ol>
+          <li>
+            <p>Install the Python package:</p>
+            <pre><code>cd neurometric
+python -m pip install -e .</code></pre>
+          </li>
+          <li>
+            <p>Build the web app (the server serves <code>web/dist</code> when it exists):</p>
+            <pre><code>cd web
+npm install
+npm run build
+cd ..</code></pre>
+          </li>
+          <li>
+            <p>Optionally create the synthetic demo study (clearly labelled &ldquo;synthetic data, not patients&rdquo;), then start the server:</p>
+            <pre><code>python -m neurometric.api seed-demo --db demo.db
+python -m neurometric.api serve --db demo.db --port 8001</code></pre>
+          </li>
+          <li>
+            <p>Open <code>http://127.0.0.1:8001/demo</code> in your browser.</p>
+          </li>
+        </ol>
+        <div class="callout callout-info">
+          <p class="callout-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg> Commands may change</p>
+          <p>The app is under active development. If any command above does not work in your checkout, follow the repository README, which is the authoritative source. Port 8001 is used here so it does not clash with a site preview on port 8000.</p>
+        </div>
+        <p>For development, the web app can also be run with hot reloading using <code>npm run dev</code> in the <code>web</code> folder.</p>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="what-title">
+      <div class="wrap prose">
+        <h2 id="what-title">What the demo is for</h2>
+        <p>The demo is being built alongside the battery. It is intended to show:</p>
+        <ul>
+          <li>Battery tasks operated with your own mouse, touch, keyboard, switch (keys) or dwell selection.</li>
+          <li>A simulated degraded input channel, so you can feel how noise, latency or bias change the same task. This is a model, not a reproduction of any BCI.</li>
+          <li>Provisional scores in the browser; authoritative scoring is done in Python from the recorded events.</li>
+        </ul>
+        <p>Please do not use the demo to assess yourself or anyone else. Scores from the demo have no clinical meaning.</p>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="shots-title">
+      <div class="wrap">
+        <h2 id="shots-title">Screenshots</h2>
+        <!-- BEGIN:demo-screenshots -->
+        <p>No demo screenshots are available yet. Run <code>python site/build_results.py</code> after screenshots are added to the web app to include them here.</p>
+        <!-- END:demo-screenshots -->
+      </div>
+    </section>
+  </main>
+  <!-- END:main -->
+  <footer class="site-footer">
+    <div class="wrap footer-grid">
+      <div>
+        <p><strong>NeuroMetric</strong> is a pre-incorporation research project led by an undergraduate founder at the University of Illinois Urbana-Champaign. It is not affiliated with, sponsored by or endorsed by the University of Illinois, Shirley Ryan AbilityLab, the iBCI Collaborative Community, or any device manufacturer. Organisations named on this site are cited as public sources or context only.</p>
+        <p>This website sets no cookies, runs no analytics or trackers, loads no external fonts or scripts, and has no forms.</p>
+        <p>&copy; 2026 the NeuroMetric project. Research software; not a medical device; not medical advice.</p>
+      </div>
+      <nav aria-label="Footer">
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="approach.html">Approach</a></li>
+          <li><a href="research.html">Research</a></li>
+          <li><a href="results.html">Results</a></li>
+          <li><a href="privacy.html">Privacy</a></li>
+          <li><a href="status.html">Status</a></li>
+          <li><a href="collaborate.html">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

@@ -55,10 +55,11 @@ def _experiments(a):
 
 
 def _report(a):
-    from .reports.evidence import REPORT_TYPES, build_report, demo_study
+    from .reports.evidence import REPORT_TYPES, build_report, demo_psychometrics, demo_study
     sd = demo_study(n=a.n)
+    psy = demo_psychometrics(n=a.n)
     for r in REPORT_TYPES:
-        build_report(sd, r, a.dir)
+        build_report(sd, r, a.dir, psychometrics=psy if r in ("psychometric_validation", "evidence_package") else None)
     print(f"wrote {len(REPORT_TYPES)} SYNTHETIC demo reports to {a.dir}")
 
 

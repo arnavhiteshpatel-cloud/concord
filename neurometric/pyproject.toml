@@ -35,4 +35,5 @@ neurometric = ["schemas/*.json", "instruments/defs/*.json", "tasks/defs/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q"
+addopts = "-q -m 'not slow'"
+markers = ["slow: long-running statistical coverage studies (run with -m slow)"]
