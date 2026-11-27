@@ -360,7 +360,7 @@ function LiveDemo({ settings, onResult }: { settings: Settings; onResult: (r: Re
         <button type="button" onClick={() => reset()}>Restart run</button>
       </div>
       <p role="status" aria-live="polite">{status}</p>
-      <div className="grid2" style={{ gridTemplateColumns: "minmax(300px, 2fr) minmax(280px, 1fr)" }}>
+      <div className="grid2" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(300px, 100%), 1fr))" }}>
         <div ref={wrapRef} className="canvas-wrap" style={{ aspectRatio: "1280 / 800", height: "auto" }}>
           <div
             ref={canvasRef}

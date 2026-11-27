@@ -140,7 +140,7 @@ a { color: var(--accent); }
 .stack > * + * { margin-top: 12px; }
 fieldset { border: 2px solid var(--border); border-radius: 8px; padding: 12px 16px; margin: 0 0 16px; }
 legend { font-weight: 700; padding: 0 6px; }
-.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 16px; }
 .stepper { display: inline-flex; align-items: center; gap: 8px; }
 .stepper output { min-width: 6ch; text-align: center; font-weight: 700; }
 .notice { border-left: 6px solid var(--accent); background: var(--panel); padding: 8px 12px; margin: 12px 0; }

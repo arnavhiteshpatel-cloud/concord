@@ -66,8 +66,8 @@ participants per condition (`experiments/logs/full_run.log` command line); seeds
 ### 2.2 Study I: reliability versus test length
 - **Design** (`experiments/registry.py: exp_I`): three simulated modalities (`bci_cursor_good_sim`,
   `bci_cursor_moderate_sim`, `mouse_sim`) × four test lengths L = 4, 8, 16, 32 trials × two
-  sessions; ISO ring with one condition (D = 384 px, W = 64 px; L + 1 targets so that L are
-  scored) and a grid with L trials; latent-ability SD σ = 0.3.
+  sessions; ISO ring with one condition (D = 384 px, W = 64 px; ring geometry fixed at 13 targets, with L
+  scored selections continuing around the ring) and a grid with L trials; latent-ability SD σ = 0.3.
 - **Note:** the summary's design string says "80 virtual participants"; the run used `--n 60`,
   which overrides the function default. Report n from the data
   [RESULT PENDING: experiments/results/I_test_retest/data.csv — confirm n participants per cell].
@@ -90,9 +90,9 @@ participants per condition (`experiments/logs/full_run.log` command line); seeds
 - **Floor/ceiling** fractions at natural bounds (`METRIC_BOUNDS`) were computed in every sweep of
   P1 and pooled by Study G (maximum across sweeps). There is no separate experiment for this.
 - **Study H** (`exp_H`): six noise levels (0, 1, 2, 4, 6, 8 × the P1 base noise) × 60 virtual
-  participants × three designs: fixed grid with 100-px items, fixed grid with 40-px items (30
-  trials each; accuracy score), and a **2-down/1-up staircase on item size** (start 100 px, step
-  × 1.25, bounds 16–116 px, 30 trials; cell spacing fixed so only target size varies; threshold =
+  participants × three designs: fixed grid with 100-px items, fixed grid with 40-px items (accuracy score), and a **2-down/1-up staircase on item size** (start 100 px, step
+  × 1.4, bounds 6–116 px, 40 trials; the fixed grids also use 40 trials and the same empty-click
+  rule after the review fixes; cell spacing fixed so only target size varies; threshold =
   geometric mean of the last 6 reversal sizes; score = −log(threshold), higher = better). A
   2-down/1-up rule converges near 70.7% correct (Levitt 1971 [PK]).
 - **Analysis**: floor and ceiling fractions (fixed designs at 0 or 1; adaptive at the size bounds);
@@ -190,12 +190,8 @@ structural problem (ceiling, low between-person variance), not a length problem.
 [RESULT PENDING: experiments/results/K_responsiveness/responsiveness.csv — Table 3: top 8 metrics by auc_improved_vs_stable with srm_improved, guyatt_ri, icc_stable, mdc95, frac_improved_exceeding_mdc, frac_stable_exceeding_mdc; Figure: experiments/results/K_responsiveness/responsiveness_auc.png]
 
 ### 3.4 Floor/ceiling and adaptive difficulty
-From the noise sweep (`experiments/results/B_noise/summary.json`, pooled over 7 levels): ceiling
-fractions were 90.7% for digital-ADL completion, 58.6% for grid accuracy and 29.3% for ISO success
-rate; floor fractions were 81.9% for ADL wrong selections, 57.1% for empty-space selections per
-minute and 52.9% for typing total error rate. All exceed the 15% criterion (Terwee et al. 2007,
-10.1016/j.jclinepi.2006.03.012 [V-DOI]). Rate metrics had little floor: achieved bitrate 5.5% and
-CCPM 0%. Cross-sweep maxima:
+From the noise sweep: [RESULT PENDING: experiments/results/B_noise/summary.json — pooled floor_frac and ceiling_frac for adl_completion_rate, grid_accuracy, iso_success_rate, adl_wrong_selections, false_activations_per_min, type_total_error_rate, grid_bitrate_bps, type_ccpm]. Each is judged against the 15% criterion (Terwee et al. 2007, 10.1016/j.jclinepi.2006.03.012 [V-DOI]). Note that after the review fixes false-activation metrics are NaN (not observable) for switch scanning.
+Cross-sweep maxima:
 [RESULT PENDING: experiments/results/G_metric_comparison/ranking.csv — max_floor_frac and max_ceiling_frac per metric across all sweeps].
 
 Adaptive staircase versus fixed grids:
@@ -234,8 +230,16 @@ Adaptive staircase versus fixed grids:
    after failures; mixed models under MAR plus tipping-point sensitivity analyses].
 
 ## 5. Limitations
-Synthetic data only; one latent-ability structure (σ = 0.25–0.3) generates between-person variance,
-so simulated ICCs are not predictions for humans; short simulated tasks; simple gaze and scanning
+An independent science-core review found five critical simulator defects (ability scaling of the
+feedback gain, averaging of invalid throughput and timeout-censored MT, session clock restarting
+per task, scanning ignoring the population, typing timed from phrase onset) and several important
+ones (tracking-lag bias, staircase floor, unequal empty-click rules between adaptive and fixed
+grids, identical ISO conditions, ring geometry varying with length in Study I, retest sessions
+differing only in noise). All were fixed with regression tests and all results regenerated
+(`docs/review/RESPONSE_TO_SCIENCE_CORE_REVIEW.md`); results from before the fixes are not used.
+Synthetic data only; one latent-ability structure (σ = 0.25–0.3) plus day-to-day within-person variation
+(log-normal SD 0.10) generates the variance components, so simulated ICCs are upper bounds, not
+predictions for humans; short simulated tasks; simple gaze and scanning
 models; no learning across sessions except where explicitly modelled; Study R verifies software
 against known truth, not the appropriateness of the models for a given dataset; the founder has a
 commercial interest. Internal consistency (alpha/omega) is deliberately not computed across task
