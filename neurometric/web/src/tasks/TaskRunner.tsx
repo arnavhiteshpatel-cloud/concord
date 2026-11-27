@@ -69,7 +69,7 @@ export function TaskRunner(props: { stim: Stimuli; spec: TaskSpec; settings: Set
       if (via !== "switch" && stream) {
         const kind = via === "click" ? "click" : via === "dwell" ? "dwell_select" : "select";
         const meta: Record<string, unknown> = item ? { item: item.id } : h.emptyEndsTrial ? {} : { empty: true };
-        ev = stream.emit({ kind, x, y, button: via === "click" ? 0 : undefined, meta: { ...meta, ...(extra ?? {}) } }, { t });
+        ev = stream.emit({ kind, x, y, button: via === "click" ? 0 : undefined, meta: { ...meta, ...(extra ?? {}), ...(h.selectMeta?.(item) ?? {}) } }, { t });
       }
       h.onSelect?.({ t, x, y, item, via, event: ev });
     },
@@ -282,7 +282,14 @@ export function TaskRunner(props: { stim: Stimuli; spec: TaskSpec; settings: Set
       const sw = switchStream(rec, settings.modality === "auto" ? "switch" : settings.modality);
       streams.current.sw = sw;
       scanBridge.fromTimeStamp = (ts) => rec.clock.fromTimeStamp(ts);
-      scanBridge.onAction = (a) => recordScanAction(sw, settings.switch, a);
+      scanBridge.onAction = (a) => {
+        let extra: Record<string, unknown> = {};
+        if (a.type === "select" && a.target.role === "task") {
+          const it = itemsRef.current.find((i) => i.id === a.target.id) ?? null;
+          extra = api.handlers.selectMeta?.(it) ?? {};
+        }
+        recordScanAction(sw, settings.switch, a, extra);
+      };
       scanBridge.provider = () => {
         const controls: ScanTarget[] = [...(barRef.current?.querySelectorAll<HTMLButtonElement>("button[data-scan-control]") ?? [])]
           .filter((b) => !b.disabled && b.offsetParent !== null)

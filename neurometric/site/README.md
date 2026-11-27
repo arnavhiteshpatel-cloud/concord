@@ -64,7 +64,7 @@ screen-reader, switch, eye-gaze and keyboard-only users.
 
 * Replace the placeholder `hello@example.com` in `collaborate.html` (marked TODO on the page).
 * Re-run `python site/build_results.py` after the experiment runs finish.
-* Check `modalities.html` (gamepad row) and `demo.html` (run commands) against the current
+* Check `modalities.html` (the gamepad row; its adapter landed while the site was being built) and `demo.html` (run commands) against the current
   state of `web/` and the repository README.
 * Keep claims in step with `EVIDENCE_LEDGER.md`, `BLOCKERS.md` and the status table. Do not add
   logos, testimonials, partner names or metrics that do not exist.

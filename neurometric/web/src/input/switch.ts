@@ -273,7 +273,7 @@ export class Scanner {
 }
 
 /** Records scanner actions as canonical events (see header comment for the kinds used). */
-export function recordScanAction(stream: StreamHandle, cfg: SwitchConfig, a: ScanAction): void {
+export function recordScanAction(stream: StreamHandle, cfg: SwitchConfig, a: ScanAction, extraMeta: Record<string, unknown> = {}): void {
   if (a.type === "stopped") {
     stream.emit({ kind: "marker", meta: { marker: "scan_stopped", scan_ms: cfg.rateMs } }, { t: a.t });
     return;
@@ -287,7 +287,7 @@ export function recordScanAction(stream: StreamHandle, cfg: SwitchConfig, a: Sca
         switch_id,
         x: a.target.x,
         y: a.target.y,
-        meta: { scan_action: "select", item: a.target.id, scan_ms: cfg.rateMs, scan_mode: cfg.mode, row_column: cfg.rowColumn },
+        meta: { scan_action: "select", item: a.target.id, scan_ms: cfg.rateMs, scan_mode: cfg.mode, row_column: cfg.rowColumn, ...extraMeta },
       },
       { t: a.t },
     );

@@ -46,6 +46,8 @@ export interface TaskHandlers {
   emptyEndsTrial?: boolean;
   /** Keyboard users steer a virtual cursor with the arrow keys (pointing tasks). */
   virtualCursor?: boolean;
+  /** Extra meta for a selection event (e.g. {correct: false} in digital-ADL tasks). */
+  selectMeta?: (item: TaskItem | null) => Record<string, unknown>;
   /** Skip the current trial (recorded as trial_end outcome "abandoned"). */
   onSkip?: () => void;
   /** Provisional summary of the trials so far (used when the task is stopped early). */
