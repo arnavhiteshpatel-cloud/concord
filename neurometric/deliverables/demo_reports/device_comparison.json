@@ -1,14 +1,14 @@
 {
   "provenance": {
     "report_type": "device_comparison",
-    "generated_utc": "2026-11-27T07:15:31Z",
+    "generated_utc": "2026-11-27T07:54:17Z",
     "software_version": "0.1.0",
     "battery_version": "1.0.0",
     "analysis_version": "evidence-reports-0.1",
     "instrument_versions": {
       "NM-CPB": "0.1 (original, unvalidated)"
     },
-    "data_sha256": "b71e8e3e39e180b3c9c16d5c48ca619a438eae24c47f9708bebb13aeb38c1ae9",
+    "data_sha256": "1a60811c630c82b18d3e0c079aae9e789267222c0c33191df78dc423814ff3ae",
     "audit_chain_head": "n/a",
     "review_history": [],
     "synthetic": true
@@ -30,45 +30,45 @@
       "modality": "bci_cursor_sim",
       "metric": "adl_time_s",
       "n": 24,
-      "mean": 24.615416666666665,
-      "ci95_lo": 17.166885281436493,
-      "ci95_hi": 32.06394805189684
+      "mean": 17.33458333333333,
+      "ci95_lo": 14.783556706274423,
+      "ci95_hi": 19.88560996039224
     },
     {
       "visit": "baseline",
       "modality": "bci_cursor_sim",
       "metric": "grid_accuracy",
       "n": 24,
-      "mean": 0.8697916666666666,
-      "ci95_lo": 0.7959954340942857,
-      "ci95_hi": 0.9435878992390475
+      "mean": 0.96875,
+      "ci95_lo": 0.9454027708275625,
+      "ci95_hi": 0.9920972291724375
     },
     {
       "visit": "baseline",
       "modality": "bci_cursor_sim",
       "metric": "grid_bitrate_bps",
       "n": 24,
-      "mean": 0.887728628517294,
-      "ci95_lo": 0.7346224999493164,
-      "ci95_hi": 1.0408347570852716
+      "mean": 1.203112623684525,
+      "ci95_lo": 1.0830770537073238,
+      "ci95_hi": 1.3231481936617264
     },
     {
       "visit": "baseline",
       "modality": "bci_cursor_sim",
       "metric": "iso_tp_bps",
-      "n": 24,
-      "mean": 0.39689081078674676,
-      "ci95_lo": 0.3382531445985681,
-      "ci95_hi": 0.45552847697492543
+      "n": 0,
+      "mean": NaN,
+      "ci95_lo": NaN,
+      "ci95_hi": NaN
     },
     {
       "visit": "baseline",
       "modality": "bci_cursor_sim",
       "metric": "type_ccpm",
       "n": 24,
-      "mean": 11.213037193157996,
-      "ci95_lo": 9.89686817896045,
-      "ci95_hi": 12.529206207355543
+      "mean": 12.802162368296292,
+      "ci95_lo": 11.352140840556489,
+      "ci95_hi": 14.252183896036096
     },
     {
       "visit": "week12",
@@ -84,45 +84,45 @@
       "modality": "bci_cursor_sim",
       "metric": "adl_time_s",
       "n": 24,
-      "mean": 11.037083333333333,
-      "ci95_lo": 9.981109099095265,
-      "ci95_hi": 12.093057567571401
+      "mean": 9.78375,
+      "ci95_lo": 9.055440114160438,
+      "ci95_hi": 10.51205988583956
     },
     {
       "visit": "week12",
       "modality": "bci_cursor_sim",
       "metric": "grid_accuracy",
       "n": 24,
-      "mean": 1.0,
-      "ci95_lo": 1.0,
-      "ci95_hi": 1.0
+      "mean": 0.9895833333333334,
+      "ci95_lo": 0.974681153266206,
+      "ci95_hi": 1.0044855134004609
     },
     {
       "visit": "week12",
       "modality": "bci_cursor_sim",
       "metric": "grid_bitrate_bps",
       "n": 24,
-      "mean": 2.045223493704709,
-      "ci95_lo": 1.8917655758669405,
-      "ci95_hi": 2.1986814115424775
+      "mean": 2.1150656026219714,
+      "ci95_lo": 1.9448951117493825,
+      "ci95_hi": 2.2852360934945604
     },
     {
       "visit": "week12",
       "modality": "bci_cursor_sim",
       "metric": "iso_tp_bps",
-      "n": 24,
-      "mean": 1.0760579193032125,
-      "ci95_lo": 0.9584080851822067,
-      "ci95_hi": 1.1937077534242184
+      "n": 0,
+      "mean": NaN,
+      "ci95_lo": NaN,
+      "ci95_hi": NaN
     },
     {
       "visit": "week12",
       "modality": "bci_cursor_sim",
       "metric": "type_ccpm",
       "n": 24,
-      "mean": 25.711495866039687,
-      "ci95_lo": 23.826924894320925,
-      "ci95_hi": 27.59606683775845
+      "mean": 27.764566787703174,
+      "ci95_lo": 25.969582749978507,
+      "ci95_hi": 29.55955082542784
     },
     {
       "visit": "week4",
@@ -138,45 +138,45 @@
       "modality": "bci_cursor_sim",
       "metric": "adl_time_s",
       "n": 24,
-      "mean": 10.99708333333333,
-      "ci95_lo": 9.888602059242105,
-      "ci95_hi": 12.105564607424556
+      "mean": 10.026666666666666,
+      "ci95_lo": 9.223620767495603,
+      "ci95_hi": 10.829712565837728
     },
     {
       "visit": "week4",
       "modality": "bci_cursor_sim",
       "metric": "grid_accuracy",
       "n": 24,
-      "mean": 0.9947916666666666,
-      "ci95_lo": 0.9840174082790674,
-      "ci95_hi": 1.005565925054266
+      "mean": 1.0,
+      "ci95_lo": 1.0,
+      "ci95_hi": 1.0
     },
     {
       "visit": "week4",
       "modality": "bci_cursor_sim",
       "metric": "grid_bitrate_bps",
       "n": 24,
-      "mean": 1.8830441674670986,
-      "ci95_lo": 1.7240025063515139,
-      "ci95_hi": 2.042085828582683
+      "mean": 2.1675602844334283,
+      "ci95_lo": 1.9806057839417093,
+      "ci95_hi": 2.354514784925147
     },
     {
       "visit": "week4",
       "modality": "bci_cursor_sim",
       "metric": "iso_tp_bps",
-      "n": 24,
-      "mean": 0.9296194132774135,
-      "ci95_lo": 0.8460894523783673,
-      "ci95_hi": 1.0131493741764597
+      "n": 0,
+      "mean": NaN,
+      "ci95_lo": NaN,
+      "ci95_hi": NaN
     },
     {
       "visit": "week4",
       "modality": "bci_cursor_sim",
       "metric": "type_ccpm",
       "n": 24,
-      "mean": 24.555785397794736,
-      "ci95_lo": 22.73205471270148,
-      "ci95_hi": 26.379516082887992
+      "mean": 27.31938354496708,
+      "ci95_lo": 25.30045025693272,
+      "ci95_hi": 29.338316833001443
     }
   ]
 }

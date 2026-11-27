@@ -22,34 +22,34 @@ Simulated longitudinal study: 24 virtual participants using a simulated BCI curs
 
 ## Data completeness
 
-Overall completeness: **87.5%** of scheduled assessments.
+Overall completeness: **94.4%** of scheduled assessments.
 
 | visit | expected | completed | completeness |
 |---|---|---|---|
-| baseline | 24 | 22 | 0.917 |
-| week12 | 24 | 19 | 0.792 |
-| week4 | 24 | 22 | 0.917 |
+| baseline | 24 | 24 | 1 |
+| week12 | 24 | 21 | 0.875 |
+| week4 | 24 | 23 | 0.958 |
 
 ## Task results (mean, 95% CI)
 
 | visit | modality | metric | n | mean | ci95_lo | ci95_hi |
 |---|---|---|---|---|---|---|
 | baseline | bci_cursor_sim | adl_completion_rate | 24 | 1 | 1 | 1 |
-| baseline | bci_cursor_sim | grid_bitrate_bps | 24 | 0.888 | 0.735 | 1.04 |
-| baseline | bci_cursor_sim | iso_tp_bps | 24 | 0.397 | 0.338 | 0.456 |
-| baseline | bci_cursor_sim | type_ccpm | 24 | 11.2 | 9.9 | 12.5 |
+| baseline | bci_cursor_sim | grid_bitrate_bps | 24 | 1.2 | 1.08 | 1.32 |
+| baseline | bci_cursor_sim | iso_tp_bps | 0 |  |  |  |
+| baseline | bci_cursor_sim | type_ccpm | 24 | 12.8 | 11.4 | 14.3 |
 | week12 | bci_cursor_sim | adl_completion_rate | 24 | 1 | 1 | 1 |
-| week12 | bci_cursor_sim | grid_bitrate_bps | 24 | 2.05 | 1.89 | 2.2 |
-| week12 | bci_cursor_sim | iso_tp_bps | 24 | 1.08 | 0.958 | 1.19 |
-| week12 | bci_cursor_sim | type_ccpm | 24 | 25.7 | 23.8 | 27.6 |
+| week12 | bci_cursor_sim | grid_bitrate_bps | 24 | 2.12 | 1.94 | 2.29 |
+| week12 | bci_cursor_sim | iso_tp_bps | 0 |  |  |  |
+| week12 | bci_cursor_sim | type_ccpm | 24 | 27.8 | 26 | 29.6 |
 | week4 | bci_cursor_sim | adl_completion_rate | 24 | 1 | 1 | 1 |
-| week4 | bci_cursor_sim | grid_bitrate_bps | 24 | 1.88 | 1.72 | 2.04 |
-| week4 | bci_cursor_sim | iso_tp_bps | 24 | 0.93 | 0.846 | 1.01 |
-| week4 | bci_cursor_sim | type_ccpm | 24 | 24.6 | 22.7 | 26.4 |
+| week4 | bci_cursor_sim | grid_bitrate_bps | 24 | 2.17 | 1.98 | 2.35 |
+| week4 | bci_cursor_sim | iso_tp_bps | 0 |  |  |  |
+| week4 | bci_cursor_sim | type_ccpm | 24 | 27.3 | 25.3 | 29.3 |
 
 ## Longitudinal change — grid_bitrate_bps
 
-Linear mixed model (random intercept per participant): change per day = 0.01222 (95% CI 0.009562 to 0.01489), 24 participants, 72 observations. This is a descriptive trend: it cannot separate device change, practice, fatigue or disease progression without a design that does.
+Linear mixed model (random intercept per participant): change per day = 0.009172 (95% CI 0.006055 to 0.01229), 24 participants, 72 observations. This is a descriptive trend: it cannot separate device change, practice, fatigue or disease progression without a design that does.
 
 ## Patient- and care-partner-reported outcomes
 
@@ -57,9 +57,9 @@ Original NeuroMetric questionnaires are unvalidated research questionnaires; lic
 
 | instrument | respondent | score | visit | n | mean | ci95_lo | ci95_hi |
 |---|---|---|---|---|---|---|---|
-| NM-CPB v0.1 | care_partner | assist_minutes_per_day | baseline | 24 | 121 | 113 | 129 |
-| NM-CPB v0.1 | care_partner | assist_minutes_per_day | week12 | 24 | 119 | 110 | 128 |
-| NM-CPB v0.1 | care_partner | assist_minutes_per_day | week4 | 24 | 123 | 114 | 131 |
+| NM-CPB v0.1 | care_partner | assist_minutes_per_day | baseline | 24 | 124 | 113 | 134 |
+| NM-CPB v0.1 | care_partner | assist_minutes_per_day | week12 | 24 | 109 | 98.8 | 118 |
+| NM-CPB v0.1 | care_partner | assist_minutes_per_day | week4 | 24 | 116 | 107 | 125 |
 
 ## Protocol deviations
 
@@ -80,12 +80,12 @@ Original NeuroMetric questionnaires are unvalidated research questionnaires; lic
 | field | value |
 |---|---|
 | report_type | sponsor_study_summary |
-| generated_utc | 2026-11-27T07:15:31Z |
+| generated_utc | 2026-11-27T07:54:17Z |
 | software_version | 0.1.0 |
 | battery_version | 1.0.0 |
 | analysis_version | evidence-reports-0.1 |
 | instrument_versions | {"NM-CPB": "0.1 (original, unvalidated)"} |
-| data_sha256 | b71e8e3e39e180b3c9c16d5c48ca619a438eae24c47f9708bebb13aeb38c1ae9 |
+| data_sha256 | 1a60811c630c82b18d3e0c079aae9e789267222c0c33191df78dc423814ff3ae |
 | audit_chain_head | n/a |
 | review_history | [] |
 | synthetic | true |

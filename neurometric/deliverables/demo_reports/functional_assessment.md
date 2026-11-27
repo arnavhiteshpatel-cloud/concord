@@ -19,11 +19,10 @@ Task metrics follow docs/science/METRICS.md (battery v1, experimental): Fitts ef
 | modality | metric | baseline | week12 | week4 |
 |---|---|---|---|---|
 | bci_cursor_sim | adl_completion_rate | 1 | 1 | 1 |
-| bci_cursor_sim | adl_time_s | 14 | 13 | 10.9 |
+| bci_cursor_sim | adl_time_s | 22.7 | 11.3 | 10.7 |
 | bci_cursor_sim | grid_accuracy | 1 | 1 | 1 |
-| bci_cursor_sim | grid_bitrate_bps | 1.07 | 1.85 | 1.73 |
-| bci_cursor_sim | iso_tp_bps | 0.36 | 1.07 | 0.911 |
-| bci_cursor_sim | type_ccpm | 11.2 | 22.6 | 22.3 |
+| bci_cursor_sim | grid_bitrate_bps | 1.31 | 2.02 | 2.08 |
+| bci_cursor_sim | type_ccpm | 12.4 | 23.4 | 24.1 |
 
 ## Patient- and care-partner-reported outcomes
 
@@ -49,12 +48,12 @@ Original NeuroMetric questionnaires are unvalidated research questionnaires; lic
 | field | value |
 |---|---|
 | report_type | functional_assessment |
-| generated_utc | 2026-11-27T07:15:31Z |
+| generated_utc | 2026-11-27T07:54:16Z |
 | software_version | 0.1.0 |
 | battery_version | 1.0.0 |
 | analysis_version | evidence-reports-0.1 |
 | instrument_versions | {"NM-CPB": "0.1 (original, unvalidated)"} |
-| data_sha256 | b71e8e3e39e180b3c9c16d5c48ca619a438eae24c47f9708bebb13aeb38c1ae9 |
+| data_sha256 | 1a60811c630c82b18d3e0c079aae9e789267222c0c33191df78dc423814ff3ae |
 | audit_chain_head | n/a |
 | review_history | [] |
 | synthetic | true |

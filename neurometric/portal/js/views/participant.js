@@ -15,6 +15,7 @@ const SCOPE_TEXT = {
   sharing_with_sponsor: 'Sharing coded data (without your name) with the study sponsor.',
   future_research: 'Reusing coded data in future research.',
 };
+const SCOPE_ORDER = ['task_battery', 'questionnaires', 'home_telemetry', 'telemetry_app_categories', 'free_text', 'sharing_with_sponsor', 'future_research', 'audio_none'];
 const SCOPE_TITLE = {
   task_battery: 'Computer tasks', questionnaires: 'Questionnaires', home_telemetry: 'Home usage summaries',
   telemetry_app_categories: 'App categories', free_text: 'Free-text comments', audio_none: 'No audio recording',
@@ -328,7 +329,7 @@ function consentCard(P, consent) {
   return card(P.isCP ? 'Consent' : 'My consent', { id: 'sec-consent' },
     h('p', null, `Consent form ${active.consent_document_id} (${active.consent_version}), given ${fmtDate(active.given_at)}.`),
     P.isCP ? h('p', { class: 'muted' }, 'Only the participant or the study team can change consent.') : null,
-    h('ul', { class: 'big-list' }, Object.entries(active.scopes).map(([k, v]) => {
+    h('ul', { class: 'big-list' }, Object.entries(active.scopes).sort((a, b) => SCOPE_ORDER.indexOf(a[0]) - SCOPE_ORDER.indexOf(b[0])).map(([k, v]) => {
       const b = canWithdraw && v && k !== 'audio_none' ? h('button', { type: 'button', class: 'secondary small' }, 'Stop this', h('span', { class: 'visually-hidden' }, `: ${SCOPE_TITLE[k] || k}`)) : null;
       if (b) b.addEventListener('click', () => withdraw(k));
       return h('li', null, h('span', null, h('strong', null, SCOPE_TITLE[k] || k), ' — ',

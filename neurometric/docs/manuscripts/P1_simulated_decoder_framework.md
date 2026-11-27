@@ -433,7 +433,7 @@ The B_noise sweep took 97.0 s on 4 worker processes (`experiments/results/B_nois
 [RESULT PENDING: experiments/results/P_reproducibility/summary.json — in-process vs pool hash identical; different seed differs].
 In-page event capture (software path only, headless Chromium): 2,000 injected mouse events were
 recorded with 0 missing, 0 duplicated and 0 order violations, and a synthetic 1000-Hz stream of
-4,000 events with 0 drops (`experiments/results/A_input_timing/browser_summary.json`; this
+33,377 events with 0 drops (`experiments/results/A_input_timing/browser_summary.json`, generated 07:47Z; this
 excludes device, OS and display latency).
 
 ---

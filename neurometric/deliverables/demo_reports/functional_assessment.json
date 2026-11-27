@@ -1,14 +1,14 @@
 {
   "provenance": {
     "report_type": "functional_assessment",
-    "generated_utc": "2026-11-27T07:15:31Z",
+    "generated_utc": "2026-11-27T07:54:16Z",
     "software_version": "0.1.0",
     "battery_version": "1.0.0",
     "analysis_version": "evidence-reports-0.1",
     "instrument_versions": {
       "NM-CPB": "0.1 (original, unvalidated)"
     },
-    "data_sha256": "b71e8e3e39e180b3c9c16d5c48ca619a438eae24c47f9708bebb13aeb38c1ae9",
+    "data_sha256": "1a60811c630c82b18d3e0c079aae9e789267222c0c33191df78dc423814ff3ae",
     "audit_chain_head": "n/a",
     "review_history": [],
     "synthetic": true
@@ -27,9 +27,9 @@
     {
       "modality": "bci_cursor_sim",
       "metric": "adl_time_s",
-      "baseline": 14.01,
-      "week12": 13.02,
-      "week4": 10.95
+      "baseline": 22.68,
+      "week12": 11.27,
+      "week4": 10.68
     },
     {
       "modality": "bci_cursor_sim",
@@ -41,23 +41,16 @@
     {
       "modality": "bci_cursor_sim",
       "metric": "grid_bitrate_bps",
-      "baseline": 1.0716166908041487,
-      "week12": 1.8491821997167146,
-      "week4": 1.7265503649072569
-    },
-    {
-      "modality": "bci_cursor_sim",
-      "metric": "iso_tp_bps",
-      "baseline": 0.3600051056410105,
-      "week12": 1.074386013174952,
-      "week4": 0.9106432617621072
+      "baseline": 1.307387848571391,
+      "week12": 2.0194473018111663,
+      "week4": 2.083390653336563
     },
     {
       "modality": "bci_cursor_sim",
       "metric": "type_ccpm",
-      "baseline": 11.177086971707999,
-      "week12": 22.63617071445414,
-      "week4": 22.27895103272221
+      "baseline": 12.414328203801889,
+      "week12": 23.408924652523776,
+      "week4": 24.138798089011814
     }
   ]
 }

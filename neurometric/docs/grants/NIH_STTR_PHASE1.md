@@ -327,26 +327,67 @@ worst-case sensitivity, floor/ceiling and simulated retest ICC
 (`src/neurometric/experiments/registry.py`).
 
 - Latency (velocity-control user): see the table in §4.2.2; with 60 ms of total latency (the first degraded level) movement time, CCPM, achieved bitrate and dial-in time already reached |d_z| ≥ 0.5 versus 0 ms (`experiments/results/C_latency/summary.json`, `min_detect_level`).
-- False activations: [RESULT PENDING: experiments/results/F_false_activation/summary.json — Spearman ρ of false_activations_per_min, grid_bitrate_bps and adl_time_s with false-selection rate].
-- Dropout, drift, missed selections, bias, update rate, gain: [RESULT PENDING: experiments/results/{D_dropout,E_drift,F2_missed_selection,B2_bias,B3_update_rate,B4_gain}/summary.json — per-metric Spearman ρ].
-- Cross-sweep ranking: [RESULT PENDING: experiments/results/G_metric_comparison/ranking.csv — top metrics by mean_sensitivity and their min_sensitivity, max_ceiling_frac, median_retest_icc]. Figure: [RESULT PENDING: experiments/results/G_metric_comparison/sensitivity_heatmap.png].
+- **False activations** (`F_false_activation/summary.json`): error metrics responded (ISO error
+  rate ρ −0.798; typing total error rate −0.732), but ISO movement time moved in the *favourable*
+  direction (ρ +0.653) because unwanted clicks end trials early, achieved bitrate barely moved
+  (−0.137), the observable proxy (empty-space selections/min) was at floor in 74.7% of sessions, and
+  ADL completion stayed at 100%. **A speed-only battery would read spurious clicks as
+  improvement**; error and assistance measures must sit beside rate measures.
+- **Drift and bias** (`E_drift`, `B2_bias`): detected by most rate and kinematic metrics (e.g.
+  achieved bitrate ρ −0.909 and −0.943; CCPM −0.852 and −0.944; bias already at 15°).
+- **Dropout, missed selections, gain** (`D_dropout`, `F2_missed_selection`, `B4_gain`): weak
+  responses in the simulated ranges (largest |ρ| 0.669, 0.475 and 0.591); closed-loop users
+  compensate for gain errors. **Update interval** (`B3_update_rate`): path efficiency (ρ −0.822)
+  and dial-in time (−0.770) detected it; completion did not (100% ceiling).
+- **Cross-sweep ranking** (`G_metric_comparison/ranking.csv`, 07:52Z; mean of −ρ over the nine
+  monotone sweeps): correct characters per minute 0.693 (worst sweep 0.272; median simulated retest
+  ICC 0.858), achieved bitrate 0.666 (worst 0.137; ICC 0.665), effective throughput 0.645 (but
+  undefined in up to 60.5% of sessions; ICC 0.598), ADL time 0.625 (ICC 0.527). ADL completion's mean
+  of 0.647 is misleading: it was constant at 100% in four sweeps (ρ undefined, so excluded from the
+  mean), reached 100% ceiling at its maximum, and had median simulated ICC 0.097. Figure:
+  `experiments/results/G_metric_comparison/sensitivity_heatmap.png`.
 
-#### 4.2.4 Studies I, K, L, M, N, H: reliability vs length, responsiveness, modality, variance, missing data, adaptive difficulty
-- **I (test length).** Simulated ICC(A,1) for 4, 8, 16 and 32 trials per task in three simulated
-  modalities, compared with the Spearman–Brown prophecy from the shortest length
-  [RESULT PENDING: experiments/results/I_test_retest/reliability.csv — ICC(A,1) of iso_tp_bps and grid_bitrate_bps at 4/8/16/32 trials, and the Spearman–Brown prediction].
-- **K (responsiveness).** Half of the virtual participants receive a known decoder improvement
-  between sessions [RESULT PENDING: experiments/results/K_responsiveness/responsiveness.csv — AUC improved-vs-stable and SRM for the top metrics].
-- **L (modalities).** The same battery across eight simulated modalities, including two scanning
-  configurations [RESULT PENDING: experiments/results/L_cross_modality/summary.json — modality means for grid_bitrate_bps and type_ccpm; Kendall τ rank concordance].
-- **M (person vs device).** A 3 × 3 crossed design of simulated ability × decoder profile
-  [RESULT PENDING: experiments/results/M_user_variability/variance_decomposition.csv — η² for device vs ability per metric].
-- **N (missing data).** Complete-case bias under MCAR, abandon-after-failure (MNAR) and
-  fatigue-like (MAR) trial loss [RESULT PENDING: experiments/results/N_missing_data/results.csv — mt_bias_ms and success_bias at ~25% missing by mechanism].
-- **H (adaptive difficulty).** A 2-down/1-up item-size staircase vs fixed 100 px and 40 px grids
-  across six noise levels [RESULT PENDING: experiments/results/H_adaptive/comparison.csv — floor/ceiling fractions and mean adjacent-level AUC per design].
-- **P (reproducibility).** Bit-identical re-run in-process vs in a process pool
-  [RESULT PENDING: experiments/results/P_reproducibility/summary.json — identical flag].
+#### 4.2.4 Studies I, K, L, M, N, H, P: test length, responsiveness, modality, variance, missing data, adaptive difficulty, reproducibility
+All 60 virtual participants per cell (`--n 60`; the Study I summary's design string says 80, but
+`data.csv` has 60 per cell). Files under `experiments/results/`.
+- **I (test length;** `I_test_retest/reliability.csv`**).** For the `bci_good` user, simulated
+  ICC(A,1) of achieved bitrate rose from 0.636 at 4 grid trials to 0.773 at 16 and 0.902 at 32;
+  for `bci_moderate` from 0.287 to 0.682 and 0.810. Effective throughput was undefined below 16 ISO
+  selections (validity rule) and its ICC stayed low for BCI-like users at 32 selections (0.298
+  good, 0.110 moderate) versus 0.917 for mouse-like users. Grid accuracy had no between-person
+  variance (mean ≥ 0.998 for `bci_good`). Implication: **rate scores need ≈ 16–32 trials per task
+  for impaired control; throughput is not a reliable primary score for BCI-like users.**
+- **K (responsiveness;** `K_responsiveness/responsiveness.csv`**).** 30 improved vs 30 stable
+  virtual participants (`bci_moderate` → noise × 0.6, fewer false/missed selections): AUC of change
+  scores 0.953 for CCPM, 0.931 for achieved bitrate, 0.993 for ISO movement time, 0.808 for
+  effective throughput, but **0.506 for ADL time and 0.500 for ADL completion** (no response); 56.7%
+  of improved and 6.7% of stable participants exceeded the CCPM MDC95. MDC is a detectable change,
+  not an MCID.
+- **L (modalities;** `L_cross_modality/summary.json`, `means.csv`, `retest_icc.csv`**).** Mean
+  achieved bitrate ranged from 6.86 bit/s (mouse-like) through 2.22 (`bci_good`) and 0.88
+  (1-s switch scanning) to 0.11 (`bci_poor`); CCPM from 93.3 to 1.5. Modality rankings agreed across
+  metrics (Kendall τ achieved bitrate vs CCPM 0.857; vs ADL time 0.929) but less with ADL completion
+  (τ 0.577–0.707). Simulated retest ICC of CCPM ranged from 0.212 (1-s scanning) to 0.949
+  (mouse-like): **reliability is modality-dependent**, which Aim 2 must test per access method.
+- **M (person vs device;** `M_user_variability/variance_decomposition.csv`**).** Across a 3 × 3
+  crossed design, decoder profile explained most variance in rate metrics (η² 0.899 achieved
+  bitrate, 0.913 CCPM, 0.751 throughput) and simulated ability little (≤ 0.065); ADL completion was
+  mostly residual (η² 0.642). In this simulation the scores mainly measure the device, not the
+  person — a property of the assumed ability spread (SD 0.3) that human data must check.
+- **N (missing data;** `N_missing_data/results.csv`**).** Complete-case mean MT was nearly unbiased
+  under MCAR (−9.6 ms at 22.9% missing) and fatigue-like MAR (+18.8 ms at 25.2%), but under
+  abandon-after-a-slow-trial MNAR the same target produced 70.0% missing trials, +558 ms bias, and
+  rank correlation with full data 0.642. Session-level dropout linked to performance is the risk
+  the analysis plan's tipping-point analysis addresses.
+- **H (adaptive difficulty;** `H_adaptive/comparison.csv`**).** Across six noise levels, fixed
+  100-px grids put 43.9% of sessions at ceiling and fixed 40-px grids 40.0% at floor; a 40-trial
+  2-down/1-up size staircase kept floor 13.9% and ceiling 14.7% (both under 15%) and separated
+  adjacent device levels better (minimum adjacent AUC 0.711 vs 0.450 and 0.509), but ranked people
+  within a device level less well (mean within-level ρ with latent ability 0.290 vs 0.416 and
+  0.346). The staircase is the pre-specified lower-demand variant for Aim 2 floor failures.
+- **P (reproducibility;** `P_reproducibility/summary.json`**).** Re-running a condition in-process
+  and in a 2-process pool gave identical SHA-256 hashes of the output; a different seed gave a
+  different hash.
 
 #### 4.2.5 Study R: verification of the statistical implementation
 `neurometric.psychometrics` was checked three ways (`docs/science/PSYCHOMETRICS.md` §9):
@@ -402,19 +443,19 @@ speed–difficulty relation. It says nothing about human or AT-user performance.
 
 #### 4.2.7 Study S: server-side processing cost
 Browser part (headless Chromium, software path only): the median time from event dispatch to the
-canonical event was 0.040 ms (p95 0.065 ms; n = 1,000), and a fast-forwarded 10-minute, 60-Hz
+canonical event was 0.055 ms (p95 0.090 ms; n = 1,000), and a fast-forwarded 10-minute, 60-Hz
 session of 36,000 pointer events was recorded with 0 drops
-(`experiments/results/S_event_latency/browser_summary.json`; excludes device, OS and display
+(`experiments/results/S_event_latency/browser_summary.json`, generated 07:46Z; excludes device, OS and display
 latency). Server part: [RESULT PENDING: experiments/results/S_event_latency/summary.json — event-validation rate, segmentation-and-scoring time and JSON round-trip hash identity; the summary present at drafting predates the review fixes (generated 07:07Z)].
 
 #### 4.2.8 Study Q: automated accessibility and end-to-end checks of the browser battery
 An automated axe-core 4.10.3 scan (WCAG 2.0/2.1/2.2 A and AA rule sets plus best practice) of 58
 screens in light and dark themes found **0 violations** and 0 serious or critical issues
-(`experiments/results/Q_accessibility/axe_summary.json`). Automated end-to-end runs in headless
+(`experiments/results/Q_accessibility/axe_summary.json`, generated 07:44Z). Automated end-to-end runs in headless
 Chromium with synthetic input (scripted mouse; keyboard acting as a switch) completed A2, A4 and E1
 and reached the task list through single-switch scanning setup; in each run the browser's
-provisional scores equalled the reference scores (e.g. A4 achieved bitrate 64.37 bit/s in both)
-(`experiments/results/Q_accessibility/e2e_tasks_summary.json`). These synthetic-input values are
+provisional scores equalled the reference scores (e.g. A4 achieved bitrate 74.30 bit/s in both, a scripted-input value far above any human rate)
+(`experiments/results/Q_accessibility/e2e_tasks_summary.json`, generated 07:45Z). These synthetic-input values are
 not human performance. As the result file states, automated rules find only part of WCAG issues and
 the manual protocol with screen readers, switch hardware and eye trackers has **not** been carried
 out; it is budgeted in Aim 1a (`BUDGET.md` §3.2).
@@ -423,9 +464,9 @@ out; it is budgeted in Aim 1a (`BUDGET.md` §3.2).
 In headless Chromium (cross-origin isolated; timer resolution 0.005 ms), 2,000 scripted mouse
 movements injected through the browser's DevTools protocol were all recorded as pointer events,
 with 0 missing, 0 duplicated, 0 order violations and 0 non-monotonic timestamps; recorded
-intervals had median 16.67 ms (p95 19.58 ms) for a 60-Hz injection stream. A synthetic 1000-Hz
-stream of 4,000 dispatched events was recorded with 0 drops and contiguous sequence numbers
-(`experiments/results/A_input_timing/browser_summary.json`). As the file states, this excludes
+intervals had median 16.68 ms (p95 20.20 ms) for a 60-Hz injection stream. A synthetic 1000-Hz
+stream of 33,377 dispatched events was recorded with 0 drops
+(`experiments/results/A_input_timing/browser_summary.json`, generated 07:47Z). As the file states, this excludes
 USB/Bluetooth polling, OS input processing, compositor and display latency and **must not be
 reported as physical end-to-end latency**; that is measured on the bench in Aim 1a.
 
@@ -663,7 +704,7 @@ the clinical-trial forms apply. Registration of Stage 4 is recommended for trans
 ## 6. Rigor and reproducibility (summary)
 - Every simulation result records software versions, seeds and a `synthetic: true` flag
   (`src/neurometric/experiments/core.py`). The reproducibility check (Study P) re-runs a condition
-  in-process and in a pool [RESULT PENDING: experiments/results/P_reproducibility/summary.json — identical flag].
+  in-process and in a pool and produced identical output hashes (`experiments/results/P_reproducibility/summary.json`).
 - Statistical code is verified (Study R: 86/86 scenarios pass).
 - The simulator and experiment code underwent an independent science-core review; five critical
   and several important defects were fixed with regression tests and every simulation result was

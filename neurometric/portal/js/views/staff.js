@@ -2,7 +2,7 @@
 // Participants are shown by pseudonymous study ID only. Re-identification is available solely via
 // the explicit, reason-gated, audited reveal flow for roles holding reid.read.
 import { get, post, explain } from '../api.js';
-import { h, card, table, tile, fmtNum, fmtPct, fmtDate, fmtDateTime, humanize, shortHash, load, clear,
+import { h, card, table, tile, fmtNum, fmtDate, fmtDateTime, humanize, shortHash, load, clear,
   announce, dialog, busy, notice, meter, status, todayISO, nextId, errorNotice } from '../ui.js';
 import { barChart } from '../charts.js';
 import { labels } from '../labels.js';
@@ -111,14 +111,16 @@ export async function visitsView(root, ctx) {
       { key: 'act', label: 'Action', rowHeader: false, render: (r) => (ctx.can('visit.manage') ? completeButton(ctx, r, reload) : '—') },
     ], rows, { caption: 'Scheduled visits', empty: 'No visits match this filter.' }));
   };
-  const reload = async () => load(body, 'visits', async () => {
-    const today = todayISO();
-    all = (await participantBundle(ctx)).flatMap(({ p, visits }) => visits.map((v) => ({ ...v, pid: p.id, timing: visitTiming(v, today) })))
-      .filter((v) => v.timing)
-      .sort((a, b) => a.window_end.localeCompare(b.window_end));
-    draw();
-    return null;
-  });
+  const reload = async () => {
+    const ok = await load(body, 'visits', async () => {
+      const today = todayISO();
+      all = (await participantBundle(ctx)).flatMap(({ p, visits }) => visits.map((v) => ({ ...v, pid: p.id, timing: visitTiming(v, today) })))
+        .filter((v) => v.timing)
+        .sort((a, b) => a.window_end.localeCompare(b.window_end));
+      return null;
+    });
+    if (ok) draw();
+  };
   filter.addEventListener('change', () => { draw(); announce(`${body.querySelectorAll('tbody tr').length} visits shown.`); });
   if (ctx.can('visit.manage')) {
     const mm = h('button', { type: 'button', class: 'secondary' }, 'Mark overdue visits as missed');
@@ -408,4 +410,3 @@ async function deviationsCard(ctx) {
   return c;
 }
 
-export { fmtPct };

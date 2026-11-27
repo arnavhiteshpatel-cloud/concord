@@ -26,40 +26,40 @@ Task metrics follow docs/science/METRICS.md (battery v1, experimental): Fitts ef
 
 ## Data completeness
 
-Overall completeness: **87.5%** of scheduled assessments.
+Overall completeness: **94.4%** of scheduled assessments.
 
 | visit | expected | completed | completeness |
 |---|---|---|---|
-| baseline | 24 | 22 | 0.917 |
-| week12 | 24 | 19 | 0.792 |
-| week4 | 24 | 22 | 0.917 |
+| baseline | 24 | 24 | 1 |
+| week12 | 24 | 21 | 0.875 |
+| week4 | 24 | 23 | 0.958 |
 
 ## Task results (mean, 95% CI)
 
 | visit | modality | metric | n | mean | ci95_lo | ci95_hi |
 |---|---|---|---|---|---|---|
 | baseline | bci_cursor_sim | adl_completion_rate | 24 | 1 | 1 | 1 |
-| baseline | bci_cursor_sim | adl_time_s | 24 | 24.6 | 17.2 | 32.1 |
-| baseline | bci_cursor_sim | grid_accuracy | 24 | 0.87 | 0.796 | 0.944 |
-| baseline | bci_cursor_sim | grid_bitrate_bps | 24 | 0.888 | 0.735 | 1.04 |
-| baseline | bci_cursor_sim | iso_tp_bps | 24 | 0.397 | 0.338 | 0.456 |
-| baseline | bci_cursor_sim | type_ccpm | 24 | 11.2 | 9.9 | 12.5 |
+| baseline | bci_cursor_sim | adl_time_s | 24 | 17.3 | 14.8 | 19.9 |
+| baseline | bci_cursor_sim | grid_accuracy | 24 | 0.969 | 0.945 | 0.992 |
+| baseline | bci_cursor_sim | grid_bitrate_bps | 24 | 1.2 | 1.08 | 1.32 |
+| baseline | bci_cursor_sim | iso_tp_bps | 0 |  |  |  |
+| baseline | bci_cursor_sim | type_ccpm | 24 | 12.8 | 11.4 | 14.3 |
 | week12 | bci_cursor_sim | adl_completion_rate | 24 | 1 | 1 | 1 |
-| week12 | bci_cursor_sim | adl_time_s | 24 | 11 | 9.98 | 12.1 |
-| week12 | bci_cursor_sim | grid_accuracy | 24 | 1 | 1 | 1 |
-| week12 | bci_cursor_sim | grid_bitrate_bps | 24 | 2.05 | 1.89 | 2.2 |
-| week12 | bci_cursor_sim | iso_tp_bps | 24 | 1.08 | 0.958 | 1.19 |
-| week12 | bci_cursor_sim | type_ccpm | 24 | 25.7 | 23.8 | 27.6 |
+| week12 | bci_cursor_sim | adl_time_s | 24 | 9.78 | 9.06 | 10.5 |
+| week12 | bci_cursor_sim | grid_accuracy | 24 | 0.99 | 0.975 | 1 |
+| week12 | bci_cursor_sim | grid_bitrate_bps | 24 | 2.12 | 1.94 | 2.29 |
+| week12 | bci_cursor_sim | iso_tp_bps | 0 |  |  |  |
+| week12 | bci_cursor_sim | type_ccpm | 24 | 27.8 | 26 | 29.6 |
 | week4 | bci_cursor_sim | adl_completion_rate | 24 | 1 | 1 | 1 |
-| week4 | bci_cursor_sim | adl_time_s | 24 | 11 | 9.89 | 12.1 |
-| week4 | bci_cursor_sim | grid_accuracy | 24 | 0.995 | 0.984 | 1.01 |
-| week4 | bci_cursor_sim | grid_bitrate_bps | 24 | 1.88 | 1.72 | 2.04 |
-| week4 | bci_cursor_sim | iso_tp_bps | 24 | 0.93 | 0.846 | 1.01 |
-| week4 | bci_cursor_sim | type_ccpm | 24 | 24.6 | 22.7 | 26.4 |
+| week4 | bci_cursor_sim | adl_time_s | 24 | 10 | 9.22 | 10.8 |
+| week4 | bci_cursor_sim | grid_accuracy | 24 | 1 | 1 | 1 |
+| week4 | bci_cursor_sim | grid_bitrate_bps | 24 | 2.17 | 1.98 | 2.35 |
+| week4 | bci_cursor_sim | iso_tp_bps | 0 |  |  |  |
+| week4 | bci_cursor_sim | type_ccpm | 24 | 27.3 | 25.3 | 29.3 |
 
 ## Longitudinal change — grid_bitrate_bps
 
-Linear mixed model (random intercept per participant): change per day = 0.01222 (95% CI 0.009562 to 0.01489), 24 participants, 72 observations. This is a descriptive trend: it cannot separate device change, practice, fatigue or disease progression without a design that does.
+Linear mixed model (random intercept per participant): change per day = 0.009172 (95% CI 0.006055 to 0.01229), 24 participants, 72 observations. This is a descriptive trend: it cannot separate device change, practice, fatigue or disease progression without a design that does.
 
 ## Patient- and care-partner-reported outcomes
 
@@ -67,9 +67,9 @@ Original NeuroMetric questionnaires are unvalidated research questionnaires; lic
 
 | instrument | respondent | score | visit | n | mean | ci95_lo | ci95_hi |
 |---|---|---|---|---|---|---|---|
-| NM-CPB v0.1 | care_partner | assist_minutes_per_day | baseline | 24 | 121 | 113 | 129 |
-| NM-CPB v0.1 | care_partner | assist_minutes_per_day | week12 | 24 | 119 | 110 | 128 |
-| NM-CPB v0.1 | care_partner | assist_minutes_per_day | week4 | 24 | 123 | 114 | 131 |
+| NM-CPB v0.1 | care_partner | assist_minutes_per_day | baseline | 24 | 124 | 113 | 134 |
+| NM-CPB v0.1 | care_partner | assist_minutes_per_day | week12 | 24 | 109 | 98.8 | 118 |
+| NM-CPB v0.1 | care_partner | assist_minutes_per_day | week4 | 24 | 116 | 107 | 125 |
 
 ## Home-use summaries (aggregate, consented)
 
@@ -77,106 +77,68 @@ Only aggregate, consented summaries are collected (active minutes, session count
 
 | participant | days | active_min_per_day | assist_min_per_day | completeness |
 |---|---|---|---|---|
-| DEMO-000 | 10 | 88.4 | 29.5 | 0.714 |
-| DEMO-001 | 13 | 69.5 | 38 | 0.929 |
-| DEMO-002 | 13 | 98.5 | 26 | 0.929 |
-| DEMO-003 | 11 | 96.1 | 27.5 | 0.786 |
-| DEMO-004 | 13 | 97.8 | 36.2 | 0.929 |
-| DEMO-005 | 12 | 90.8 | 29.5 | 0.857 |
-| DEMO-006 | 12 | 97.4 | 28.1 | 0.857 |
-| DEMO-007 | 11 | 96.7 | 25 | 0.786 |
-| DEMO-008 | 13 | 109 | 29.3 | 0.929 |
-| DEMO-009 | 10 | 86.8 | 30.6 | 0.714 |
-| DEMO-010 | 11 | 89.8 | 33.1 | 0.786 |
-| DEMO-011 | 13 | 89.9 | 30.1 | 0.929 |
-| DEMO-012 | 13 | 75.4 | 29 | 0.929 |
-| DEMO-013 | 11 | 74.7 | 34.2 | 0.786 |
-| DEMO-014 | 12 | 90.3 | 30.1 | 0.857 |
-| DEMO-015 | 11 | 91.5 | 25.7 | 0.786 |
-| DEMO-016 | 12 | 94.7 | 27.9 | 0.857 |
-| DEMO-017 | 12 | 103 | 31.3 | 0.857 |
-| DEMO-018 | 12 | 98 | 38.5 | 0.857 |
-| DEMO-019 | 11 | 83 | 23.4 | 0.786 |
-| DEMO-020 | 10 | 85.5 | 32.9 | 0.714 |
-| DEMO-021 | 14 | 89.7 | 31.4 | 1 |
-| DEMO-022 | 13 | 85.5 | 32.2 | 0.929 |
-| DEMO-023 | 8 | 88.4 | 29.7 | 0.571 |
+| DEMO-000 | 12 | 87.9 | 33.5 | 0.857 |
+| DEMO-001 | 14 | 88.9 | 31.2 | 1 |
+| DEMO-002 | 11 | 95.6 | 33 | 0.786 |
+| DEMO-003 | 12 | 92.5 | 25.6 | 0.857 |
+| DEMO-004 | 11 | 95.1 | 27 | 0.786 |
+| DEMO-005 | 13 | 88.5 | 34.2 | 0.929 |
+| DEMO-006 | 12 | 81.7 | 35.4 | 0.857 |
+| DEMO-007 | 11 | 98.2 | 28.5 | 0.786 |
+| DEMO-008 | 11 | 74.4 | 30.6 | 0.786 |
+| DEMO-009 | 12 | 97.5 | 31.1 | 0.857 |
+| DEMO-010 | 13 | 91.7 | 24.5 | 0.929 |
+| DEMO-011 | 13 | 90.3 | 31.2 | 0.929 |
+| DEMO-012 | 9 | 84.2 | 29.8 | 0.643 |
+| DEMO-013 | 11 | 78.7 | 35.2 | 0.786 |
+| DEMO-014 | 11 | 95.5 | 34.6 | 0.786 |
+| DEMO-015 | 13 | 92.9 | 32.6 | 0.929 |
+| DEMO-016 | 11 | 91.7 | 31.6 | 0.786 |
+| DEMO-017 | 11 | 94.9 | 28.8 | 0.786 |
+| DEMO-018 | 8 | 91.3 | 27.3 | 0.571 |
+| DEMO-019 | 12 | 105 | 28.4 | 0.857 |
+| DEMO-020 | 10 | 80.6 | 26.2 | 0.714 |
+| DEMO-021 | 8 | 84.4 | 29.8 | 0.571 |
+| DEMO-022 | 13 | 109 | 33.1 | 0.929 |
+| DEMO-023 | 14 | 86.3 | 30.1 | 1 |
 
 ## Reliability analysis
 
-# Psychometric report
+### Psychometric report
 
 Subjects: 24 · sessions: 1, 2
 
-## iso_tp_bps
+### iso_tp_bps
 
 ### Descriptives
 
 | session | n | mean | SD | median | min | max |
 |---|---|---|---|---|---|---|
-| 1 | 24 | 1.129 | 0.208 | 1.116 | 0.751 | 1.528 |
-| 2 | 24 | 1.084 | 0.202 | 1.109 | 0.625 | 1.422 |
+| 1 | 0 | – | – | – | – | – |
+| 2 | 0 | – | – | – | – | – |
 
-Missing cells: 0/48 (0.0%); monotone 0, intermittent 0 subjects.
+Missing cells: 48/48 (100.0%); monotone 0, intermittent 0 subjects.
 
 ### Reliability (ICC)
 
-two-way ANOVA mean squares; ICC per Shrout & Fleiss (1979) / McGraw & Wong (1996); 95% CI F-based (McGraw & Wong 1996); agreement forms also get a generalized CI (gci_low/gci_high, 10000 draws, seed 0). n = 24 complete subjects (0 dropped), k = 2.
-
-| form | M&W | type | ICC | 95% CI | F | p |
-|---|---|---|---|---|---|---|
-| ICC(1,1) | ICC(1) | absolute agreement, single | 0.495 | [0.129, 0.744] | 2.96 | 0.005 |
-| ICC(2,1) | ICC(A,1) | absolute agreement, single | 0.496 | [0.131, 0.744] | 2.98 | 0.006 |
-| ICC(3,1) | ICC(C,1) | consistency, single | 0.497 | [0.126, 0.746] | 2.98 | 0.006 |
-| ICC(1,k) | ICC(k) | absolute agreement, average of k | 0.662 | [0.228, 0.853] | 2.96 | 0.005 |
-| ICC(2,k) | ICC(A,k) | absolute agreement, average of k | 0.663 | [0.232, 0.853] | 2.98 | 0.006 |
-| ICC(3,k) | ICC(C,k) | consistency, average of k | 0.664 | [0.224, 0.855] | 2.98 | 0.006 |
-
-### SEM and MDC
-
-| SEM definition | SEM | MDC95 | MDC90 |
-|---|---|---|---|
-| sd_icc | 0.146 | 0.404 | 0.339 |
-| sqrt_mse (primary) | 0.145 | 0.403 | 0.338 |
-| agreement | 0.146 | 0.404 | 0.339 |
-
-MDC = statistically detectable change for an individual, not a clinically important change.
+ICC failed: ValueError: fewer than 2 complete subjects
 
 ### Agreement (session 2 − 1)
 
-Bland–Altman: bias -0.045 [-0.132, 0.041], LoA -0.448 [-0.599, -0.298] to 0.358 [0.207, 0.508]; proportional-bias slope -0.043 (p=0.862); n=24.
-Lin's CCC: 0.485 [0.121, 0.734] (precision r=0.498, accuracy C_b=0.975).
-
-### Floor / ceiling (first session)
-
-Floor 4.2% at 0.751; ceiling 4.2% at 1.528 (flag > 15%).
-> ⚠ theoretical bounds not supplied: observed min/max used
-
-### Change over sessions (linear mixed model)
-
-`iso_tp_bps ~ session_index`, random intercept; n = 24 subjects, 48 observations; variance-component ICC 0.497.
-
-| term | estimate | 95% CI | p |
-|---|---|---|---|
-| Intercept | 1.129 | [1.047, 1.211] | <0.001 |
-| session_index | -0.045 | [-0.128, 0.037] | 0.280 |
-> ⚠ Random effects covariance is singular
 
 ### Change thresholds (distribution-based estimate, not an MCID)
 
-- 0.2_sd: 0.042
-- 0.5_sd: 0.104
-- 1_sem: 0.145
-- mdc95: 0.403
+- 0.2_sd: –
+- 0.5_sd: –
 
-## grid_bitrate_bps
+### grid_bitrate_bps
 
 ### Descriptives
 
 | session | n | mean | SD | median | min | max |
 |---|---|---|---|---|---|---|
-| 1 | 24 | 2.226 | 0.295 | 2.260 | 1.582 | 2.930 |
-| 2 | 24 | 2.223 | 0.270 | 2.249 | 1.640 | 2.693 |
+| 1 | 24 | 2.273 | 0.301 | 2.339 | 1.719 | 2.701 |
+| 2 | 24 | 2.265 | 0.312 | 2.288 | 1.630 | 2.915 |
 
 Missing cells: 0/48 (0.0%); monotone 0, intermittent 0 subjects.
 
@@ -186,57 +148,57 @@ two-way ANOVA mean squares; ICC per Shrout & Fleiss (1979) / McGraw & Wong (1996
 
 | form | M&W | type | ICC | 95% CI | F | p |
 |---|---|---|---|---|---|---|
-| ICC(1,1) | ICC(1) | absolute agreement, single | 0.615 | [0.296, 0.812] | 4.20 | <0.001 |
-| ICC(2,1) | ICC(A,1) | absolute agreement, single | 0.612 | [0.279, 0.812] | 4.02 | <0.001 |
-| ICC(3,1) | ICC(C,1) | consistency, single | 0.602 | [0.270, 0.806] | 4.02 | <0.001 |
-| ICC(1,k) | ICC(k) | absolute agreement, average of k | 0.762 | [0.456, 0.896] | 4.20 | <0.001 |
-| ICC(2,k) | ICC(A,k) | absolute agreement, average of k | 0.759 | [0.436, 0.896] | 4.02 | <0.001 |
-| ICC(3,k) | ICC(C,k) | consistency, average of k | 0.751 | [0.425, 0.892] | 4.02 | <0.001 |
+| ICC(1,1) | ICC(1) | absolute agreement, single | 0.720 | [0.459, 0.868] | 6.15 | <0.001 |
+| ICC(2,1) | ICC(A,1) | absolute agreement, single | 0.719 | [0.448, 0.868] | 5.90 | <0.001 |
+| ICC(3,1) | ICC(C,1) | consistency, single | 0.710 | [0.437, 0.863] | 5.90 | <0.001 |
+| ICC(1,k) | ICC(k) | absolute agreement, average of k | 0.837 | [0.629, 0.929] | 6.15 | <0.001 |
+| ICC(2,k) | ICC(A,k) | absolute agreement, average of k | 0.836 | [0.618, 0.929] | 5.90 | <0.001 |
+| ICC(3,k) | ICC(C,k) | consistency, average of k | 0.831 | [0.608, 0.927] | 5.90 | <0.001 |
 
 ### SEM and MDC
 
 | SEM definition | SEM | MDC95 | MDC90 |
 |---|---|---|---|
-| sd_icc | 0.176 | 0.488 | 0.410 |
-| sqrt_mse (primary) | 0.178 | 0.494 | 0.415 |
-| agreement | 0.178 | 0.494 | 0.415 |
+| sd_icc | 0.163 | 0.451 | 0.378 |
+| sqrt_mse (primary) | 0.165 | 0.458 | 0.384 |
+| agreement | 0.165 | 0.458 | 0.384 |
 
 MDC = statistically detectable change for an individual, not a clinically important change.
 
 ### Agreement (session 2 − 1)
 
-Bland–Altman: bias -0.004 [-0.110, 0.103], LoA -0.498 [-0.683, -0.313] to 0.491 [0.306, 0.675]; proportional-bias slope -0.109 (p=0.610); n=24.
-Lin's CCC: 0.602 [0.274, 0.805] (precision r=0.604, accuracy C_b=0.996).
+Bland–Altman: bias -0.008 [-0.107, 0.091], LoA -0.466 [-0.636, -0.295] to 0.450 [0.279, 0.620]; proportional-bias slope 0.043 (p=0.810); n=24.
+Lin's CCC: 0.710 [0.438, 0.863] (precision r=0.711, accuracy C_b=0.999).
 
 ### Floor / ceiling (first session)
 
-Floor 4.2% at 1.582; ceiling 4.2% at 2.930 (flag > 15%).
+Floor 4.2% at 1.719; ceiling 4.2% at 2.701 (flag > 15%).
 > ⚠ theoretical bounds not supplied: observed min/max used
 
 ### Change over sessions (linear mixed model)
 
-`grid_bitrate_bps ~ session_index`, random intercept; n = 24 subjects, 48 observations; variance-component ICC 0.602.
+`grid_bitrate_bps ~ session_index`, random intercept; n = 24 subjects, 48 observations; variance-component ICC 0.710.
 
 | term | estimate | 95% CI | p |
 |---|---|---|---|
-| Intercept | 2.226 | [2.113, 2.339] | <0.001 |
-| session_index | -0.004 | [-0.105, 0.097] | 0.942 |
+| Intercept | 2.273 | [2.150, 2.396] | <0.001 |
+| session_index | -0.008 | [-0.101, 0.085] | 0.866 |
 
 ### Change thresholds (distribution-based estimate, not an MCID)
 
-- 0.2_sd: 0.059
-- 0.5_sd: 0.147
-- 1_sem: 0.178
-- mdc95: 0.494
+- 0.2_sd: 0.060
+- 0.5_sd: 0.151
+- 1_sem: 0.165
+- mdc95: 0.458
 
-## grid_time_ms
+### grid_time_ms
 
 ### Descriptives
 
 | session | n | mean | SD | median | min | max |
 |---|---|---|---|---|---|---|
-| 1 | 24 | 2043.917 | 238.813 | 2002.000 | 1544.000 | 2469.000 |
-| 2 | 24 | 2050.000 | 287.577 | 2011.500 | 1559.000 | 2758.000 |
+| 1 | 24 | 2026.542 | 288.202 | 1934.000 | 1675.000 | 2632.000 |
+| 2 | 24 | 2015.042 | 279.557 | 1976.500 | 1552.000 | 2775.000 |
 
 Missing cells: 0/48 (0.0%); monotone 0, intermittent 0 subjects.
 
@@ -246,57 +208,57 @@ two-way ANOVA mean squares; ICC per Shrout & Fleiss (1979) / McGraw & Wong (1996
 
 | form | M&W | type | ICC | 95% CI | F | p |
 |---|---|---|---|---|---|---|
-| ICC(1,1) | ICC(1) | absolute agreement, single | 0.748 | [0.504, 0.882] | 6.93 | <0.001 |
-| ICC(2,1) | ICC(A,1) | absolute agreement, single | 0.746 | [0.494, 0.882] | 6.65 | <0.001 |
-| ICC(3,1) | ICC(C,1) | consistency, single | 0.738 | [0.484, 0.878] | 6.65 | <0.001 |
-| ICC(1,k) | ICC(k) | absolute agreement, average of k | 0.856 | [0.671, 0.937] | 6.93 | <0.001 |
-| ICC(2,k) | ICC(A,k) | absolute agreement, average of k | 0.855 | [0.662, 0.937] | 6.65 | <0.001 |
-| ICC(3,k) | ICC(C,k) | consistency, average of k | 0.850 | [0.652, 0.935] | 6.65 | <0.001 |
+| ICC(1,1) | ICC(1) | absolute agreement, single | 0.599 | [0.272, 0.803] | 3.98 | <0.001 |
+| ICC(2,1) | ICC(A,1) | absolute agreement, single | 0.595 | [0.255, 0.803] | 3.83 | 0.001 |
+| ICC(3,1) | ICC(C,1) | consistency, single | 0.586 | [0.247, 0.797] | 3.83 | 0.001 |
+| ICC(1,k) | ICC(k) | absolute agreement, average of k | 0.749 | [0.427, 0.891] | 3.98 | <0.001 |
+| ICC(2,k) | ICC(A,k) | absolute agreement, average of k | 0.746 | [0.406, 0.891] | 3.83 | 0.001 |
+| ICC(3,k) | ICC(C,k) | consistency, average of k | 0.739 | [0.396, 0.887] | 3.83 | 0.001 |
 
 ### SEM and MDC
 
 | SEM definition | SEM | MDC95 | MDC90 |
 |---|---|---|---|
-| sd_icc | 133.119 | 368.981 | 309.658 |
-| sqrt_mse (primary) | 135.186 | 374.709 | 314.466 |
-| agreement | 135.186 | 374.709 | 314.466 |
+| sd_icc | 180.612 | 500.623 | 420.136 |
+| sqrt_mse (primary) | 182.785 | 506.644 | 425.189 |
+| agreement | 182.785 | 506.644 | 425.189 |
 
 MDC = statistically detectable change for an individual, not a clinically important change.
 
 ### Agreement (session 2 − 1)
 
-Bland–Altman: bias 6.083 [-74.646, 86.812], LoA -368.626 [-508.551, -228.700] to 380.793 [240.867, 520.718]; proportional-bias slope 0.211 (p=0.198); n=24.
-Lin's CCC: 0.738 [0.496, 0.874] (precision r=0.751, accuracy C_b=0.983).
+Bland–Altman: bias -11.500 [-120.653, 97.653], LoA -518.144 [-707.337, -328.951] to 495.144 [305.951, 684.337]; proportional-bias slope -0.038 (p=0.862); n=24.
+Lin's CCC: 0.585 [0.248, 0.796] (precision r=0.586, accuracy C_b=0.999).
 
 ### Floor / ceiling (first session)
 
-Floor 4.2% at 1544.000; ceiling 4.2% at 2469.000 (flag > 15%).
+Floor 4.2% at 1675.000; ceiling 4.2% at 2632.000 (flag > 15%).
 > ⚠ theoretical bounds not supplied: observed min/max used
 
 ### Change over sessions (linear mixed model)
 
-`gridsession_index_ms ~ session_index`, random intercept; n = 24 subjects, 48 observations; variance-component ICC 0.738.
+`gridsession_index_ms ~ session_index`, random intercept; n = 24 subjects, 48 observations; variance-component ICC 0.586.
 
 | term | estimate | 95% CI | p |
 |---|---|---|---|
-| Intercept | 2043.917 | [1938.167, 2149.666] | <0.001 |
-| session_index | 6.083 | [-70.403, 82.570] | 0.876 |
+| Intercept | 2026.542 | [1912.955, 2140.128] | <0.001 |
+| session_index | -11.500 | [-114.918, 91.918] | 0.827 |
 
 ### Change thresholds (distribution-based estimate, not an MCID)
 
-- 0.2_sd: 47.763
-- 0.5_sd: 119.407
-- 1_sem: 135.186
-- mdc95: 374.709
+- 0.2_sd: 57.640
+- 0.5_sd: 144.101
+- 1_sem: 182.785
+- mdc95: 506.644
 
-## type_ccpm
+### type_ccpm
 
 ### Descriptives
 
 | session | n | mean | SD | median | min | max |
 |---|---|---|---|---|---|---|
-| 1 | 24 | 27.687 | 2.740 | 28.219 | 22.315 | 32.753 |
-| 2 | 24 | 28.264 | 3.250 | 29.204 | 20.138 | 33.333 |
+| 1 | 24 | 28.973 | 4.001 | 29.021 | 18.695 | 35.714 |
+| 2 | 24 | 29.683 | 3.444 | 30.019 | 23.576 | 38.369 |
 
 Missing cells: 0/48 (0.0%); monotone 0, intermittent 0 subjects.
 
@@ -306,57 +268,57 @@ two-way ANOVA mean squares; ICC per Shrout & Fleiss (1979) / McGraw & Wong (1996
 
 | form | M&W | type | ICC | 95% CI | F | p |
 |---|---|---|---|---|---|---|
-| ICC(1,1) | ICC(1) | absolute agreement, single | 0.851 | [0.689, 0.932] | 12.41 | <0.001 |
-| ICC(2,1) | ICC(A,1) | absolute agreement, single | 0.852 | [0.683, 0.934] | 13.56 | <0.001 |
-| ICC(3,1) | ICC(C,1) | consistency, single | 0.863 | [0.709, 0.938] | 13.56 | <0.001 |
-| ICC(1,k) | ICC(k) | absolute agreement, average of k | 0.919 | [0.816, 0.965] | 12.41 | <0.001 |
-| ICC(2,k) | ICC(A,k) | absolute agreement, average of k | 0.920 | [0.812, 0.966] | 13.56 | <0.001 |
-| ICC(3,k) | ICC(C,k) | consistency, average of k | 0.926 | [0.829, 0.968] | 13.56 | <0.001 |
+| ICC(1,1) | ICC(1) | absolute agreement, single | 0.866 | [0.719, 0.940] | 13.98 | <0.001 |
+| ICC(2,1) | ICC(A,1) | absolute agreement, single | 0.867 | [0.711, 0.941] | 15.48 | <0.001 |
+| ICC(3,1) | ICC(C,1) | consistency, single | 0.879 | [0.740, 0.946] | 15.48 | <0.001 |
+| ICC(1,k) | ICC(k) | absolute agreement, average of k | 0.928 | [0.837, 0.969] | 13.98 | <0.001 |
+| ICC(2,k) | ICC(A,k) | absolute agreement, average of k | 0.929 | [0.831, 0.970] | 15.48 | <0.001 |
+| ICC(3,k) | ICC(C,k) | consistency, average of k | 0.935 | [0.851, 0.972] | 15.48 | <0.001 |
 
 ### SEM and MDC
 
 | SEM definition | SEM | MDC95 | MDC90 |
 |---|---|---|---|
-| sd_icc | 1.157 | 3.208 | 2.692 |
-| sqrt_mse (primary) | 1.114 | 3.088 | 2.592 |
-| agreement | 1.165 | 3.228 | 2.709 |
+| sd_icc | 1.360 | 3.769 | 3.163 |
+| sqrt_mse (primary) | 1.300 | 3.605 | 3.025 |
+| agreement | 1.369 | 3.793 | 3.183 |
 
 MDC = statistically detectable change for an individual, not a clinically important change.
 
 ### Agreement (session 2 − 1)
 
-Bland–Altman: bias 0.577 [-0.088, 1.242], LoA -2.511 [-3.665, -1.358] to 3.665 [2.512, 4.819]; proportional-bias slope 0.181 (p=0.111); n=24.
-Lin's CCC: 0.846 [0.693, 0.926] (precision r=0.875, accuracy C_b=0.967).
+Bland–Altman: bias 0.710 [-0.067, 1.487], LoA -2.895 [-4.241, -1.549] to 4.315 [2.969, 5.661]; proportional-bias slope -0.159 (p=0.138); n=24.
+Lin's CCC: 0.862 [0.721, 0.935] (precision r=0.889, accuracy C_b=0.971).
 
 ### Floor / ceiling (first session)
 
-Floor 4.2% at 22.315; ceiling 4.2% at 32.753 (flag > 15%).
+Floor 4.2% at 18.695; ceiling 4.2% at 35.714 (flag > 15%).
 > ⚠ theoretical bounds not supplied: observed min/max used
 
 ### Change over sessions (linear mixed model)
 
-`type_ccpm ~ session_index`, random intercept; n = 24 subjects, 48 observations; variance-component ICC 0.863.
+`type_ccpm ~ session_index`, random intercept; n = 24 subjects, 48 observations; variance-component ICC 0.879.
 
 | term | estimate | 95% CI | p |
 |---|---|---|---|
-| Intercept | 27.687 | [26.485, 28.890] | <0.001 |
-| session_index | 0.577 | [-0.053, 1.207] | 0.073 |
+| Intercept | 28.973 | [27.479, 30.466] | <0.001 |
+| session_index | 0.710 | [-0.026, 1.446] | 0.059 |
 
 ### Change thresholds (distribution-based estimate, not an MCID)
 
-- 0.2_sd: 0.548
-- 0.5_sd: 1.370
-- 1_sem: 1.114
-- mdc95: 3.088
+- 0.2_sd: 0.800
+- 0.5_sd: 2.001
+- 1_sem: 1.300
+- mdc95: 3.605
 
-## iso_path_efficiency
+### iso_path_efficiency
 
 ### Descriptives
 
 | session | n | mean | SD | median | min | max |
 |---|---|---|---|---|---|---|
-| 1 | 24 | 0.587 | 0.093 | 0.606 | 0.348 | 0.750 |
-| 2 | 24 | 0.583 | 0.090 | 0.594 | 0.350 | 0.724 |
+| 1 | 24 | 0.600 | 0.070 | 0.616 | 0.466 | 0.770 |
+| 2 | 24 | 0.607 | 0.062 | 0.613 | 0.476 | 0.723 |
 
 Missing cells: 0/48 (0.0%); monotone 0, intermittent 0 subjects.
 
@@ -366,51 +328,51 @@ two-way ANOVA mean squares; ICC per Shrout & Fleiss (1979) / McGraw & Wong (1996
 
 | form | M&W | type | ICC | 95% CI | F | p |
 |---|---|---|---|---|---|---|
-| ICC(1,1) | ICC(1) | absolute agreement, single | 0.965 | [0.922, 0.985] | 56.38 | <0.001 |
-| ICC(2,1) | ICC(A,1) | absolute agreement, single | 0.965 | [0.922, 0.985] | 55.51 | <0.001 |
-| ICC(3,1) | ICC(C,1) | consistency, single | 0.965 | [0.920, 0.985] | 55.51 | <0.001 |
-| ICC(1,k) | ICC(k) | absolute agreement, average of k | 0.982 | [0.960, 0.992] | 56.38 | <0.001 |
-| ICC(2,k) | ICC(A,k) | absolute agreement, average of k | 0.982 | [0.959, 0.992] | 55.51 | <0.001 |
-| ICC(3,k) | ICC(C,k) | consistency, average of k | 0.982 | [0.958, 0.992] | 55.51 | <0.001 |
+| ICC(1,1) | ICC(1) | absolute agreement, single | 0.910 | [0.806, 0.960] | 21.23 | <0.001 |
+| ICC(2,1) | ICC(A,1) | absolute agreement, single | 0.910 | [0.806, 0.960] | 21.66 | <0.001 |
+| ICC(3,1) | ICC(C,1) | consistency, single | 0.912 | [0.807, 0.961] | 21.66 | <0.001 |
+| ICC(1,k) | ICC(k) | absolute agreement, average of k | 0.953 | [0.892, 0.980] | 21.23 | <0.001 |
+| ICC(2,k) | ICC(A,k) | absolute agreement, average of k | 0.953 | [0.893, 0.980] | 21.66 | <0.001 |
+| ICC(3,k) | ICC(C,k) | consistency, average of k | 0.954 | [0.893, 0.980] | 21.66 | <0.001 |
 
 ### SEM and MDC
 
 | SEM definition | SEM | MDC95 | MDC90 |
 |---|---|---|---|
-| sd_icc | 0.017 | 0.048 | 0.040 |
-| sqrt_mse (primary) | 0.017 | 0.048 | 0.040 |
-| agreement | 0.017 | 0.048 | 0.040 |
+| sd_icc | 0.020 | 0.055 | 0.046 |
+| sqrt_mse (primary) | 0.020 | 0.054 | 0.046 |
+| agreement | 0.020 | 0.055 | 0.046 |
 
 MDC = statistically detectable change for an individual, not a clinically important change.
 
 ### Agreement (session 2 − 1)
 
-Bland–Altman: bias -0.004 [-0.014, 0.006], LoA -0.052 [-0.070, -0.034] to 0.044 [0.026, 0.062]; proportional-bias slope -0.037 (p=0.526); n=24.
-Lin's CCC: 0.964 [0.919, 0.984] (precision r=0.965, accuracy C_b=0.998).
+Bland–Altman: bias 0.007 [-0.005, 0.019], LoA -0.047 [-0.068, -0.027] to 0.061 [0.041, 0.082]; proportional-bias slope -0.139 (p=0.123); n=24.
+Lin's CCC: 0.907 [0.805, 0.956] (precision r=0.920, accuracy C_b=0.986).
 
 ### Floor / ceiling (first session)
 
-Floor 4.2% at 0.348; ceiling 4.2% at 0.750 (flag > 15%).
+Floor 4.2% at 0.466; ceiling 4.2% at 0.770 (flag > 15%).
 > ⚠ theoretical bounds not supplied: observed min/max used
 
 ### Change over sessions (linear mixed model)
 
-`iso_path_efficiency ~ session_index`, random intercept; n = 24 subjects, 48 observations; variance-component ICC 0.965.
+`iso_path_efficiency ~ session_index`, random intercept; n = 24 subjects, 48 observations; variance-component ICC 0.912.
 
 | term | estimate | 95% CI | p |
 |---|---|---|---|
-| Intercept | 0.587 | [0.551, 0.624] | <0.001 |
-| session_index | -0.004 | [-0.014, 0.006] | 0.427 |
+| Intercept | 0.600 | [0.574, 0.627] | <0.001 |
+| session_index | 0.007 | [-0.004, 0.018] | 0.223 |
 > ⚠ The MLE may be on the boundary of the parameter space.
 
 ### Change thresholds (distribution-based estimate, not an MCID)
 
-- 0.2_sd: 0.019
-- 0.5_sd: 0.047
-- 1_sem: 0.017
-- mdc95: 0.048
+- 0.2_sd: 0.014
+- 0.5_sd: 0.035
+- 1_sem: 0.020
+- mdc95: 0.054
 
-## Notes
+### Notes
 
 **Internal consistency:** Internal-consistency coefficients (Cronbach alpha, McDonald omega) are only meaningful for a set of items that are intended to measure ONE construct (a reflective, unidimensional scale, e.g. the items of a questionnaire). They are NOT appropriate for an arbitrary set of task metrics (e.g. throughput, error rate, path efficiency, latency): such metrics are formative/heterogeneous, may legitimately be uncorrelated, and a low or high alpha says nothing about the reliability of any single metric. Use test-retest ICC for task metrics.
 
@@ -441,12 +403,12 @@ Means with t-based 95% CIs; longitudinal change by linear mixed models with part
 | field | value |
 |---|---|
 | report_type | evidence_package |
-| generated_utc | 2026-11-27T07:15:31Z |
+| generated_utc | 2026-11-27T07:54:17Z |
 | software_version | 0.1.0 |
 | battery_version | 1.0.0 |
 | analysis_version | evidence-reports-0.1 |
 | instrument_versions | {"NM-CPB": "0.1 (original, unvalidated)"} |
-| data_sha256 | b71e8e3e39e180b3c9c16d5c48ca619a438eae24c47f9708bebb13aeb38c1ae9 |
+| data_sha256 | 1a60811c630c82b18d3e0c079aae9e789267222c0c33191df78dc423814ff3ae |
 | audit_chain_head | n/a |
 | review_history | [] |
 | synthetic | true |

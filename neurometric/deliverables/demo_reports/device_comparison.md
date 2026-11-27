@@ -29,23 +29,23 @@ Task metrics follow docs/science/METRICS.md (battery v1, experimental): Fitts ef
 | visit | modality | metric | n | mean | ci95_lo | ci95_hi |
 |---|---|---|---|---|---|---|
 | baseline | bci_cursor_sim | adl_completion_rate | 24 | 1 | 1 | 1 |
-| baseline | bci_cursor_sim | adl_time_s | 24 | 24.6 | 17.2 | 32.1 |
-| baseline | bci_cursor_sim | grid_accuracy | 24 | 0.87 | 0.796 | 0.944 |
-| baseline | bci_cursor_sim | grid_bitrate_bps | 24 | 0.888 | 0.735 | 1.04 |
-| baseline | bci_cursor_sim | iso_tp_bps | 24 | 0.397 | 0.338 | 0.456 |
-| baseline | bci_cursor_sim | type_ccpm | 24 | 11.2 | 9.9 | 12.5 |
+| baseline | bci_cursor_sim | adl_time_s | 24 | 17.3 | 14.8 | 19.9 |
+| baseline | bci_cursor_sim | grid_accuracy | 24 | 0.969 | 0.945 | 0.992 |
+| baseline | bci_cursor_sim | grid_bitrate_bps | 24 | 1.2 | 1.08 | 1.32 |
+| baseline | bci_cursor_sim | iso_tp_bps | 0 |  |  |  |
+| baseline | bci_cursor_sim | type_ccpm | 24 | 12.8 | 11.4 | 14.3 |
 | week12 | bci_cursor_sim | adl_completion_rate | 24 | 1 | 1 | 1 |
-| week12 | bci_cursor_sim | adl_time_s | 24 | 11 | 9.98 | 12.1 |
-| week12 | bci_cursor_sim | grid_accuracy | 24 | 1 | 1 | 1 |
-| week12 | bci_cursor_sim | grid_bitrate_bps | 24 | 2.05 | 1.89 | 2.2 |
-| week12 | bci_cursor_sim | iso_tp_bps | 24 | 1.08 | 0.958 | 1.19 |
-| week12 | bci_cursor_sim | type_ccpm | 24 | 25.7 | 23.8 | 27.6 |
+| week12 | bci_cursor_sim | adl_time_s | 24 | 9.78 | 9.06 | 10.5 |
+| week12 | bci_cursor_sim | grid_accuracy | 24 | 0.99 | 0.975 | 1 |
+| week12 | bci_cursor_sim | grid_bitrate_bps | 24 | 2.12 | 1.94 | 2.29 |
+| week12 | bci_cursor_sim | iso_tp_bps | 0 |  |  |  |
+| week12 | bci_cursor_sim | type_ccpm | 24 | 27.8 | 26 | 29.6 |
 | week4 | bci_cursor_sim | adl_completion_rate | 24 | 1 | 1 | 1 |
-| week4 | bci_cursor_sim | adl_time_s | 24 | 11 | 9.89 | 12.1 |
-| week4 | bci_cursor_sim | grid_accuracy | 24 | 0.995 | 0.984 | 1.01 |
-| week4 | bci_cursor_sim | grid_bitrate_bps | 24 | 1.88 | 1.72 | 2.04 |
-| week4 | bci_cursor_sim | iso_tp_bps | 24 | 0.93 | 0.846 | 1.01 |
-| week4 | bci_cursor_sim | type_ccpm | 24 | 24.6 | 22.7 | 26.4 |
+| week4 | bci_cursor_sim | adl_time_s | 24 | 10 | 9.22 | 10.8 |
+| week4 | bci_cursor_sim | grid_accuracy | 24 | 1 | 1 | 1 |
+| week4 | bci_cursor_sim | grid_bitrate_bps | 24 | 2.17 | 1.98 | 2.35 |
+| week4 | bci_cursor_sim | iso_tp_bps | 0 |  |  |  |
+| week4 | bci_cursor_sim | type_ccpm | 24 | 27.3 | 25.3 | 29.3 |
 
 Comparisons across modalities are confounded with task–modality fit (e.g., dwell time inside movement time; scanning has no Fitts throughput). Compare within task and use metrics defined for every modality.
 
@@ -62,12 +62,12 @@ Comparisons across modalities are confounded with task–modality fit (e.g., dwe
 | field | value |
 |---|---|
 | report_type | device_comparison |
-| generated_utc | 2026-11-27T07:15:31Z |
+| generated_utc | 2026-11-27T07:54:17Z |
 | software_version | 0.1.0 |
 | battery_version | 1.0.0 |
 | analysis_version | evidence-reports-0.1 |
 | instrument_versions | {"NM-CPB": "0.1 (original, unvalidated)"} |
-| data_sha256 | b71e8e3e39e180b3c9c16d5c48ca619a438eae24c47f9708bebb13aeb38c1ae9 |
+| data_sha256 | 1a60811c630c82b18d3e0c079aae9e789267222c0c33191df78dc423814ff3ae |
 | audit_chain_head | n/a |
 | review_history | [] |
 | synthetic | true |

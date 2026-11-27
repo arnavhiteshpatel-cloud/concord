@@ -1,14 +1,14 @@
 {
   "provenance": {
     "report_type": "psychometric_validation",
-    "generated_utc": "2026-11-27T07:15:31Z",
+    "generated_utc": "2026-11-27T07:54:17Z",
     "software_version": "0.1.0",
     "battery_version": "1.0.0",
     "analysis_version": "evidence-reports-0.1",
     "instrument_versions": {
       "NM-CPB": "0.1 (original, unvalidated)"
     },
-    "data_sha256": "b71e8e3e39e180b3c9c16d5c48ca619a438eae24c47f9708bebb13aeb38c1ae9",
+    "data_sha256": "1a60811c630c82b18d3e0c079aae9e789267222c0c33191df78dc423814ff3ae",
     "audit_chain_head": "n/a",
     "review_history": [],
     "synthetic": true
@@ -49,24 +49,24 @@
           "per_session": [
             {
               "session": "1",
-              "n": 24,
-              "mean": 1.1291186344921809,
-              "sd": 0.2083341923956996,
-              "median": 1.1159619980301396,
-              "min": 0.7507213004230614,
-              "max": 1.5283283070793414
+              "n": 0,
+              "mean": null,
+              "sd": null,
+              "median": null,
+              "min": null,
+              "max": null
             },
             {
               "session": "2",
-              "n": 24,
-              "mean": 1.0837800152197696,
-              "sd": 0.20167905930602056,
-              "median": 1.1093176961277273,
-              "min": 0.6245557657279932,
-              "max": 1.422118426335928
+              "n": 0,
+              "mean": null,
+              "sd": null,
+              "median": null,
+              "min": null,
+              "max": null
             }
           ],
-          "n": 48,
+          "n": 0,
           "method": "per-session descriptive statistics (SD with ddof=1)",
           "assumptions": [],
           "warnings": []
@@ -80,21 +80,21 @@
           "per_variable": {
             "iso_tp_bps": {
               "n_cells": 48,
-              "n_missing": 0,
-              "prop_missing": 0.0,
+              "n_missing": 48,
+              "prop_missing": 1.0,
               "prop_missing_by_session": {
-                "1": 0.0,
-                "2": 0.0
+                "1": 1.0,
+                "2": 1.0
               },
-              "subjects_complete": 24,
+              "subjects_complete": 0,
               "subjects_monotone": 0,
               "subjects_intermittent": 0,
-              "subjects_all_missing": 0
+              "subjects_all_missing": 24
             }
           },
           "patterns": {
             "iso_tp_bps": {
-              "XX": 24
+              "..": 24
             }
           },
           "pattern_legend": "X = observed, . = missing, in session order",
@@ -108,177 +108,31 @@
         },
         "reliability": {
           "icc": {
-            "method": "two-way ANOVA mean squares; ICC per Shrout & Fleiss (1979) / McGraw & Wong (1996); 95% CI F-based (McGraw & Wong 1996); agreement forms also get a generalized CI (gci_low/gci_high, 10000 draws, seed 0)",
-            "alpha": 0.05,
-            "missing": "complete_case",
-            "table": [
-              {
-                "form": "ICC(1,1)",
-                "key": "1,1",
-                "mw_label": "ICC(1)",
-                "model": "one-way random",
-                "type": "absolute agreement",
-                "unit": "single",
-                "icc": 0.49465644229654987,
-                "ci_low": 0.1289432638170054,
-                "ci_high": 0.7435728257403547,
-                "gci_low": null,
-                "gci_high": null,
-                "F": 2.9577035652518533,
-                "df1": 23.0,
-                "df2": 24.0,
-                "p": 0.005339834109093637
-              },
-              {
-                "form": "ICC(2,1)",
-                "key": "2,1",
-                "mw_label": "ICC(A,1)",
-                "model": "two-way random",
-                "type": "absolute agreement",
-                "unit": "single",
-                "icc": 0.4955381592619869,
-                "ci_low": 0.13122575682145213,
-                "ci_high": 0.7438657216872298,
-                "gci_low": 0.012617472766575578,
-                "gci_high": 0.7135675814495558,
-                "F": 2.978305756772316,
-                "df1": 23.0,
-                "df2": 23.0,
-                "p": 0.005717758267109495
-              },
-              {
-                "form": "ICC(3,1)",
-                "key": "3,1",
-                "mw_label": "ICC(C,1)",
-                "model": "two-way mixed",
-                "type": "consistency",
-                "unit": "single",
-                "icc": 0.497273431888593,
-                "ci_low": 0.12602493844241452,
-                "ci_high": 0.7463465175226316,
-                "gci_low": null,
-                "gci_high": null,
-                "F": 2.978305756772316,
-                "df1": 23.0,
-                "df2": 23.0,
-                "p": 0.005717758267109495
-              },
-              {
-                "form": "ICC(1,k)",
-                "key": "1,k",
-                "mw_label": "ICC(k)",
-                "model": "one-way random",
-                "type": "absolute agreement",
-                "unit": "average of k",
-                "icc": 0.6618998564466184,
-                "ci_low": 0.22843178740629133,
-                "ci_high": 0.8529300465836513,
-                "gci_low": null,
-                "gci_high": null,
-                "F": 2.9577035652518533,
-                "df1": 23.0,
-                "df2": 24.0,
-                "p": 0.005339834109093637
-              },
-              {
-                "form": "ICC(2,k)",
-                "key": "2,k",
-                "mw_label": "ICC(A,k)",
-                "model": "two-way random",
-                "type": "absolute agreement",
-                "unit": "average of k",
-                "icc": 0.6626887534672112,
-                "ci_low": 0.23200631002280878,
-                "ci_high": 0.8531227059931228,
-                "gci_low": 0.024920510293056006,
-                "gci_high": 0.8328443975190792,
-                "F": 2.978305756772316,
-                "df1": 23.0,
-                "df2": 23.0,
-                "p": 0.005717758267109495
-              },
-              {
-                "form": "ICC(3,k)",
-                "key": "3,k",
-                "mw_label": "ICC(C,k)",
-                "model": "two-way mixed",
-                "type": "consistency",
-                "unit": "average of k",
-                "icc": 0.6642386371089946,
-                "ci_low": 0.22384040377780579,
-                "ci_high": 0.8547519178283121,
-                "gci_low": null,
-                "gci_high": null,
-                "F": 2.978305756772316,
-                "df1": 23.0,
-                "df2": 23.0,
-                "p": 0.005717758267109495
-              }
-            ],
-            "n_subjects_total": 24,
-            "n_subjects_used": 24,
-            "n_subjects_dropped": 0,
-            "k": 2,
-            "n": 24,
-            "mean_squares": {
-              "n": 24.0,
-              "k": 2.0,
-              "SST": 1.958451394496128,
-              "SSR": 1.4477019349777192,
-              "SSC": 0.024667084770344145,
-              "SSE": 0.48608237474806465,
-              "SSW": 0.5107494595184088,
-              "df_R": 23.0,
-              "df_C": 1.0,
-              "df_E": 23.0,
-              "df_W": 24.0,
-              "MSR": 0.06294356239033562,
-              "MSC": 0.024667084770344145,
-              "MSE": 0.021134016293394117,
-              "MSW": 0.0212812274799337
-            },
-            "assumptions": [
-              "scores are interval-scaled and approximately normal",
-              "subject and error effects independent; homoscedastic error",
-              "no subject x session interaction (two-way models)",
-              "sessions treated as random (A forms, ICC(1)) or fixed (C forms)"
-            ],
-            "warnings": []
+            "error": "ValueError: fewer than 2 complete subjects",
+            "method": "icc",
+            "n": null,
+            "assumptions": [],
+            "warnings": [
+              "analysis failed: fewer than 2 complete subjects"
+            ]
+          },
+          "icc_mixed": {
+            "error": "ValueError: zero-size array to reduction operation maximum which has no identity",
+            "method": "icc_mixed",
+            "n": null,
+            "assumptions": [],
+            "warnings": [
+              "analysis failed: zero-size array to reduction operation maximum which has no identity"
+            ]
           },
           "sem_mdc": {
-            "sem": 0.14537543222083338,
-            "mdc95": 0.40295273496268075,
-            "mdc90": 0.3381685953524906,
-            "primary": "sqrt_mse",
-            "primary_definition": "sqrt(MS_error) [consistency SEM]",
-            "by_definition": {
-              "sd_icc": {
-                "sem": 0.14562611391434818,
-                "mdc95": 0.403647576398154,
-                "mdc90": 0.3387517246672686
-              },
-              "sqrt_mse": {
-                "sem": 0.14537543222083338,
-                "mdc95": 0.40295273496268075,
-                "mdc90": 0.3381685953524906
-              },
-              "agreement": {
-                "sem": 0.1458808674224749,
-                "mdc95": 0.40435370412051264,
-                "mdc90": 0.3393443257325811
-              }
-            },
-            "sd_pooled": 0.20503362978268924,
-            "icc_form": "ICC(2,1)",
-            "icc": 0.4955381592619869,
-            "n": 24,
-            "k": 2,
-            "method": "SEM from two-way ANOVA; MDC = z*sqrt(2)*SEM",
-            "assumptions": [
-              "homoscedastic measurement error (same SEM at all score levels)",
-              "normally distributed error (for the z multipliers)"
-            ],
-            "warnings": []
+            "error": "ValueError: need at least 2 subjects and 2 sessions",
+            "method": "sem_mdc",
+            "n": null,
+            "assumptions": [],
+            "warnings": [
+              "analysis failed: need at least 2 subjects and 2 sessions"
+            ]
           }
         },
         "agreement": {
@@ -287,153 +141,51 @@
             "2"
           ],
           "bland_altman": {
-            "bias": -0.04533861927241126,
-            "bias_ci": [
-              -0.13215246818418075,
-              0.04147522963935822
-            ],
-            "sd_diff": 0.20559190788255324,
-            "loa_z": 1.959963984540054,
-            "loa_low": -0.44829135423509203,
-            "loa_high": 0.3576141156902696,
-            "loa_low_ci": [
-              -0.5987635570617375,
-              -0.2978191514084466
-            ],
-            "loa_high_ci": [
-              0.20714191286362413,
-              0.508086318516915
-            ],
-            "loa_se": 0.07273905651122432,
-            "loa_ci_method": "ba1999",
-            "proportional_bias": {
-              "slope": -0.04335141919177426,
-              "intercept": 0.002627529223875741,
-              "slope_ci": [
-                -0.5554011191712491,
-                0.46869828078770065
-              ],
-              "p": 0.862230491636456
-            },
-            "shapiro_p_diff": 0.19371959191454957,
-            "n": 24,
-            "n_dropped": 0,
-            "alpha": 0.05,
-            "method": "Bland-Altman (1986, 1999): bias, LoA = bias +/- z*SD(d), LoA CI method 'ba1999'; proportional bias by OLS of d on mean",
-            "assumptions": [
-              "one independent pair per subject",
-              "differences approx. normal",
-              "bias and SD of differences constant over the measurement range"
-            ],
-            "warnings": []
+            "error": "ValueError: need at least 3 complete pairs",
+            "method": "bland_altman",
+            "n": null,
+            "assumptions": [],
+            "warnings": [
+              "analysis failed: need at least 3 complete pairs"
+            ]
           },
           "lin_ccc": {
-            "ccc": 0.4849027278417293,
-            "ci_low": 0.12052553632147472,
-            "ci_high": 0.7341335403457174,
-            "pearson_r": 0.4975355260765175,
-            "accuracy_cb": 0.9746092538669381,
-            "location_shift_u": -0.2259432194852711,
-            "scale_shift_v": 0.9680554928926951,
-            "se_z": 0.2082998047941054,
-            "n": 24,
-            "n_dropped": 0,
-            "alpha": 0.05,
-            "method": "Lin (1989) CCC, 1/n moments; Fisher-z CI with Lin's asymptotic variance",
-            "assumptions": [
-              "paired continuous measurements",
-              "approx. bivariate normal"
-            ],
-            "warnings": []
+            "error": "ValueError: need at least 4 complete pairs",
+            "method": "lin_ccc",
+            "n": null,
+            "assumptions": [],
+            "warnings": [
+              "analysis failed: need at least 4 complete pairs"
+            ]
           },
           "note": "differences are session2 - session1 (positive = higher at retest)"
         },
         "change_over_sessions": {
-          "fixed_effects": [
-            {
-              "term": "Intercept",
-              "estimate": 1.1291186344921813,
-              "se": 0.04185229035451417,
-              "z": 26.978658155333072,
-              "p": 2.6311216934289762e-160,
-              "ci_low": 1.0470896527268205,
-              "ci_high": 1.211147616257542
-            },
-            {
-              "term": "session_index",
-              "estimate": -0.04533861927241107,
-              "se": 0.041966320996508176,
-              "z": -1.0803572530502135,
-              "p": 0.27998312358442,
-              "ci_low": -0.12759109698921417,
-              "ci_high": 0.036913858444392024
-            }
-          ],
-          "variance_components": {
-            "subject_intercept": 0.020904675814261853,
-            "residual": 0.021134065175783562
-          },
-          "icc": 0.49727169087228346,
-          "icc_definition": "tau0^2 / (tau0^2 + sigma^2)",
-          "n_observations": 48,
-          "n_subjects": 24,
-          "n_rows_dropped_missing": 0,
-          "obs_per_subject": {
-            "min": 2,
-            "max": 2,
-            "mean": 2.0
-          },
-          "converged": true,
-          "reml": true,
-          "loglik": 7.70823770265136,
-          "formula": "iso_tp_bps ~ session_index",
-          "random_effects": "intercept",
-          "alpha": 0.05,
-          "method": "linear mixed model (REML), statsmodels MixedLM; Wald CIs for fixed effects",
-          "assumptions": [
-            "normal random effects and residuals",
-            "missing at random (MAR)",
-            "linear time trend",
-            "homoscedastic residuals, conditional independence given random effects"
-          ],
+          "error": "ValueError: zero-size array to reduction operation maximum which has no identity",
+          "method": "fit_repeated_measures_lmm",
+          "n": null,
+          "assumptions": [],
           "warnings": [
-            "Random effects covariance is singular"
-          ],
-          "n": 24
+            "analysis failed: zero-size array to reduction operation maximum which has no identity"
+          ]
         },
         "floor_ceiling": {
-          "floor_value": 0.7507213004230614,
-          "ceiling_value": 1.5283283070793414,
-          "prop_floor": 0.041666666666666664,
-          "prop_ceiling": 0.041666666666666664,
-          "floor_flag": false,
-          "ceiling_flag": false,
-          "threshold": 0.15,
-          "n": 24,
-          "method": "proportion at bound; flag > threshold (Terwee et al. 2007)",
-          "assumptions": [
-            "bounds are the true scale limits"
-          ],
+          "error": "ValueError: zero-size array to reduction operation minimum which has no identity",
+          "method": "floor_ceiling",
+          "n": null,
+          "assumptions": [],
           "warnings": [
-            "theoretical bounds not supplied: observed min/max used"
+            "analysis failed: zero-size array to reduction operation minimum which has no identity"
           ]
         },
         "change_thresholds": {
           "estimates": {
             "0.2_sd": {
-              "value": 0.04166683847913993,
+              "value": null,
               "label": "distribution-based estimate, not an MCID"
             },
             "0.5_sd": {
-              "value": 0.1041670961978498,
-              "label": "distribution-based estimate, not an MCID"
-            },
-            "1_sem": {
-              "value": 0.14537543222083338,
-              "label": "distribution-based estimate, not an MCID"
-            },
-            "mdc95": {
-              "value": 0.40295273496268075,
+              "value": null,
               "label": "distribution-based estimate, not an MCID"
             }
           },
@@ -447,20 +199,20 @@
             {
               "session": "1",
               "n": 24,
-              "mean": 2.2262875471331207,
-              "sd": 0.29476461038802304,
-              "median": 2.2595355504672403,
-              "min": 1.5816650196003543,
-              "max": 2.929768106254542
+              "mean": 2.272931365509549,
+              "sd": 0.30108797729271,
+              "median": 2.339029420182539,
+              "min": 1.7186785547329075,
+              "max": 2.700634003616127
             },
             {
               "session": "2",
               "n": 24,
-              "mean": 2.222531369427617,
-              "sd": 0.26996998590697807,
-              "median": 2.249040329480443,
-              "min": 1.6401602451258206,
-              "max": 2.6925964024148885
+              "mean": 2.2649109672405006,
+              "sd": 0.31225109573428683,
+              "median": 2.2879688520479022,
+              "min": 1.6301124165971217,
+              "max": 2.9146662087996216
             }
           ],
           "n": 48,
@@ -516,15 +268,15 @@
                 "model": "one-way random",
                 "type": "absolute agreement",
                 "unit": "single",
-                "icc": 0.6151806237427473,
-                "ci_low": 0.29558276930374683,
-                "ci_high": 0.8121902147789692,
+                "icc": 0.7203959530666035,
+                "ci_low": 0.4589072679766888,
+                "ci_high": 0.86794418337026,
                 "gci_low": null,
                 "gci_high": null,
-                "F": 4.197243494992297,
+                "F": 6.152972290406132,
                 "df1": 23.0,
                 "df2": 24.0,
-                "p": 0.0004400231010355572
+                "p": 1.8104536321050967e-05
               },
               {
                 "form": "ICC(2,1)",
@@ -533,15 +285,15 @@
                 "model": "two-way random",
                 "type": "absolute agreement",
                 "unit": "single",
-                "icc": 0.6119523850505906,
-                "ci_low": 0.2786700893431169,
-                "ci_high": 0.8123622908929926,
-                "gci_low": 0.2582082843638925,
-                "gci_high": 0.80053081405912,
-                "F": 4.023289284604623,
+                "icc": 0.7187368030680867,
+                "ci_low": 0.4476962336805451,
+                "ci_high": 0.8682258657234464,
+                "gci_low": 0.3740442437308925,
+                "gci_high": 0.8588492880240021,
+                "F": 5.903859900674975,
                 "df1": 23.0,
                 "df2": 23.0,
-                "p": 0.000729041397660148
+                "p": 3.473606102242217e-05
               },
               {
                 "form": "ICC(3,1)",
@@ -550,15 +302,15 @@
                 "model": "two-way mixed",
                 "type": "consistency",
                 "unit": "single",
-                "icc": 0.6018545047505824,
-                "ci_low": 0.27019220795011695,
-                "ci_high": 0.8058327611397099,
+                "icc": 0.7103069835173704,
+                "ci_low": 0.43724899165600994,
+                "ci_high": 0.8634588807121997,
                 "gci_low": null,
                 "gci_high": null,
-                "F": 4.023289284604623,
+                "F": 5.903859900674975,
                 "df1": 23.0,
                 "df2": 23.0,
-                "p": 0.000729041397660148
+                "p": 3.473606102242217e-05
               },
               {
                 "form": "ICC(1,k)",
@@ -567,15 +319,15 @@
                 "model": "one-way random",
                 "type": "absolute agreement",
                 "unit": "average of k",
-                "icc": 0.7617483948231516,
-                "ci_low": 0.4562931466935063,
-                "ci_high": 0.896363094950307,
+                "icc": 0.8374769212662918,
+                "ci_low": 0.629110949064134,
+                "ci_high": 0.9293041955935338,
                 "gci_low": null,
                 "gci_high": null,
-                "F": 4.197243494992297,
+                "F": 6.152972290406132,
                 "df1": 23.0,
                 "df2": 24.0,
-                "p": 0.0004400231010355572
+                "p": 1.8104536321050967e-05
               },
               {
                 "form": "ICC(2,k)",
@@ -584,15 +336,15 @@
                 "model": "two-way random",
                 "type": "absolute agreement",
                 "unit": "average of k",
-                "icc": 0.7592685624288891,
-                "ci_low": 0.4358748854229887,
-                "ci_high": 0.8964678805943628,
-                "gci_low": 0.4104380461149229,
-                "gci_high": 0.889216455166128,
-                "F": 4.023289284604623,
+                "icc": 0.8363547016449318,
+                "ci_low": 0.6184947135523676,
+                "ci_high": 0.9294656300963238,
+                "gci_low": 0.5444427942107718,
+                "gci_high": 0.9240655426331751,
+                "F": 5.903859900674975,
                 "df1": 23.0,
                 "df2": 23.0,
-                "p": 0.000729041397660148
+                "p": 3.473606102242217e-05
               },
               {
                 "form": "ICC(3,k)",
@@ -601,15 +353,15 @@
                 "model": "two-way mixed",
                 "type": "consistency",
                 "unit": "average of k",
-                "icc": 0.7514471544895952,
-                "ci_low": 0.42543515266270304,
-                "ci_high": 0.8924777293675047,
+                "icc": 0.8306192869031881,
+                "ci_low": 0.6084526678320479,
+                "ci_high": 0.9267270554230769,
                 "gci_low": null,
                 "gci_high": null,
-                "F": 4.023289284604623,
+                "F": 5.903859900674975,
                 "df1": 23.0,
                 "df2": 23.0,
-                "p": 0.000729041397660148
+                "p": 3.473606102242217e-05
               }
             ],
             "n_subjects_total": 24,
@@ -620,19 +372,19 @@
             "mean_squares": {
               "n": 24.0,
               "k": 2.0,
-              "SST": 3.674878589491253,
-              "SSR": 2.9431748093430343,
-              "SSC": 0.00016930645146391994,
-              "SSE": 0.7315344736967545,
-              "SSW": 0.7317037801482185,
+              "SST": 4.328330409182728,
+              "SSR": 3.7007267515654023,
+              "SSC": 0.0007719214607297973,
+              "SSE": 0.6268317361565958,
+              "SSW": 0.6276036576173256,
               "df_R": 23.0,
               "df_C": 1.0,
               "df_E": 23.0,
               "df_W": 24.0,
-              "MSR": 0.12796412214534933,
-              "MSC": 0.00016930645146391994,
-              "MSE": 0.03180584668246759,
-              "MSW": 0.03048765750617577
+              "MSR": 0.16090116311153924,
+              "MSC": 0.0007719214607297973,
+              "MSE": 0.02725355374593895,
+              "MSW": 0.0261501524007219
             },
             "assumptions": [
               "scores are interval-scaled and approximately normal",
@@ -643,31 +395,31 @@
             "warnings": []
           },
           "sem_mdc": {
-            "sem": 0.1783419375314387,
-            "mdc95": 0.4943295465335045,
-            "mdc90": 0.4148544330092484,
+            "sem": 0.16508650382735396,
+            "mdc95": 0.4575880340056952,
+            "mdc90": 0.3840199836939809,
             "primary": "sqrt_mse",
             "primary_definition": "sqrt(MS_error) [consistency SEM]",
             "by_definition": {
               "sd_icc": {
-                "sem": 0.17606583334675674,
-                "mdc95": 0.48802062354516645,
-                "mdc90": 0.4095598179339818
+                "sem": 0.16266683309936486,
+                "mdc95": 0.45088117217452106,
+                "mdc90": 0.37839140781427766
               },
               "sqrt_mse": {
-                "sem": 0.1783419375314387,
-                "mdc95": 0.4943295465335045,
-                "mdc90": 0.4148544330092484
+                "sem": 0.16508650382735396,
+                "mdc95": 0.4575880340056952,
+                "mdc90": 0.3840199836939809
               },
               "agreement": {
-                "sem": 0.1783419375314387,
-                "mdc95": 0.4943295465335045,
-                "mdc90": 0.4148544330092484
+                "sem": 0.16508650382735396,
+                "mdc95": 0.4575880340056952,
+                "mdc90": 0.3840199836939809
               }
             },
-            "sd_pooled": 0.28263931859157254,
+            "sd_pooled": 0.30672032607693134,
             "icc_form": "ICC(2,1)",
-            "icc": 0.6119523850505906,
+            "icc": 0.7187368030680867,
             "n": 24,
             "k": 2,
             "method": "SEM from two-way ANOVA; MDC = z*sqrt(2)*SEM",
@@ -684,35 +436,35 @@
             "2"
           ],
           "bland_altman": {
-            "bias": -0.0037561777055041636,
+            "bias": -0.008020398269048481,
             "bias_ci": [
-              -0.11025663505903893,
-              0.1027442796480306
+              -0.10660510809037077,
+              0.09056431155227382
             ],
-            "sd_diff": 0.25221358679685596,
+            "sd_diff": 0.23346757267740198,
             "loa_z": 1.959963984540054,
-            "loa_low": -0.49808572423900876,
-            "loa_high": 0.4905733688280004,
+            "loa_low": -0.4656084322747439,
+            "loa_high": 0.44956763573664693,
             "loa_low_ci": [
-              -0.6826802171789366,
-              -0.31349123129908096
+              -0.6364827643979093,
+              -0.2947341001515785
             ],
             "loa_high_ci": [
-              0.3059788758880726,
-              0.6751678617679282
+              0.27869330361348155,
+              0.6204419678598123
             ],
-            "loa_se": 0.08923395152982055,
+            "loa_se": 0.08260155342408321,
             "loa_ci_method": "ba1999",
             "proportional_bias": {
-              "slope": -0.10942428246164485,
-              "intercept": 0.23964823116772138,
+              "slope": 0.04255268628668037,
+              "intercept": -0.10456908887101382,
               "slope_ci": [
-                -0.5476311028093059,
-                0.3287825378860162
+                -0.3209031826957857,
+                0.4060085552691464
               ],
-              "p": 0.6097211686400442
+              "p": 0.8104059606818623
             },
-            "shapiro_p_diff": 0.8606119574637734,
+            "shapiro_p_diff": 0.06497526967890126,
             "n": 24,
             "n_dropped": 0,
             "alpha": 0.05,
@@ -725,14 +477,14 @@
             "warnings": []
           },
           "lin_ccc": {
-            "ccc": 0.6017990508607924,
-            "ci_low": 0.2735099389838828,
-            "ci_high": 0.804511654660724,
-            "pearson_r": 0.6041793056538958,
-            "accuracy_cb": 0.9960603503449572,
-            "location_shift_u": -0.013601675866511575,
-            "scale_shift_v": 0.9158833061797826,
-            "se_z": 0.21189639659719658,
+            "ccc": 0.7100536740955059,
+            "ci_low": 0.43828649629504596,
+            "ci_high": 0.8628710743252495,
+            "pearson_r": 0.7107777329107622,
+            "accuracy_cb": 0.9989813147180467,
+            "location_shift_u": -0.026720153262863176,
+            "scale_shift_v": 1.0370759355519676,
+            "se_z": 0.21285299380527634,
             "n": 24,
             "n_dropped": 0,
             "alpha": 0.05,
@@ -749,28 +501,28 @@
           "fixed_effects": [
             {
               "term": "Intercept",
-              "estimate": 2.226287547133122,
-              "se": 0.05769348493477212,
-              "z": 38.58819673746782,
-              "p": 0.0,
-              "ci_low": 2.1132103945183647,
-              "ci_high": 2.3393646997478794
+              "estimate": 2.2729313655095504,
+              "se": 0.0626090206147807,
+              "z": 36.3035764366031,
+              "p": 1.4207868022391096e-288,
+              "ci_low": 2.1502199399972546,
+              "ci_high": 2.3956427910218463
             },
             {
               "term": "session_index",
-              "estimate": -0.003756177705503884,
-              "se": 0.05148291897086105,
-              "z": -0.07295968800117672,
-              "p": 0.9418381962930887,
-              "ci_low": -0.10466084470738543,
-              "ci_high": 0.09714848929637768
+              "estimate": -0.008020398269048691,
+              "se": 0.04765637275312942,
+              "z": -0.16829644821262693,
+              "p": 0.8663500679275082,
+              "ci_low": -0.1014251724989983,
+              "ci_high": 0.08538437596090093
             }
           ],
           "variance_components": {
-            "subject_intercept": 0.04807902554492767,
-            "residual": 0.03180589134912295
+            "subject_intercept": 0.06682378872838621,
+            "residual": 0.027253558367822606
           },
-          "icc": 0.6018536090948644,
+          "icc": 0.7103068994924828,
           "icc_definition": "tau0^2 / (tau0^2 + sigma^2)",
           "n_observations": 48,
           "n_subjects": 24,
@@ -782,7 +534,7 @@
           },
           "converged": true,
           "reml": true,
-          "loglik": -5.151955627925005,
+          "loglik": -6.009558333848872,
           "formula": "grid_bitrate_bps ~ session_index",
           "random_effects": "intercept",
           "alpha": 0.05,
@@ -797,8 +549,8 @@
           "n": 24
         },
         "floor_ceiling": {
-          "floor_value": 1.5816650196003543,
-          "ceiling_value": 2.929768106254542,
+          "floor_value": 1.7186785547329075,
+          "ceiling_value": 2.700634003616127,
           "prop_floor": 0.041666666666666664,
           "prop_ceiling": 0.041666666666666664,
           "floor_flag": false,
@@ -816,19 +568,19 @@
         "change_thresholds": {
           "estimates": {
             "0.2_sd": {
-              "value": 0.05895292207760461,
+              "value": 0.060217595458541995,
               "label": "distribution-based estimate, not an MCID"
             },
             "0.5_sd": {
-              "value": 0.14738230519401152,
+              "value": 0.150543988646355,
               "label": "distribution-based estimate, not an MCID"
             },
             "1_sem": {
-              "value": 0.1783419375314387,
+              "value": 0.16508650382735396,
               "label": "distribution-based estimate, not an MCID"
             },
             "mdc95": {
-              "value": 0.4943295465335045,
+              "value": 0.4575880340056952,
               "label": "distribution-based estimate, not an MCID"
             }
           },
@@ -842,20 +594,20 @@
             {
               "session": "1",
               "n": 24,
-              "mean": 2043.9166666666667,
-              "sd": 238.8133556578855,
-              "median": 2002.0,
-              "min": 1544.0,
-              "max": 2469.0
+              "mean": 2026.5416666666667,
+              "sd": 288.2023714060278,
+              "median": 1934.0,
+              "min": 1675.0,
+              "max": 2632.0
             },
             {
               "session": "2",
               "n": 24,
-              "mean": 2050.0,
-              "sd": 287.5774375862885,
-              "median": 2011.5,
-              "min": 1559.0,
-              "max": 2758.0
+              "mean": 2015.0416666666667,
+              "sd": 279.556555554727,
+              "median": 1976.5,
+              "min": 1552.0,
+              "max": 2775.0
             }
           ],
           "n": 48,
@@ -911,15 +663,15 @@
                 "model": "one-way random",
                 "type": "absolute agreement",
                 "unit": "single",
-                "icc": 0.747718602731827,
-                "ci_low": 0.5044217014897114,
-                "ci_high": 0.88183883986999,
+                "icc": 0.5986621941705208,
+                "ci_low": 0.27153290153314674,
+                "ci_high": 0.803097521270356,
                 "gci_low": null,
                 "gci_high": null,
-                "F": 6.927655473835897,
+                "F": 3.983333169588718,
                 "df1": 23.0,
                 "df2": 24.0,
-                "p": 6.197944281311387e-06
+                "p": 0.0006569686037001676
               },
               {
                 "form": "ICC(2,1)",
@@ -928,15 +680,15 @@
                 "model": "two-way random",
                 "type": "absolute agreement",
                 "unit": "single",
-                "icc": 0.7463627947963838,
-                "ci_low": 0.4944540223198907,
-                "ci_high": 0.8821319850814998,
-                "gci_low": 0.4264478248499672,
-                "gci_high": 0.8736622144821411,
-                "F": 6.646017344708788,
+                "icc": 0.5953059944255279,
+                "ci_low": 0.2546834688887521,
+                "ci_high": 0.803209309746447,
+                "gci_low": 0.17714942139538528,
+                "gci_high": 0.788726739238862,
+                "F": 3.8252447073163864,
                 "df1": 23.0,
                 "df2": 23.0,
-                "p": 1.252101057748772e-05
+                "p": 0.001052707792991881
               },
               {
                 "form": "ICC(3,1)",
@@ -945,15 +697,15 @@
                 "model": "two-way mixed",
                 "type": "consistency",
                 "unit": "single",
-                "icc": 0.7384259138015107,
-                "ci_low": 0.48387388544591015,
-                "ci_high": 0.877774544424202,
+                "icc": 0.5855132493140803,
+                "ci_low": 0.2466404437259208,
+                "ci_high": 0.796801471178289,
                 "gci_low": null,
                 "gci_high": null,
-                "F": 6.646017344708788,
+                "F": 3.8252447073163864,
                 "df1": 23.0,
                 "df2": 23.0,
-                "p": 1.252101057748772e-05
+                "p": 0.001052707792991881
               },
               {
                 "form": "ICC(1,k)",
@@ -962,15 +714,15 @@
                 "model": "one-way random",
                 "type": "absolute agreement",
                 "unit": "average of k",
-                "icc": 0.8556510202078089,
-                "ci_low": 0.6705855160028893,
-                "ci_high": 0.9372097346347824,
+                "icc": 0.748953964575539,
+                "ci_low": 0.42709536057737363,
+                "ci_high": 0.8907976543659613,
                 "gci_low": null,
                 "gci_high": null,
-                "F": 6.927655473835897,
+                "F": 3.983333169588718,
                 "df1": 23.0,
                 "df2": 24.0,
-                "p": 6.197944281311387e-06
+                "p": 0.0006569686037001676
               },
               {
                 "form": "ICC(2,k)",
@@ -979,15 +731,15 @@
                 "model": "two-way random",
                 "type": "absolute agreement",
                 "unit": "average of k",
-                "icc": 0.8547625923093553,
-                "ci_low": 0.6617186142031098,
-                "ci_high": 0.9373752660000642,
-                "gci_low": 0.5979157691934339,
-                "gci_high": 0.9325717385912675,
-                "F": 6.646017344708788,
+                "icc": 0.7463220178520028,
+                "ci_low": 0.40597246270299575,
+                "ci_high": 0.8908664184518745,
+                "gci_low": 0.3009802949830264,
+                "gci_high": 0.8818862288292165,
+                "F": 3.8252447073163864,
                 "df1": 23.0,
                 "df2": 23.0,
-                "p": 1.252101057748772e-05
+                "p": 0.001052707792991881
               },
               {
                 "form": "ICC(3,k)",
@@ -996,15 +748,15 @@
                 "model": "two-way mixed",
                 "type": "consistency",
                 "unit": "average of k",
-                "icc": 0.8495339467032615,
-                "ci_low": 0.6521765632400817,
-                "ci_high": 0.9349094086195119,
+                "icc": 0.7385788161245366,
+                "ci_low": 0.3956881793258197,
+                "ci_high": 0.886910973704591,
                 "gci_low": null,
                 "gci_high": null,
-                "F": 6.646017344708788,
+                "F": 3.8252447073163864,
                 "df1": 23.0,
                 "df2": 23.0,
-                "p": 1.252101057748772e-05
+                "p": 0.001052707792991881
               }
             ],
             "n_subjects_total": 24,
@@ -1015,19 +767,19 @@
             "mean_squares": {
               "n": 24.0,
               "k": 2.0,
-              "SST": 3214293.9166666665,
-              "SSR": 2793519.9166666665,
-              "SSC": 444.08333333332223,
-              "SSE": 420329.9166666667,
-              "SSW": 420774.0,
+              "SST": 3709473.916666667,
+              "SSR": 2939451.916666667,
+              "SSC": 1587.0,
+              "SSE": 768435.0,
+              "SSW": 770022.0,
               "df_R": 23.0,
               "df_C": 1.0,
               "df_E": 23.0,
               "df_W": 24.0,
-              "MSR": 121457.38768115941,
-              "MSC": 444.08333333332223,
-              "MSE": 18275.213768115944,
-              "MSW": 17532.25
+              "MSR": 127802.25724637683,
+              "MSC": 1587.0,
+              "MSE": 33410.217391304344,
+              "MSW": 32084.25
             },
             "assumptions": [
               "scores are interval-scaled and approximately normal",
@@ -1038,31 +790,31 @@
             "warnings": []
           },
           "sem_mdc": {
-            "sem": 135.18584899358345,
-            "mdc95": 374.70917023633075,
-            "mdc90": 314.4658486466232,
+            "sem": 182.78462022638652,
+            "mdc95": 506.64380840810514,
+            "mdc90": 425.1888873499594,
             "primary": "sqrt_mse",
             "primary_definition": "sqrt(MS_error) [consistency SEM]",
             "by_definition": {
               "sd_icc": {
-                "sem": 133.11909424914404,
-                "mdc95": 368.9805236277079,
-                "mdc90": 309.65821686050765
+                "sem": 180.61246096227163,
+                "mdc95": 500.6230007456383,
+                "mdc90": 420.13606627829574
               },
               "sqrt_mse": {
-                "sem": 135.18584899358345,
-                "mdc95": 374.70917023633075,
-                "mdc90": 314.4658486466232
+                "sem": 182.78462022638652,
+                "mdc95": 506.64380840810514,
+                "mdc90": 425.1888873499594
               },
               "agreement": {
-                "sem": 135.18584899358345,
-                "mdc95": 374.70917023633075,
-                "mdc90": 314.4658486466232
+                "sem": 182.78462022638652,
+                "mdc95": 506.64380840810514,
+                "mdc90": 425.1888873499594
               }
             },
-            "sd_pooled": 264.32234246207355,
+            "sd_pooled": 283.912376128341,
             "icc_form": "ICC(2,1)",
-            "icc": 0.7463627947963838,
+            "icc": 0.5953059944255279,
             "n": 24,
             "k": 2,
             "method": "SEM from two-way ANOVA; MDC = z*sqrt(2)*SEM",
@@ -1079,35 +831,35 @@
             "2"
           ],
           "bland_altman": {
-            "bias": 6.083333333333333,
+            "bias": -11.5,
             "bias_ci": [
-              -74.64560201875965,
-              86.8122686854263
+              -120.65349424119985,
+              97.65349424119985
             ],
-            "sd_diff": 191.1816610876469,
+            "sd_diff": 258.4964889173713,
             "loa_z": 1.959963984540054,
-            "loa_low": -368.62583690299726,
-            "loa_high": 380.7925035696639,
+            "loa_low": -518.1438084081051,
+            "loa_high": 495.14380840810503,
             "loa_low_ci": [
-              -508.55121616621796,
-              -228.70045763977657
+              -707.3367416852772,
+              -328.950875130933
             ],
             "loa_high_ci": [
-              240.8671243064432,
-              520.7178828328846
+              305.95087513093296,
+              684.336741685277
             ],
-            "loa_se": 67.64066637150067,
+            "loa_se": 91.45686184329325,
             "loa_ci_method": "ba1999",
             "proportional_bias": {
-              "slope": 0.21134131285204427,
-              "intercept": -426.5235281867658,
+              "slope": -0.03840886097161599,
+              "intercept": 66.11630617760017,
               "slope_ci": [
-                -0.11870586221794066,
-                0.5413884879220292
+                -0.4902280276766523,
+                0.4134103057334203
               ],
-              "p": 0.19779986549745704
+              "p": 0.8616721495823791
             },
-            "shapiro_p_diff": 0.8972601170202859,
+            "shapiro_p_diff": 0.699060986900122,
             "n": 24,
             "n_dropped": 0,
             "alpha": 0.05,
@@ -1120,14 +872,14 @@
             "warnings": []
           },
           "lin_ccc": {
-            "ccc": 0.7382219017537356,
-            "ci_low": 0.4964451774400864,
-            "ci_high": 0.8737090072722993,
-            "pearson_r": 0.751209821231073,
-            "accuracy_cb": 0.982710663372248,
-            "location_shift_u": 0.023712459739949898,
-            "scale_shift_v": 1.2041932780269646,
-            "se_z": 0.20509705415027446,
+            "ccc": 0.5850124709396333,
+            "ci_low": 0.24753665393846877,
+            "ci_high": 0.795895005553725,
+            "pearson_r": 0.5857848628834836,
+            "accuracy_cb": 0.998681440930296,
+            "location_shift_u": -0.04138623579522941,
+            "scale_shift_v": 0.9700008858042314,
+            "se_z": 0.21289298385501104,
             "n": 24,
             "n_dropped": 0,
             "alpha": 0.05,
@@ -1144,28 +896,28 @@
           "fixed_effects": [
             {
               "term": "Intercept",
-              "estimate": 2043.9166666666656,
-              "se": 53.95486140616912,
-              "z": 37.881974179864486,
-              "p": 0.0,
-              "ci_low": 1938.167081519724,
-              "ci_high": 2149.6662518136072
+              "estimate": 2026.541666666668,
+              "se": 57.95335180394203,
+              "z": 34.968498000297224,
+              "p": 6.77895960497034e-268,
+              "ci_low": 1912.9551843475624,
+              "ci_high": 2140.128148985774
             },
             {
               "term": "session_index",
-              "estimate": 6.083333333333333,
-              "se": 39.02450990369049,
-              "z": 0.15588493867947437,
-              "p": 0.8761237173639933,
-              "ci_low": -70.40330059222669,
-              "ci_high": 82.56996725889334
+              "estimate": -11.499999999999993,
+              "se": 52.76540484821863,
+              "z": -0.21794583085413843,
+              "p": 0.8274713174950321,
+              "ci_low": -114.91829313218366,
+              "ci_high": 91.91829313218369
             }
           ],
           "variance_components": {
-            "subject_intercept": 51592.101185935244,
-            "residual": 18274.948478678853
+            "subject_intercept": 47195.928261918256,
+            "residual": 33410.25538555699
           },
-          "icc": 0.7384325148062656,
+          "icc": 0.5855125019728747,
           "icc_definition": "tau0^2 / (tau0^2 + sigma^2)",
           "n_observations": 48,
           "n_subjects": 24,
@@ -1177,7 +929,7 @@
           },
           "converged": true,
           "reml": true,
-          "loglik": -315.93635340951937,
+          "loglik": -323.4600763976639,
           "formula": "gridsession_index_ms ~ session_index",
           "random_effects": "intercept",
           "alpha": 0.05,
@@ -1192,8 +944,8 @@
           "n": 24
         },
         "floor_ceiling": {
-          "floor_value": 1544.0,
-          "ceiling_value": 2469.0,
+          "floor_value": 1675.0,
+          "ceiling_value": 2632.0,
           "prop_floor": 0.041666666666666664,
           "prop_ceiling": 0.041666666666666664,
           "floor_flag": false,
@@ -1211,19 +963,19 @@
         "change_thresholds": {
           "estimates": {
             "0.2_sd": {
-              "value": 47.7626711315771,
+              "value": 57.64047428120556,
               "label": "distribution-based estimate, not an MCID"
             },
             "0.5_sd": {
-              "value": 119.40667782894275,
+              "value": 144.1011857030139,
               "label": "distribution-based estimate, not an MCID"
             },
             "1_sem": {
-              "value": 135.18584899358345,
+              "value": 182.78462022638652,
               "label": "distribution-based estimate, not an MCID"
             },
             "mdc95": {
-              "value": 374.70917023633075,
+              "value": 506.64380840810514,
               "label": "distribution-based estimate, not an MCID"
             }
           },
@@ -1237,20 +989,20 @@
             {
               "session": "1",
               "n": 24,
-              "mean": 27.687232669285862,
-              "sd": 2.740322765175135,
-              "median": 28.21870463814198,
-              "min": 22.31520223152022,
-              "max": 32.75332650972364
+              "mean": 28.9727665689694,
+              "sd": 4.00140522807693,
+              "median": 29.02141550316471,
+              "min": 18.6952288218111,
+              "max": 35.714285714285715
             },
             {
               "session": "2",
               "n": 24,
-              "mean": 28.264147855429428,
-              "sd": 3.249751644569718,
-              "median": 29.20403459845285,
-              "min": 20.13845185651353,
-              "max": 33.33333333333333
+              "mean": 29.68276223274674,
+              "sd": 3.4437022470657896,
+              "median": 30.018949579256763,
+              "min": 23.575638506876228,
+              "max": 38.36930455635492
             }
           ],
           "n": 48,
@@ -1306,15 +1058,15 @@
                 "model": "one-way random",
                 "type": "absolute agreement",
                 "unit": "single",
-                "icc": 0.8508501962224565,
-                "ci_low": 0.6893326790877612,
-                "ci_high": 0.9322674758450046,
+                "icc": 0.8664766019670737,
+                "ci_low": 0.7193149744586476,
+                "ci_high": 0.9396419778066264,
                 "gci_low": null,
                 "gci_high": null,
-                "F": 12.40933711842487,
+                "F": 13.978648158031513,
                 "df1": 23.0,
                 "df2": 24.0,
-                "p": 2.0486161100656992e-08
+                "p": 5.927417051913219e-09
               },
               {
                 "form": "ICC(2,1)",
@@ -1323,15 +1075,15 @@
                 "model": "two-way random",
                 "type": "absolute agreement",
                 "unit": "single",
-                "icc": 0.8517849556309897,
-                "ci_low": 0.6834557444640054,
-                "ci_high": 0.9335117142213869,
-                "gci_low": 0.052236607852324785,
-                "gci_high": 0.9220212282327989,
-                "F": 13.555742386131195,
+                "icc": 0.8673353388624673,
+                "ci_low": 0.710593956613411,
+                "ci_high": 0.9410915076549885,
+                "gci_low": 0.05405499341225136,
+                "gci_high": 0.9304951765258493,
+                "F": 15.479486973557595,
                 "df1": 23.0,
                 "df2": 23.0,
-                "p": 1.46905755847305e-08
+                "p": 3.825642027383641e-09
               },
               {
                 "form": "ICC(3,1)",
@@ -1340,15 +1092,15 @@
                 "model": "two-way mixed",
                 "type": "consistency",
                 "unit": "single",
-                "icc": 0.8625971835070664,
-                "ci_low": 0.7086298860303409,
-                "ci_high": 0.9381494393453262,
+                "icc": 0.8786369986390274,
+                "ci_low": 0.7401355720848654,
+                "ci_high": 0.9456270714334135,
                 "gci_low": null,
                 "gci_high": null,
-                "F": 13.555742386131195,
+                "F": 15.479486973557595,
                 "df1": 23.0,
                 "df2": 23.0,
-                "p": 1.46905755847305e-08
+                "p": 3.825642027383641e-09
               },
               {
                 "form": "ICC(1,k)",
@@ -1357,15 +1109,15 @@
                 "model": "one-way random",
                 "type": "absolute agreement",
                 "unit": "average of k",
-                "icc": 0.9194155182942656,
-                "ci_low": 0.8161005675448136,
-                "ci_high": 0.9649466106521432,
+                "icc": 0.928462324203686,
+                "ci_low": 0.8367460123880266,
+                "ci_high": 0.9688818746531629,
                 "gci_low": null,
                 "gci_high": null,
-                "F": 12.40933711842487,
+                "F": 13.978648158031513,
                 "df1": 23.0,
                 "df2": 24.0,
-                "p": 2.0486161100656992e-08
+                "p": 5.927417051913219e-09
               },
               {
                 "form": "ICC(2,k)",
@@ -1374,15 +1126,15 @@
                 "model": "two-way random",
                 "type": "absolute agreement",
                 "unit": "average of k",
-                "icc": 0.9199609847146065,
-                "ci_low": 0.8119675812227669,
-                "ci_high": 0.9656126801355389,
-                "gci_low": 0.09928679281229512,
-                "gci_high": 0.9594287666390362,
-                "F": 13.555742386131195,
+                "icc": 0.9289550953293967,
+                "ci_low": 0.830815464846171,
+                "ci_high": 0.9696518726125498,
+                "gci_low": 0.10256579333950855,
+                "gci_high": 0.9639963754782276,
+                "F": 15.479486973557595,
                 "df1": 23.0,
                 "df2": 23.0,
-                "p": 1.46905755847305e-08
+                "p": 3.825642027383641e-09
               },
               {
                 "form": "ICC(3,k)",
@@ -1391,15 +1143,15 @@
                 "model": "two-way mixed",
                 "type": "consistency",
                 "unit": "average of k",
-                "icc": 0.9262305249306674,
-                "ci_low": 0.8294714868609732,
-                "ci_high": 0.9680878267696603,
+                "icc": 0.9353983758177372,
+                "ci_low": 0.8506642631276196,
+                "ci_high": 0.9720537767155306,
                 "gci_low": null,
                 "gci_high": null,
-                "F": 13.555742386131195,
+                "F": 15.479486973557595,
                 "df1": 23.0,
                 "df2": 23.0,
-                "p": 1.46905755847305e-08
+                "p": 3.825642027383641e-09
               }
             ],
             "n_subjects_total": 24,
@@ -1410,19 +1162,19 @@
             "mean_squares": {
               "n": 24.0,
               "k": 2.0,
-              "SST": 419.60982958461256,
-              "SSR": 387.0624614037753,
-              "SSC": 3.9939735840369814,
-              "SSE": 28.5533945968003,
-              "SSW": 32.54736818083728,
+              "SST": 647.0666923227207,
+              "SSR": 602.1196583314485,
+              "SSC": 6.049126110991475,
+              "SSE": 38.897907880280705,
+              "SSW": 44.94703399127218,
               "df_R": 23.0,
               "df_C": 1.0,
               "df_E": 23.0,
               "df_W": 24.0,
-              "MSR": 16.82880266972936,
-              "MSC": 3.9939735840369814,
-              "MSE": 1.2414519389913174,
-              "MSW": 1.35614034086822
+              "MSR": 26.179115579628196,
+              "MSC": 6.049126110991475,
+              "MSE": 1.6912133860991612,
+              "MSW": 1.8727930829696742
             },
             "assumptions": [
               "scores are interval-scaled and approximately normal",
@@ -1433,31 +1185,31 @@
             "warnings": []
           },
           "sem_mdc": {
-            "sem": 1.1142046216881878,
-            "mdc95": 3.088360892611491,
-            "mdc90": 2.591834164105419,
+            "sem": 1.300466603223305,
+            "mdc95": 3.604643277692427,
+            "mdc90": 3.0251119999891323,
             "primary": "sqrt_mse",
             "primary_definition": "sqrt(MS_error) [consistency SEM]",
             "by_definition": {
               "sd_icc": {
-                "sem": 1.1572129425025564,
-                "mdc95": 3.2075716852024736,
-                "mdc90": 2.6918790149862133
+                "sem": 1.3596705020021915,
+                "mdc95": 3.7687450971605676,
+                "mdc90": 3.162830588223726
               },
               "sqrt_mse": {
-                "sem": 1.1142046216881878,
-                "mdc95": 3.088360892611491,
-                "mdc90": 2.591834164105419
+                "sem": 1.300466603223305,
+                "mdc95": 3.604643277692427,
+                "mdc90": 3.0251119999891323
               },
               "agreement": {
-                "sem": 1.1645343880144632,
-                "mdc95": 3.227865323871913,
-                "mdc90": 2.7089099734286983
+                "sem": 1.3685003043367123,
+                "mdc95": 3.7932196108078955,
+                "mdc90": 3.183370247553297
               }
             },
-            "sd_pooled": 3.005848849220523,
+            "sd_pooled": 3.7329833220714606,
             "icc_form": "ICC(2,1)",
-            "icc": 0.8517849556309897,
+            "icc": 0.8673353388624673,
             "n": 24,
             "k": 2,
             "method": "SEM from two-way ANOVA; MDC = z*sqrt(2)*SEM",
@@ -1474,35 +1226,35 @@
             "2"
           ],
           "bland_altman": {
-            "bias": 0.5769151861435681,
+            "bias": 0.7099956637773394,
             "bias_ci": [
-              -0.0884544035206476,
-              1.2422847758077837
+              -0.06660399602990175,
+              1.4865953235845804
             ],
-            "sd_diff": 1.575723287250224,
+            "sd_diff": 1.8391375076916652,
             "loa_z": 1.959963984540054,
-            "loa_low": -2.511445706467933,
-            "loa_high": 3.6652760787550696,
+            "loa_low": -2.894647613915081,
+            "loa_high": 4.3146389414697595,
             "loa_low_ci": [
-              -3.6647136367078326,
-              -1.3581777762280338
+              -4.240707752826588,
+              -1.5485874750035735
             ],
             "loa_high_ci": [
-              2.51200814851517,
-              4.818544008994969
+              2.968578802558252,
+              5.660699080381267
             ],
-            "loa_se": 0.5574958003834581,
+            "loa_se": 0.6506925709367805,
             "loa_ci_method": "ba1999",
             "proportional_bias": {
-              "slope": 0.1813270351987294,
-              "intercept": -4.495833786767708,
+              "slope": -0.1586057642094868,
+              "intercept": 5.361548149131215,
               "slope_ci": [
-                -0.04507788224722875,
-                0.40773195264468753
+                -0.3721472779084981,
+                0.05493574948952448
               ],
-              "p": 0.11090825203560015
+              "p": 0.13773689279549495
             },
-            "shapiro_p_diff": 0.8289109965247585,
+            "shapiro_p_diff": 0.45849090265312464,
             "n": 24,
             "n_dropped": 0,
             "alpha": 0.05,
@@ -1515,14 +1267,14 @@
             "warnings": []
           },
           "lin_ccc": {
-            "ccc": 0.8463310860885768,
-            "ci_low": 0.6929878107635513,
-            "ci_high": 0.9264130987209211,
-            "pearson_r": 0.8751659677756427,
-            "accuracy_cb": 0.967052098974605,
-            "location_shift_u": 0.19748209621551122,
-            "scale_shift_v": 1.1859010500035112,
-            "se_z": 0.19867524322494953,
+            "ccc": 0.8623612145880555,
+            "ci_low": 0.7212549442984221,
+            "ci_high": 0.9347447393584017,
+            "pearson_r": 0.888553244680656,
+            "accuracy_cb": 0.9705228355763713,
+            "location_shift_u": 0.19537920339569564,
+            "scale_shift_v": 0.8606232187887727,
+            "se_z": 0.20012009000684958,
             "n": 24,
             "n_dropped": 0,
             "alpha": 0.05,
@@ -1539,28 +1291,28 @@
           "fixed_effects": [
             {
               "term": "Intercept",
-              "estimate": 27.687232669285862,
-              "se": 0.6135662800674617,
-              "z": 45.12508846842373,
+              "estimate": 28.972766568969426,
+              "se": 0.7619915501205438,
+              "z": 38.02242500508839,
               "p": 0.0,
-              "ci_low": 26.484664858225422,
-              "ci_high": 28.889800480346302
+              "ci_low": 27.479290574209312,
+              "ci_high": 30.46624256372954
             },
             {
               "term": "session_index",
-              "estimate": 0.5769151861435672,
-              "se": 0.3216431976803848,
-              "z": 1.7936495791117115,
-              "p": 0.07286911779770089,
-              "ci_low": -0.053493897182284034,
-              "ci_high": 1.2073242694694184
+              "estimate": 0.7099956637773384,
+              "se": 0.3754126406800826,
+              "z": 1.8912406958144468,
+              "p": 0.05859222115663425,
+              "ci_low": -0.025799591296699953,
+              "ci_high": 1.4457909188513767
             }
           ],
           "variance_components": {
-            "subject_intercept": 7.793673761490997,
-            "residual": 1.2414521593687575
+            "subject_intercept": 12.243931129533896,
+            "residual": 1.691215809388715
           },
-          "icc": 0.8625971380761205,
+          "icc": 0.8786366719489023,
           "icc_definition": "tau0^2 / (tau0^2 + sigma^2)",
           "n_observations": 48,
           "n_subjects": 24,
@@ -1572,7 +1324,7 @@
           },
           "converged": true,
           "reml": true,
-          "loglik": -103.40202133430779,
+          "loglik": -112.03892098980745,
           "formula": "type_ccpm ~ session_index",
           "random_effects": "intercept",
           "alpha": 0.05,
@@ -1587,8 +1339,8 @@
           "n": 24
         },
         "floor_ceiling": {
-          "floor_value": 22.31520223152022,
-          "ceiling_value": 32.75332650972364,
+          "floor_value": 18.6952288218111,
+          "ceiling_value": 35.714285714285715,
           "prop_floor": 0.041666666666666664,
           "prop_ceiling": 0.041666666666666664,
           "floor_flag": false,
@@ -1606,19 +1358,19 @@
         "change_thresholds": {
           "estimates": {
             "0.2_sd": {
-              "value": 0.5480645530350271,
+              "value": 0.800281045615386,
               "label": "distribution-based estimate, not an MCID"
             },
             "0.5_sd": {
-              "value": 1.3701613825875676,
+              "value": 2.000702614038465,
               "label": "distribution-based estimate, not an MCID"
             },
             "1_sem": {
-              "value": 1.1142046216881878,
+              "value": 1.300466603223305,
               "label": "distribution-based estimate, not an MCID"
             },
             "mdc95": {
-              "value": 3.088360892611491,
+              "value": 3.604643277692427,
               "label": "distribution-based estimate, not an MCID"
             }
           },
@@ -1632,20 +1384,20 @@
             {
               "session": "1",
               "n": 24,
-              "mean": 0.5872992178733589,
-              "sd": 0.09343566783931932,
-              "median": 0.6061430499539483,
-              "min": 0.3479619346467267,
-              "max": 0.7500234802517802
+              "mean": 0.6002264761160473,
+              "sd": 0.07028794936299312,
+              "median": 0.6164521011667585,
+              "min": 0.4656870777157616,
+              "max": 0.7696035480976962
             },
             {
               "session": "2",
               "n": 24,
-              "mean": 0.5833423400344622,
-              "sd": 0.09014174056746505,
-              "median": 0.5937703362106992,
-              "min": 0.35001804224833627,
-              "max": 0.7236219362612187
+              "mean": 0.6071318235106059,
+              "sd": 0.06150131494455884,
+              "median": 0.6130903390288933,
+              "min": 0.4762390839159014,
+              "max": 0.7229197583535072
             }
           ],
           "n": 48,
@@ -1701,15 +1453,15 @@
                 "model": "one-way random",
                 "type": "absolute agreement",
                 "unit": "single",
-                "icc": 0.9651427899250282,
-                "ci_low": 0.9221920005769855,
-                "ci_high": 0.9846866902097491,
+                "icc": 0.9100169452451933,
+                "ci_low": 0.8058513066593486,
+                "ci_high": 0.959837369798734,
                 "gci_low": null,
                 "gci_high": null,
-                "F": 56.37693853576773,
+                "F": 21.22640702129714,
                 "df1": 23.0,
                 "df2": 24.0,
-                "p": 1.0216614361031069e-15
+                "p": 6.625765456367892e-11
               },
               {
                 "form": "ICC(2,1)",
@@ -1718,15 +1470,15 @@
                 "model": "two-way random",
                 "type": "absolute agreement",
                 "unit": "single",
-                "icc": 0.9651332712038743,
-                "ci_low": 0.9220109130434775,
-                "ci_high": 0.9846965237479975,
-                "gci_low": 0.540758649092272,
-                "gci_high": 0.9827705741707502,
-                "F": 55.50746539694817,
+                "icc": 0.9100972662390693,
+                "ci_low": 0.8058828486579895,
+                "ci_high": 0.9598865048949379,
+                "gci_low": 0.16246724336322427,
+                "gci_high": 0.9538784147012151,
+                "F": 21.65645085326059,
                 "df1": 23.0,
                 "df2": 23.0,
-                "p": 4.120826498339969e-15
+                "p": 1.1628668821330815e-10
               },
               {
                 "form": "ICC(3,1)",
@@ -1735,15 +1487,15 @@
                 "model": "two-way mixed",
                 "type": "consistency",
                 "unit": "single",
-                "icc": 0.9646064464942714,
-                "ci_low": 0.9200388676372678,
-                "ci_high": 0.9845336880172252,
+                "icc": 0.9117249205114504,
+                "ci_low": 0.807106827948525,
+                "ci_high": 0.9608318768107047,
                 "gci_low": null,
                 "gci_high": null,
-                "F": 55.50746539694817,
+                "F": 21.65645085326059,
                 "df1": 23.0,
                 "df2": 23.0,
-                "p": 4.120826498339969e-15
+                "p": 1.1628668821330815e-10
               },
               {
                 "form": "ICC(1,k)",
@@ -1752,15 +1504,15 @@
                 "model": "one-way random",
                 "type": "absolute agreement",
                 "unit": "average of k",
-                "icc": 0.9822622507363439,
-                "ci_low": 0.9595212135938248,
-                "ci_high": 0.9922842684108328,
+                "icc": 0.9528888709711131,
+                "ci_low": 0.892489103269633,
+                "ci_high": 0.9795071617573092,
                 "gci_low": null,
                 "gci_high": null,
-                "F": 56.37693853576773,
+                "F": 21.22640702129714,
                 "df1": 23.0,
                 "df2": 24.0,
-                "p": 1.0216614361031069e-15
+                "p": 6.625765456367892e-11
               },
               {
                 "form": "ICC(2,k)",
@@ -1769,15 +1521,15 @@
                 "model": "two-way random",
                 "type": "absolute agreement",
                 "unit": "average of k",
-                "icc": 0.9822573210137723,
-                "ci_low": 0.9594231820291654,
-                "ci_high": 0.992289261320868,
-                "gci_low": 0.7019381630413255,
-                "gci_high": 0.9913104289241392,
-                "F": 55.50746539694817,
+                "icc": 0.9529329027636655,
+                "ci_low": 0.8925084473301991,
+                "ci_high": 0.9795327458988691,
+                "gci_low": 0.2795214130813027,
+                "gci_high": 0.9763948539458506,
+                "F": 21.65645085326059,
                 "df1": 23.0,
                 "df2": 23.0,
-                "p": 4.120826498339969e-15
+                "p": 1.1628668821330815e-10
               },
               {
                 "form": "ICC(3,k)",
@@ -1786,15 +1538,15 @@
                 "model": "two-way mixed",
                 "type": "consistency",
                 "unit": "average of k",
-                "icc": 0.9819844052894734,
-                "ci_low": 0.9583544199492536,
-                "ci_high": 0.9922065762470239,
+                "icc": 0.9538243820847755,
+                "ci_low": 0.8932585671924818,
+                "ci_high": 0.9800247417167645,
                 "gci_low": null,
                 "gci_high": null,
-                "F": 55.50746539694817,
+                "F": 21.65645085326059,
                 "df1": 23.0,
                 "df2": 23.0,
-                "p": 4.120826498339969e-15
+                "p": 1.1628668821330815e-10
               }
             ],
             "n_subjects_total": 24,
@@ -1805,19 +1557,19 @@
             "mean_squares": {
               "n": 24.0,
               "k": 2.0,
-              "SST": 0.3878703031803544,
-              "SSR": 0.3808216913453165,
-              "SSC": 0.0001878825867834165,
-              "SSE": 0.006860729248254494,
-              "SSW": 0.00704861183503791,
+              "SST": 0.20119677987965795,
+              "SSR": 0.19176949889902795,
+              "SSC": 0.0005722058716744124,
+              "SSE": 0.008855075108955592,
+              "SSW": 0.009427280980630004,
               "df_R": 23.0,
               "df_C": 1.0,
               "df_E": 23.0,
               "df_W": 24.0,
-              "MSR": 0.016557464841100718,
-              "MSC": 0.0001878825867834165,
-              "MSE": 0.00029829257601106493,
-              "MSW": 0.00029369215979324625
+              "MSR": 0.008337804299957736,
+              "MSC": 0.0005722058716744124,
+              "MSE": 0.00038500326560676485,
+              "MSW": 0.00039280337419291683
             },
             "assumptions": [
               "scores are interval-scaled and approximately normal",
@@ -1828,31 +1580,31 @@
             "warnings": []
           },
           "sem_mdc": {
-            "sem": 0.017271148659283347,
-            "mdc95": 0.04787230195562521,
-            "mdc90": 0.04017570226970514,
+            "sem": 0.019621500085537927,
+            "mdc95": 0.05438702401604909,
+            "mdc90": 0.04564302937070984,
             "primary": "sqrt_mse",
             "primary_definition": "sqrt(MS_error) [consistency SEM]",
             "by_definition": {
               "sd_icc": {
-                "sem": 0.01714212825928743,
-                "mdc95": 0.04751468222407828,
-                "mdc90": 0.039875578330110184
+                "sem": 0.019801568703195938,
+                "mdc95": 0.05488613958776429,
+                "mdc90": 0.04606190036266654
               },
               "sqrt_mse": {
-                "sem": 0.017271148659283347,
-                "mdc95": 0.04787230195562521,
-                "mdc90": 0.04017570226970514
+                "sem": 0.019621500085537927,
+                "mdc95": 0.05438702401604909,
+                "mdc90": 0.04564302937070984
               },
               "agreement": {
-                "sem": 0.017271148659283347,
-                "mdc95": 0.04787230195562521,
-                "mdc90": 0.04017570226970514
+                "sem": 0.019819267751178822,
+                "mdc95": 0.05493519794433794,
+                "mdc90": 0.046103071433348936
               }
             },
-            "sd_pooled": 0.09180347873885768,
+            "sd_pooled": 0.06604092506001298,
             "icc_form": "ICC(2,1)",
-            "icc": 0.9651332712038743,
+            "icc": 0.9100972662390693,
             "n": 24,
             "k": 2,
             "method": "SEM from two-way ANOVA; MDC = z*sqrt(2)*SEM",
@@ -1869,35 +1621,35 @@
             "2"
           ],
           "bland_altman": {
-            "bias": -0.003956877838896762,
+            "bias": 0.006905347394558506,
             "bias_ci": [
-              -0.014270689927600387,
-              0.0063569342498068625
+              -0.004812024088544466,
+              0.018622718877661478
             ],
-            "sd_diff": 0.024425092671720598,
+            "sd_diff": 0.027748991535072594,
             "loa_z": 1.959963984540054,
-            "loa_low": -0.05182917979452234,
-            "loa_high": 0.043915424116728816,
+            "loa_low": -0.04748167662149061,
+            "loa_high": 0.061292371410607616,
             "loa_low_ci": [
-              -0.06970584399016913,
-              -0.03395251559887555
+              -0.06779109407621643,
+              -0.027172259166764783
             ],
             "loa_high_ci": [
-              0.02603875992108202,
-              0.061792088312375607
+              0.04098295395588179,
+              0.08160178886533344
             ],
-            "loa_se": 0.008641673762544742,
+            "loa_se": 0.009817679519527518,
             "loa_ci_method": "ba1999",
             "proportional_bias": {
-              "slope": -0.0365207257180103,
-              "intercept": 0.01741946178633114,
+              "slope": -0.1388835770288751,
+              "intercept": 0.0907464670983835,
               "slope_ci": [
-                -0.1541101893997647,
-                0.08106873796374411
+                -0.3187113358575622,
+                0.040944181799811935
               ],
-              "p": 0.5261696391855369
+              "p": 0.12348845264301263
             },
-            "shapiro_p_diff": 0.23930515422015636,
+            "shapiro_p_diff": 0.6115034952656943,
             "n": 24,
             "n_dropped": 0,
             "alpha": 0.05,
@@ -1910,14 +1662,14 @@
             "warnings": []
           },
           "lin_ccc": {
-            "ccc": 0.9636723971117688,
-            "ci_low": 0.9188030989770848,
-            "ci_high": 0.9839543232687952,
-            "pearson_r": 0.9652277582092728,
-            "accuracy_cb": 0.9983886071610812,
-            "location_shift_u": -0.04404281086701889,
-            "scale_shift_v": 0.964746575392185,
-            "se_z": 0.21107888006457817,
+            "ccc": 0.9065537159189708,
+            "ci_low": 0.8051874001841308,
+            "ci_high": 0.9564488398902179,
+            "pearson_r": 0.91986659378554,
+            "accuracy_cb": 0.9855273819524388,
+            "location_shift_u": 0.1072863814284644,
+            "scale_shift_v": 0.8749908839557002,
+            "se_z": 0.20135170150521298,
             "n": 24,
             "n_dropped": 0,
             "alpha": 0.05,
@@ -1934,28 +1686,28 @@
           "fixed_effects": [
             {
               "term": "Intercept",
-              "estimate": 0.5872992178733597,
-              "se": 0.01873929890631061,
-              "z": 31.340511766722603,
-              "p": 1.3102758128466666e-215,
-              "ci_low": 0.5505708669214601,
-              "ci_high": 0.6240275688252593
+              "estimate": 0.6002264761160476,
+              "se": 0.013480284254134337,
+              "z": 44.52624772596773,
+              "p": 0.0,
+              "ci_low": 0.5738056044765819,
+              "ci_high": 0.6266473477555133
             },
             {
               "term": "session_index",
-              "estimate": -0.003956877838896763,
-              "se": 0.004985753293323633,
-              "z": -0.7936369102328779,
-              "p": 0.4274068382823897,
-              "ci_low": -0.013728774729613046,
-              "ci_high": 0.005815019051819521
+              "estimate": 0.006905347394558482,
+              "se": 0.005664360450247788,
+              "z": 1.2190868598866103,
+              "p": 0.22281122665676212,
+              "ci_low": -0.004196595083380267,
+              "ci_high": 0.01800728987249723
             }
           ],
           "variance_components": {
-            "subject_intercept": 0.008129578933178614,
-            "residual": 0.0002982928308226494
+            "subject_intercept": 0.003976213774010315,
+            "residual": 0.00038501975172397604
           },
-          "icc": 0.9646063870956397,
+          "icc": 0.911717694213783,
           "icc_definition": "tau0^2 / (tau0^2 + sigma^2)",
           "n_observations": 48,
           "n_subjects": 24,
@@ -1967,7 +1719,7 @@
           },
           "converged": true,
           "reml": true,
-          "loglik": 72.0618444750534,
+          "loglik": 77.0167359123417,
           "formula": "iso_path_efficiency ~ session_index",
           "random_effects": "intercept",
           "alpha": 0.05,
@@ -1984,8 +1736,8 @@
           "n": 24
         },
         "floor_ceiling": {
-          "floor_value": 0.3479619346467267,
-          "ceiling_value": 0.7500234802517802,
+          "floor_value": 0.4656870777157616,
+          "ceiling_value": 0.7696035480976962,
           "prop_floor": 0.041666666666666664,
           "prop_ceiling": 0.041666666666666664,
           "floor_flag": false,
@@ -2003,19 +1755,19 @@
         "change_thresholds": {
           "estimates": {
             "0.2_sd": {
-              "value": 0.018687133567863865,
+              "value": 0.014057589872598626,
               "label": "distribution-based estimate, not an MCID"
             },
             "0.5_sd": {
-              "value": 0.04671783391965966,
+              "value": 0.03514397468149656,
               "label": "distribution-based estimate, not an MCID"
             },
             "1_sem": {
-              "value": 0.017271148659283347,
+              "value": 0.019621500085537927,
               "label": "distribution-based estimate, not an MCID"
             },
             "mdc95": {
-              "value": 0.04787230195562521,
+              "value": 0.05438702401604909,
               "label": "distribution-based estimate, not an MCID"
             }
           },

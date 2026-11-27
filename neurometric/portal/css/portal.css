@@ -314,6 +314,10 @@ dialog h2 { margin-top: 0; }
 .q-progress { color: var(--text-2); }
 details summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-weight: 600; }
 details summary:focus-visible { outline: 3px solid var(--focus); }
+details summary { list-style: none; gap: 8px; }
+details summary::-webkit-details-marker { display: none; }
+details summary::before { content: "▸"; display: inline-block; width: 1em; flex: none; }
+details[open] > summary::before { content: "▾"; }
 pre.json { background: var(--surface-2); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: .85rem; max-width: 100%; white-space: pre-wrap; word-break: break-word; }
 
 @media (max-width: 600px) {

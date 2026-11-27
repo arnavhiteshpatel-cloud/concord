@@ -26,40 +26,40 @@ Only aggregate, consented summaries are collected (active minutes, session count
 
 | participant | days | active_min_per_day | assist_min_per_day | completeness |
 |---|---|---|---|---|
-| DEMO-000 | 10 | 88.4 | 29.5 | 0.714 |
-| DEMO-001 | 13 | 69.5 | 38 | 0.929 |
-| DEMO-002 | 13 | 98.5 | 26 | 0.929 |
-| DEMO-003 | 11 | 96.1 | 27.5 | 0.786 |
-| DEMO-004 | 13 | 97.8 | 36.2 | 0.929 |
-| DEMO-005 | 12 | 90.8 | 29.5 | 0.857 |
-| DEMO-006 | 12 | 97.4 | 28.1 | 0.857 |
-| DEMO-007 | 11 | 96.7 | 25 | 0.786 |
-| DEMO-008 | 13 | 109 | 29.3 | 0.929 |
-| DEMO-009 | 10 | 86.8 | 30.6 | 0.714 |
-| DEMO-010 | 11 | 89.8 | 33.1 | 0.786 |
-| DEMO-011 | 13 | 89.9 | 30.1 | 0.929 |
-| DEMO-012 | 13 | 75.4 | 29 | 0.929 |
-| DEMO-013 | 11 | 74.7 | 34.2 | 0.786 |
-| DEMO-014 | 12 | 90.3 | 30.1 | 0.857 |
-| DEMO-015 | 11 | 91.5 | 25.7 | 0.786 |
-| DEMO-016 | 12 | 94.7 | 27.9 | 0.857 |
-| DEMO-017 | 12 | 103 | 31.3 | 0.857 |
-| DEMO-018 | 12 | 98 | 38.5 | 0.857 |
-| DEMO-019 | 11 | 83 | 23.4 | 0.786 |
-| DEMO-020 | 10 | 85.5 | 32.9 | 0.714 |
-| DEMO-021 | 14 | 89.7 | 31.4 | 1 |
-| DEMO-022 | 13 | 85.5 | 32.2 | 0.929 |
-| DEMO-023 | 8 | 88.4 | 29.7 | 0.571 |
+| DEMO-000 | 12 | 87.9 | 33.5 | 0.857 |
+| DEMO-001 | 14 | 88.9 | 31.2 | 1 |
+| DEMO-002 | 11 | 95.6 | 33 | 0.786 |
+| DEMO-003 | 12 | 92.5 | 25.6 | 0.857 |
+| DEMO-004 | 11 | 95.1 | 27 | 0.786 |
+| DEMO-005 | 13 | 88.5 | 34.2 | 0.929 |
+| DEMO-006 | 12 | 81.7 | 35.4 | 0.857 |
+| DEMO-007 | 11 | 98.2 | 28.5 | 0.786 |
+| DEMO-008 | 11 | 74.4 | 30.6 | 0.786 |
+| DEMO-009 | 12 | 97.5 | 31.1 | 0.857 |
+| DEMO-010 | 13 | 91.7 | 24.5 | 0.929 |
+| DEMO-011 | 13 | 90.3 | 31.2 | 0.929 |
+| DEMO-012 | 9 | 84.2 | 29.8 | 0.643 |
+| DEMO-013 | 11 | 78.7 | 35.2 | 0.786 |
+| DEMO-014 | 11 | 95.5 | 34.6 | 0.786 |
+| DEMO-015 | 13 | 92.9 | 32.6 | 0.929 |
+| DEMO-016 | 11 | 91.7 | 31.6 | 0.786 |
+| DEMO-017 | 11 | 94.9 | 28.8 | 0.786 |
+| DEMO-018 | 8 | 91.3 | 27.3 | 0.571 |
+| DEMO-019 | 12 | 105 | 28.4 | 0.857 |
+| DEMO-020 | 10 | 80.6 | 26.2 | 0.714 |
+| DEMO-021 | 8 | 84.4 | 29.8 | 0.571 |
+| DEMO-022 | 13 | 109 | 33.1 | 0.929 |
+| DEMO-023 | 14 | 86.3 | 30.1 | 1 |
 
 ## Data completeness
 
-Overall completeness: **87.5%** of scheduled assessments.
+Overall completeness: **94.4%** of scheduled assessments.
 
 | visit | expected | completed | completeness |
 |---|---|---|---|
-| baseline | 24 | 22 | 0.917 |
-| week12 | 24 | 19 | 0.792 |
-| week4 | 24 | 22 | 0.917 |
+| baseline | 24 | 24 | 1 |
+| week12 | 24 | 21 | 0.875 |
+| week4 | 24 | 23 | 0.958 |
 
 ## Protocol deviations
 
@@ -81,12 +81,12 @@ Overall completeness: **87.5%** of scheduled assessments.
 | field | value |
 |---|---|
 | report_type | home_use_feasibility |
-| generated_utc | 2026-11-27T07:15:31Z |
+| generated_utc | 2026-11-27T07:54:17Z |
 | software_version | 0.1.0 |
 | battery_version | 1.0.0 |
 | analysis_version | evidence-reports-0.1 |
 | instrument_versions | {"NM-CPB": "0.1 (original, unvalidated)"} |
-| data_sha256 | b71e8e3e39e180b3c9c16d5c48ca619a438eae24c47f9708bebb13aeb38c1ae9 |
+| data_sha256 | 1a60811c630c82b18d3e0c079aae9e789267222c0c33191df78dc423814ff3ae |
 | audit_chain_head | n/a |
 | review_history | [] |
 | synthetic | true |
