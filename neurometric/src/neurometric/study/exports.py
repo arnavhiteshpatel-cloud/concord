@@ -30,8 +30,8 @@ from typing import Any, Optional
 from ..instruments.fhir import bundle as fhir_bundle, to_questionnaire_response
 from ..tasks.battery import BATTERY_VERSION
 from .core import StudyServiceBase, jload, new_id
-from .db import canonical_json, sha256_hex
-from .errors import PermissionDenied, ValidationFailed
+from .db import sha256_hex
+from .errors import ValidationFailed
 from .inventory import INVENTORY, describe
 from .permissions import Actor, require
 from .scoring import PRIMARY_METRICS, SCORER_VERSION, flat_metrics

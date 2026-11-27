@@ -24,7 +24,7 @@ from __future__ import annotations
 
 import math
 import re
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Any, Optional
 
 from ..events.model import ASSIST_TYPES

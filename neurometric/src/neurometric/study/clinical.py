@@ -9,8 +9,7 @@ from datetime import date, timedelta
 from typing import Any, Optional
 
 from ..tasks.battery import TASKS
-from .audit import SYSTEM
-from .core import StudyServiceBase, jload, new_id, new_pseudonym, record_digest
+from .core import StudyServiceBase, jload, new_id, new_pseudonym
 from .db import canonical_json
 from .errors import (Conflict, InvalidTransition, NotFound, PermissionDenied, ReasonRequired,
                      ValidationFailed)

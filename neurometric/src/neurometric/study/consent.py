@@ -5,8 +5,6 @@ from __future__ import annotations
 from datetime import timedelta
 from typing import Any, Iterable, Optional
 
-from .audit import SYSTEM
-from .collection import decompress_events
 from .core import StudyServiceBase, jload, new_id
 from .db import canonical_json, iso
 from .errors import InvalidTransition, ReasonRequired, ValidationFailed
@@ -340,7 +338,7 @@ class ConsentMixin(StudyServiceBase):
     def delete_subject(self, actor: Actor, pid: str, reason: str) -> dict[str, int]:
         """Erase a participant's data (data-subject deletion). The audit trail keeps
         pseudonymous tombstones (record ids, hashes, reason) - see DATA_GOVERNANCE.md."""
-        p = self._participant(actor, pid, "subject.delete")
+        self._participant(actor, pid, "subject.delete")
         if not reason or not reason.strip():
             raise ReasonRequired("a reason is required for subject deletion")
         counts: dict[str, int] = {}
