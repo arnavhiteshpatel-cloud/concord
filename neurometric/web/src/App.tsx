@@ -319,7 +319,7 @@ function RunScreen({ id, params, settings, onDone }: { id: string; params: URLSe
         <p className="muted">Accessibility: {spec.accessibility}</p>
         <p>You can pause at any time (Pause button or Escape key). Staff can record any help with &ldquo;Record assistance&rdquo;.</p>
         <div className="row">
-          <button type="button" className="primary" id="begin-task" onClick={() => setStarted(true)}>
+          <button type="button" className="primary" id="begin-task" autoFocus onClick={() => setStarted(true)}>
             Begin {spec.id}
           </button>
           <a className="button" href="#/tasks">

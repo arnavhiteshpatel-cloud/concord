@@ -1,0 +1,84 @@
+{
+ "generated": "2026-11-27T07:30:05.979Z",
+ "note": "Automated Playwright runs in headless Chromium with synthetic input (CDP mouse, keyboard as switch). Not a substitute for testing with real assistive technology.",
+ "results": {
+  "A2": {
+   "events": 158,
+   "kinds": [
+    "assist",
+    "click",
+    "marker",
+    "pause",
+    "pointer_down",
+    "pointer_move",
+    "pointer_up",
+    "resume"
+   ],
+   "scores": {
+    "n_trials": 7,
+    "fitts_throughput_bps": 17.43966071683433,
+    "error_rate": 0,
+    "movement_time_ms_mean": 308.1599999999938,
+    "path_efficiency_mean": 0.999348123853747,
+    "interruptions": 1,
+    "assist_events": 1
+   },
+   "provisional_browser": {
+    "fitts_throughput_bps": 17.43966071683433,
+    "selections": 6,
+    "error_rate": 0
+   }
+  },
+  "A4": {
+   "events": 63,
+   "kinds": [
+    "key",
+    "marker",
+    "switch"
+   ],
+   "scores": {
+    "n_trials": 4,
+    "success_rate": 1,
+    "achieved_bitrate_bps": 64.37401388997182,
+    "movement_time_ms_mean": 70.27000000013504
+   },
+   "provisional_browser": {
+    "trials": 4,
+    "correct": 4,
+    "wrong": 0,
+    "achieved_bitrate_bps": 64.37401388997182,
+    "movement_time_ms_mean": 70.27000000013504,
+    "empty_selections": 0
+   }
+  },
+  "E1": {
+   "events": 169,
+   "kinds": [
+    "dwell_select",
+    "key",
+    "marker",
+    "pointer_move",
+    "text_input"
+   ],
+   "presented": "i need a short break",
+   "scores": {
+    "wpm_mean": 19.214497844268116,
+    "msd_error_rate_mean": 0,
+    "total_error_rate_mean": 0.047619047619047616,
+    "corrected_error_rate_mean": 0.047619047619047616,
+    "kspc_mean": 1.1
+   },
+   "provisional_browser": {
+    "phrases": 1,
+    "wpm_mean": 19.214497844268116,
+    "ccpm_mean": 101.12893602246379,
+    "msd_error_rate_mean": 0,
+    "total_error_rate_mean": 0.047619047619047616
+   }
+  },
+  "single_switch_setup": {
+   "reached_task_list": true,
+   "scan_ms": 150
+  }
+ }
+}

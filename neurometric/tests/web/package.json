@@ -1,0 +1,11 @@
+{
+  "name": "neurometric-web-tests",
+  "private": true,
+  "description": "Playwright end-to-end, accessibility (axe-core) and browser timing experiments for the NeuroMetric web app.",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}

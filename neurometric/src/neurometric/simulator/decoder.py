@@ -49,7 +49,9 @@ class DegradationConfig:
     direction_bins: int = 0  # if >0, output direction snapped to this many directions
     update_hz: float = 0.0  # if >0, output updated only at this rate (sample and hold)
     latency_ms: float = 0.0  # fixed output latency
-    latency_jitter_ms: float = 0.0  # mean of exponential extra latency (variable latency)
+    latency_jitter_ms: float = 0.0  # mean of the exponential extra delay drawn per tick; because
+    #   outputs are never reordered (monotone read pointer), the REALISED mean extra delay is
+    #   smaller than this value (e.g. nominal 200 ms -> ~50 ms); report realised latency, not this.
     dropout_enter_per_s: float = 0.0  # hazard of entering a dropout episode
     dropout_mean_ms: float = 0.0  # mean dropout duration
     # calibration deterioration over session time
@@ -102,7 +104,8 @@ class DegradedChannel:
         self.t_min = (np.zeros(batch) if session_minutes is None
                       else np.asarray(session_minutes, float).copy())
         c = cfg
-        self.ar = np.zeros((batch, 2))
+        # AR(1) state starts in its stationary distribution (review M4)
+        self.ar = rng.standard_normal((batch, 2)) * cfg.correlated_noise if cfg.correlated_noise else np.zeros((batch, 2))
         self.rho = float(np.exp(-dt_ms / c.correlated_tau_ms)) if c.correlated_tau_ms > 0 else 0.0
         self.smooth = np.zeros((batch, 2))
         self.smooth_init = np.zeros(batch, bool)

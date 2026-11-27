@@ -33,10 +33,10 @@ class Modality:
         return replace(self, degradation=d)
 
 
-MOUSE_USER = UserParams(reaction_ms=220, feedback_delay_ms=110, sub_tmin_ms=90, sub_c=15,
+MOUSE_USER = UserParams(reaction_ms=220, no_verify_prob=0.6, feedback_delay_ms=110, sub_tmin_ms=90, sub_c=15,
                         sub_k=0.10, const_noise=1.5, select_margin=0.85, select_rt_ms=80,
                         aim_sd_frac=0.12)
-HEAD_USER = UserParams(reaction_ms=300, feedback_delay_ms=160, sub_tmin_ms=180, sub_c=30,
+HEAD_USER = UserParams(reaction_ms=300, no_verify_prob=0.3, feedback_delay_ms=160, sub_tmin_ms=180, sub_c=30,
                        sub_k=0.16, const_noise=4.0, select_margin=0.8, select_rt_ms=150,
                        aim_sd_frac=0.15)
 GAZE_USER = UserParams(reaction_ms=220, feedback_delay_ms=120, saccade_ms=45,
@@ -76,9 +76,12 @@ def sample_population(base: UserParams, n: int, rng: np.random.Generator,
                       ability_sd: float = 0.25, ability: Optional[np.ndarray] = None) -> tuple[UserParams, np.ndarray]:
     """Sample n simulated participants around a base parameter set.
 
-    A single latent 'ability' z ~ N(0,1) (or supplied) scales speed parameters by exp(sd*z) and
-    noise parameters by exp(-sd*z); independent idiosyncratic variation (sd/2) is added per
-    parameter. Returns the batched UserParams and the latent ability (ground truth).
+    A single latent 'ability' z ~ N(0,1) (or supplied) scales speed limits by exp(sd*z) and
+    noise / delay parameters by exp(-sd*z); independent idiosyncratic variation is added per
+    parameter. The feedback gain kp is NOT scaled with ability: with sensorimotor delay a higher
+    gain destabilises the loop, so scaling it made 'more able' velocity users perform worse
+    (review C1). tests/test_simulator.py checks that performance rises with ability.
+    Returns the batched UserParams and the latent ability (ground truth).
     """
     z = rng.standard_normal(n) if ability is None else np.asarray(ability, float)
     s = ability_sd
@@ -92,11 +95,11 @@ def sample_population(base: UserParams, n: int, rng: np.random.Generator,
     return UserParams(
         feedback_delay_ms=up.feedback_delay_ms * noise ** 0.5 * ln(s / 3),
         reaction_ms=up.reaction_ms * noise ** 0.5 * ln(s / 3),
-        kp=up.kp * speed * ln(s / 2), vmax=up.vmax * speed * ln(s / 2),
+        kp=up.kp * ln(s / 4), vmax=up.vmax * speed * ln(s / 2),
         motor_noise=up.motor_noise * noise * ln(s / 2), const_noise=up.const_noise * noise * ln(s / 2),
         aim_sd_frac=up.aim_sd_frac * noise * ln(s / 2), select_margin=up.select_margin,
         select_speed=up.select_speed, select_rt_ms=up.select_rt_ms * noise ** 0.5 * ln(s / 3),
-        settle_ms=up.settle_ms,
+        settle_ms=up.settle_ms, no_verify_prob=up.no_verify_prob,
         sub_tmin_ms=up.sub_tmin_ms * noise ** 0.5, sub_c=up.sub_c * noise * ln(s / 2),
         sub_k=up.sub_k * noise * ln(s / 2), saccade_ms=up.saccade_ms,
         fixation_jitter=up.fixation_jitter * noise * ln(s / 2),

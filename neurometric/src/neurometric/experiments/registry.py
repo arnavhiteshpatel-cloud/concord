@@ -33,7 +33,7 @@ FIG_METRICS = ["iso_tp_bps", "iso_error_rate", "iso_mt_ms", "iso_path_efficiency
 SWEEPS = {
     "B_noise": ("noise scale (x base white 30 + AR 40 px/s)", [0, 0.5, 1, 2, 3, 4, 6],
                 lambda s: BASE.with_(white_noise=30 * s, correlated_noise=40 * s), "bci_cursor_good_sim", {}),
-    "C_latency": ("added latency (ms)", [0, 60, 120, 200, 300, 450, 700],
+    "C_latency": ("total decoder output latency (ms; base profile has 60)", [0, 60, 120, 200, 300, 450, 700],
                   lambda L: BASE.with_(latency_ms=L), "bci_cursor_good_sim", {}),
     "C2_latency_mouse": ("latency (ms), position-control pointer", [0, 60, 120, 200, 300, 450, 700],
                          lambda L: DegradationConfig(latency_ms=L), "mouse_sim", {}),
@@ -117,7 +117,7 @@ def exp_G(**_):
         return {}
     allp = pd.concat(rows)
     save("G_metric_comparison", "all_properties", allp)
-    # sensitivity heatmap: d_first (paired d_z baseline vs first degraded level), clipped
+    # sensitivity heatmap: -Spearman rho of (oriented) score with degradation level
     piv = allp.pivot_table(index="metric", columns="sweep", values="rho")
     piv = piv.loc[[m for m in METRIC_DIRECTION if m in piv.index]]
     plt = style()
@@ -151,7 +151,7 @@ def exp_G(**_):
     rank = pd.DataFrame({
         "mean_sensitivity": -allp[allp.sweep != "B4_gain"].groupby("metric")["rho"].mean(),
         "min_sensitivity": -allp[allp.sweep != "B4_gain"].groupby("metric")["rho"].max(),
-        "mean_monotone_frac": allp.groupby("metric")["monotone_frac"].mean(),
+        "mean_monotone_frac": allp[allp.sweep != "B4_gain"].groupby("metric")["monotone_frac"].mean(),
         "mean_auc_adjacent": allp.groupby("metric")["auc_adjacent"].mean(),
         "max_undefined_frac": allp.groupby("metric")["undefined_frac"].max(),
         "max_floor_frac": allp.groupby("metric")["floor_frac"].max(),
@@ -456,8 +456,8 @@ def exp_N(n: int = 120, **_):
 
 
 # --------------------------------------------------------------------------- H: adaptive vs fixed
-def adaptive_grid(mod, users, n, rng, degradation, n_trials=30, sizes=None, cell=120,
-                  rows=4, cols=6, start_size=100.0, step=1.25, min_size=16.0, max_size=116.0):
+def adaptive_grid(mod, users, n, rng, degradation, n_trials=40, sizes=None, cell=120,
+                  rows=4, cols=6, start_size=100.0, step=1.4, min_size=6.0, max_size=116.0):
     """2-down/1-up staircase on item size (converges near 70.7% correct, Levitt 1971 [PK]).
     Returns per-participant threshold size (geometric mean of last 6 reversal sizes) and the
     trial log. Item spacing (cell) is fixed so only target size varies."""
@@ -477,7 +477,8 @@ def adaptive_grid(mod, users, n, rng, degradation, n_trials=30, sizes=None, cell
         its = np.zeros((n, K, 4))
         its[:, :, :2] = centers[order]
         its[:, :, 2:] = (size / 2)[:, None, None]
-        st = sim.acquire(its, dwell_ms=dwell, max_ms=10000, end_on_empty=True)
+        # same empty-click rule as the fixed grid (run_grid): empty-space clicks do not end a trial
+        st = sim.acquire(its, dwell_ms=dwell, max_ms=10000, end_on_empty=False)
         ok = st.sel_item == 0
         log.append(pd.DataFrame({"participant": np.arange(n), "trial": k, "size": size.copy(),
                                  "success": ok, "time_ms": np.where(st.timed_out, 10000, st.sel_t)}))
@@ -509,13 +510,13 @@ def exp_H(n: int = 60, **_):
         users, z = sample_population(mod.user, n, prng, ability_sd=0.3)
         for size_label, item in [("fixed_large_100px", 100), ("fixed_small_40px", 40)]:
             rng = np.random.default_rng(seed_for("H", nl, size_label))
-            gd = T.run_grid(mod, users, n, rng, n_trials=30, item=item, max_ms=10000,
+            gd = T.run_grid(mod, users, n, rng, n_trials=40, item=item, max_ms=10000,
                             degradation=deg)
             acc = gd.groupby("participant")["success"].mean().to_numpy()
             rows.append(pd.DataFrame({"noise": nl, "design": size_label, "participant": np.arange(n),
                                       "score": acc, "latent": z}))
         rng = np.random.default_rng(seed_for("H", nl, "adaptive"))
-        thr, log, nrev = adaptive_grid(mod, users, n, rng, deg, n_trials=30)
+        thr, log, nrev = adaptive_grid(mod, users, n, rng, deg, n_trials=40)
         rows.append(pd.DataFrame({"noise": nl, "design": "adaptive_size_threshold",
                                   "participant": np.arange(n), "score": -np.log(thr), "latent": z,
                                   "reversals": nrev}))
@@ -530,7 +531,7 @@ def exp_H(n: int = 60, **_):
             ce = float(np.mean(d.score >= 1 - 1e-9))
         else:
             fl = float(np.mean(d.score <= -np.log(116) + 1e-6))
-            ce = float(np.mean(d.score >= -np.log(16) - 1e-6))
+            ce = float(np.mean(d.score >= -np.log(6) - 1e-6))
         # discrimination of device level across the full range and within-level person ranking
         rho_dev = spearmanr(d.noise, d.score).statistic
         within = np.nanmean([spearmanr(g.latent, g.score).statistic for _, g in d.groupby("noise")
@@ -558,7 +559,7 @@ def exp_H(n: int = 60, **_):
     fig.tight_layout()
     fig.savefig(RESULTS / "H_adaptive" / "fixed_vs_adaptive.png")
     plt.close(fig)
-    summ = {"design": "6 noise levels x 60 virtual participants; fixed 100 px and 40 px grids (30 trials) vs 30-trial 2-down/1-up size staircase",
+    summ = {"design": "6 noise levels x 60 virtual participants; fixed 100 px and 40 px grids (40 trials) vs 40-trial 2-down/1-up size staircase (step x1.4, 6-116 px)",
             "results": res.to_dict("records"),
             "caveat": "Adaptive scores are on a different scale; comparability across battery versions must be maintained by fixing the staircase rule and version."}
     write_summary("H_adaptive", summ)

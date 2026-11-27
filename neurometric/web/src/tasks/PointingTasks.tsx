@@ -132,7 +132,10 @@ export function IsoRingTask({ api }: { api: TaskApi }) {
   const nBlocks = limitN(api, "blocks", allBlocks.length, 2);
   const blocks = allBlocks.slice(0, nBlocks);
   const [b, setB] = useState(0);
-  const [k, setK] = useState(0); // index into ISO order; 0 = unscored start selection
+  const [k, setK] = useState(0); // index into ISO order
+  // "start": the highlighted target must be selected once, unscored, to (re)start the sequence
+  // (block start, or after a pause); then each later selection is a scored trial.
+  const [phase, setPhase] = useState<"start" | "run">("start");
   const prevSel = useRef<{ x: number; y: number; t: number } | null>(null);
   const col = useRef(new TrialCollector());
   const perBlock = useRef<Map<number, Trial[]>>(new Map());
@@ -159,10 +162,13 @@ export function IsoRingTask({ api }: { api: TaskApi }) {
   };
 
   const advance = () => {
-    if (k + 1 < nSel) setK(k + 1);
-    else if (b + 1 < blocks.length) {
+    if (k + 1 < nSel) {
+      setK(k + 1);
+      setPhase("run");
+    } else if (b + 1 < blocks.length) {
       setB(b + 1);
       setK(0);
+      setPhase("start");
       prevSel.current = null;
     } else api.finish(summarize());
   };
@@ -181,16 +187,16 @@ export function IsoRingTask({ api }: { api: TaskApi }) {
   };
 
   api.handlers = {
-    emptyEndsTrial: k > 0,
+    emptyEndsTrial: phase === "run",
     virtualCursor: true,
     summarize,
     onMove: (x, y, t) => col.current.add(x, y, t),
     onSelect: (s) => {
       if (!block || !tgt) return;
       const hit = inside({ x: tgt.x, y: tgt.y, w: tgt.w, h: tgt.w }, s.x, s.y);
-      if (k === 0) {
-        if (!hit) return; // the unscored start selection must be on the first target
-        api.session.marker("sequence_start", { block: block.bi, trial: 0 }, s.t);
+      if (phase === "start") {
+        if (!hit) return; // the unscored start selection must be on the highlighted target
+        api.session.marker("sequence_start", { block: block.bi, trial: k }, s.t);
         prevSel.current = { x: s.x, y: s.y, t: s.t };
         advance();
         return;
@@ -203,16 +209,16 @@ export function IsoRingTask({ api }: { api: TaskApi }) {
       endTrial(hit ? "hit" : "miss", s);
     },
     onSkip: () => {
-      if (k > 0) endTrial("abandoned");
+      if (phase === "run") endTrial("abandoned");
     },
     onPause: () => {
-      // the sequence restarts from the current target with a new unscored start selection
-      if (k > 0 && api.session.inTrial) {
+      // the sequence restarts at the current target with a new unscored start selection
+      if (phase === "run" && api.session.inTrial) {
         api.session.marker("trial_end", { block: block.bi, trial: k, outcome: "abandoned", reason: "paused" });
         col.current.active = false;
       }
       prevSel.current = null;
-      setK(0);
+      setPhase("start");
     },
   };
 
@@ -220,8 +226,8 @@ export function IsoRingTask({ api }: { api: TaskApi }) {
     if (!block || !tgt) return;
     const ring: TaskItem[] = block.targets.map((t, j) => ({ id: `ring-${j}`, x: t.x, y: t.y, w: t.w, h: t.w, shape: "circle" }));
     api.setItems(isA3 ? ring : [ring[k]]);
-    if (k === 0) {
-      api.session.marker("block_start", { block: block.bi, D: block.D, W: block.W, n: nSel });
+    if (phase === "start") {
+      if (k === 0) api.session.marker("block_start", { block: block.bi, D: block.D, W: block.W, n: nSel });
       api.setInstruction(`Block ${b + 1} of ${blocks.length}. ${isA3 ? "Hold the pointer still on" : "Select"} the highlighted circle to begin, then follow the highlight across the ring as quickly and accurately as you can.`);
       return;
     }
@@ -241,7 +247,7 @@ export function IsoRingTask({ api }: { api: TaskApi }) {
     });
     return off;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [b, k]);
+  }, [b, k, phase]);
 
   if (!block) return <p className="cue-box">No conditions to administer (check the minimum target size setting).</p>;
   return (

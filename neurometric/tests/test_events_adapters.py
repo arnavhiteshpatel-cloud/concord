@@ -156,7 +156,9 @@ def test_simulated_step_roundtrip_identical_metrics():
         tr = events_to_pointing_trials(evs)
         m = trial_metrics(tr)
         for k in ("success", "movement_time_ms", "path_length_px", "path_efficiency",
-                  "endpoint_error_px", "target_reentries", "overshoot_px"):
+                  "endpoint_error_px", "target_reentries", "overshoot_px",
+                  "movement_variability_px", "movement_error_px", "movement_offset_px",
+                  "task_axis_crossings", "submovements"):
             a, b_ = direct[k][b], m[k][0]
             if isinstance(a, (bool, np.bool_)):
                 assert a == b_

@@ -161,6 +161,9 @@ export function TaskRunner(props: { stim: Stimuli; spec: TaskSpec; settings: Set
 
   // ---- session metadata (timing self-checks) collected in the background
   useEffect(() => {
+    // Test / lab hook (read-only use by tests/web): the active session and its recorder.
+    (window as unknown as { __nmActive?: unknown }).__nmActive = { session, recorder: session.rec, api };
+    canvasRef.current?.focus({ preventScroll: true });
     let live = true;
     collectSessionMetadata(scale).then((m) => {
       if (live) session.metadata = m;

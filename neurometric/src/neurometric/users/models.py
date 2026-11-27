@@ -51,6 +51,8 @@ class UserParams:
     select_speed: float | np.ndarray = 150.0  # px/s, must be slower than this to click
     select_rt_ms: float | np.ndarray = 120.0  # delay from decision to click intent
     settle_ms: float | np.ndarray = 0.0  # must perceive the cursor inside this long before clicking
+    no_verify_prob: float | np.ndarray = 0.0  # P(click at the end of a submovement without
+    #   waiting for visual confirmation) - position users; produces realistic ISO errors
     # submovement users
     sub_tmin_ms: float | np.ndarray = 120.0
     sub_c: float | np.ndarray = 22.0  # ms per sqrt(px)
@@ -237,6 +239,12 @@ class SubmovementUser(BaseUser):
             fin[mv] = s >= 1
             self.phase[fin] = 0
             self.timer[fin] = p.feedback_delay_ms[fin]  # wait to see where the cursor landed
+            if not self.dwell:
+                # some clicks are issued at the end of the movement, before visual verification,
+                # trusting that the planned endpoint is on target (speed-accuracy trade-off)
+                blind = fin & (self.rng.random(B) < p.no_verify_prob)
+                self.phase[blind] = 2
+                self.timer[blind] = p.select_rt_ms[blind] * 0.5
         sl = self.phase == 2
         if sl.any():
             fire = sl & (self.timer <= self.dt)

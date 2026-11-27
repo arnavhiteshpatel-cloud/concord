@@ -371,6 +371,18 @@ On a synthetic 60-trial session of 14,643 events, event validation ran at a medi
 reproduced an identical hash (`experiments/results/S_event_latency/summary.json`). Browser-side
 timing is a separate bench study (Aim 1a).
 
+#### 4.2.8 Study Q: automated accessibility and end-to-end checks of the browser battery
+An automated axe-core 4.10.3 scan (WCAG 2.0/2.1/2.2 A and AA rule sets plus best practice) of 58
+screens in light and dark themes found **0 violations** and 0 serious or critical issues
+(`experiments/results/Q_accessibility/axe_summary.json`). Automated end-to-end runs in headless
+Chromium with synthetic input (scripted mouse; keyboard acting as a switch) completed A2, A4 and E1
+and reached the task list through single-switch scanning setup; in each run the browser's
+provisional scores equalled the reference scores (e.g. A4 achieved bitrate 64.37 bit/s in both)
+(`experiments/results/Q_accessibility/e2e_tasks_summary.json`). These synthetic-input values are
+not human performance. As the result file states, automated rules find only part of WCAG issues and
+the manual protocol with screen readers, switch hardware and eye trackers has **not** been carried
+out; it is budgeted in Aim 1a (`BUDGET.md` §3.2).
+
 ### 4.3 Aim 1: technical validation of the battery and harness; able-bodied reliability
 
 Corresponds to Stages 1–3 of `CLINICAL_VALIDATION_PLAN.md`; protocols in

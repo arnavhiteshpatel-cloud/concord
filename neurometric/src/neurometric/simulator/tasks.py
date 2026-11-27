@@ -33,8 +33,12 @@ def _rects(pts, h=None):
 def run_iso(mod: Modality, users: UserParams, n: int, rng: np.random.Generator, D: float,
             W: float, n_targets: int = 13, max_ms: float = 15000.0,
             session_minutes: Optional[np.ndarray] = None, degradation=None,
-            dwell_ms: Optional[float] = None) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """ISO multidirectional sequence for n participants. Returns (trials_df, throughput_df)."""
+            dwell_ms: Optional[float] = None,
+            n_selections: Optional[int] = None) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """ISO multidirectional sequence for n participants. Returns (trials_df, throughput_df).
+
+    The ring always has ``n_targets`` (13) positions so inter-target distance is fixed
+    (D*sin(7*pi/13) = 0.993 D); ``n_selections`` scored selections continue around the ring."""
     if mod.kind != "pointer":
         raise ValueError("ISO pointing requires a pointer modality")
     ring = iso_ring(D, W, n_targets)
@@ -46,8 +50,9 @@ def run_iso(mod: Modality, users: UserParams, n: int, rng: np.random.Generator, 
     rows = []
     tp_rows = []
     trials_all = []
-    for k in range(1, n_targets):
-        tg = ring[k]
+    n_sel = n_selections if n_selections is not None else n_targets - 1
+    for k in range(1, n_sel + 1):
+        tg = ring[k % n_targets]
         items = np.tile(np.array([[tg["x"], tg["y"], W / 2, W / 2]]), (n, 1, 1))
         st = sim.acquire(items, dwell_ms=dwell, max_ms=max_ms, end_on_empty=True)
         # ISO: after a timeout the next target is still presented from wherever the cursor is
@@ -111,7 +116,10 @@ def run_grid(mod: Modality, users: UserParams, n: int, rng, rows=4, cols=6, cell
                                      "success": r["selected"] == cue,
                                      "timeout": r["selected"] < 0,
                                      "movement_time_ms": r["time_ms"],
-                                     "false_activations": r["false"]}))
+                                     # unintended switch activations are not observable as such
+                                     # (they look like selections); the observable proxy is wrong selections
+                                     "false_activations": np.full(n, np.nan),
+                                     "gt_false_selects": r["false"]}))
     else:
         sim = _sim(mod, users, n, rng, session_minutes=session_minutes, degradation=degradation)
         dwell = mod.dwell_ms if mod.selection == "dwell" else None
@@ -161,15 +169,21 @@ def run_typing(mod: Modality, users: UserParams, n: int, rng, phrases: list[str]
     if mod.kind == "pointer":
         sim = _sim(mod, users, n, rng, session_minutes=session_minutes, degradation=degradation)
     dwell = mod.dwell_ms if mod.selection == "dwell" else None
-    # scanning layout: 4 rows x 10 columns (qwerty rows, then space and backspace)
-    scan_rows = [list("qwertyuiop"), list("asdfghjkl"), list("zxcvbnm"), [" ", "\b"]]
-    scan_pos = {c: r * 10 + i for r, row in enumerate(scan_rows) for i, c in enumerate(row)}
-    scan_lab = {v: k for k, v in scan_pos.items()}
+    # scanning layout: 4 rows x 7 columns, frequency ordered, no empty cells (common AAC design)
+    scan_cells = [" ", "e", "t", "a", "o", "i", "n", "s", "h", "r", "d", "l", "u", "c", "m", "f",
+                  "w", "y", "p", "v", "b", "g", "k", "j", "q", "x", "z", "\b"]
+    SR, SC = 4, 7
+    scan_pos = {c: i for i, c in enumerate(scan_cells)}
+    scan_lab = {i: c for i, c in enumerate(scan_cells)}
     for ph in phrases:
         buf = [[] for _ in range(n)]
         stream = [[] for _ in range(n)]
         accepted = [set() for _ in range(n)]
         t = np.zeros(n)
+        t_first = np.full(n, np.nan)
+        attempts = np.zeros(n, int)
+        aborted = np.zeros(n, bool)
+        max_attempts = int(max_keys_factor * len(ph)) + 5
         active = np.ones(n, bool)
         while active.any():
             want = np.full(n, -1)
@@ -185,6 +199,10 @@ def run_typing(mod: Modality, users: UserParams, n: int, rng, phrases: list[str]
                 if L >= len(ph) or len(stream[i]) > max_keys_factor * len(ph):
                     active[i] = False
                     continue
+                if attempts[i] >= max_attempts:  # e.g. no keystroke can be produced at all
+                    active[i] = False
+                    aborted[i] = True
+                    continue
                 want[i] = idx_of[ph[L]]
             if not active.any():
                 break
@@ -198,15 +216,18 @@ def run_typing(mod: Modality, users: UserParams, n: int, rng, phrases: list[str]
                 dt = np.where(st.timed_out, max_ms_per_key, np.nan_to_num(st.sel_t))
             else:
                 tgt = np.array([scan_pos[labels[w]] if w >= 0 else 0 for w in want])
-                r = scan_select(rng, n, tgt, 4, 10, mod.scan if degradation is None else degradation,
+                r = scan_select(rng, n, tgt, SR, SC, mod.scan if degradation is None else degradation,
                                 1.0 if rt_scale is None else rt_scale)
                 typed = [scan_lab.get(int(s)) if s >= 0 else None for s in r["selected"]]
                 dt = r["time_ms"]
             for i in np.nonzero(active)[0]:
                 t[i] += dt[i]
+                attempts[i] += 1
                 ch = typed[i]
                 if ch is None:
                     continue
+                if np.isnan(t_first[i]):
+                    t_first[i] = t[i]
                 stream[i].append(ch)
                 if ch == "\b":
                     if buf[i]:
@@ -215,9 +236,12 @@ def run_typing(mod: Modality, users: UserParams, n: int, rng, phrases: list[str]
                 else:
                     buf[i].append(ch)
         for i in range(n):
-            res = text_entry_metrics(ph, stream[i], t[i] / 1000.0)
+            # S is timed from the first keystroke to the last (METRICS.md; review C5)
+            secs = (t[i] - t_first[i]) / 1000.0 if np.isfinite(t_first[i]) else 0.0
+            res = text_entry_metrics(ph, stream[i], secs)
             d = res.to_dict()
-            d.update(participant=i, phrase=ph)
+            d.update(participant=i, phrase=ph, aborted=bool(aborted[i]),
+                     phrase_time_s=t[i] / 1000.0)
             rows_out.append(d)
     df = pd.DataFrame(rows_out)
     df["modality"], df["synthetic"] = mod.name, True
@@ -226,14 +250,15 @@ def run_typing(mod: Modality, users: UserParams, n: int, rng, phrases: list[str]
 
 # ----------------------------------------------------------------------------- B2 tracking
 def run_tracking(mod: Modality, users: UserParams, n: int, rng, duration_ms=30000.0,
-                 radius=40.0, degradation=None, exclude_ms=3000.0) -> pd.DataFrame:
+                 radius=40.0, degradation=None, exclude_ms=3000.0,
+                 session_minutes=None) -> pd.DataFrame:
     """Continuous tracking of a sum-of-sines target (velocity/feedback users only)."""
     from ..metrics.session import tracking_metrics
     from .decoder import DegradedChannel
     from ..users.models import FeedbackUser
     dt = 10.0
     user = FeedbackUser(users, n, dt, rng)
-    ch = DegradedChannel(degradation or mod.degradation, n, dt, "velocity", rng)
+    ch = DegradedChannel(degradation or mod.degradation, n, dt, "velocity", rng, session_minutes)
     comps = [(0.1, 180, 120), (0.17, 120, 90), (0.27, 80, 60), (0.4, 50, 40)]
     ph = rng.uniform(0, 2 * np.pi, (n, len(comps), 2))
     T = int(duration_ms / dt)
@@ -361,10 +386,13 @@ def run_adl(mod: Modality, users: UserParams, n: int, rng, task_id: str, max_ms=
                 wrong = m & (got != tgt) & (got >= 0)
                 if nb:
                     need_back = np.where(ok, False, need_back)
+                    errors += wrong  # wrong selections during recovery also count (review M9)
                 else:
                     step = np.where(ok, step + 1, step)
                     errors += wrong
-                    # a wrong selection on step 0 navigates away only if it is not 'back'
+                    # pressing 'back' by mistake returns to the previous screen
+                    went_back = wrong & (got == 0)
+                    step = np.where(went_back, np.maximum(step - 1, 0), step)
                     need_back = np.where(wrong & (got != 0), True, need_back)
         done = step >= S
         failed = ~done & ((errors > max_errors) | (t > max_ms))

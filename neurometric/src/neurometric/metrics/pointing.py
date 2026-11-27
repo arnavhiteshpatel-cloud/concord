@@ -241,6 +241,12 @@ def fitts_throughput(tr: PointingTrials, D: float, W: float, *, dwell: bool = Fa
         flags.append(f"{timeouts} timeouts excluded (throughput is conditional on selection)")
     if dwell:
         flags.append("dwell selection: MT includes a fixed dwell time; compare TP only within the same dwell setting")
+    # spatial outliers (MacKenzie & Isokoski 2008 style criterion [PK]): movement shorter than half
+    # the nominal distance, or endpoint more than twice the nominal width from the target centre.
+    # Flagged (not excluded) because they inflate We.
+    n_out = int(np.sum((tm["amplitude_px"] < D / 2) | (np.abs(dx) > 2 * W)))
+    if n_out:
+        flags.append(f"{n_out} spatial outlier selection(s) included (inflate We)")
     if We <= 0 or not np.isfinite(IDe):
         flags.append("degenerate endpoint spread")
     valid = n >= min_n and err <= max_error_rate and We > 0 and bool(np.isfinite(IDe))

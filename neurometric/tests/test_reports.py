@@ -24,4 +24,4 @@ def test_report_is_reproducible(sd, tmp_path):
     a = build_report(sd, "sponsor_study_summary", tmp_path / "a")
     b = build_report(sd, "sponsor_study_summary", tmp_path / "b")
     assert a["provenance"]["data_sha256"] == b["provenance"]["data_sha256"]
-    assert a["results"] == b["results"]
+    assert json.dumps(a["results"], default=str) == json.dumps(b["results"], default=str)

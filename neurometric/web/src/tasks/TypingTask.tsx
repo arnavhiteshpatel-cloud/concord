@@ -137,7 +137,8 @@ export function TypingTask({ api }: { api: TaskApi }) {
           <span className="muted" style={{ fontSize: 20 }}>Copy this phrase: </span>
           <strong id="e1-presented">{phrases[p]}</strong>
         </p>
-        <p className="typed" aria-live="polite" aria-label="Typed so far" id="e1-typed" style={{ borderBottom: "3px solid var(--canvas-line)", minHeight: 50, margin: 0 }}>
+        <p className="typed" aria-live="polite" id="e1-typed" style={{ borderBottom: "3px solid var(--canvas-line)", minHeight: 50, margin: 0 }}>
+          <span className="sr-only">Typed so far: </span>
           {typed}
           <span aria-hidden="true">|</span>
         </p>

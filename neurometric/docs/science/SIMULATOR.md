@@ -41,17 +41,24 @@ models of BCI users used for decoder design (Willett et al. 2019, Sci Rep) [PK].
 | select_miss_prob, select_latency_ms, false_select_per_min | selection channel: misses, delay, Poisson false activations when not intending | | |
 | dims | active axes (scrolling uses y only) | | |
 
-Each parameter is verified by a unit test against its analytic expectation
-(`tests/test_simulator.py`: latency shift, jitter never reorders, white/AR noise SD and lag-1
-autocorrelation, gain and bias geometry, asymmetry, sample-and-hold rate, Markov dropout duty
-cycle, false-selection rate, miss probability, selection latency, drift growth, determinism).
+Unit tests against analytic expectations exist for: identity, fixed latency shift, jitter never
+reorders, white and AR(1) noise SD and lag-1 autocorrelation, gain and bias geometry, asymmetry,
+sample-and-hold rate, Markov dropout duty cycle, false-selection rate, miss probability, selection
+latency, drift growth, determinism (`tests/test_simulator.py`). **Not yet unit-tested:** smoothing,
+quantization, direction bins, gain decay, noise growth, loss of control and recovery ramp,
+position-mode gain, dims masking. Latency jitter: outputs are never reordered, so the realised
+extra delay is well below the nominal mean (nominal +200 ms realises ≈ +50 ms); report realised
+latency.
 
 ## Profiles (illustrative stress conditions)
 
-`identity`, `bci_good`, `bci_moderate`, `bci_poor` in `simulator/decoder.py`. Calibration: with
-the default BCI-like feedback user, `bci_good` gives ISO effective throughput ≈ 1.2 bit/s and
-grid achieved bitrate ≈ 2.4 bit/s; mouse-like users give ≈ 4.1 bit/s and ~15 WPM on the on-screen
-keyboard; dwell-gaze-like users ≈ 2.3 bit/s and ~9 WPM. These were tuned to sit inside broad,
+`identity`, `bci_good`, `bci_moderate`, `bci_poor` in `simulator/decoder.py`. Calibration after
+the independent review fixes (40 virtual participants, battery defaults): mouse-like users ≈ 4.5
+bit/s ISO throughput with ≈3% errors, ≈17.5 WPM on the on-screen keyboard; head-pointer (dwell
+1 s) ≈ 1.7 bit/s, ≈6 WPM; dwell gaze (0.8 s) ≈ 2.4 bit/s, ≈9.5 WPM; `bci_good` ≈ 1.0 bit/s,
+grid achieved bitrate ≈ 2.3 bit/s, ≈29 correct characters/min; `bci_moderate` ≈ 0.4 bit/s (only
+40% of conditions valid); `bci_poor` throughput invalid (87% errors); row-column switch scanning
+(1 s) ≈ 3.3 WPM. These were tuned to sit inside broad,
 published ranges (mouse Fitts TP ≈ 3.7–4.9 bit/s, Soukoreff & MacKenzie 2004; intracortical BCI
 cursor throughput on the order of 1–2 bit/s in 2015–2017 BrainGate reports; dwell gaze typing in
 single-digit WPM) [PK — ranges from memory; verify against methods_references.md before any
@@ -69,8 +76,12 @@ measured property of a device.
 
 Populations (`sample_population`): one latent ability z ~ N(0,1) scales speed (×e^{σz}) and
 noise (×e^{−σz}) plus idiosyncratic log-normal variation — the ground truth for reliability and
-known-groups experiments. Fatigue (`fatigue_per_min`) and learning are *simulated* state changes,
-labelled as such.
+known-groups experiments. Fatigue (`fatigue_per_min`) is a *simulated* state change, labelled as
+such; learning is not modelled. Day-to-day within-person variation (speed, reaction, motor noise,
+fixation jitter; log-normal SD 0.10 per session) is applied between repeated sessions so that
+test–retest results are not driven only by noise streams; reliability estimates remain upper
+bounds relative to real users. The feedback gain is not scaled with ability (higher gain with
+delay destabilises the loop); a regression test checks performance rises with ability.
 
 Text-entry users notice an error with probability 0.9 and correct it with backspace; unnoticed
 errors remain. ADL users press "back" after a wrong selection and retry.

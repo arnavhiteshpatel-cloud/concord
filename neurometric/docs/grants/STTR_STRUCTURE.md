@@ -43,11 +43,12 @@ founder or hire can be ≥ 51% employed by the company.
 | Clinical advice and AT-user recruitment | RI clinical co-investigator; `[CLINICAL SITE]` via the RI or a separate subcontract | Only **one** partnering RI counts toward the 30% (the NOFO speaks of "the single, 'partnering' non-profit research institution" [V]); other organisations are ordinary subcontractors/consultants [PK] |
 
 ### 2.2 Proposed percentages
-From the draft budget (`BUDGET.md` §2): the company performs about **51%** and the partner RI about
-**49%** of the work, measured as each party's share of total costs excluding the fee [PK: confirm
+From the draft budget (`BUDGET.md` §2): the company performs about **47%** and the partner RI about
+**53%** of the work, measured as each party's share of total costs excluding the fee [PK: confirm
 the SBA measurement basis]. Both statutory minimums (≥ 40% / ≥ 30%) are met with a margin, so a
 moderate rebudget (for example a higher university F&A rate than assumed) does not break the rule.
-Re-check the split each time the budget changes.
+Re-check the split each time the budget changes. Reviewers may prefer the company to perform the
+larger share; shifting engineering or bench work to the company is the lever.
 
 ### 2.3 Choice of partner research institution
 | Option | For | Against / to check |

@@ -21,7 +21,8 @@ def tracking_metrics(t_ms: np.ndarray, cursor: np.ndarray, target: np.ndarray,
         g = target[ok, 0] - np.nanmean(target[ok, 0])
         maxlag = min(len(c) // 2, int(2000 / dt)) if dt and dt > 0 else 0
         if maxlag > 0 and np.std(c) > 0 and np.std(g) > 0:
-            xc = [np.dot(c[k:], g[: len(g) - k]) for k in range(maxlag)]
+            # mean (not sum) of lagged products: the sum shrinks with lag and biases lag to 0
+            xc = [np.dot(c[k:], g[: len(g) - k]) / (len(g) - k) for k in range(maxlag)]
             lag = float(np.argmax(xc) * dt)
     return {"rms_error_px": float(np.sqrt(np.mean(err ** 2))) if err.size else np.nan,
             "time_on_target": float(np.mean(err <= radius)) if err.size else np.nan,
@@ -64,11 +65,16 @@ def session_summary(events: Iterable[InputEvent], n_tasks_planned: int,
         return {"duration_min": 0.0, "completion_rate": 0.0}
     t0, t1 = evs[0].t_ms, evs[-1].t_ms
     pauses = [e for e in evs if e.kind == EventKind.PAUSE]
-    resumes = [e for e in evs if e.kind == EventKind.RESUME]
     rest_ms = 0.0
-    for p in pauses:
-        r = next((r for r in resumes if r.t_ms >= p.t_ms), None)
-        rest_ms += ((r.t_ms if r else t1) - p.t_ms)
+    paused_at = None
+    for e in evs:  # pair each PAUSE with the next RESUME; repeated PAUSEs do not double count
+        if e.kind == EventKind.PAUSE and paused_at is None:
+            paused_at = e.t_ms
+        elif e.kind == EventKind.RESUME and paused_at is not None:
+            rest_ms += e.t_ms - paused_at
+            paused_at = None
+    if paused_at is not None:
+        rest_ms += t1 - paused_at
     assists = [e for e in evs if e.kind == EventKind.ASSIST]
     dur_min = (t1 - t0) / 60000.0
     by_type: dict[str, int] = {}

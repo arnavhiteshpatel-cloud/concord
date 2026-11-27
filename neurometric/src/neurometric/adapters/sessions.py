@@ -85,8 +85,10 @@ def events_to_pointing_trials(events: Iterable[InputEvent]) -> PointingTrials:
                 cur["empty"] += 1
             else:
                 cur["sel"] = (e.t_ms - cur["t0"], e.x, e.y, hit)
-                cur["xy"].append((e.x, e.y))
-                cur["t"].append(e.t_ms - cur["t0"])
+                # add the selection point as a sample only if it is not already the last sample
+                if not cur["xy"] or cur["xy"][-1] != (e.x, e.y) or cur["t"][-1] != e.t_ms - cur["t0"]:
+                    cur["xy"].append((e.x, e.y))
+                    cur["t"].append(e.t_ms - cur["t0"])
         elif e.kind == EventKind.MARKER and e.meta.get("marker") == "trial_end":
             trials.append(cur)
             cur = None
