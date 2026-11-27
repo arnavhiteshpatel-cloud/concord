@@ -3,8 +3,8 @@
 > **OUTLINE + PARTIAL DRAFT v0.1 (2026-11-27). Design and software-verification paper only. No
 > participant data exist and none are reported.** The home-use feasibility study that would test
 > this architecture with people (`docs/clinical/HOME_USE_FEASIBILITY.md`) has not been approved or
-> run. Experiment O (telemetry integrity) results: no `experiments/results/O_*` directory existed
-> when this draft was finished, so they are marked `[RESULT PENDING]`. Authors and competing
+> run. Experiment O (telemetry integrity) results are from
+> `experiments/results/O_telemetry_integrity/summary.json` (software verification, not field data). Authors and competing
 > interests: `[AUTHORS]`.
 
 ---
@@ -19,7 +19,10 @@ restriction at three independent layers (on-device aggregator, server allowlist 
 consent and telemetry-state gates), detects duplicate, conflicting, overlapping and out-of-order
 batches, and stores only a receipt for anything rejected. We map platform constraints on Windows,
 macOS, Linux, Android, iOS and ChromeOS and show why only some platforms allow consented
-cross-application telemetry without workarounds. **Verification.** [RESULT PENDING: experiments/results/O_*/summary.json — Experiment O: number of adversarial payload classes tested and rejected; duplicate/conflict/overlap handling outcomes]. Unit tests show that probes cannot report content keys, that pause and consent withdrawal drop data at the source, and that aggregate payloads pass the server allowlist (`tests/test_probe_contract.py`). **Status.** No human data; feasibility study pending IRB.
+cross-application telemetry without workarounds. **Verification.** A fault-injection suite (Experiment O) covering duplicates, conflicting
+re-sends, out-of-order and overlapping batches, clock skew, 20 classes of forbidden content,
+consent states and hash mismatch passed 32 of 32 tests, with stored aggregates equal to expected
+values (`experiments/results/O_telemetry_integrity/summary.json`). Unit tests show that probes cannot report content keys, that pause and consent withdrawal drop data at the source, and that aggregate payloads pass the server allowlist (`tests/test_probe_contract.py`). **Status.** No human data; feasibility study pending IRB.
 
 ---
 
@@ -118,18 +121,26 @@ score with a-priori weights exists but is labelled experimental until validated
   withdrawal drop data at the source; probes cannot report content keys.
 - `tests/test_study_core.py`: role permissions for `telemetry.ingest`; a participant of one
   organisation cannot ingest telemetry for another organisation's participant.
-Counts of tests and pass status should be cited from a test run log at submission [not run for
-this draft].
+Their pass status should be cited from a test-run log at submission.
 
-### 4.2 Experiment O: adversarial and integrity evaluation (planned/pending)
-Design to report (from the module's documented integrity rules):
-- adversarial payload corpus: content-like keys, URL-like values, keystroke arrays, app names in the
-  category map, out-of-range numbers, NaN/inf, wrong types, nested objects, missing fields;
-- integrity scenarios: identical re-send, conflicting re-send, overlap within and across device
-  sessions, out-of-order arrival, clock skew within and beyond tolerance, hash mismatch;
-- consent scenarios: no consent, withdrawn consent, paused telemetry, app categories without the
-  extra scope.
-[RESULT PENDING: experiments/results/O_*/summary.json — counts accepted/rejected per class and the reason codes; false-rejection rate on valid synthetic payloads]
+### 4.2 Experiment O: adversarial and integrity evaluation
+Source: `experiments/results/O_telemetry_integrity/summary.json` (generated 2026-11-27T07:37Z;
+per-test results in `junit.xml`). 32 of 32 tests passed:
+- a valid payload passes the validator;
+- **20 forbidden-content cases** are rejected and never stored: free text, keystrokes, URL,
+  window title, screenshot, clipboard, notes, nested metadata, text inside counts, key names inside
+  counts, strings inside counts, app name, app URL, client hostname, assistance note, free-text
+  assistance type, fatigue as text, fatigue out of range, malformed pseudonym, URL as device
+  session ID;
+- content keys are labelled `forbidden` (not merely unknown);
+- consent and visible recording state are enforced; app categories need their own consent scope;
+- participant mismatch is rejected and linked care partners are handled;
+- the participant's local review shows exactly what was sent;
+- duplicates are idempotent; out-of-order batches are accepted and flagged; overlapping periods are
+  handled per the rules; clock skew and period sanity rules hold; batch hashes are verified;
+- stored aggregates for the Experiment O scenario equal the expected values.
+Limit: these are software tests with synthetic payloads; they do not show that real agents on
+real devices behave the same, nor that participants find the controls understandable.
 
 ### 4.3 Accessibility of the participant-facing battery
 Automated axe-core scan of 58 screens: 0 violations (`experiments/results/Q_accessibility/axe_summary.json`);

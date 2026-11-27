@@ -366,7 +366,11 @@ This shows the pipeline runs end-to-end on real recorded behaviour and yields a 
 speed–difficulty relation. It says nothing about human or AT-user performance.
 
 #### 4.2.7 Study S: server-side processing cost
-[RESULT PENDING: experiments/results/S_event_latency/summary.json — event-validation rate, segmentation-and-scoring time and JSON round-trip hash identity on a synthetic session; the file present at drafting predates the review fixes (generated 07:07Z) and must be regenerated].
+Browser part (headless Chromium, software path only): the median time from event dispatch to the
+canonical event was 0.040 ms (p95 0.065 ms; n = 1,000), and a fast-forwarded 10-minute, 60-Hz
+session of 36,000 pointer events was recorded with 0 drops
+(`experiments/results/S_event_latency/browser_summary.json`; excludes device, OS and display
+latency). Server part: [RESULT PENDING: experiments/results/S_event_latency/summary.json — event-validation rate, segmentation-and-scoring time and JSON round-trip hash identity; the summary present at drafting predates the review fixes (generated 07:07Z)].
 
 #### 4.2.8 Study Q: automated accessibility and end-to-end checks of the browser battery
 An automated axe-core 4.10.3 scan (WCAG 2.0/2.1/2.2 A and AA rule sets plus best practice) of 58
@@ -508,8 +512,13 @@ Protocol: `docs/clinical/HOME_USE_FEASIBILITY.md`, `docs/clinical/stage5_protoco
   with diary help minutes, per dyad; no correlation is reported as evidence at n = 5.
 - **Software deliverable.** Telemetry integrity rules (idempotent batches, duplicate and
   conflict detection, rejection of overlapping or future periods, SHA-256 per stored batch) are
-  implemented in `src/neurometric/study/telemetry.py`
-  [RESULT PENDING: experiments/results/O_*/summary.json — Experiment O telemetry integrity results; no O_* directory existed at drafting].
+  implemented in `src/neurometric/study/telemetry.py`. In a fault-injection test suite
+  (Experiment O: duplicates, conflicting re-sends, out-of-order and overlapping batches, clock
+  skew and future periods, 20 classes of forbidden content such as keystrokes, URLs, window titles,
+  clipboard, free-text notes and app names, paused/stopped/withdrawn consent, hash mismatch), all
+  32 tests passed and stored aggregates matched expected values
+  (`experiments/results/O_telemetry_integrity/summary.json`; software verification, not field
+  data).
 
 ### 4.6 Psychometric methods (summary; full specification in `docs/science/PSYCHOMETRICS.md`)
 | Property (COSMIN term) | Method | Notes |
