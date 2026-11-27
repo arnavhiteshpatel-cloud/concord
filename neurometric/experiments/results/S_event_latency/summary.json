@@ -1,6 +1,6 @@
 {
   "experiment": "S_event_latency",
-  "generated_utc": "2026-11-27T07:07:58Z",
+  "generated_utc": "2026-11-27T07:57:08Z",
   "software": {
     "neurometric": "0.1.0",
     "python": "3.13.18",
@@ -14,28 +14,28 @@
     "processor": "x86_64"
   },
   "session": {
-    "events": 14643,
+    "events": 15242,
     "trials": 60
   },
   "median": {
-    "n_events": 14643.0,
+    "n_events": 15242.0,
     "n_trials": 60.0,
-    "validate_events_per_s": 2140356.708597432,
-    "check_stream_events_per_s": 1837918.7375414725,
-    "segment_and_score_ms": 87.48293000007834,
-    "score_peak_mem_mb": 3.238136,
-    "json_roundtrip_ms": 292.45879700010846,
+    "validate_events_per_s": 2134485.7670529964,
+    "check_stream_events_per_s": 2302790.5132667264,
+    "segment_and_score_ms": 101.69646400026977,
+    "score_peak_mem_mb": 3.246288,
+    "json_roundtrip_ms": 353.940029000114,
     "roundtrip_hash_identical": 1.0,
-    "json_bytes": 3300733.0
+    "json_bytes": 3436815.0
   },
   "all_roundtrips_identical": true,
   "per_event_validate_us": {
-    "p50": 0.517,
-    "p99": 1.0660700000000016,
-    "max": 1844.627
+    "p50": 0.499,
+    "p99": 0.8140300000000006,
+    "max": 38.023
   },
   "stream_check": {
-    "n": 14643,
+    "n": 15242,
     "non_monotonic": 0,
     "duplicate_seq": 0,
     "seq_gaps": 0,

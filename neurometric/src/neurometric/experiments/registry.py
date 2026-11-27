@@ -219,7 +219,7 @@ def exp_I(n: int = 80, processes: int = 4, **_):
     fig.tight_layout()
     fig.savefig(RESULTS / "I_test_retest" / "reliability_vs_length.png")
     plt.close(fig)
-    summ = {"design": "80 virtual participants (latent ability SD 0.3) x 2 sessions x 4 lengths x 3 modalities",
+    summ = {"design": f"{n} virtual participants (latent ability SD 0.3) x 2 sessions x 4 lengths x 3 modalities",
             "results": res.to_dict("records")}
     write_summary("I_test_retest", summ)
     return summ

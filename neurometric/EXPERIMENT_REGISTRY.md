@@ -457,7 +457,7 @@ Metric ranking across all degradation sweeps:
 
 **Hypothesis.** Reliability rises with test length per Spearman-Brown; some metrics reach ICC >= 0.8.
 
-**Model / dataset.** 80 virtual participants x 2 sessions x 4 lengths x 3 modalities; day-to-day variation.
+**Model / dataset.** 60 virtual participants x 2 sessions x 4 lengths x 3 modalities; day-to-day variation.
 
 | modality | metric | length | icc_a1 | spearman_brown_pred | sem | mdc95 |
 |---|---|---|---|---|---|---|
@@ -741,7 +741,7 @@ Result files: coverage_results.csv, coverage_results.json
 
 **Model / dataset.** Synthetic 60-trial session (Python); headless Chromium (browser).
 
-Python pipeline on a 14,643-event, 60-trial session: validation 2,140,357 events/s; segmentation + scoring 87 ms; JSON round trip identical: True; per-event validation p99 1.1 µs.
+Python pipeline on a 15,242-event, 60-trial session: validation 2,134,486 events/s; segmentation + scoring 102 ms; JSON round trip identical: True; per-event validation p99 0.8 µs.
 
 Browser (`browser_summary.json`): {"experiment": "S_event_latency part 1 (browser)", "generated": "2026-11-27T07:46:23.828Z", "caveat": "Headless Chromium on a shared CI-class Linux container. Events are injected via CDP (page.mouse) or dispatchEvent, so USB/Bluetooth polling, OS input processing, compositor and display latency are NOT included. These figures characterise the in-page software path (adapter -> canonical event) only and must not be reported as physical end-to-end latency; see docs/research/browser_timing.md for the bench protocol.", "environment": {"user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.8010.12 Safari/537.36", "cross_origin_isolated": true, 
 

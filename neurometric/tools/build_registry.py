@@ -49,7 +49,7 @@ H = {  # id: (title, hypothesis, model/dataset, limitations)
                    "Adaptive scores are on a different scale; comparability requires locking the staircase rule."),
     "I_test_retest": ("Simulated test-retest reliability",
                       "Reliability rises with test length per Spearman-Brown; some metrics reach ICC >= 0.8.",
-                      "80 virtual participants x 2 sessions x 4 lengths x 3 modalities; day-to-day variation.",
+                      "60 virtual participants x 2 sessions x 4 lengths x 3 modalities; day-to-day variation.",
                       "Upper bounds: real users vary more between days than modelled."),
     "K_responsiveness": ("Measurement responsiveness",
                          "Change scores separate participants whose (simulated) decoder improved from stable ones.",

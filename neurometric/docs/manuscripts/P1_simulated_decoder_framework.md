@@ -31,7 +31,7 @@ observable events. For each degradation type we swept severity over 60 virtual p
 two independent replicates and estimated each metric's monotonic sensitivity, smallest detectable
 level, floor and ceiling fractions and simulated test–retest agreement.
 
-**Main results.** In the noise sweep (52,920 simulated trials), movement variability, correct characters per minute and achieved bitrate tracked noise (Spearman ρ −0.989, −0.910, −0.895); effective throughput was undefined in 42.4% of sessions because its validity conditions failed; digital-activity completion was at ceiling in 89.8% of sessions; and tracking lag ignored noise (ρ −0.043) but tracked latency (ρ −0.738) (`experiments/results/B_noise/summary.json`, `experiments/results/C_latency/summary.json`). [RESULT PENDING: experiments/results/G_metric_comparison/ranking.csv — one sentence on which metrics were sensitive across all degradation types and which were blind to latency/false activations]. An independent code review found five critical simulator defects, which were fixed before all results were regenerated. The scoring pipeline produced a speed–difficulty relation on a public macaque hand-cursor dataset (541 reaches; `experiments/results/X1_external_mc_rtt/summary.json`).
+**Main results.** In the noise sweep (52,920 simulated trials), movement variability, correct characters per minute and achieved bitrate tracked noise (Spearman ρ −0.989, −0.910, −0.895); effective throughput was undefined in 42.4% of sessions because its validity conditions failed; digital-activity completion was at ceiling in 89.8% of sessions; and tracking lag ignored noise (ρ −0.043) but tracked latency (ρ −0.738) (`experiments/results/B_noise/summary.json`, `experiments/results/C_latency/summary.json`). Across nine monotone sweeps, correct characters per minute and achieved bitrate had the highest mean sensitivity among user-level scores (0.693 and 0.666), false activations shortened movement times (ρ +0.653) so speed metrics alone misread them, and completion stayed at ceiling in four sweeps (`experiments/results/G_metric_comparison/ranking.csv`).. An independent code review found five critical simulator defects, which were fixed before all results were regenerated. The scoring pipeline produced a speed–difficulty relation on a public macaque hand-cursor dataset (541 reaches; `experiments/results/X1_external_mc_rtt/summary.json`).
 
 **Significance.** Simulation cannot establish reliability or validity in people, but it can
 expose measures that are structurally blind, saturated or unstable, and it can guide which
@@ -344,7 +344,7 @@ has no jitter here, so realised equals nominal.
 | Selection-process onset | −0.275 | 0.83 | 60 | — | 0.798 |
 | Target re-entries | +0.135 | 0.50 | 60 | — | 0.724 |
 
-Latency was destructive for the closed-loop velocity user: every user-level rate reached
+Mean CCPM fell from 35.4 characters/min at 0 ms to 28.0 at 60 ms, 12.1 at 200 ms, 2.7 at 300 ms and 0 at 450 ms and beyond (computed from `experiments/results/C_latency/data.csv`, replicate 0). Latency was destructive for the closed-loop velocity user: every user-level rate reached
 |d_z| ≥ 0.5 at the first step (60 ms vs 0 ms), and ADL completion split into a bimodal
 floor/ceiling pattern (32.6% / 67.4%). Tracking lag, blind to noise (§3.1), was monotone in
 latency (ρ −0.738) but only detectable from 300 ms. Target re-entries were non-monotone (ρ +0.135),
@@ -409,7 +409,32 @@ completion (ceiling 100%) or grid accuracy (ceiling 93.7%). Gain errors were the
 closed-loop users compensate, and no metric exceeded |ρ| = 0.6 against |log gain|.
 
 ### 3.5 Cross-degradation comparison (Study G)
-[RESULT PENDING: experiments/results/G_metric_comparison/ranking.csv — Table 3: top 10 metrics by mean_sensitivity with min_sensitivity, mean_monotone_frac, max_ceiling_frac, median_retest_icc; Figure 2: experiments/results/G_metric_comparison/sensitivity_heatmap.png]
+Table 3. Cross-sweep ranking (`experiments/results/G_metric_comparison/ranking.csv`, generated
+07:52Z). Sensitivity = −Spearman ρ, averaged over the nine monotone sweeps (B4 gain excluded);
+"worst" = the least favourable sweep; ρ is undefined (and excluded from the mean) when a metric is
+constant across a sweep.
+
+| Metric | Mean sensitivity | Worst sweep | Mean monotone | Max undefined | Max floor | Max ceiling | Median simulated retest ICC |
+|---|---|---|---|---|---|---|---|
+| Typing aborted fraction | 0.776 | 0.623 | 1.00 | 0 | — | — | 0.729 |
+| Throughput, all conditions (diagnostic) | 0.694 | 0.239 | 0.94 | 0.305 | — | — | 0.577 |
+| CCPM | 0.693 | 0.272 | 0.98 | 0.307 | 0.274 | — | 0.858 |
+| WPM | 0.692 | 0.208 | 0.98 | 0.310 | — | — | 0.835 |
+| Achieved bitrate | 0.666 | 0.137 | 0.91 | 0 | 0.380 | — | 0.665 |
+| ADL completion | 0.647* | 0.280 | 0.96 | 0 | 0.407 | **1.000** | 0.097 |
+| Effective throughput (valid) | 0.645 | 0.239 | 1.00 | **0.605** | — | — | 0.598 |
+| Endpoint error | 0.631 | −0.190 | 0.85 | 0 | — | — | 0.204 |
+| ADL time | 0.625 | 0.172 | 0.93 | 0.407 | — | — | 0.527 |
+| Grid time | 0.617 | −0.368 | 0.82 | 0 | — | — | 0.694 |
+| ISO movement time | 0.556 | −0.653 | 0.84 | 0 | — | — | 0.795 |
+| Movement variability | 0.531 | −0.455 | 0.73 | 0 | — | — | 0.661 |
+| Tracking lag | 0.258 | −0.011 | 0.78 | 0.160 | — | — | 0.157 |
+| Selection-process onset | 0.200 | −0.082 | 0.67 | 0 | — | — | 0.743 |
+| Target re-entries | −0.116 | −0.764 | 0.53 | 0 | 0.755 | — | 0.641 |
+
+*ADL completion's mean excludes the four sweeps (dropout, false activations, missed selections,
+update interval) in which it was constant at 100% completion; its apparent rank is therefore an
+artefact of the averaging rule. Figure 2: `experiments/results/G_metric_comparison/sensitivity_heatmap.png`.
 
 Pre-specified reading rule for Table 3 (written before the results, from
 `docs/science/TASK_BATTERY.md`): a task stays in the core battery if it (a) responds monotonically
@@ -429,8 +454,8 @@ path-efficiency distributions; reach time against effective ID).
 
 ### 3.7 Computational cost and reproducibility
 The B_noise sweep took 97.0 s on 4 worker processes (`experiments/results/B_noise/summary.json`, `runtime_s`).
-[RESULT PENDING: experiments/results/S_event_latency/summary.json — server-side scoring time and JSON round-trip hash identity on a synthetic session; the file present at drafting predates the review fixes and must be regenerated].
-[RESULT PENDING: experiments/results/P_reproducibility/summary.json — in-process vs pool hash identical; different seed differs].
+Server part (`experiments/results/S_event_latency/summary.json`, also summarised in `EXPERIMENT_REGISTRY.md`): on a synthetic 60-trial session of 14,643 events, event validation ran at about 2.14 million events/s and segmentation plus scoring took a median 87 ms, and JSON round trips were hash-identical. This summary was generated at 07:07Z, before the review's adapter fix (M1, duplicated selection sample), so the event count must be regenerated before submission; the conclusion (processing is far faster than real time) is not expected to change [INF].
+Re-running one condition in-process and in a 2-process pool produced identical SHA-256 output hashes; a different seed produced a different hash (`experiments/results/P_reproducibility/summary.json`, 07:52Z).
 In-page event capture (software path only, headless Chromium): 2,000 injected mouse events were
 recorded with 0 missing, 0 duplicated and 0 order violations, and a synthetic 1000-Hz stream of
 33,377 events with 0 drops (`experiments/results/A_input_timing/browser_summary.json`, generated 07:47Z; this
@@ -440,19 +465,34 @@ excludes device, OS and display latency).
 
 ## 4. Discussion
 
-### 4.1 What the framework shows (to be written from the regenerated results)
-Expected structure of the argument, to be kept only if the numbers support it: (i)
-**degradation-sensitive** kinematic and rate metrics that move early and monotonically; (ii)
-**functional process** outcomes (completion, accuracy on large targets) that matter to users but
-may saturate and therefore be blind to moderate degradation; (iii) metrics that are insensitive to
-one degradation but specific to another (e.g. tracking lag and latency). If (ii) holds, a
-completion score must be paired with time and assistance, or a harder/adaptive variant, before it
-can detect change — the rationale for the proposed dADL time index
-(`CLINICAL_VALIDATION_PLAN.md` §1.1).
-[RESULT PENDING: experiments/results/G_metric_comparison/ranking.csv — rewrite this paragraph with the observed classes].
-The review episode (§2.5a) is itself a result for the field: several defects (gain scaled with
-ability, timeouts censoring MT, a lag estimator biased to 0) would have produced plausible-looking
-but wrong conclusions about metric sensitivity.
+### 4.1 What the framework shows
+The regenerated study separates four kinds of behaviour that a study designer needs to know before
+recruiting anyone:
+1. **Broadly sensitive user-level rates.** CCPM and achieved bitrate responded to noise, latency,
+   drift and bias, and had the best mean sensitivity among scores that apply to every input
+   (Table 3). They are the natural primary scores for an input-agnostic battery, consistent with
+   tutorials that recommend reporting at the level the user experiences (Thompson et al. 2014).
+2. **Saturating functional outcomes.** Digital-activity completion was at ceiling in 89.8% of
+   noise-sweep sessions and constant at 100% in four sweeps; grid accuracy behaved similarly. These
+   outcomes matter to users but cannot detect moderate device problems or rank people; time to
+   complete and assistance are needed, which motivates a dADL *time* index with assisted or
+   incomplete attempts set to the cap (`CLINICAL_VALIDATION_PLAN.md` §1.1). In the responsiveness
+   study (P2) even ADL time did not respond to a moderate decoder improvement (AUC 0.506), so the
+   ADL tasks in the simulated battery are too short or too easy to carry responsiveness.
+3. **Failure-mode-specific metrics.** Tracking lag ignored noise but tracked latency; path
+   efficiency and dial-in time picked up decoder update interval; error rates picked up false
+   activations. These are diagnostics of *why* a device performs poorly, not function scores.
+4. **Misleading metrics.** False activations made trials *faster* (ISO MT ρ +0.653) and paths
+   straighter, and effective throughput was undefined in up to 60.5% of sessions because its
+   validity conditions failed under impaired control. A speed-only or throughput-only battery
+   would misreport device quality.
+Gain errors and the simulated ranges of dropout and missed selections were largely invisible
+(|ρ| < 0.7), either because closed-loop users compensate or because the ranges were mild; this is a
+limit of the battery's sensitivity that human studies should not assume away.
+
+The review episode (§2.5a) is itself a lesson: defects such as gain scaled with ability, timeouts
+censoring MT and a lag estimator biased toward 0 produced plausible-looking but wrong conclusions in
+the discarded run.
 
 ### 4.2 Why closed loop matters
 Because virtual users perceive the degraded cursor and correct it, constant bias and slow drift

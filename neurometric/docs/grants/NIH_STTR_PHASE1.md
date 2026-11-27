@@ -93,9 +93,9 @@ reliability.** (1a) Bench-validate end-to-end timing for each input class and ve
 parity between the browser and the reference pipeline. (1b) Confirm the battery's mechanics,
 speed–accuracy structure and floor/ceiling in 42 adults (single visit). (1c) Show that scores
 order four input modalities as expected (24 adults, Williams crossover). (1d) Estimate
-reliability and measurement error over three test sessions after familiarisation in 50
-completers. *Go criterion:* ICC(A,1) ≥ 0.75 with a generalized-CI lower bound ≥ 0.60 for at
-least 3 of the 4 primary scores.
+reliability and measurement error over four test sessions after familiarisation in 50
+completers. *Go criterion:* generalized-CI lower 95% bound of ICC(A,1) ≥ 0.75 for at least 3 of
+the 4 primary scores (the confirmatory hypothesis in CLINICAL_VALIDATION_PLAN.md requires all 4).
 
 **Aim 2. Reliability, known-groups and convergent validity in AT users.** In 45 adults with ALS,
 SCI or stroke who use their own AT, test pre-registered known-groups hypotheses (direct-selection
@@ -326,7 +326,7 @@ missed selections (F2); directional bias (B2); decoder update interval (B3); dec
 worst-case sensitivity, floor/ceiling and simulated retest ICC
 (`src/neurometric/experiments/registry.py`).
 
-- Latency (velocity-control user): see the table in §4.2.2; with 60 ms of total latency (the first degraded level) movement time, CCPM, achieved bitrate and dial-in time already reached |d_z| ≥ 0.5 versus 0 ms (`experiments/results/C_latency/summary.json`, `min_detect_level`).
+- Latency (velocity-control user): mean CCPM fell from 35.4 at 0 ms to 28.0 at 60 ms, 12.1 at 200 ms and 2.7 at 300 ms, reaching 0 at 450 ms (computed from `experiments/results/C_latency/data.csv`, replicate 0, mean over 60 virtual participants): closed-loop control collapsed by about 300 ms. See also the table in §4.2.2; with 60 ms of total latency (the first degraded level) movement time, CCPM, achieved bitrate and dial-in time already reached |d_z| ≥ 0.5 versus 0 ms (`experiments/results/C_latency/summary.json`, `min_detect_level`).
 - **False activations** (`F_false_activation/summary.json`): error metrics responded (ISO error
   rate ρ −0.798; typing total error rate −0.732), but ISO movement time moved in the *favourable*
   direction (ρ +0.653) because unwanted clicks end trials early, achieved bitrate barely moved
@@ -367,11 +367,11 @@ All 60 virtual participants per cell (`--n 60`; the Study I summary's design str
   achieved bitrate ranged from 6.86 bit/s (mouse-like) through 2.22 (`bci_good`) and 0.88
   (1-s switch scanning) to 0.11 (`bci_poor`); CCPM from 93.3 to 1.5. Modality rankings agreed across
   metrics (Kendall τ achieved bitrate vs CCPM 0.857; vs ADL time 0.929) but less with ADL completion
-  (τ 0.577–0.707). Simulated retest ICC of CCPM ranged from 0.212 (1-s scanning) to 0.949
+  (τ 0.472–0.707). A faster 0.6-s scan rate was *worse* than 1 s (grid accuracy 0.792 vs 0.993; achieved bitrate 0.83 vs 0.88 bit/s), because late reactions land on the next item. Simulated retest ICC of CCPM ranged from 0.212 (1-s scanning) to 0.949
   (mouse-like): **reliability is modality-dependent**, which Aim 2 must test per access method.
 - **M (person vs device;** `M_user_variability/variance_decomposition.csv`**).** Across a 3 × 3
   crossed design, decoder profile explained most variance in rate metrics (η² 0.899 achieved
-  bitrate, 0.913 CCPM, 0.751 throughput) and simulated ability little (≤ 0.065); ADL completion was
+  bitrate, 0.913 CCPM, 0.751 throughput) and simulated ability little (η² ≤ 0.065 for these three); ADL completion was
   mostly residual (η² 0.642). In this simulation the scores mainly measure the device, not the
   person — a property of the assumed ability spread (SD 0.3) that human data must check.
 - **N (missing data;** `N_missing_data/results.csv`**).** Complete-case mean MT was nearly unbiased
@@ -414,7 +414,7 @@ systematically (practice, fatigue, recalibration), and it gets *worse* as n grow
 session variance is estimated from k − 1 degrees of freedom. The generalized confidence interval
 (GCI; generalized pivotal quantities, Weerahandi 1993 [PK]) kept 0.9485–0.9605 coverage in every
 scenario. **Design consequences:** the GCI is our inferential interval for ICC(A,1); we plan
-three test sessions after a familiarisation session, because more participants cannot repair
+four test sessions after a familiarisation session, because more participants cannot repair
 uncertainty about session shifts. Other checks in the same file: the MDC95 false-positive rate
 in truly stable simulated people was 0.058 with SEM estimated from 40 subjects (nominal 0.05),
 and Little's MCAR test had type-I error 0.047.
@@ -446,7 +446,7 @@ Browser part (headless Chromium, software path only): the median time from event
 canonical event was 0.055 ms (p95 0.090 ms; n = 1,000), and a fast-forwarded 10-minute, 60-Hz
 session of 36,000 pointer events was recorded with 0 drops
 (`experiments/results/S_event_latency/browser_summary.json`, generated 07:46Z; excludes device, OS and display
-latency). Server part: [RESULT PENDING: experiments/results/S_event_latency/summary.json — event-validation rate, segmentation-and-scoring time and JSON round-trip hash identity; the summary present at drafting predates the review fixes (generated 07:07Z)].
+latency). Server part (`experiments/results/S_event_latency/summary.json`, also summarised in `EXPERIMENT_REGISTRY.md`): on a synthetic 60-trial session of 14,643 events, event validation ran at about 2.14 million events/s and segmentation plus scoring took a median 87 ms, and JSON round trips were hash-identical. This summary was generated at 07:07Z, before the review's adapter fix (M1, duplicated selection sample), so the event count must be regenerated before submission; the conclusion (processing is far faster than real time) is not expected to change [INF].
 
 #### 4.2.8 Study Q: automated accessibility and end-to-end checks of the browser battery
 An automated axe-core 4.10.3 scan (WCAG 2.0/2.1/2.2 A and AA rule sets plus best practice) of 58
@@ -518,15 +518,18 @@ experienced AT users.
   ICC(C,1) are reported for comparability. SEM from variance components (de Vet et al. 2006),
   MDC95 = 1.96·√2·SEM, Bland–Altman on the log scale with proportional-bias check, a mixed model
   for the session trend (practice), TOST for S1→S3 stability.
-- **Go criterion (M2, §4.8).** For at least 3 of P1–P4: ICC(A,1) point estimate ≥ 0.75 **and**
-  GCI lower 95% bound ≥ 0.60. Rationale: the GCI is honest but wide (mean width 0.37 at n = 30,
-  k = 3, true ICC 0.70 with no session effect; 0.59 with session variance 0.1;
-  `experiments/results/R_statistical_verification/coverage_results.json`), so a 0.75 GCI lower
-  bound would fail most truly good scores at n = 50. **Before the SAP lock** the PD/PI and
-  biostatistician must simulate this rule's false-pass rate (true ICC 0.60) and power (true ICC
-  0.85) with `psychometrics.icc`. *Reconciliation note:* `CLINICAL_VALIDATION_PLAN.md` §5
-  currently uses the McGraw–Wong lower bound ≥ 0.75 as the decision rule and the GCI as a
-  sensitivity analysis; this proposal reverses that ordering because of Study R.
+- **Go criterion (M2, §4.8), harmonised with CLINICAL_VALIDATION_PLAN.md Stage 3.** Four test
+  sessions after one familiarisation session (k = 4), 50 completers. Confirmatory hypothesis H3.1:
+  the generalized-CI (GCI) lower 95% bound of ICC(A,1) ≥ 0.75 for each of P1–P4
+  (intersection–union). Milestone go: ≥ 3 of P1–P4 meet that rule; failing scores are demoted to
+  secondary. Rationale: the McGraw–Wong interval under-covers (78–93%) when sessions differ
+  systematically, while the GCI keeps ≈95% coverage
+  (`experiments/results/R_statistical_verification/coverage_results.json`). Simulated operating
+  characteristics of this rule (CLINICAL_VALIDATION_PLAN.md §Stage 3): power ≈0.93 at true ICC 0.88
+  when practice effects are removed, ≈0.53 with 1% residual session variance, false-pass ≤ 0.013 at
+  true ICC 0.75; with k = 2 the rule is essentially unattainable (lower bound ≤ ≈0.31), which is why
+  four sessions are planned. The PD/PI and biostatistician confirm these with `psychometrics.icc`
+  before the SAP is locked.
 
 ### 4.4 Aim 2: AT-user reliability, known-groups and convergent validity (Stage 4)
 
@@ -629,7 +632,7 @@ Protocol: `docs/clinical/HOME_USE_FEASIBILITY.md`, `docs/clinical/stage5_protoco
 |---|---|---|---|---|
 | M0 | 3 | IRB approval; SAP (Stages 1–2) locked on OSF; bench timing done | All four input classes have a lag/SD profile; parity tests pass on 100% of golden fixtures | Delay Stage 1; no change to aims |
 | M1 | 7 | Stage 1 complete | Valid-trial rate Wilson lower bound ≥ 0.90; median Fitts R² ≥ 0.80; timing self-check ≥ 95% of sessions | Fix and re-pilot the failing tasks (≤ 10 extra participants) before Stage 3 lock |
-| M2 | 13 | Stages 2 and 3 complete | **H2.1:** all 5 Holm-adjusted contrasts significant in the predicted direction. **H3:** ≥ 3 of P1–P4 with ICC(A,1) ≥ 0.75 and GCI lower bound ≥ 0.60 | Demote failing scores to secondary; lengthen the affected task using the Study I relation; Aim 2 proceeds only with passing scores (documented decision) |
+| M2 | 13 | Stages 2 and 3 complete | **H2.1:** all 5 Holm-adjusted contrasts significant in the predicted direction. **H3:** ≥ 3 of P1–P4 with GCI lower 95% bound of ICC(A,1) ≥ 0.75 (k = 4) | Demote failing scores to secondary; lengthen the affected task using the Study I relation; Aim 2 proceeds only with passing scores (documented decision) |
 | M3 | 21 | Stage 4 complete | **H4.1** AUC ≥ 0.70, lower bound > 0.50; **H4.2** ≥ 75% hypotheses confirmed; **H4.3** ≤ 15% at floor per cohort on P2 and P4 | Floor failure → adaptive lower-demand version in Phase II; validity failure → revise construct definitions before Phase II |
 | M4 | 22 | Stage 5 complete | F1–F7 all met; F5 is absolute | F5 breach stops the study and is reported to the IRB; F1/F2 failure → redesign home workflow |
 | Go to Phase II | 24 | — | M2 met, H4.1 and H4.2 met, F1 and F5 met | Seek a second Phase I or restrict Phase II to the passing components |

@@ -9,7 +9,7 @@
   },
   "synthetic": true,
   "disclaimer": "Simulation results. They characterise the measurement system under modelled input degradation; they are not human or clinical data.",
-  "design": "80 virtual participants (latent ability SD 0.3) x 2 sessions x 4 lengths x 3 modalities",
+  "design": "60 virtual participants (latent ability SD 0.3) x 2 sessions x 4 lengths x 3 modalities",
   "results": [
     {
       "modality": "bci_cursor_good_sim",
@@ -935,5 +935,6 @@
       "sem": 0.30751309175562336,
       "mdc95": 0.8523828025374457
     }
-  ]
+  ],
+  "note": "design text corrected: run used --n 60"
 }
