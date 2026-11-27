@@ -53,7 +53,7 @@ test("Experiment A: input adapter timing and consistency (2000 CDP moves + 1000 
     const log: { i: number; sched: number; disp: number; ts: number }[] = [];
     w.__synth = { log, done: false };
     const t0 = performance.now() + 20;
-    const n = Math.floor(durationMs);
+    const n = Math.floor(durationMs); // upper bound; the stream stops when the CDP stream ends
     let i = 0;
     const ch = new MessageChannel();
     const pump = () => {
@@ -67,12 +67,12 @@ test("Experiment A: input adapter timing and consistency (2000 CDP moves + 1000 
         log.push({ i, sched: t0 + i, disp, ts: ev.timeStamp });
         i++;
       }
-      if (i < n) ch.port2.postMessage(0);
+      if (i < n && !w.__synth.stop) ch.port2.postMessage(0);
       else w.__synth.done = true;
     };
     ch.port1.onmessage = pump;
     ch.port2.postMessage(0);
-  }, 4000);
+  }, 120_000);
   // node side: 2000 CDP mouse moves at known (node-clock) send times
   const sendT: number[] = [];
   const t0 = performance.now();
@@ -80,6 +80,7 @@ test("Experiment A: input adapter timing and consistency (2000 CDP moves + 1000 
     sendT.push(performance.now() - t0);
     await page.mouse.move(p.x, p.y);
   }
+  await page.evaluate(() => ((window as any).__synth.stop = true));
   await page.waitForFunction(() => (window as any).__synth.done, null, { timeout: 60_000 });
   await page.waitForTimeout(200);
   const data = await page.evaluate(() => {
@@ -165,6 +166,7 @@ test("Experiment A: input adapter timing and consistency (2000 CDP moves + 1000 
       dispatch_minus_schedule_ms: quantiles(synthLag),
       recorded_t_minus_event_timestamp_ms: quantiles(tsErr),
     },
+    note_cdp_pacing: "Playwright page.mouse.move() resolves only after the renderer has handled the move, which headless Chromium aligns to animation frames, so CDP moves arrive at ~60 Hz regardless of how fast they are sent; the 1000 Hz stream is generated in-page with dispatchEvent and runs concurrently for the whole CDP injection.",
     two_streams_merged: {
       events: merged.length,
       merge_order_violations: mergeViolations,

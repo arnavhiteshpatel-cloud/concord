@@ -66,10 +66,12 @@ scrolling, dragging, text entry, phrase selection and seven simulated digital ac
 daily living) is scored from those events alone. Assistance from care partners is recorded as
 events, not treated as failure, and home use is summarised as consented aggregate counts. In
 **computational preliminary studies** we built a closed-loop simulated-decoder harness with
-virtual users. In a 52,920-trial noise sweep, effective throughput, achieved bitrate and
-correct characters per minute fell monotonically as decoder noise rose (Spearman ρ −0.89,
-−0.90 and −0.92), while a digital-ADL completion score sat at ceiling in 90.7% of
-virtual-participant sessions (`experiments/results/B_noise/summary.json`). We also verified our
+virtual users to test, before any human study, which metrics respond to which device failure
+mode and which saturate [RESULT PENDING: experiments/results/B_noise/summary.json and experiments/results/G_metric_comparison/ranking.csv — one sentence: sensitivity (Spearman ρ) of throughput, achieved bitrate and CCPM to injected noise, and the ceiling fraction of digital-ADL completion].
+An independent code review of the simulator found five critical defects, all fixed with
+regression tests before the reported study was run (`docs/review/RESPONSE_TO_SCIENCE_CORE_REVIEW.md`).
+The scoring pipeline ran without stream errors on 541 reaches of a public macaque hand-cursor
+dataset (`experiments/results/X1_external_mc_rtt/summary.json`). We also verified our
 psychometric library against published examples and 86 known-truth simulations
 (`experiments/results/R_statistical_verification/coverage_results.json`). One finding changed
 our design: the usual McGraw–Wong interval for absolute-agreement ICCs covered the truth in only
@@ -180,10 +182,10 @@ is judged not viable because the sponsor universe is too small [INF/HYP].
    once from seeds and are byte-identical in browser and simulator (D-004).
 2. **A closed-loop simulated-decoder harness for measurement science.** Virtual users perceive
    the *degraded* cursor after a feedback delay and correct for it (D-005; feedback-control
-   framing after Willett et al. 2017, *J Neural Eng* 14:016001 [V-DOI]). Thirteen degradation
+   framing after Willett et al. 2017, *J Neural Eng* 14:016001 [V-DOI]). Degradation
    parameters (noise, latency, dropout, drift, gain, bias, false and missed selections, update
-   rate and others) are each unit-tested against analytic expectations
-   (`docs/science/SIMULATOR.md`). This lets us ask, before any human study, which metrics are
+   rate and others) are unit-tested against analytic expectations where tests exist; the
+   untested ones are listed openly (`docs/science/SIMULATOR.md`). This lets us ask, before any human study, which metrics are
    sensitive to which failure mode, where they saturate, and how many trials they need. We know
    of no published outcome-measure framework for BCIs that does this [INF; literature search
    incomplete, see P1 manuscript].
@@ -222,66 +224,64 @@ benefit in humans** (`docs/science/SIMULATOR.md`, "Known limitations").
 
 #### 4.2.1 Harness and virtual users
 - **Degradation model.** `DegradationConfig` applies gain and gain decay, directional bias,
-  asymmetry, white and AR(1)-correlated noise, noise growth, constant and growing drift,
-  smoothing, quantisation, sample-and-hold update rate, latency with exponential jitter,
-  two-state Markov dropout, loss-of-control episodes, and a selection channel with misses,
-  delay and Poisson false activations. Each parameter has an analytic unit test
-  (`tests/test_simulator.py`).
+  asymmetry, white and AR(1)-correlated noise (initialised from its stationary distribution),
+  noise growth, constant and growing drift, smoothing, quantisation, sample-and-hold update rate,
+  latency with exponential jitter, two-state Markov dropout, loss-of-control episodes, and a
+  selection channel with misses, delay and Poisson false activations. Analytic unit tests exist
+  for identity, latency shift, jitter ordering, white/AR noise SD and autocorrelation, gain and
+  bias geometry, asymmetry, sample-and-hold, dropout duty cycle, false-selection rate, miss
+  probability, selection latency, drift growth and determinism; smoothing, quantisation,
+  direction bins, gain decay, noise growth, loss of control, position-mode gain and axis masking
+  are **not yet unit-tested** (`docs/science/SIMULATOR.md`). Because jittered outputs are never
+  reordered, realised latency is below the nominal mean (nominal +200 ms jitter realises about
+  +50 ms), so realised latency is reported.
 - **Virtual users.** A velocity-control feedback user (proportional control on the perceived
   error, speed limit, signal-dependent and constant motor noise, reaction delay, settle-to-click
   rule), a position-control submovement user (minimum-jerk submovements, Flash & Hogan 1985;
-  stochastic optimised submovements, Meyer et al. 1988), a dwell gaze user, and row-column /
-  linear switch-scanning users (`users/models.py`, `simulator/scanning.py`). Populations share
-  one latent ability z ~ N(0, 1) that scales speed and noise, plus log-normal idiosyncratic
-  variation.
-- **Calibration targets** (ranges, not individuals): `bci_good` ≈ 1.2 bit/s ISO throughput and
-  ≈ 2.4 bit/s grid achieved bitrate; mouse-like ≈ 4.1 bit/s; dwell-gaze-like ≈ 2.3 bit/s
-  (`docs/science/SIMULATOR.md`; ranges [PK]).
-- **Simulated battery per virtual session** (used in all sweeps): ISO ring at two D × W
-  conditions (256/48 and 512/96 px, 13 targets each), a 12-trial 4 × 6 grid, one copy-typing
-  phrase, the F2 compose-message digital ADL, and 15 s of tracking
+  stochastic optimised submovements, Meyer et al. 1988; clicks without visual verification with
+  probability 0.6 for mouse-like and 0.3 for head-pointer-like users, giving realistic error
+  rates), a dwell gaze user, and row-column switch-scanning users with a per-person reaction-time
+  scale (`users/models.py`, `simulator/scanning.py`). Populations share one latent ability
+  z ~ N(0, 1) that scales speed and noise, plus log-normal idiosyncratic variation; repeated
+  sessions add day-to-day within-person variation (log-normal SD 0.10). Learning is not modelled.
+- **Calibration targets** (ranges, not individuals; after the review fixes; 40 virtual
+  participants, battery defaults): mouse-like ≈ 4.5 bit/s ISO throughput with ≈ 3% errors and
+  ≈ 17.5 WPM; `bci_good` ≈ 1.0 bit/s, grid achieved bitrate ≈ 2.3 bit/s, ≈ 29 correct
+  characters/min; row-column switch scanning (1 s) ≈ 3.3 WPM (`docs/science/SIMULATOR.md`;
+  published comparison ranges [PK]).
+- **Simulated battery per virtual session** (used in all sweeps): ISO ring at two conditions
+  (D = 256 px, W = 64 px and D = 512 px, W = 48 px; nominal ID 2.32 and 3.55 bits; 13 targets,
+  12 scored selections each), a 12-trial 4 × 6 grid, one copy-typing phrase, the F2
+  compose-message digital ADL, and 15 s of tracking, run on one session clock with 30 s of rest
+  between tasks so that time-dependent degradation accumulates realistically
   (`src/neurometric/experiments/core.py`). Each virtual participant is run twice per condition
-  with independent seeds (simulated test–retest). Seeds are derived by hashing the experiment,
-  condition and replicate, so any condition can be re-run alone.
+  (simulated test–retest). Seeds are derived by hashing the experiment, condition and
+  replicate, so any condition can be re-run alone.
+- **Independent review.** A science-core code review found five critical defects (latent ability
+  made velocity users worse; invalid throughput values averaged and timeouts censoring movement
+  time; tracking run at session minute 0 and every task restarting the clock; scanning ignoring
+  the population; typing rate timed from phrase onset) plus important and minor issues (tracking
+  lag biased toward 0; identical ID in both ISO conditions; unfair cross-modality comparisons;
+  staircase floor). All were fixed with regression tests (`tests/test_review_regressions.py`) and
+  **all earlier results were discarded and regenerated**
+  (`docs/review/RESPONSE_TO_SCIENCE_CORE_REVIEW.md`).
 
 #### 4.2.2 Study B: sensitivity of each metric to injected decoder noise
-Design: 60 virtual participants × 7 noise levels (0–6 × a base of 30 px/s white plus 40 px/s
-AR(1) noise on the `bci_good` profile) × 2 replicates; 52,920 simulated trials
-(`experiments/results/B_noise/summary.json`). For each metric, scores are oriented so that
-higher is better; sensitivity is Spearman ρ between score and degradation level (negative =
+Design: 60 virtual participants × 7 noise levels (0, 0.5, 1, 2, 3, 4 and 6 × a base of 30 px/s
+white plus 40 px/s AR(1) noise on the `bci_good` profile) × 2 replicates
+(`src/neurometric/experiments/registry.py`). For each metric, scores are oriented so that higher
+is better; sensitivity is Spearman ρ between score and degradation level (negative =
 appropriate), plus monotonicity of level means, paired effect size at the first degraded level,
-and floor/ceiling fractions (`src/neurometric/experiments/analysis.py`).
+the lowest level reaching |d_z| ≥ 0.5, and floor/ceiling fractions
+(`src/neurometric/experiments/analysis.py`).
 
-| Metric | Spearman ρ with noise | Monotone fraction of adjacent steps | Floor / ceiling (pooled) | Median simulated retest ICC(A,1) across levels |
-|---|---|---|---|---|
-| Effective Fitts throughput (A2) | −0.892 | 1.00 | — | 0.571 |
-| Movement variability (A2) | −0.985 | 1.00 | — | 0.795 |
-| Grid achieved bitrate (A4) | −0.901 | 1.00 | floor 5.5% | 0.666 |
-| Correct characters per minute (E1) | −0.917 | 1.00 | floor 0% | 0.763 |
-| Digital-ADL time (F2) | −0.843 | 1.00 | — | 0.434 |
-| Digital-ADL completion (F2) | −0.459 | 1.00 | **ceiling 90.7%** | 0.115 |
-| Grid accuracy (A4) | −0.843 | 0.83 | **ceiling 58.6%** | 0.098 |
-| Selection-process onset (A2) | +0.102 | 0.33 | — | 0.883 |
-| Tracking lag (B2) | −0.008 | 0.50 | — | 0.761 |
+[RESULT PENDING: experiments/results/B_noise/summary.json — table of Spearman ρ, monotone fraction, floor/ceiling fraction and median simulated retest ICC(A,1) for iso_tp_bps, iso_movement_variability_px, grid_bitrate_bps, type_ccpm, adl_time_s, adl_completion_rate, grid_accuracy, iso_onset_ms, track_lag_ms; figure experiments/results/B_noise/sweep.png]
 
-Source for every value: `experiments/results/B_noise/summary.json` (fields `properties` and
-`median_retest_icc_by_metric`). Figure: `experiments/results/B_noise/sweep.png` (16 metrics,
-mean ± 95% CI over virtual participants).
-
-Interpretation (bounded by the simulation's assumptions):
-- Kinematic and rate metrics (throughput, movement variability, achieved bitrate, CCPM) track
-  noise monotonically and are candidates for **degradation-sensitive** scores.
-- Process outcomes that matter to users (did the digital activity get done?) are
-  **ceiling-prone**: ADL completion stayed at ceiling in 90.7% of sessions. Completion alone
-  would hide moderate device degradation; time-to-complete and assistance must accompany it.
-  This is the rationale for the P4 time index (§4.3.4).
-- Onset and tracking lag did not respond to noise (ρ = +0.102 and −0.008). They are not
-  noise-sensitive by construction; whether they respond to latency is tested in Study C
-  [RESULT PENDING: experiments/results/C_latency/summary.json — Spearman ρ of track_lag_ms and iso_onset_ms with added latency].
-- The simulated retest ICCs depend entirely on the assumed between-person spread (latent ability
-  SD 0.25). They show which metrics are *structurally* unreliable (e.g. bounded proportions at
-  ceiling: grid accuracy median 0.098, ADL completion 0.115), not what reliability humans will
-  show.
+Pre-specified interpretation rules: a metric is a candidate **degradation-sensitive** score if
+ρ ≤ −0.7 with all adjacent steps monotone; a metric with > 15% of sessions at a bound is
+**ceiling/floor-prone** and must be paired with a time or assistance measure or an adaptive
+variant; simulated retest ICCs are upper bounds that depend on the assumed between-person spread
+and show only which metrics are *structurally* unreliable (e.g. bounded proportions at ceiling).
 
 #### 4.2.3 Studies C–F, B2–B4: other degradation types; Study G: metric comparison
 Same design, one degradation at a time: added latency (0–700 ms) for velocity-control (C) and
@@ -366,10 +366,7 @@ This shows the pipeline runs end-to-end on real recorded behaviour and yields a 
 speed–difficulty relation. It says nothing about human or AT-user performance.
 
 #### 4.2.7 Study S: server-side processing cost
-On a synthetic 60-trial session of 14,643 events, event validation ran at a median of about
-2.14 million events/s, segmentation and scoring took a median 87.5 ms, and every JSON round trip
-reproduced an identical hash (`experiments/results/S_event_latency/summary.json`). Browser-side
-timing is a separate bench study (Aim 1a).
+[RESULT PENDING: experiments/results/S_event_latency/summary.json — event-validation rate, segmentation-and-scoring time and JSON round-trip hash identity on a synthetic session; the file present at drafting predates the review fixes (generated 07:07Z) and must be regenerated].
 
 #### 4.2.8 Study Q: automated accessibility and end-to-end checks of the browser battery
 An automated axe-core 4.10.3 scan (WCAG 2.0/2.1/2.2 A and AA rule sets plus best practice) of 58
@@ -382,6 +379,16 @@ provisional scores equalled the reference scores (e.g. A4 achieved bitrate 64.37
 not human performance. As the result file states, automated rules find only part of WCAG issues and
 the manual protocol with screen readers, switch hardware and eye trackers has **not** been carried
 out; it is budgeted in Aim 1a (`BUDGET.md` §3.2).
+
+#### 4.2.9 Study A: in-page event-capture integrity (software path only)
+In headless Chromium (cross-origin isolated; timer resolution 0.005 ms), 2,000 scripted mouse
+movements injected through the browser's DevTools protocol were all recorded as pointer events,
+with 0 missing, 0 duplicated, 0 order violations and 0 non-monotonic timestamps; recorded
+intervals had median 16.67 ms (p95 19.58 ms) for a 60-Hz injection stream. A synthetic 1000-Hz
+stream of 4,000 dispatched events was recorded with 0 drops and contiguous sequence numbers
+(`experiments/results/A_input_timing/browser_summary.json`). As the file states, this excludes
+USB/Bluetooth polling, OS input processing, compositor and display latency and **must not be
+reported as physical end-to-end latency**; that is measured on the bench in Aim 1a.
 
 ### 4.3 Aim 1: technical validation of the battery and harness; able-bodied reliability
 
@@ -424,8 +431,9 @@ experienced AT users.
 - **Primary scores** (`CLINICAL_VALIDATION_PLAN.md` §1.1): P1 effective throughput (A2,
   pointing modalities only); P2 achieved bitrate (A4); P3 correct characters per minute (E1,
   3 phrases); P4 dADL time index, the mean log10 time over F2, F3 and F5 with assisted or
-  incomplete trials set to the task cap. P4 uses time rather than completion because completion
-  saturated in the computational studies (§4.2.2).
+  incomplete trials set to the task cap. P4 uses time rather than completion because completion is a
+  bounded proportion expected to saturate in capable users [INF]; Study B tests this
+  [RESULT PENDING: experiments/results/B_noise/summary.json — ceiling_frac of adl_completion_rate].
 - **Primary analysis.** ICC(A,1) (two-way random, absolute agreement, single measurement) over
   S1–S3 with the **generalized 95% CI** as the inferential interval; the McGraw–Wong interval and
   ICC(C,1) are reported for comparability. SEM from variance components (de Vet et al. 2006),
@@ -553,6 +561,7 @@ Protocol: `docs/clinical/HOME_USE_FEASIBILITY.md`, `docs/clinical/stage5_protoco
 | Browser timing variability across devices | Medium | Within-setup design; pinned configuration; bench profiles; absolute times reported with device-class bands |
 | Telemetry perceived as surveillance; platform restrictions | Medium | Tier 1 opt-in and separate; visible indicator; aggregates only; Windows/Android only; sponsor-export route for BCI devices in Phase II |
 | Simulation conclusions do not transfer to humans | Certain to some degree | Simulation used only to choose designs and metrics, never as evidence; Aim 1–2 data decide |
+| Further simulator defects | Medium (five critical defects were already found and fixed by an independent review) | Regression tests; second independent review before any manuscript; simulated retest ICCs treated as upper bounds |
 | SRAlab DAI or Digital IADL becomes the reference instrument | Medium | Stay complementary: map NeuroMetric primitives to their constructs where licensable; emphasise home and input-agnostic capture |
 | Founder conflict of interest | Certain | COI management plan; independent PD/PI; data custody at RI; no publication veto |
 
@@ -613,6 +622,11 @@ the clinical-trial forms apply. Registration of Stage 4 is recommended for trans
   (`src/neurometric/experiments/core.py`). The reproducibility check (Study P) re-runs a condition
   in-process and in a pool [RESULT PENDING: experiments/results/P_reproducibility/summary.json — identical flag].
 - Statistical code is verified (Study R: 86/86 scenarios pass).
+- The simulator and experiment code underwent an independent science-core review; five critical
+  and several important defects were fixed with regression tests and every simulation result was
+  regenerated afterwards (`docs/review/SCIENCE_CORE_REVIEW.md`,
+  `docs/review/RESPONSE_TO_SCIENCE_CORE_REVIEW.md`). Only results generated after the fixes are
+  cited.
 - Confirmatory analyses are pre-registered and run by someone other than the founder.
 - Scoring source of truth is Python; browser scoring is checked against golden fixtures.
 - Public release of code and de-identified data per the DMS plan.

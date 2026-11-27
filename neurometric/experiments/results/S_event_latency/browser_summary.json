@@ -1,0 +1,136 @@
+{
+ "experiment": "S_event_latency part 1 (browser)",
+ "generated": "2026-11-27T07:34:42.270Z",
+ "caveat": "Headless Chromium on a shared CI-class Linux container. Events are injected via CDP (page.mouse) or dispatchEvent, so USB/Bluetooth polling, OS input processing, compositor and display latency are NOT included. These figures characterise the in-page software path (adapter -> canonical event) only and must not be reported as physical end-to-end latency; see docs/research/browser_timing.md for the bench protocol.",
+ "environment": {
+  "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.8010.12 Safari/537.36",
+  "cross_origin_isolated": true,
+  "device_pixel_ratio": 1,
+  "hardware_concurrency": 4,
+  "timer_resolution_ms": 0.004999999888241291
+ },
+ "dispatch_to_canonical_event_ms": {
+  "n": 1000,
+  "mean": 0.04685000000428408,
+  "sd": 0.07090948917649297,
+  "min": 0.02000000001862645,
+  "p05": 0.029999999795109034,
+  "p50": 0.0400000000372529,
+  "p95": 0.06499999994412065,
+  "p99": 0.19029999994207147,
+  "max": 1.4100000001490116
+ },
+ "event_timestamp_to_canonical_event_ms": {
+  "n": 1000,
+  "mean": 0.052570000002160666,
+  "sd": 0.0711773230047386,
+  "min": 0.02000000001862645,
+  "p05": 0.03000000026077032,
+  "p50": 0.044999999925494194,
+  "p95": 0.07000000029802322,
+  "p99": 0.19529999983031276,
+  "max": 1.415000000037253
+ },
+ "canonical_event_to_next_frame_callback_ms": {
+  "n": 1000,
+  "mean": 8.532219999996014,
+  "sd": 4.8906837824049,
+  "min": 0.07499999972060323,
+  "p05": 0.930000000144355,
+  "p50": 8.68750000023283,
+  "p95": 16.006999999890102,
+  "p99": 16.57499999972526,
+  "max": 21.31499999994412
+ },
+ "dispatch_to_next_frame_callback_ms": {
+  "n": 1000,
+  "mean": 8.579070000000298,
+  "sd": 4.88615551847993,
+  "min": 0.11000000033527613,
+  "p05": 0.9745000000810251,
+  "p50": 8.737500000046566,
+  "p95": 16.051749999821183,
+  "p99": 16.600050000092015,
+  "max": 21.350000000093132
+ },
+ "cdp_mouse_event_timestamp_to_canonical_event_ms": {
+  "n": 500,
+  "mean": 15.211570000006818,
+  "sd": 2.26845790960273,
+  "min": 4.589999999850988,
+  "p05": 10.78500000005588,
+  "p50": 15.569999999832362,
+  "p95": 15.805500000156462,
+  "p99": 19.405600000256673,
+  "max": 44.044999999925494
+ },
+ "long_session": {
+  "simulated_minutes": 10,
+  "rate_hz": 60,
+  "mode": "fast-forward: 600 DOM pointermove events per animation frame (10 s of session per frame); event timestamps are therefore compressed",
+  "dispatched": 36000,
+  "recorded": 36000,
+  "dropped": 0,
+  "heap_used_bytes_start": 3582465,
+  "heap_used_bytes_end": 7392425,
+  "heap_growth_bytes": 3809960,
+  "heap_growth_bytes_per_event_steady_state": 105.5268,
+  "serialized_session_bytes": 9497798,
+  "memory_api_available": true,
+  "forced_gc_available": true,
+  "heap_samples": [
+   {
+    "events": 0,
+    "heap": 3582465,
+    "t": 17966.12000000011
+   },
+   {
+    "events": 6000,
+    "heap": 4226621,
+    "t": 18133.28500000015
+   },
+   {
+    "events": 12000,
+    "heap": 4863233,
+    "t": 18292.899999999907
+   },
+   {
+    "events": 18000,
+    "heap": 5491497,
+    "t": 18462.10999999987
+   },
+   {
+    "events": 24000,
+    "heap": 6136745,
+    "t": 18635.189999999944
+   },
+   {
+    "events": 30000,
+    "heap": 6737093,
+    "t": 18793.274999999907
+   },
+   {
+    "events": 36000,
+    "heap": 7405017,
+    "t": 18961.334999999963
+   },
+   {
+    "events": 36000,
+    "heap": 7392425,
+    "t": 18968.26500000013
+   }
+  ],
+  "frame_gap_ms_during_fast_forward": {
+   "n": 60,
+   "mean": 16.328166666665734,
+   "sd": 3.4083425773440856,
+   "min": 0.18999999994412065,
+   "p05": 12.285000000195579,
+   "p50": 16.66000000014901,
+   "p95": 20.084249999932943,
+   "p99": 25.650950000323345,
+   "max": 27.300000000279397
+  },
+  "note": "The recorder keeps every canonical event of the session in memory by design (it is the session log), so heap grows linearly with events; the test checks that growth per event is bounded and that no events are dropped."
+ }
+}
