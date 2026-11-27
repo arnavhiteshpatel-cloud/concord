@@ -46,3 +46,16 @@ repository class so a Postgres backend can be added for hosted deployments.
 ## D-008 Default telemetry is application-scoped only
 No OS-level hooks ship enabled. Cross-application usage measurement is a documented design with
 platform-specific contracts; sponsor-export import is the preferred route (see platform matrix).
+
+## D-009 Sponsors see pseudonymous participant codes, never re-identification data
+Context: the portal review noted that the data-query API returns `participant_id` to sponsor
+analysts. Decision: keep. Coded subject identifiers are standard in sponsor-monitored research and
+are needed to resolve data queries; they are random and non-derivable, and the re-identification
+key table is site-scoped and never visible to sponsor roles. The portal hides the column where it
+is not needed. Revisit if a study's data-sharing agreement requires aggregate-only sponsor access.
+
+## D-010 Primary scores for human validation chosen from simulation evidence
+Correct characters/min (E1), grid achieved bitrate (A4), movement time censored at timeout (A2) and
+digital-ADL time (F) are the planned primary scores; Fitts throughput is secondary for BCI-like
+users (undefined or unreliable under heavy degradation — EXPERIMENT_REGISTRY G, I). Accuracy and
+error rates are reported as outcomes, not used as scores (ceiling, ICC ≈ 0).

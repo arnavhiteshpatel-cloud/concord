@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-27T08:01:03.204Z",
+  "generated_at": "2026-11-27T08:02:05.825Z",
   "tool": "tests/portal/e2e.mjs (Playwright Chromium headless + axe-core)",
   "axe_version": "4.10.2",
   "axe_tags": [
@@ -114,7 +114,7 @@
     {
       "role": "coordinator",
       "page": "participant detail",
-      "url": "/portal/#/participants/NM-PHRN94HEAV",
+      "url": "/portal/#/participants/NM-BERPQHH2G3",
       "viewport": "1280x900",
       "color_scheme": "light",
       "violations": {
@@ -486,7 +486,7 @@
       "role": "sponsor_analyst",
       "check": "zip SHA-256 shown",
       "pass": true,
-      "detail": "ac9bf74c08b20960451ae078d4c7f91e123ddc9c1c415d3e54a6576091f9a955"
+      "detail": "876bd4df649d31e92f5318372bed2839ce47ca56d2a56a67bca13c2be8a95790"
     },
     {
       "role": "sponsor_analyst",
@@ -534,7 +534,7 @@
       "role": "coordinator",
       "check": "participant completeness lists pseudonymous IDs",
       "pass": true,
-      "detail": "NM-PHRN94HEAV,NM-QYS2TZJ8B5,NM-EJA7E5MKVP,NM-VGNWM5SVS3,NM-Y8AB7YFX6N,NM-WGJM7ZE58G,NM-3WJ9D57TZ5,NM-9JBQRN7Q8H"
+      "detail": "NM-BERPQHH2G3,NM-NXVCVEFX26,NM-MRS3H3FWPD,NM-43GHGW3KVM,NM-E6FSBZXVDZ,NM-HB48Q4ZCK6,NM-EJ5ETDWD7T,NM-2QS85TS9MK"
     },
     {
       "role": "coordinator",

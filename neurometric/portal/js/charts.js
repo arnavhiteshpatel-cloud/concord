@@ -220,7 +220,7 @@ export function lineChart(opts) {
         if (Math.abs(e.ly - e.y) > 1 || gx - e.x > 16) {
           svg.appendChild(s('path', { class: 'crosshair', d: `M${e.x + 7},${e.y}L${gx - 10},${e.y}L${gx - 4},${e.ly}`, fill: 'none', 'aria-hidden': 'true' }));
         }
-        svg.appendChild(s('text', { class: 'label', x: gx, y: e.ly + 4 }, e.name.length > 16 ? `${e.name.slice(0, 15)}…` : e.name));
+        svg.appendChild(s('text', { class: 'label', x: gx, y: e.ly + 4 }, e.name.length > 18 ? `${e.name.slice(0, 17)}…` : e.name));
       }
     }
 
