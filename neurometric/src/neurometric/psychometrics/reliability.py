@@ -215,9 +215,44 @@ def _icc_from_ms(ms: dict, alpha: float = 0.05) -> dict[str, dict]:
     return out
 
 
+def _gci_agreement(ms: dict, alpha: float = 0.05, n_draws: int = 10000,
+                   seed: int = 0) -> dict[str, tuple[float, float]]:
+    r"""Generalized confidence interval (GCI) for ICC(A,1) and ICC(A,k).
+
+    Generalized pivotal quantities (Weerahandi 1993; evaluated for the ICC by Ionan et al.
+    2014 [PK]) with independent :math:`\chi^2` draws :math:`U_R\sim\chi^2_{n-1}`,
+    :math:`U_C\sim\chi^2_{k-1}`, :math:`U_E\sim\chi^2_{(n-1)(k-1)}`:
+    :math:`\sigma^{2*}_e=SS_E/U_E`, :math:`\sigma^{2*}_s=\max(0,(SS_R/U_R-\sigma^{2*}_e)/k)`,
+    :math:`\sigma^{2*}_r=\max(0,(SS_C/U_C-\sigma^{2*}_e)/n)`; the CI is the
+    :math:`\alpha/2,1-\alpha/2` quantiles of :math:`\sigma^{2*}_s/(\sigma^{2*}_s+\sigma^{2*}_r+
+    \sigma^{2*}_e)` (single) or :math:`\sigma^{2*}_s/(\sigma^{2*}_s+(\sigma^{2*}_r+
+    \sigma^{2*}_e)/k)` (average). Seeded, so deterministic.
+
+    Motivation: the McGraw & Wong Satterthwaite interval for ICC(A,·) under-covers when the
+    session variance is non-negligible and k is small (Experiment R found 79-85 % coverage
+    for k = 3, var_session = var_error; see docs/science/PSYCHOMETRICS.md); the GCI kept
+    94-96 % in the same scenarios.
+    """
+    n, k = ms["n"], ms["k"]
+    rng = np.random.default_rng(seed)
+    ur = rng.chisquare(n - 1, n_draws)
+    uc = rng.chisquare(k - 1, n_draws)
+    ue = rng.chisquare((n - 1) * (k - 1), n_draws)
+    e = ms["SSE"] / ue
+    sv = np.maximum((ms["SSR"] / ur - e) / k, 0.0)
+    rv = np.maximum((ms["SSC"] / uc - e) / n, 0.0)
+    q = [alpha / 2, 1 - alpha / 2]
+    with np.errstate(invalid="ignore", divide="ignore"):
+        one = np.nan_to_num(sv / (sv + rv + e))
+        avg = np.nan_to_num(sv / (sv + (rv + e) / k))
+    return {"2,1": tuple(float(v) for v in np.quantile(one, q)),
+            "2,k": tuple(float(v) for v in np.quantile(avg, q))}
+
+
 def icc(data, subject_col: str | None = None, session_col: str | None = None,
         score_col: str | None = None, *, forms: Sequence[str] = tuple(ICC_FORMS),
-        alpha: float = 0.05, missing: str = "complete_case") -> dict:
+        alpha: float = 0.05, missing: str = "complete_case",
+        gci_draws: int = 10000, seed: int = 0) -> dict:
     r"""Intraclass correlation coefficients (Shrout & Fleiss 1979 / McGraw & Wong 1996).
 
     Parameters
@@ -248,6 +283,11 @@ def icc(data, subject_col: str | None = None, session_col: str | None = None,
 
     The p-value tests H0: ICC = 0 (``F``, ``df1``, ``df2``).
 
+    For the absolute-agreement forms an additional **generalized confidence interval**
+    (``gci_low``, ``gci_high``; :func:`_gci_agreement`, ``gci_draws`` seeded draws) is reported
+    because the McGraw & Wong interval under-covers when sessions differ systematically and k is
+    small (verified in Experiment R). Set ``gci_draws=0`` to skip it.
+
     Returns
     -------
     dict with ``table`` (list of per-form dicts: ``form, mw_label, model, type, unit, icc,
@@ -272,13 +312,16 @@ def icc(data, subject_col: str | None = None, session_col: str | None = None,
         raise ValueError("fewer than 2 complete subjects")
     ms = anova_mean_squares(Y)
     res = _icc_from_ms(ms, alpha)
+    gci = _gci_agreement(ms, alpha, gci_draws, seed) if gci_draws else {}
     table = []
     for f in forms:
         r = res[f]
+        g = gci.get(f, (None, None))
         table.append({"form": f"ICC({f})", "key": f, "mw_label": ICC_FORMS[f]["mw"],
                       "model": ICC_FORMS[f]["model"], "type": ICC_FORMS[f]["type"],
                       "unit": ICC_FORMS[f]["unit"], "icc": float(r["icc"]),
                       "ci_low": float(r["ci"][0]), "ci_high": float(r["ci"][1]),
+                      "gci_low": g[0], "gci_high": g[1],
                       "F": float(r["F"]), "df1": float(r["df1"]), "df2": float(r["df2"]),
                       "p": float(r["p"])})
     if ms["n"] < 15:
@@ -289,7 +332,9 @@ def icc(data, subject_col: str | None = None, session_col: str | None = None,
                     "error; interpret as no reliability.")
     return {
         "method": "two-way ANOVA mean squares; ICC per Shrout & Fleiss (1979) / McGraw & Wong "
-                  f"(1996); {100 * (1 - alpha):.0f}% CI F-based (McGraw & Wong 1996)",
+                  f"(1996); {100 * (1 - alpha):.0f}% CI F-based (McGraw & Wong 1996); "
+                  "agreement forms also get a generalized CI (gci_low/gci_high, "
+                  f"{gci_draws} draws, seed {seed})",
         "alpha": alpha, "missing": "complete_case", "table": table,
         "n_subjects_total": n_total, "n_subjects_used": int(Y.shape[0]),
         "n_subjects_dropped": n_drop, "k": int(Y.shape[1]),
@@ -473,7 +518,7 @@ def _icc_via_mixed(w: pd.DataFrame, forms, alpha) -> dict:
         table.append({"form": f"ICC({f})", "key": f, "mw_label": ICC_FORMS[f]["mw"],
                       "model": ICC_FORMS[f]["model"], "type": ICC_FORMS[f]["type"],
                       "unit": ICC_FORMS[f]["unit"], "icc": float(val), "ci_low": None,
-                      "ci_high": None, "F": None, "df1": None, "df2": None, "p": None})
+                      "ci_high": None, "gci_low": None, "gci_high": None, "F": None, "df1": None, "df2": None, "p": None})
     any_fit = next(iter(fits.values()))
     return {"method": "REML linear mixed model variance components (statsmodels MixedLM); "
                       "no F-based CI (use icc_mixed(n_boot=...) for a bootstrap CI)",

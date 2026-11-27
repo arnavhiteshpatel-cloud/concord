@@ -65,11 +65,18 @@ class Database:
 
     dialect = "sqlite"
 
-    def __init__(self, path: str | Path, clock: Optional[Callable[[], datetime]] = None):
+    def __init__(self, path: str | Path, clock: Optional[Callable[[], datetime]] = None,
+                 readonly: bool = False):
         self.path = str(path)
         self.clock = clock or _default_clock
         self._lock = threading.RLock()
         self._depth = 0
+        self.readonly = readonly
+        if readonly:  # used to verify backups without modifying them
+            self.conn = sqlite3.connect(f"file:{Path(self.path).as_posix()}?mode=ro", uri=True,
+                                        isolation_level=None, check_same_thread=False)
+            self.conn.row_factory = sqlite3.Row
+            return
         self.conn = sqlite3.connect(self.path, isolation_level=None, check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
         if self.path != ":memory:":

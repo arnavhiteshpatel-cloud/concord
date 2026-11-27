@@ -1,0 +1,11 @@
+{
+ "task_id": "F2",
+ "battery_version": "1.0.0",
+ "seed": 0,
+ "params": {},
+ "canvas": [
+  1280,
+  800
+ ],
+ "stimulus_hash": "f169e24e8ba7bc28"
+}

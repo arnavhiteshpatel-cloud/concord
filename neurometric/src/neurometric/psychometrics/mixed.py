@@ -109,7 +109,8 @@ def fit_repeated_measures_lmm(df: pd.DataFrame, outcome: str, subject_col: str,
         "obs_per_subject": {"min": int(obs_per.min()), "max": int(obs_per.max()),
                             "mean": float(obs_per.mean())},
         "converged": bool(fit.converged), "reml": reml, "loglik": float(fit.llf),
-        "formula": formula.replace("_y", outcome).replace("_time", time_col),
+        "formula": formula.replace("_y", outcome).replace("_time", time_col)
+                   .replace("Q('", "").replace("')", ""),
         "random_effects": "intercept + slope(time)" if random_slope else "intercept",
         "alpha": alpha,
         "method": f"linear mixed model ({'REML' if reml else 'ML'}), statsmodels MixedLM; "

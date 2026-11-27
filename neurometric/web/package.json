@@ -1,0 +1,28 @@
+{
+  "name": "neurometric-web",
+  "private": true,
+  "version": "0.1.0",
+  "description": "NeuroMetric browser task battery, input adapters and degradation demo (research software; not a medical device).",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "export": "python scripts/export_battery.py && python scripts/export_demo_traces.py && python scripts/make_golden.py",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "build": "tsc --noEmit -p tsconfig.json && vite build",
+    "preview": "vite preview --port 4173 --strictPort",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.23",
+    "@types/react-dom": "18.3.7",
+    "@vitejs/plugin-react": "4.5.2",
+    "axe-core": "4.10.3",
+    "typescript": "5.8.3",
+    "vite": "6.3.5",
+    "vitest": "3.2.4"
+  }
+}

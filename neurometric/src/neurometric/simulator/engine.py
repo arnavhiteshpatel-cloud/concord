@@ -110,7 +110,9 @@ class Simulation:
         start = self.cursor.copy()
         self.user.begin(tc, th, self.cursor, active, dwell=dwell_ms is not None)
         T = int(np.ceil(max_ms / dt)) + 1
-        traj = np.full((B, T, 2), np.nan) if record else None
+        traj = np.full((B, T + 1, 2), np.nan) if record else None
+        if record:
+            traj[active, 0] = self.cursor[active]
         sel_t = np.full(B, np.nan)
         sel_pos = np.full((B, 2), np.nan)
         sel_item = np.full(B, -2, np.int64)
@@ -139,8 +141,6 @@ class Simulation:
         for k in range(T):
             if not active.any():
                 break
-            if record:
-                traj[active, k] = self.cursor[active]
             perceived = self._perceived(self.user.fb_ticks)
             perceived_prev = self._perceived(self.user.fb_ticks + 1)
             intent, sel_int = self.user.act(perceived, perceived_prev, self.channel.t_min, active)
@@ -157,6 +157,8 @@ class Simulation:
             self.hist[self.hpos] = self.cursor
             self.clock_ms += active * dt
             n_ticks += active
+            if record:
+                traj[active, k + 1] = self.cursor[active]
             cur_item = which_item(self.cursor)
             in_tgt = cur_item == tgt
             new_entry = in_tgt & ~was_in & active

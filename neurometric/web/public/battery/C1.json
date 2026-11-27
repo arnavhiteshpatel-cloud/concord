@@ -1,0 +1,29 @@
+{
+ "task_id": "C1",
+ "battery_version": "1.0.0",
+ "seed": 0,
+ "params": {
+  "rows": 60,
+  "row_px": 60,
+  "viewport_px": 400,
+  "n": 10,
+  "max_ms": 30000
+ },
+ "canvas": [
+  1280,
+  800
+ ],
+ "cues": [
+  36,
+  11,
+  35,
+  37,
+  47,
+  11,
+  13,
+  22,
+  33,
+  33
+ ],
+ "stimulus_hash": "7fe5697117bf1450"
+}

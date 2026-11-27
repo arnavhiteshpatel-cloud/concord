@@ -190,6 +190,9 @@ def write_summary(exp_id: str, summary: dict) -> Path:
                "disclaimer": "Simulation results. They characterise the measurement system under "
                              "modelled input degradation; they are not human or clinical data.",
                **summary}
+    if summary.get("synthetic") is False:
+        summary["disclaimer"] = ("Real public data processed by NeuroMetric. See caveats; not a "
+                                 "clinical population unless stated.")
     p = d / "summary.json"
     p.write_text(json.dumps(summary, indent=2, default=_json_default))
     return p

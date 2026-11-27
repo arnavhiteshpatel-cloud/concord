@@ -51,9 +51,24 @@ def _nct_ci_delta(t_obs: float, df: float, scale: float, alpha: float) -> tuple[
     Finds noncentrality ``nc`` with P(T <= t_obs | nc) = 1-alpha/2 and alpha/2, then
     delta = nc * scale (scale = sqrt(1/n1+1/n2) for two groups, 1/sqrt(n) for one sample).
     """
+    def cdf(nc):
+        # P(T <= t | nc). scipy's nct.cdf can return NaN far in the tails; fall back to the
+        # reflection identity P(T <= t | nc) = P(T >= -t | -nc), then to the 0/1 limit.
+        v = stats.nct.cdf(t_obs, df, nc)
+        if not np.isfinite(v):
+            v = stats.nct.sf(-t_obs, df, -nc)
+        if not np.isfinite(v):
+            v = 1.0 if nc < t_obs else 0.0
+        return v
+
     def solve(p):
-        f = lambda nc: stats.nct.cdf(t_obs, df, nc) - p
-        lo, hi = t_obs - 10 - abs(t_obs), t_obs + 10 + abs(t_obs)
+        f = lambda nc: cdf(nc) - p
+        width = 10 + abs(t_obs)
+        lo, hi = t_obs - width, t_obs + width
+        while f(lo) < 0:
+            lo -= width
+        while f(hi) > 0:
+            hi += width
         return optimize.brentq(f, lo, hi, xtol=1e-12)
     return solve(1 - alpha / 2) * scale, solve(alpha / 2) * scale
 

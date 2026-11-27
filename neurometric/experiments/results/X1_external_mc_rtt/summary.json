@@ -1,0 +1,79 @@
+{
+  "experiment": "X1_external_mc_rtt",
+  "generated_utc": "2026-11-27T07:04:05Z",
+  "software": {
+    "neurometric": "0.1.0",
+    "python": "3.13.18",
+    "numpy": "2.5.3",
+    "pandas": "3.0.5"
+  },
+  "synthetic": false,
+  "disclaimer": "Real public data processed by NeuroMetric. See caveats; not a clinical population unless stated.",
+  "dataset": "NLB MC_RTT DANDI:000129 (CC-BY-4.0), sha256 verified",
+  "n_events": 66639,
+  "stream_integrity": {
+    "n": 66639,
+    "non_monotonic": 0,
+    "duplicate_seq": 0,
+    "seq_gaps": 0,
+    "gap_events": 0
+  },
+  "n_reaches": 541,
+  "median_reach_time_ms": 1110.0,
+  "median_path_efficiency": 0.8662367160432549,
+  "median_target_reentries_note": "not computable (target width unknown)",
+  "throughput_by_distance": [
+    {
+      "distance_bin_mm": "(9.548, 32.354]",
+      "n": 109,
+      "De_mm": 22.263661198464447,
+      "We_mm": 13.948350727170183,
+      "IDe_bits": 1.3763737888044714,
+      "MT_ms": 1046.1467889908256,
+      "TPe_bps": 1.3156602909733175
+    },
+    {
+      "distance_bin_mm": "(32.354, 47.163]",
+      "n": 108,
+      "De_mm": 40.130980733164066,
+      "We_mm": 13.421414767081927,
+      "IDe_bits": 1.996414355173766,
+      "MT_ms": 1159.9074074074074,
+      "TPe_bps": 1.7211842449011474
+    },
+    {
+      "distance_bin_mm": "(47.163, 62.549]",
+      "n": 108,
+      "De_mm": 54.83359872648379,
+      "We_mm": 13.352750537534297,
+      "IDe_bits": 2.352345990472682,
+      "MT_ms": 1192.7777777777778,
+      "TPe_bps": 1.9721577935960999
+    },
+    {
+      "distance_bin_mm": "(62.549, 78.897]",
+      "n": 108,
+      "De_mm": 69.51122124229515,
+      "We_mm": 10.692046098071804,
+      "IDe_bits": 2.907123047947351,
+      "MT_ms": 1216.6666666666667,
+      "TPe_bps": 2.3894162037923428
+    },
+    {
+      "distance_bin_mm": "(78.897, 114.543]",
+      "n": 108,
+      "De_mm": 90.65084323053647,
+      "We_mm": 11.211265180164203,
+      "IDe_bits": 3.1835964853847734,
+      "MT_ms": 1344.7222222222222,
+      "TPe_bps": 2.3674751802076397
+    }
+  ],
+  "pooled_TPe_bps_mean_of_bins": 1.9531787426941094,
+  "caveats": [
+    "able-bodied macaque hand control, not BCI, not a clinical population",
+    "acquisition time inferred from target change (includes any hold time)",
+    "effective-width throughput only; nominal ID/error rate unavailable",
+    "1 session; decimated to 100 Hz"
+  ]
+}

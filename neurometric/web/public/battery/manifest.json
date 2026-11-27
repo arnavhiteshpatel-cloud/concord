@@ -1,0 +1,632 @@
+{
+ "battery_version": "1.0.0",
+ "canvas": [
+  1280,
+  800
+ ],
+ "status": "experimental - not a validated clinical outcome assessment",
+ "tasks": [
+  {
+   "id": "A1",
+   "family": "target_acquisition",
+   "name": "Single target selection",
+   "version": "1.0.0",
+   "construct": "Basic pointing and selection: can the user move to and select one target.",
+   "rationale": "Lowest-demand primitive; floor task for severe impairment; reaction and movement onset.",
+   "stimuli": "Start button at canvas centre, then one circular target at random direction, distance D in {200, 350} px, width W in {80, 120} px.",
+   "timing": "Stimulus onset = target shown (marker stimulus_on). MT = onset to terminating selection. Max 20 s per trial (configurable).",
+   "scoring": [
+    "success",
+    "movement_time_ms",
+    "onset_ms",
+    "path_efficiency",
+    "endpoint_error_px"
+   ],
+   "errors": "Selection outside the target = error (ends trial). Timeout = no selection by max time.",
+   "completion": "12 trials or 6 minutes, whichever first; participant may pause at any time.",
+   "assistance": "Assistance is recorded as ASSIST events (setup, physical, verbal, troubleshooting, calibration, task_completion) by the participant, care partner or staff via the assistance panel; any assistance during a trial marks it 'assisted', never 'failed'.",
+   "accessibility": "Large targets; no time pressure by default; works with click, dwell, switch-activated click; keyboard alternative Space/Enter at the cursor.",
+   "defaults": {
+    "D": [
+     200,
+     350
+    ],
+    "W": [
+     80,
+     120
+    ],
+    "n": 12,
+    "max_ms": 20000
+   },
+   "simulated": true,
+   "keep": true,
+   "keep_reason": ""
+  },
+  {
+   "id": "A2",
+   "family": "target_acquisition",
+   "name": "Multidirectional target acquisition (ISO-style ring)",
+   "version": "1.0.0",
+   "construct": "Speed-accuracy of aimed pointing (Fitts throughput).",
+   "rationale": "Follows the ISO 9241-411 multidirectional tapping paradigm so throughput is comparable to the HCI literature; varying D and W gives a range of difficulty.",
+   "stimuli": "13 circular targets equally spaced on a circle of diameter D; the highlighted target alternates across the circle. D in {256, 512} px, W in {32, 64, 96} px (IDs 1.9-4.1 bits); conditions counterbalanced by seed.",
+   "timing": "Sequential: MT = time between successive selections (first selection of each sequence starts the clock and is not scored). Max 15 s per selection.",
+   "scoring": [
+    "fitts_throughput_bps (effective, per condition then averaged)",
+    "error_rate",
+    "movement_time_ms",
+    "path_efficiency",
+    "target_reentries",
+    "overshoot_px",
+    "movement_variability_px",
+    "dial_in_ms"
+   ],
+   "errors": "Selection outside the highlighted target = miss (counts in We; trial ends).",
+   "completion": "6 conditions x 13 selections; ~3-6 min with mouse.",
+   "assistance": "Assistance is recorded as ASSIST events (setup, physical, verbal, troubleshooting, calibration, task_completion) by the participant, care partner or staff via the assistance panel; any assistance during a trial marks it 'assisted', never 'failed'.",
+   "accessibility": "Smallest W (32 px) can be excluded via the accessibility profile (target_min_px); throughput then computed only over administered conditions.",
+   "defaults": {
+    "D": [
+     256,
+     512
+    ],
+    "W": [
+     32,
+     64,
+     96
+    ],
+    "n_per_condition": 13,
+    "max_ms": 15000
+   },
+   "simulated": true,
+   "keep": true,
+   "keep_reason": ""
+  },
+  {
+   "id": "A3",
+   "family": "target_acquisition",
+   "name": "Dwell selection",
+   "version": "1.0.0",
+   "construct": "Selection by holding the pointer still (gaze / head-pointer style).",
+   "rationale": "Dwell is the dominant selection method for eye-gaze and many head-pointer users; isolates stability (holding still) from clicking.",
+   "stimuli": "Same geometry as A2 with D=384, W in {64, 96}; dwell threshold configurable (default 800 ms).",
+   "timing": "MT includes the dwell time; dwell resets when the pointer leaves the item.",
+   "scoring": [
+    "success",
+    "movement_time_ms",
+    "dwell_resets",
+    "unintended_dwell_selections"
+   ],
+   "errors": "Dwell completed on a non-target item = unintended selection (Midas-touch error).",
+   "completion": "2 conditions x 13 selections.",
+   "assistance": "Assistance is recorded as ASSIST events (setup, physical, verbal, troubleshooting, calibration, task_completion) by the participant, care partner or staff via the assistance panel; any assistance during a trial marks it 'assisted', never 'failed'.",
+   "accessibility": "Dwell threshold and visual dwell-progress indicator configurable.",
+   "defaults": {
+    "D": [
+     384
+    ],
+    "W": [
+     64,
+     96
+    ],
+    "n_per_condition": 13,
+    "dwell_ms": 800,
+    "max_ms": 15000
+   },
+   "simulated": true,
+   "keep": true,
+   "keep_reason": ""
+  },
+  {
+   "id": "A4",
+   "family": "target_acquisition",
+   "name": "Selection among distractors (grid)",
+   "version": "1.0.0",
+   "construct": "Choosing one item among many: the core of on-screen keyboards, menus and communication boards.",
+   "rationale": "Allows achieved-bitrate (penalised for errors) comparable to BCI grid tasks.",
+   "stimuli": "Grid of R x C square items (default 4 x 6, 120 px cells, 100 px items); one cued item per trial; cue sequence from seed.",
+   "timing": "MT = cue onset to selection; max 20 s.",
+   "scoring": [
+    "success",
+    "movement_time_ms",
+    "achieved_bitrate_bps",
+    "wolpaw_itr_bpm (flagged)",
+    "wrong_item_selections"
+   ],
+   "errors": "Selecting a non-cued item = wrong selection (ends trial). Empty-space clicks are counted but do not end the trial.",
+   "completion": "24 trials.",
+   "assistance": "Assistance is recorded as ASSIST events (setup, physical, verbal, troubleshooting, calibration, task_completion) by the participant, care partner or staff via the assistance panel; any assistance during a trial marks it 'assisted', never 'failed'.",
+   "accessibility": "Cell size configurable; scanning order for switch users.",
+   "defaults": {
+    "rows": 4,
+    "cols": 6,
+    "cell": 120,
+    "item": 100,
+    "n": 24,
+    "max_ms": 20000
+   },
+   "simulated": true,
+   "keep": true,
+   "keep_reason": ""
+  },
+  {
+   "id": "A5",
+   "family": "target_acquisition",
+   "name": "Time-constrained acquisition",
+   "version": "1.0.0",
+   "construct": "Ability to act within a deadline (e.g. answering a prompt in time).",
+   "rationale": "Real interfaces impose time limits (call answer, dialog timeout); success-within-deadline is interpretable for function.",
+   "stimuli": "As A1 with deadline in {2000, 4000} ms.",
+   "timing": "Trial ends at deadline.",
+   "scoring": [
+    "success_within_deadline",
+    "movement_time_ms"
+   ],
+   "errors": "No selection by deadline = timeout error.",
+   "completion": "16 trials.",
+   "assistance": "Assistance is recorded as ASSIST events (setup, physical, verbal, troubleshooting, calibration, task_completion) by the participant, care partner or staff via the assistance panel; any assistance during a trial marks it 'assisted', never 'failed'.",
+   "accessibility": "Off by default for participants whose profile sets 'no time pressure' (WCAG 2.2.1 adjustable timing).",
+   "defaults": {
+    "D": [
+     250
+    ],
+    "W": [
+     100
+    ],
+    "deadline_ms": [
+     2000,
+     4000
+    ],
+    "n": 16
+   },
+   "simulated": true,
+   "keep": true,
+   "keep_reason": ""
+  },
+  {
+   "id": "B1",
+   "family": "cursor_control",
+   "name": "Straight-line steering (tunnel)",
+   "version": "1.0.0",
+   "construct": "Constrained movement along a path (steering law).",
+   "rationale": "Captures path control that aimed pointing does not (e.g. dragging along menus).",
+   "stimuli": "Horizontal tunnel of length 600 px, width in {40, 80} px; start and end zones.",
+   "timing": "MT = leaving the start zone to entering the end zone.",
+   "scoring": [
+    "success",
+    "movement_time_ms",
+    "tunnel_exits",
+    "rms_path_deviation_px"
+   ],
+   "errors": "Leaving the tunnel = exit error (trial continues; count reported).",
+   "completion": "8 trials.",
+   "assistance": "Assistance is recorded as ASSIST events (setup, physical, verbal, troubleshooting, calibration, task_completion) by the participant, care partner or staff via the assistance panel; any assistance during a trial marks it 'assisted', never 'failed'.",
+   "accessibility": "Tunnel width configurable.",
+   "defaults": {
+    "L": 600,
+    "W": [
+     40,
+     80
+    ],
+    "n": 8
+   },
+   "simulated": true,
+   "keep": true,
+   "keep_reason": ""
+  },
+  {
+   "id": "B2",
+   "family": "cursor_control",
+   "name": "Continuous tracking",
+   "version": "1.0.0",
+   "construct": "Continuous closed-loop control; sensitive to latency and smoothing.",
+   "rationale": "Discrete selections can hide latency; tracking exposes it directly (lag).",
+   "stimuli": "Target moves on a sum-of-sines path (0.1-0.4 Hz components), 30 s per trial; target radius 40 px.",
+   "timing": "Sampled at display rate; first 3 s excluded.",
+   "scoring": [
+    "rms_error_px",
+    "time_on_target",
+    "lag_ms"
+   ],
+   "errors": "None (continuous).",
+   "completion": "3 trials of 30 s.",
+   "assistance": "Assistance is recorded as ASSIST events (setup, physical, verbal, troubleshooting, calibration, task_completion) by the participant, care partner or staff via the assistance panel; any assistance during a trial marks it 'assisted', never 'failed'.",
+   "accessibility": "Speed scale configurable; reduced-motion profiles substitute a slower path.",
+   "defaults": {
+    "duration_ms": 30000,
+    "radius": 40,
+    "n": 3
+   },
+   "simulated": true,
+   "keep": true,
+   "keep_reason": ""
+  },
+  {
+   "id": "C1",
+   "family": "scrolling",
+   "name": "Scroll to target",
+   "version": "1.0.0",
+   "construct": "Navigating long content by scrolling.",
+   "rationale": "Scrolling is one of the commonest real digital actions and uses a different control mapping (rate control) from pointing.",
+   "stimuli": "Vertical list of 60 items (60 px rows) in a 400 px viewport; cued item must be brought into the highlighted band and selected; direction up or down.",
+   "timing": "Time from cue to selection; max 30 s.",
+   "scoring": [
+    "success",
+    "time_to_select_ms",
+    "band_passes",
+    "reversals"
+   ],
+   "errors": "Selecting while the cued item is outside the band = error.",
+   "completion": "10 trials.",
+   "assistance": "Assistance is recorded as ASSIST events (setup, physical, verbal, troubleshooting, calibration, task_completion) by the participant, care partner or staff via the assistance panel; any assistance during a trial marks it 'assisted', never 'failed'.",
+   "accessibility": "Scroll by wheel, scroll buttons (for switch / dwell), or keys.",
+   "defaults": {
+    "rows": 60,
+    "row_px": 60,
+    "viewport_px": 400,
+    "n": 10,
+    "max_ms": 30000
+   },
+   "simulated": true,
+   "keep": true,
+   "keep_reason": ""
+  },
+  {
+   "id": "D1",
+   "family": "drag_and_drop",
+   "name": "Drag object to zone",
+   "version": "1.0.0",
+   "construct": "Selecting, holding and relocating an object (hold-state reliability).",
+   "rationale": "Dragging requires sustained selection; BCI click decoders and dwell systems often struggle with holds.",
+   "stimuli": "Object (60 px) at start; drop zone width in {80, 160} px at D=400 px.",
+   "timing": "Time from cue to successful drop; max 30 s.",
+   "scoring": [
+    "success",
+    "time_ms",
+    "unintended_drops",
+    "placement_error_px"
+   ],
+   "errors": "Release outside the zone = drop error (object stays; participant re-grabs).",
+   "completion": "10 trials.",
+   "assistance": "Assistance is recorded as ASSIST events (setup, physical, verbal, troubleshooting, calibration, task_completion) by the participant, care partner or staff via the assistance panel; any assistance during a trial marks it 'assisted', never 'failed'.",
+   "accessibility": "Drag-lock mode (click to pick up, click to drop) available for users who cannot hold.",
+   "defaults": {
+    "D": 400,
+    "zone": [
+     80,
+     160
+    ],
+    "n": 10
+   },
+   "simulated": true,
+   "keep": true,
+   "keep_reason": ""
+  },
+  {
+   "id": "E1",
+   "family": "text_communication",
+   "name": "Copy typing (on-screen keyboard)",
+   "version": "1.0.0",
+   "construct": "Written communication rate and accuracy.",
+   "rationale": "Communication is the highest-value outcome for people with paralysis; copy typing gives a controlled, content-free measure (no private text).",
+   "stimuli": "Presented phrases from NeuroMetric's original phrase set (short, common, lowercase); on-screen QWERTY keyboard with space and backspace; pointer or scanning.",
+   "timing": "Clock starts at first keystroke; ends at the Done key or time limit (3 min/phrase).",
+   "scoring": [
+    "wpm",
+    "ccpm",
+    "msd_error_rate",
+    "total_error_rate",
+    "kspc",
+    "correction_burden"
+   ],
+   "errors": "Uncorrected errors (MSD) and corrected errors (IF) reported separately.",
+   "completion": "5 phrases.",
+   "assistance": "Assistance is recorded as ASSIST events (setup, physical, verbal, troubleshooting, calibration, task_completion) by the participant, care partner or staff via the assistance panel; any assistance during a trial marks it 'assisted', never 'failed'.",
+   "accessibility": "Key size, scanning rate and dwell configurable; no free text is stored.",
+   "defaults": {
+    "n_phrases": 5,
+    "key": 90
+   },
+   "simulated": true,
+   "keep": true,
+   "keep_reason": ""
+  },
+  {
+   "id": "E2",
+   "family": "text_communication",
+   "name": "Structured phrase selection",
+   "version": "1.0.0",
+   "construct": "Message selection from a set (AAC-style communication).",
+   "rationale": "Many AAC users communicate via phrase/word selection rather than spelling.",
+   "stimuli": "Board of 12 phrases; spoken/written cue names the phrase to select.",
+   "timing": "MT = cue to selection.",
+   "scoring": [
+    "success",
+    "movement_time_ms",
+    "achieved_bitrate_bps"
+   ],
+   "errors": "Wrong phrase = error.",
+   "completion": "12 trials.",
+   "assistance": "Assistance is recorded as ASSIST events (setup, physical, verbal, troubleshooting, calibration, task_completion) by the participant, care partner or staff via the assistance panel; any assistance during a trial marks it 'assisted', never 'failed'.",
+   "accessibility": "Large tiles; scanning order.",
+   "defaults": {
+    "n": 12
+   },
+   "simulated": true,
+   "keep": true,
+   "keep_reason": ""
+  },
+  {
+   "id": "F1",
+   "family": "digital_adl",
+   "name": "Select a contact (simulated)",
+   "version": "1.0.0",
+   "construct": "Simulated digital activity: find and open a contact.",
+   "rationale": "Ecological composite of scroll + select; in-app only, no real contacts.",
+   "stimuli": "Simulated contact list (fictional names) with 20 entries; target named in cue.",
+   "timing": "Time to complete; steps logged.",
+   "scoring": [
+    "completed",
+    "time_to_complete_ms",
+    "wrong_selections",
+    "assisted"
+   ],
+   "errors": "Opening the wrong contact = error; 'back' returns.",
+   "completion": "1 trial per session.",
+   "assistance": "Assistance is recorded as ASSIST events (setup, physical, verbal, troubleshooting, calibration, task_completion) by the participant, care partner or staff via the assistance panel; any assistance during a trial marks it 'assisted', never 'failed'.",
+   "accessibility": "All controls reachable by keyboard / scanning.",
+   "defaults": {},
+   "simulated": true,
+   "keep": true,
+   "keep_reason": ""
+  },
+  {
+   "id": "F2",
+   "family": "digital_adl",
+   "name": "Compose a predefined message (simulated)",
+   "version": "1.0.0",
+   "construct": "Communication activity: open a conversation and send a predefined message composed from tiles.",
+   "rationale": "In-app only; nothing is sent.",
+   "stimuli": "Open messages -> choose recipient -> select 3 message tiles -> press send.",
+   "timing": "Time to complete.",
+   "scoring": [
+    "completed",
+    "time_to_complete_ms",
+    "wrong_selections",
+    "assisted"
+   ],
+   "errors": "Wrong tile/recipient = error.",
+   "completion": "1 trial per session.",
+   "assistance": "Assistance is recorded as ASSIST events (setup, physical, verbal, troubleshooting, calibration, task_completion) by the participant, care partner or staff via the assistance panel; any assistance during a trial marks it 'assisted', never 'failed'.",
+   "accessibility": "",
+   "defaults": {},
+   "simulated": true,
+   "keep": true,
+   "keep_reason": ""
+  },
+  {
+   "id": "F3",
+   "family": "digital_adl",
+   "name": "Menu navigation (simulated)",
+   "version": "1.0.0",
+   "construct": "Navigate a two-level application menu.",
+   "rationale": "Common desktop interaction.",
+   "stimuli": "Menu bar with 5 menus x 6 items; target named in cue.",
+   "timing": "Time to complete.",
+   "scoring": [
+    "completed",
+    "time_to_complete_ms",
+    "wrong_selections",
+    "assisted"
+   ],
+   "errors": "Wrong menu or item = error.",
+   "completion": "4 trials.",
+   "assistance": "Assistance is recorded as ASSIST events (setup, physical, verbal, troubleshooting, calibration, task_completion) by the participant, care partner or staff via the assistance panel; any assistance during a trial marks it 'assisted', never 'failed'.",
+   "accessibility": "",
+   "defaults": {},
+   "simulated": true,
+   "keep": true,
+   "keep_reason": ""
+  },
+  {
+   "id": "F4",
+   "family": "digital_adl",
+   "name": "Calendar booking (simulated)",
+   "version": "1.0.0",
+   "construct": "Schedule an appointment: pick a date, a time slot, confirm.",
+   "rationale": "Multi-step goal-directed activity.",
+   "stimuli": "Month grid + time-slot list + confirm.",
+   "timing": "Time to complete.",
+   "scoring": [
+    "completed",
+    "time_to_complete_ms",
+    "wrong_selections",
+    "assisted"
+   ],
+   "errors": "Wrong date/slot = error.",
+   "completion": "1 trial.",
+   "assistance": "Assistance is recorded as ASSIST events (setup, physical, verbal, troubleshooting, calibration, task_completion) by the participant, care partner or staff via the assistance panel; any assistance during a trial marks it 'assisted', never 'failed'.",
+   "accessibility": "",
+   "defaults": {},
+   "simulated": true,
+   "keep": true,
+   "keep_reason": ""
+  },
+  {
+   "id": "F5",
+   "family": "digital_adl",
+   "name": "Form completion (simulated)",
+   "version": "1.0.0",
+   "construct": "Fill a short form with predefined choices (no personal data).",
+   "rationale": "Forms are ubiquitous in health portals and daily admin.",
+   "stimuli": "4 fields with choice buttons + submit.",
+   "timing": "Time to complete.",
+   "scoring": [
+    "completed",
+    "time_to_complete_ms",
+    "wrong_selections",
+    "assisted"
+   ],
+   "errors": "Wrong choice = error.",
+   "completion": "1 trial.",
+   "assistance": "Assistance is recorded as ASSIST events (setup, physical, verbal, troubleshooting, calibration, task_completion) by the participant, care partner or staff via the assistance panel; any assistance during a trial marks it 'assisted', never 'failed'.",
+   "accessibility": "",
+   "defaults": {},
+   "simulated": true,
+   "keep": true,
+   "keep_reason": ""
+  },
+  {
+   "id": "F6",
+   "family": "digital_adl",
+   "name": "Communication board (simulated)",
+   "version": "1.0.0",
+   "construct": "Express a predefined need using a symbol/word board (AAC).",
+   "rationale": "Core AAC interaction.",
+   "stimuli": "4 x 5 board of words; build a 3-word message.",
+   "timing": "Time to complete.",
+   "scoring": [
+    "completed",
+    "time_to_complete_ms",
+    "wrong_selections",
+    "assisted"
+   ],
+   "errors": "Wrong word = error (delete key available).",
+   "completion": "2 trials.",
+   "assistance": "Assistance is recorded as ASSIST events (setup, physical, verbal, troubleshooting, calibration, task_completion) by the participant, care partner or staff via the assistance panel; any assistance during a trial marks it 'assisted', never 'failed'.",
+   "accessibility": "",
+   "defaults": {},
+   "simulated": true,
+   "keep": true,
+   "keep_reason": ""
+  },
+  {
+   "id": "F7",
+   "family": "digital_adl",
+   "name": "Simulated browser navigation",
+   "version": "1.0.0",
+   "construct": "Follow a link on a simulated web page and find a named item.",
+   "rationale": "Web use is a key participation activity.",
+   "stimuli": "Static simulated page with links.",
+   "timing": "Time to complete.",
+   "scoring": [
+    "completed",
+    "time_to_complete_ms",
+    "wrong_selections",
+    "assisted"
+   ],
+   "errors": "Wrong link = error ('back' available).",
+   "completion": "1 trial.",
+   "assistance": "Assistance is recorded as ASSIST events (setup, physical, verbal, troubleshooting, calibration, task_completion) by the participant, care partner or staff via the assistance panel; any assistance during a trial marks it 'assisted', never 'failed'.",
+   "accessibility": "No external network access.",
+   "defaults": {},
+   "simulated": true,
+   "keep": true,
+   "keep_reason": ""
+  }
+ ],
+ "excluded": [
+  {
+   "id": "B-obstacle",
+   "name": "Obstacle navigation",
+   "reason": "Overlaps with B1 steering and A4 selection among distractors; adds layout complexity without a distinct construct. Kept as a web demo only."
+  },
+  {
+   "id": "E-free",
+   "name": "Free text entry",
+   "reason": "Requires storing personal text; offered only with explicit consent and never stored by default (character counts and timing only)."
+  }
+ ],
+ "exported": [
+  {
+   "id": "A1",
+   "stimulus_hash": "219c21506f9f6771",
+   "seed": 0
+  },
+  {
+   "id": "A2",
+   "stimulus_hash": "e70c584a5a8360ce",
+   "seed": 0
+  },
+  {
+   "id": "A3",
+   "stimulus_hash": "3687faa6d8ef1a61",
+   "seed": 0
+  },
+  {
+   "id": "A4",
+   "stimulus_hash": "0290a36449d77239",
+   "seed": 0
+  },
+  {
+   "id": "A5",
+   "stimulus_hash": "2e4ccc2cb462db62",
+   "seed": 0
+  },
+  {
+   "id": "B1",
+   "stimulus_hash": "451f354f0fe968a9",
+   "seed": 0
+  },
+  {
+   "id": "B2",
+   "stimulus_hash": "b5b547796cd0c65c",
+   "seed": 0
+  },
+  {
+   "id": "C1",
+   "stimulus_hash": "7fe5697117bf1450",
+   "seed": 0
+  },
+  {
+   "id": "D1",
+   "stimulus_hash": "e0628bf8e0f8e020",
+   "seed": 0
+  },
+  {
+   "id": "E1",
+   "stimulus_hash": "bfa98e300c4e7dc0",
+   "seed": 0
+  },
+  {
+   "id": "E2",
+   "stimulus_hash": "bbba992c16c6ab22",
+   "seed": 0
+  },
+  {
+   "id": "F1",
+   "stimulus_hash": "7496f928d4a8d775",
+   "seed": 0
+  },
+  {
+   "id": "F2",
+   "stimulus_hash": "f169e24e8ba7bc28",
+   "seed": 0
+  },
+  {
+   "id": "F3",
+   "stimulus_hash": "b433dcd656c33ea6",
+   "seed": 0
+  },
+  {
+   "id": "F4",
+   "stimulus_hash": "03f3f20f2aaa8e67",
+   "seed": 0
+  },
+  {
+   "id": "F5",
+   "stimulus_hash": "127bc4af0aa1f0cd",
+   "seed": 0
+  },
+  {
+   "id": "F6",
+   "stimulus_hash": "100bb75e02e38fde",
+   "seed": 0
+  },
+  {
+   "id": "F7",
+   "stimulus_hash": "7fc7aa3baaf40b77",
+   "seed": 0
+  }
+ ]
+}

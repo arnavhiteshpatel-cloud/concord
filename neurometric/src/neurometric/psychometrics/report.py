@@ -94,7 +94,8 @@ def psychometric_report(df: pd.DataFrame, score_cols: Sequence[str], subject_col
     d = df.copy()
     sessions = sorted(d[session_col].dropna().unique())
     time_index = {s: i for i, s in enumerate(sessions)}
-    d["_session_index"] = d[session_col].map(time_index)
+    tcol = f"{session_col}_index"
+    d[tcol] = d[session_col].map(time_index)
     groups = sorted(d[group_col].dropna().unique(), key=str) if group_col else []
     out: dict = {
         "schema": REPORT_SCHEMA,
@@ -129,7 +130,7 @@ def psychometric_report(df: pd.DataFrame, score_cols: Sequence[str], subject_col
                 "lin_ccc": _section(lin_ccc, w[s2], w[s1], alpha=alpha),
                 "note": "differences are session2 - session1 (positive = higher at retest)"}
             res["change_over_sessions"] = _section(
-                fit_repeated_measures_lmm, d, sc, subject_col, "_session_index",
+                fit_repeated_measures_lmm, d, sc, subject_col, tcol,
                 covariates=[group_col] if group_col else [], n_key="n_subjects")
         base = d.loc[d[session_col] == sessions[0], sc]
         lo, hi = bounds.get(sc, (None, None))
