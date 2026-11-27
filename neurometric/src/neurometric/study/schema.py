@@ -120,6 +120,7 @@ CREATE TABLE functional_sessions (
   visit_id TEXT REFERENCES visits(id) ON DELETE SET NULL,
   device_config_id TEXT REFERENCES device_configs(id) ON DELETE SET NULL,
   task_id TEXT NOT NULL, battery_version TEXT NOT NULL, stimulus_seed INTEGER NOT NULL,
+  performed_at TEXT NOT NULL,
   stimulus_hash TEXT NOT NULL, modality TEXT NOT NULL,
   provenance TEXT NOT NULL CHECK (provenance IN ('live','simulated','replayed')),
   events_blob BLOB, events_sha256 TEXT NOT NULL, n_events INTEGER NOT NULL,

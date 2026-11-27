@@ -121,6 +121,7 @@ INVENTORY: dict[str, T] = {
                               {"visit_id": "Visit.", "device_config_id": "Device configuration.",
                                "task_id": "Battery task id.", "battery_version": "Battery version.",
                                "stimulus_seed": "Stimulus seed.",
+                               "performed_at": "UTC time the assessment was performed (client-reported; used for visit windows).",
                                "stimulus_hash": "Hash identifying the exact stimuli.",
                                "modality": "Input modality.",
                                "provenance": "live / simulated / replayed.",

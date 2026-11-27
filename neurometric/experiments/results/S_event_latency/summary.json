@@ -1,0 +1,45 @@
+{
+  "experiment": "S_event_latency",
+  "generated_utc": "2026-11-27T07:07:58Z",
+  "software": {
+    "neurometric": "0.1.0",
+    "python": "3.13.18",
+    "numpy": "2.5.3",
+    "pandas": "3.0.5"
+  },
+  "synthetic": true,
+  "disclaimer": "Simulation results. They characterise the measurement system under modelled input degradation; they are not human or clinical data.",
+  "machine": {
+    "python": "3.13.18",
+    "processor": "x86_64"
+  },
+  "session": {
+    "events": 14643,
+    "trials": 60
+  },
+  "median": {
+    "n_events": 14643.0,
+    "n_trials": 60.0,
+    "validate_events_per_s": 2140356.708597432,
+    "check_stream_events_per_s": 1837918.7375414725,
+    "segment_and_score_ms": 87.48293000007834,
+    "score_peak_mem_mb": 3.238136,
+    "json_roundtrip_ms": 292.45879700010846,
+    "roundtrip_hash_identical": 1.0,
+    "json_bytes": 3300733.0
+  },
+  "all_roundtrips_identical": true,
+  "per_event_validate_us": {
+    "p50": 0.517,
+    "p99": 1.0660700000000016,
+    "max": 1844.627
+  },
+  "stream_check": {
+    "n": 14643,
+    "non_monotonic": 0,
+    "duplicate_seq": 0,
+    "seq_gaps": 0,
+    "gap_events": 0
+  },
+  "note": "Server-side processing cost only. Browser-side timing is in browser_*.json from the web test suite."
+}

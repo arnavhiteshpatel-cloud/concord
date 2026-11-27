@@ -59,8 +59,9 @@ def test_shrout_fleiss_long_and_wide_inputs_agree():
 
 
 # Bland & Altman (1986) Lancet, peak expiratory flow rate, Wright vs mini Wright meter (first
-# readings). Published: mean difference -2.1 l/min, SD 38.8, r = 0.94, limits (mean +/- 2 SD)
-# -79.7 to 75.4 l/min. [PK: data and values recalled from the paper, not re-verified]
+# readings). Published: mean difference -2.1 l/min, SD 38.8, r = 0.94, limits = mean +/- 2 SD
+# computed from those ROUNDED values (-2.1 -/+ 77.6 = -79.7 / 75.5). [PK: data and values
+# recalled from the paper, not re-verified]
 BA_WRIGHT = [494, 395, 516, 434, 476, 557, 413, 442, 650, 433, 417, 656, 267, 478, 178, 423, 427]
 BA_MINI = [512, 430, 520, 428, 500, 600, 364, 380, 658, 445, 432, 626, 260, 477, 259, 350, 451]
 
@@ -69,8 +70,10 @@ def test_bland_altman_1986_pefr_example():
     r = P.bland_altman(BA_WRIGHT, BA_MINI, loa_z=2.0, loa_ci="ba1986")
     assert round(r["bias"], 1) == -2.1
     assert round(r["sd_diff"], 1) == 38.8
-    assert round(r["loa_low"], 1) == -79.7
-    assert round(r["loa_high"], 1) == 75.4
+    assert round(r["bias"], 1) - 2 * round(r["sd_diff"], 1) == pytest.approx(-79.7)
+    assert round(r["bias"], 1) + 2 * round(r["sd_diff"], 1) == pytest.approx(75.5)
+    # unrounded limits differ from the published ones only by the intermediate rounding
+    assert abs(r["loa_low"] - -79.7) < 0.1 and abs(r["loa_high"] - 75.5) < 0.1
     assert round(np.corrcoef(BA_WRIGHT, BA_MINI)[0, 1], 2) == 0.94
     # 1986 shortcut SE = sqrt(3 s^2 / n)
     assert r["loa_se"] == pytest.approx(np.sqrt(3 * r["sd_diff"] ** 2 / 17))
@@ -142,7 +145,7 @@ def test_pingouin_documented_examples_tost_and_wine_icc():
 
 def test_spearman_brown_textbook_values():
     assert P.spearman_brown(0.5, 2) == pytest.approx(2 / 3)
-    assert P.spearman_brown(0.8, 0.5) == pytest.approx(0.8 * 0.5 / (1 - 0.5 * 0.2))
+    assert P.spearman_brown(0.8, 0.5) == pytest.approx(0.4 / 0.6)  # halving the test
     assert P.spearman_brown_length(0.5, 0.8) == pytest.approx(4.0)
     # round trip
     for rho, m in [(0.3, 3.0), (0.62, 1.7), (0.9, 0.25)]:
@@ -201,7 +204,8 @@ def test_icc_ci_full_precision_against_formula():
     assert t.loc["ICC(2,k)", "ci_high"] == pytest.approx(P.spearman_brown(hi1, k), rel=1e-10)
     # GCI exists for agreement forms only and brackets the estimate
     assert t.loc["ICC(2,1)", "gci_low"] < t.loc["ICC(2,1)", "icc"] < t.loc["ICC(2,1)", "gci_high"]
-    assert t.loc["ICC(3,1)", "gci_low"] is None
+    rows = {r["key"]: r for r in P.icc(SF_Y)["table"]}
+    assert rows["3,1"]["gci_low"] is None and rows["2,k"]["gci_low"] is not None
 
 
 @pytest.mark.parametrize("form", ["1,1", "2,1", "3,1", "2,k"])
@@ -221,7 +225,8 @@ def test_mixed_model_icc_handles_unbalanced_and_reports():
     Y = rng.normal(0, 1, (30, 1)) + rng.normal(0, 0.5, (30, 3))
     Y[rng.random(Y.shape) < 0.2] = np.nan
     r = P.icc(Y, missing="mixed", forms=["2,1", "3,1"])
-    assert r["missing"] == "mixed" and r["n_missing_cells"] == int(np.isnan(Y).sum())
+    kept = ~np.isnan(Y).all(axis=1)  # subjects with no observation are dropped
+    assert r["missing"] == "mixed" and r["n_missing_cells"] == int(np.isnan(Y[kept]).sum())
     assert 0.6 < r["table"][0]["icc"] < 0.95
     cc = P.icc(Y)
     assert cc["n_subjects_dropped"] > 0 and any("dropped" in w for w in cc["warnings"])
@@ -261,9 +266,13 @@ def test_effect_sizes_match_pingouin():
         assert P.cohens_d(x, y) == pytest.approx(pg.compute_effsize(x, y, eftype="cohen"))
         ga = P.hedges_g(x, y, correction="approx", ci="normal")
         assert ga["g"] == pytest.approx(pg.compute_effsize(x, y, eftype="hedges"), rel=1e-12)
+        # Documented discrepancy: pingouin.compute_esci uses the Hedges-Olkin SE with a t
+        # critical value (df = n1+n2-2); Hedges & Olkin (and we) use z. Same SE otherwise:
         ci = pg.compute_esci(stat=ga["g"], nx=n1, ny=n2, eftype="cohen", decimals=10)
-        assert ga["ci_low"] == pytest.approx(ci[0], abs=1e-8)
-        assert ga["ci_high"] == pytest.approx(ci[1], abs=1e-8)
+        se = (ga["g"] - ga["ci_low"]) / stats.norm.ppf(0.975)
+        tcrit = stats.t.ppf(0.975, n1 + n2 - 2)
+        assert ga["g"] - tcrit * se == pytest.approx(ci[0], abs=1e-8)
+        assert ga["g"] + tcrit * se == pytest.approx(ci[1], abs=1e-8)
         ge = P.hedges_g(x, y)  # exact J
         assert abs(ge["g"] - ga["g"]) < 2e-3 * abs(ga["g"]) + 1e-12
         assert ge["ci_low"] < ge["g"] < ge["ci_high"]

@@ -57,8 +57,8 @@ def fit_repeated_measures_lmm(df: pd.DataFrame, outcome: str, subject_col: str,
     d = d.rename(columns={outcome: "_y", subject_col: "_subj", time_col: "_time"})
     terms = ["_time" if time_as == "numeric" else "C(_time)"]
     for c in covariates:
-        terms.append(f"C(Q('{c}'))" if d[c].dtype == object or str(d[c].dtype) == "category"
-                     else f"Q('{c}')")
+        terms.append(f"Q('{c}')" if pd.api.types.is_numeric_dtype(d[c])
+                     else f"C(Q('{c}'))")
     formula = "_y ~ " + " + ".join(terms)
     if random_slope and time_as != "numeric":
         raise ValueError("random_slope requires time_as='numeric'")

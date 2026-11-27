@@ -29,6 +29,7 @@ import pandas as pd
 from scipy import stats
 
 from . import agreement, effects, invariance, mixed, reliability, validity
+from ._util import jsonable
 
 DEFAULT_OUT = (Path(__file__).resolve().parents[3] / "experiments" / "results"
                / "R_statistical_verification")
@@ -313,7 +314,7 @@ def main(argv=None) -> dict:
         "results": df.to_dict(orient="records"),
     }
     with open(a.out / "coverage_results.json", "w") as fh:
-        json.dump(summary, fh, indent=2, default=float)
+        json.dump(jsonable(summary), fh, indent=2, allow_nan=False)
     print(df[["analysis", "scenario", "value_checked", "tolerance", "passes"]]
           .to_string(index=False))
     print(f"\n{summary['n_pass']}/{summary['n_rows']} pass; {summary['runtime_s']} s; "

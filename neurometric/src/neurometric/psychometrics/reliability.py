@@ -64,7 +64,7 @@ statsmodels) and simulation in ``tests/test_psychometrics.py``.
 from __future__ import annotations
 
 import warnings as _warnings
-from typing import Iterable, Sequence
+from typing import Sequence
 
 import numpy as np
 import pandas as pd
@@ -229,8 +229,8 @@ def _gci_agreement(ms: dict, alpha: float = 0.05, n_draws: int = 10000,
     \sigma^{2*}_e)/k)` (average). Seeded, so deterministic.
 
     Motivation: the McGraw & Wong Satterthwaite interval for ICC(A,·) under-covers when the
-    session variance is non-negligible and k is small (Experiment R found 79-85 % coverage
-    for k = 3, var_session = var_error; see docs/science/PSYCHOMETRICS.md); the GCI kept
+    session variance is comparable to the error variance (Experiment R found 78-92 % coverage
+    for k = 2-6, var_session = var_error; see docs/science/PSYCHOMETRICS.md); the GCI kept
     94-96 % in the same scenarios.
     """
     n, k = ms["n"], ms["k"]

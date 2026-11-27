@@ -151,8 +151,14 @@ def _score_pointing(task_id: str, events: list[InputEvent], stim: dict) -> dict[
                     break
         if start is None:
             start = samples_xy[0] if samples_xy else (float(tgt["x"]), float(tgt["y"]))
-        if not samples_xy:
-            samples_t, samples_xy = [0.0], [start]
+        if not samples_t or samples_t[0] > 0:
+            # anchor every trajectory at its start position at onset (also gives >= 2 samples
+            # for discrete selections, e.g. switch scanning, so kinematic code is well defined)
+            samples_t.insert(0, 0.0)
+            samples_xy.insert(0, start)
+        if len(samples_t) < 2:
+            samples_t.append(samples_t[0])
+            samples_xy.append(samples_xy[0])
         outcome = (tr["end"].meta.get("outcome") if tr["end"] is not None else None)
         if sel is None or outcome == "timeout" or sel[1] is None:
             sel_item, sel_t = -2, float("nan")

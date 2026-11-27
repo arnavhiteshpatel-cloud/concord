@@ -50,7 +50,7 @@ def jnum(v):
 def jl(a):
     a = np.asarray(a)
     if a.ndim == 0:
-        return jnum(a)
+        return jnum(a.item())
     return [jl(x) for x in a]
 
 

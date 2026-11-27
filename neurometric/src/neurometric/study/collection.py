@@ -10,7 +10,9 @@ from ..events.model import (EventKind, EventValidationError, InputEvent, check_s
 from ..instruments.engine import ResponseError, score as score_instrument, validate_response
 from ..tasks.battery import BATTERY_VERSION, stimuli as battery_stimuli
 from .core import StudyServiceBase, jload, new_id
-from .db import canonical_json, sha256_hex
+from datetime import timedelta
+
+from .db import canonical_json, iso, parse_iso, sha256_hex
 from .errors import ConsentRequired, NotFound, ValidationFailed
 from .permissions import Actor, require
 from .scoring import SCORER_VERSION, TASK_IDS, score_session
@@ -34,7 +36,14 @@ class CollectionMixin(StudyServiceBase):
                        stimulus_seed: int, stimulus_hash: str,
                        battery_version: str = BATTERY_VERSION, visit_id: Optional[str] = None,
                        device_config_id: Optional[str] = None, provenance: str = "live",
-                       modality: Optional[str] = None) -> dict[str, Any]:
+                       modality: Optional[str] = None,
+                       performed_at: Optional[str] = None) -> dict[str, Any]:
+        """Validate, score (server-side) and store one task session.
+
+        ``performed_at`` is when the assessment was performed (client-reported, e.g. offline
+        home sessions uploaded later). It is stored as data and used for visit-window
+        compliance; it may not lie in the future. Audit time stamps always use the server clock.
+        """
         p = self._participant(actor, pid, "session.upload")
         if p["enrollment_state"] not in ("enrolled", "active"):
             raise ValidationFailed(f"participant is '{p['enrollment_state']}': collection is only "
@@ -88,6 +97,16 @@ class CollectionMixin(StudyServiceBase):
         if report["duplicate_seq"]:
             raise ValidationFailed("duplicate (stream_id, seq) pairs in event stream",
                                    code="duplicate_events", report=report)
+        now = self.db.now()
+        if performed_at is not None:
+            try:
+                perf = parse_iso(performed_at)
+            except ValueError as e:
+                raise ValidationFailed(f"performed_at: {e}") from None
+            if perf > now + timedelta(minutes=5):
+                raise ValidationFailed("performed_at lies in the future", code="future_time")
+        else:
+            perf = now
         if visit_id:
             visit = self._visit_for(actor, visit_id, pid)
         else:
@@ -106,7 +125,8 @@ class CollectionMixin(StudyServiceBase):
         row = {"id": new_id("ses"), "org_id": actor.org_id, "study_id": p["study_id"],
                "participant_id": pid, "visit_id": visit_id, "device_config_id": device_config_id,
                "task_id": task_id, "battery_version": battery_version,
-               "stimulus_seed": int(stimulus_seed), "stimulus_hash": stimulus_hash,
+               "stimulus_seed": int(stimulus_seed), "performed_at": iso(perf),
+               "stimulus_hash": stimulus_hash,
                "modality": mod, "provenance": provenance, "events_blob": blob,
                "events_sha256": digest, "n_events": len(parsed), "raw_purged": 0,
                "stream_report_json": canonical_json(report), "metrics_json": canonical_json(metrics),
@@ -117,7 +137,7 @@ class CollectionMixin(StudyServiceBase):
             if p["enrollment_state"] == "enrolled":
                 self._transition(actor, p, "active", "first functional session uploaded")
             if visit is not None:
-                self._complete_visit(actor, visit, "functional session uploaded")
+                self._complete_visit(actor, visit, "functional session uploaded", perf.date())
         return self._session_view(row)
 
     def _session_view(self, row: dict[str, Any], include_events: bool = False) -> dict[str, Any]:

@@ -137,7 +137,9 @@ class StudyServiceBase:
     def create_organization(self, name: str, is_demo: bool = False) -> dict[str, Any]:
         org = {"id": new_id("org"), "name": name, "is_demo": int(bool(is_demo)),
                "created_at": self.db.now_iso()}
-        return self._insert(SYSTEM, "organizations", {**org}, reason="organization created") and org
+        a = Actor("system", org["id"], "system", "system")
+        self._insert(a, "organizations", org, reason="organization created")
+        return org
 
     def create_user(self, actor: Actor, *, org_id: str, username: str, password: str, role: str,
                     display_name: str = "", participant_id: Optional[str] = None,
