@@ -122,27 +122,8 @@ export function syncMetadata(canvasScale: number | null = null): SessionMetadata
 }
 
 export async function collectSessionMetadata(canvasScale: number | null = null): Promise<SessionMetadata> {
+  const base = syncMetadata(canvasScale);
   const res = estimateTimerResolution();
   const { intervals } = await estimateRefresh();
-  const nav = navigator as Navigator & { userAgentData?: { brands?: { brand: string; version: string }[]; platform?: string } };
-  return {
-    app: "neurometric-web/0.1.0",
-    schema_version: "1.0",
-    user_agent: navigator.userAgent,
-    ua_brands: nav.userAgentData?.brands?.map((b) => `${b.brand}/${b.version}`).join(", ") ?? null,
-    platform: nav.userAgentData?.platform ?? null,
-    device_pixel_ratio: window.devicePixelRatio,
-    viewport_css_px: [window.innerWidth, window.innerHeight],
-    screen_css_px: [screen.width, screen.height],
-    canvas_scale: canvasScale,
-    cross_origin_isolated: Boolean(globalThis.crossOriginIsolated),
-    time_origin_epoch_ms: performance.timeOrigin,
-    pointer_events: typeof PointerEvent !== "undefined",
-    coalesced_events: typeof PointerEvent !== "undefined" && "getCoalescedEvents" in PointerEvent.prototype,
-    gamepad_api: typeof navigator.getGamepads === "function",
-    prefers_reduced_motion: mq("(prefers-reduced-motion: reduce)"),
-    prefers_contrast_more: mq("(prefers-contrast: more)"),
-    prefers_color_scheme_dark: mq("(prefers-color-scheme: dark)"),
-    timing: { timer_resolution_ms: res, ...summariseIntervals(intervals) },
-  };
+  return { ...base, timing: { timer_resolution_ms: res, ...summariseIntervals(intervals) } };
 }
