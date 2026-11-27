@@ -1,0 +1,218 @@
+{
+  "experiment": "M_user_variability",
+  "generated_utc": "2026-11-27T07:49:43Z",
+  "software": {
+    "neurometric": "0.1.0",
+    "python": "3.13.18",
+    "numpy": "2.5.3",
+    "pandas": "3.0.5"
+  },
+  "synthetic": true,
+  "disclaimer": "Simulation results. They characterise the measurement system under modelled input degradation; they are not human or clinical data.",
+  "design": "3 ability levels x 3 decoder profiles x 60 virtual participants",
+  "results": [
+    {
+      "metric": "iso_tp_bps",
+      "eta2_ability": 0.06473959071753486,
+      "eta2_device": 0.7510256482647936,
+      "eta2_interaction": 0.007249375192344065,
+      "eta2_residual": 0.17698538582532758
+    },
+    {
+      "metric": "iso_error_rate",
+      "eta2_ability": 0.0034678451606641064,
+      "eta2_device": 0.9151931836214274,
+      "eta2_interaction": 0.002520020657634029,
+      "eta2_residual": 0.07881895056027441
+    },
+    {
+      "metric": "iso_timeout_rate",
+      "eta2_ability": 0.011456863688697968,
+      "eta2_device": 0.8656039921228416,
+      "eta2_interaction": 0.009298898413235402,
+      "eta2_residual": 0.11364024577522508
+    },
+    {
+      "metric": "iso_success_rate",
+      "eta2_ability": 0.0048869306676739685,
+      "eta2_device": 0.949637037634817,
+      "eta2_interaction": 0.004741576764669192,
+      "eta2_residual": 0.040734454932839795
+    },
+    {
+      "metric": "iso_mt_ms",
+      "eta2_ability": 0.024682573884749034,
+      "eta2_device": 0.895181443434524,
+      "eta2_interaction": 0.003747538498034994,
+      "eta2_residual": 0.07638844418269194
+    },
+    {
+      "metric": "iso_mt_completed_ms",
+      "eta2_ability": 0.04268827978701379,
+      "eta2_device": 0.6261932154222296,
+      "eta2_interaction": 0.014312515968298458,
+      "eta2_residual": 0.31680598882245814
+    },
+    {
+      "metric": "iso_tp_all_bps",
+      "eta2_ability": 0.02806168705132275,
+      "eta2_device": 0.8534872644397389,
+      "eta2_interaction": 0.012038796115010297,
+      "eta2_residual": 0.10641225239392814
+    },
+    {
+      "metric": "iso_path_efficiency",
+      "eta2_ability": 0.006225518691575071,
+      "eta2_device": 0.6018603432305245,
+      "eta2_interaction": 0.003586987162814626,
+      "eta2_residual": 0.3883271509150858
+    },
+    {
+      "metric": "iso_reentries",
+      "eta2_ability": 0.008445323630048586,
+      "eta2_device": 0.7514201673327074,
+      "eta2_interaction": 0.014839155023307548,
+      "eta2_residual": 0.2252953540139365
+    },
+    {
+      "metric": "iso_overshoot_px",
+      "eta2_ability": 0.004744439921221559,
+      "eta2_device": 0.771246710347533,
+      "eta2_interaction": 0.0006482352198698948,
+      "eta2_residual": 0.22336061451137557
+    },
+    {
+      "metric": "iso_movement_variability_px",
+      "eta2_ability": 0.0033049807026534605,
+      "eta2_device": 0.9673460871785816,
+      "eta2_interaction": 0.0003531877601846681,
+      "eta2_residual": 0.02899574435858034
+    },
+    {
+      "metric": "iso_endpoint_error_px",
+      "eta2_ability": 0.0056759982907531115,
+      "eta2_device": 0.906162801266582,
+      "eta2_interaction": 0.002854172346853434,
+      "eta2_residual": 0.08530702809581157
+    },
+    {
+      "metric": "iso_dial_in_ms",
+      "eta2_ability": 0.009946986117677413,
+      "eta2_device": 0.2584056097685932,
+      "eta2_interaction": 0.019930374224717513,
+      "eta2_residual": 0.7117170298890119
+    },
+    {
+      "metric": "iso_submovements",
+      "eta2_ability": 0.05438634543832688,
+      "eta2_device": 0.8640967247726917,
+      "eta2_interaction": 0.011682256640564118,
+      "eta2_residual": 0.06983467314841715
+    },
+    {
+      "metric": "iso_onset_ms",
+      "eta2_ability": 0.23250038102103637,
+      "eta2_device": 0.4974526705866609,
+      "eta2_interaction": 0.0031231868766271992,
+      "eta2_residual": 0.26692376151567543
+    },
+    {
+      "metric": "grid_accuracy",
+      "eta2_ability": 0.007774833049685427,
+      "eta2_device": 0.9150325678416922,
+      "eta2_interaction": 0.005193734449601707,
+      "eta2_residual": 0.07199886465902075
+    },
+    {
+      "metric": "grid_time_ms",
+      "eta2_ability": 0.018342257299310973,
+      "eta2_device": 0.9010627408801526,
+      "eta2_interaction": 0.0016438194252753565,
+      "eta2_residual": 0.0789511823952609
+    },
+    {
+      "metric": "grid_bitrate_bps",
+      "eta2_ability": 0.028348689123165842,
+      "eta2_device": 0.899420690265406,
+      "eta2_interaction": 0.009411534161973895,
+      "eta2_residual": 0.06281908644945412
+    },
+    {
+      "metric": "false_activations_per_min",
+      "eta2_ability": 0.0014857273719955095,
+      "eta2_device": 0.39014241754352996,
+      "eta2_interaction": 0.006098510273624598,
+      "eta2_residual": 0.6022733448108499
+    },
+    {
+      "metric": "type_wpm",
+      "eta2_ability": 0.03492243196646988,
+      "eta2_device": 0.9105105015472983,
+      "eta2_interaction": 0.011004455040334456,
+      "eta2_residual": 0.04356261144589746
+    },
+    {
+      "metric": "type_ccpm",
+      "eta2_ability": 0.03558296053371942,
+      "eta2_device": 0.9129792114015964,
+      "eta2_interaction": 0.009338474227648092,
+      "eta2_residual": 0.04209935383703618
+    },
+    {
+      "metric": "type_total_error_rate",
+      "eta2_ability": 0.01779690579303011,
+      "eta2_device": 0.8368981993443443,
+      "eta2_interaction": 0.017872885010861976,
+      "eta2_residual": 0.12743200985176364
+    },
+    {
+      "metric": "type_uncorrected_error_rate",
+      "eta2_ability": 0.04775282335214669,
+      "eta2_device": 0.6291955486772526,
+      "eta2_interaction": 0.08230367764527345,
+      "eta2_residual": 0.2407479503253272
+    },
+    {
+      "metric": "type_kspc",
+      "eta2_ability": 0.01776228364617915,
+      "eta2_device": 0.5451180066999923,
+      "eta2_interaction": 0.024875238384554493,
+      "eta2_residual": 0.41224447126927405
+    },
+    {
+      "metric": "type_correction_burden",
+      "eta2_ability": 0.017762283646179097,
+      "eta2_device": 0.545118006699992,
+      "eta2_interaction": 0.02487523838455449,
+      "eta2_residual": 0.4122444712692743
+    },
+    {
+      "metric": "type_aborted_frac",
+      "eta2_ability": 0.012392518731768483,
+      "eta2_device": 0.6150121065375297,
+      "eta2_interaction": 0.02478503746353738,
+      "eta2_residual": 0.34781033726716437
+    },
+    {
+      "metric": "adl_completion_rate",
+      "eta2_ability": 0.01825880657076747,
+      "eta2_device": 0.3027718550106608,
+      "eta2_interaction": 0.0365176131415357,
+      "eta2_residual": 0.642451725277036
+    },
+    {
+      "metric": "adl_time_s",
+      "eta2_ability": 0.005662548730375589,
+      "eta2_device": 0.734287141497906,
+      "eta2_interaction": 0.003558011281474381,
+      "eta2_residual": 0.25649229849024413
+    },
+    {
+      "metric": "adl_wrong_selections",
+      "eta2_ability": 0.0019012099713299855,
+      "eta2_device": 0.4452172117206856,
+      "eta2_interaction": 0.0024904028378443833,
+      "eta2_residual": 0.55039117547014
+    }
+  ]
+}
