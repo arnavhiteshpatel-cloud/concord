@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-27T07:41:07.577Z",
+ "generated": "2026-11-27T07:44:53.952Z",
  "tool": "axe-core 4.10.3 (vendored npm devDependency) via Playwright, headless Chromium",
  "tags": [
   "wcag2a",
@@ -18,406 +18,486 @@
    "theme": "light",
    "violations": [],
    "rules_passed": 41,
-   "needs_review": 1
+   "needs_review": 1,
+   "needs_review_rules": [
+    "color-contrast"
+   ]
   },
   {
    "screen": "task list",
    "theme": "light",
    "violations": [],
    "rules_passed": 34,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "task intro (A2)",
    "theme": "light",
    "violations": [],
    "rules_passed": 33,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "results (empty)",
    "theme": "light",
    "violations": [],
    "rules_passed": 31,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "demo: try it yourself",
    "theme": "light",
    "violations": [],
    "rules_passed": 47,
-   "needs_review": 1
+   "needs_review": 1,
+   "needs_review_rules": [
+    "color-contrast"
+   ]
   },
   {
    "screen": "demo: watch a virtual user",
    "theme": "light",
    "violations": [],
    "rules_passed": 43,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "setup",
    "theme": "dark",
    "violations": [],
    "rules_passed": 41,
-   "needs_review": 1
+   "needs_review": 1,
+   "needs_review_rules": [
+    "color-contrast"
+   ]
   },
   {
    "screen": "task list",
    "theme": "dark",
    "violations": [],
    "rules_passed": 34,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "task intro (A2)",
    "theme": "dark",
    "violations": [],
    "rules_passed": 33,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "results (empty)",
    "theme": "dark",
    "violations": [],
    "rules_passed": 31,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "demo: try it yourself",
    "theme": "dark",
    "violations": [],
    "rules_passed": 47,
-   "needs_review": 1
+   "needs_review": 1,
+   "needs_review_rules": [
+    "color-contrast"
+   ]
   },
   {
    "screen": "demo: watch a virtual user",
    "theme": "dark",
    "violations": [],
    "rules_passed": 43,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "setup",
    "theme": "contrast",
    "violations": [],
    "rules_passed": 41,
-   "needs_review": 1
+   "needs_review": 1,
+   "needs_review_rules": [
+    "color-contrast"
+   ]
   },
   {
    "screen": "task list",
    "theme": "contrast",
    "violations": [],
    "rules_passed": 34,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "task intro (A2)",
    "theme": "contrast",
    "violations": [],
    "rules_passed": 33,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "results (empty)",
    "theme": "contrast",
    "violations": [],
    "rules_passed": 31,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "demo: try it yourself",
    "theme": "contrast",
    "violations": [],
    "rules_passed": 47,
-   "needs_review": 1
+   "needs_review": 1,
+   "needs_review_rules": [
+    "color-contrast"
+   ]
   },
   {
    "screen": "demo: watch a virtual user",
    "theme": "contrast",
    "violations": [],
    "rules_passed": 43,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running A1",
    "theme": "light",
    "violations": [],
    "rules_passed": 37,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running A2",
    "theme": "light",
    "violations": [],
    "rules_passed": 38,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running A3",
    "theme": "light",
    "violations": [],
    "rules_passed": 38,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running A4",
    "theme": "light",
    "violations": [],
    "rules_passed": 37,
-   "needs_review": 1
+   "needs_review": 1,
+   "needs_review_rules": [
+    "color-contrast"
+   ]
   },
   {
    "screen": "running B1",
    "theme": "light",
    "violations": [],
    "rules_passed": 38,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running B2",
    "theme": "light",
    "violations": [],
    "rules_passed": 37,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running C1",
    "theme": "light",
    "violations": [],
    "rules_passed": 38,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running D1",
    "theme": "light",
    "violations": [],
    "rules_passed": 38,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running E1",
    "theme": "light",
    "violations": [],
    "rules_passed": 38,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running E2",
    "theme": "light",
    "violations": [],
    "rules_passed": 37,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running F1",
    "theme": "light",
    "violations": [],
    "rules_passed": 37,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running F2",
    "theme": "light",
    "violations": [],
    "rules_passed": 37,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running F3",
    "theme": "light",
    "violations": [],
    "rules_passed": 37,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running F4",
    "theme": "light",
    "violations": [],
    "rules_passed": 37,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running F5",
    "theme": "light",
    "violations": [],
    "rules_passed": 37,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running F6",
    "theme": "light",
    "violations": [],
    "rules_passed": 37,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running F7",
    "theme": "light",
    "violations": [],
    "rules_passed": 37,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running A1",
    "theme": "contrast",
    "violations": [],
    "rules_passed": 37,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running A2",
    "theme": "contrast",
    "violations": [],
    "rules_passed": 38,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running A3",
    "theme": "contrast",
    "violations": [],
    "rules_passed": 38,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running A4",
    "theme": "contrast",
    "violations": [],
    "rules_passed": 37,
-   "needs_review": 1
+   "needs_review": 1,
+   "needs_review_rules": [
+    "color-contrast"
+   ]
   },
   {
    "screen": "running B1",
    "theme": "contrast",
    "violations": [],
    "rules_passed": 38,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running B2",
    "theme": "contrast",
    "violations": [],
    "rules_passed": 37,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running C1",
    "theme": "contrast",
    "violations": [],
    "rules_passed": 38,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running D1",
    "theme": "contrast",
    "violations": [],
    "rules_passed": 38,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running E1",
    "theme": "contrast",
    "violations": [],
    "rules_passed": 38,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running E2",
    "theme": "contrast",
    "violations": [],
    "rules_passed": 37,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running F1",
    "theme": "contrast",
    "violations": [],
    "rules_passed": 37,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running F2",
    "theme": "contrast",
    "violations": [],
    "rules_passed": 37,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running F3",
    "theme": "contrast",
    "violations": [],
    "rules_passed": 37,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running F4",
    "theme": "contrast",
    "violations": [],
    "rules_passed": 37,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running F5",
    "theme": "contrast",
    "violations": [],
    "rules_passed": 37,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running F6",
    "theme": "contrast",
    "violations": [],
    "rules_passed": 37,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running F7",
    "theme": "contrast",
    "violations": [],
    "rules_passed": 37,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "running A5 (time pressure on)",
    "theme": "light",
    "violations": [],
    "rules_passed": 37,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "pause overlay",
    "theme": "light",
    "violations": [],
    "rules_passed": 38,
-   "needs_review": 1
+   "needs_review": 1,
+   "needs_review_rules": [
+    "color-contrast"
+   ]
   },
   {
    "screen": "assistance dialog",
    "theme": "light",
    "violations": [],
    "rules_passed": 17,
-   "needs_review": 1
+   "needs_review": 1,
+   "needs_review_rules": [
+    "color-contrast"
+   ]
   },
   {
    "screen": "stop confirmation",
    "theme": "light",
    "violations": [],
    "rules_passed": 37,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "results (with a run)",
    "theme": "light",
    "violations": [],
    "rules_passed": 42,
-   "needs_review": 0
+   "needs_review": 0,
+   "needs_review_rules": []
   },
   {
    "screen": "setup with switch-scanning highlight",
    "theme": "dark",
    "violations": [],
    "rules_passed": 41,
-   "needs_review": 1
+   "needs_review": 1,
+   "needs_review_rules": [
+    "color-contrast"
+   ]
   }
  ],
  "caveat": "Automated rules find roughly a third to a half of WCAG issues. Zero automated violations does not mean the app is accessible; the manual protocol in docs/accessibility/ACCESSIBILITY.md (screen readers, switch hardware, eye trackers) has NOT been carried out."

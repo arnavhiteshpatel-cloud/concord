@@ -1,0 +1,9 @@
+mod,iso_tp_bps,iso_error_rate,iso_timeout_rate,iso_success_rate,iso_mt_ms,iso_mt_completed_ms,iso_tp_all_bps,iso_path_efficiency,iso_reentries,iso_overshoot_px,iso_movement_variability_px,iso_endpoint_error_px,iso_dial_in_ms,iso_submovements,iso_onset_ms,grid_accuracy,grid_time_ms,grid_bitrate_bps,false_activations_per_min,type_wpm,type_ccpm,type_total_error_rate,type_uncorrected_error_rate,type_kspc,type_correction_burden,type_aborted_frac,adl_completion_rate,adl_time_s,adl_wrong_selections,track_rms_px,track_time_on_target,track_lag_ms
+mouse_sim,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.0,0.0,0.0
+head_pointer_sim,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.0,0.0,0.0
+eye_gaze_sim,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.0,0.0,0.0
+bci_cursor_good_sim,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0
+bci_cursor_moderate_sim,0.6666666666666666,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0
+bci_cursor_poor_sim,0.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.6833333333333333,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.7333333333333333,1.0,1.0,1.0,1.0
+switch_scan_sim,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0,1.0,0.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.0,0.0,0.0
+switch_scan_fast_sim,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0,1.0,0.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.8666666666666667,1.0,0.0,0.0,0.0

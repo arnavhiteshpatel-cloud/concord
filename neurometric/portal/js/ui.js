@@ -210,12 +210,14 @@ export function dialog({ title, body, fields = [], confirm = 'Confirm', danger =
 /** Wrap a button's async action: disables it, announces outcome in the live region. */
 export function busy(button, fn, { doing = 'Working…' } = {}) {
   return async (...args) => {
+    // aria-disabled (not disabled) so keyboard focus stays on the button while it works
+    if (button.getAttribute('aria-disabled') === 'true') return undefined;
     const label = button.textContent;
-    button.disabled = true;
+    button.setAttribute('aria-disabled', 'true');
     button.setAttribute('aria-busy', 'true');
     button.textContent = doing;
     try { return await fn(...args); } finally {
-      button.disabled = false;
+      button.removeAttribute('aria-disabled');
       button.removeAttribute('aria-busy');
       button.textContent = label;
     }
