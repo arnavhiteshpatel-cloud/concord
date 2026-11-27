@@ -216,6 +216,8 @@ legend { font-weight: 600; padding: 0 4px; }
 table { border-collapse: collapse; width: 100%; font-size: .93rem; font-variant-numeric: tabular-nums; }
 caption { text-align: left; font-weight: 600; padding: 8px 10px; caption-side: top; }
 th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+table { overflow-wrap: normal; }
+tbody th a, td code, th code { white-space: nowrap; }
 thead th { background: var(--surface-2); font-weight: 600; white-space: nowrap; }
 tbody tr:last-child td, tbody tr:last-child th { border-bottom: none; }
 td.num, th.num { text-align: right; }
@@ -325,7 +327,8 @@ pre.json { background: var(--surface-2); padding: 12px; border-radius: 6px; over
   h1 { font-size: 1.45rem; }
   .card { padding: 14px; }
   .pv h1 { font-size: 1.6rem; }
-  .demo-banner__detail { display: block; }
+  .demo-banner { padding: 8px 12px; font-size: .95rem; }
+  .demo-banner__detail { display: none; }
   .tile__value { font-size: 1.35rem; }
 }
 

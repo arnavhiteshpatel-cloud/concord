@@ -113,7 +113,7 @@ export function table(columns, rows, { caption, empty = 'No records.', label } =
       const v = c.render ? c.render(r) : (c.num ? fmtNum(r[c.key]) : (r[c.key] ?? '—'));
       return h(i === 0 && c.rowHeader !== false ? 'th' : 'td', { scope: i === 0 && c.rowHeader !== false ? 'row' : null, class: c.num ? 'num' : null }, v);
     })))));
-  return h('div', { class: 'table-wrap', tabindex: '0', role: 'region', 'aria-label': label || caption || 'Data table' }, t);
+  return h('div', { class: 'table-wrap', tabindex: '0', role: 'region', 'aria-label': `${label || caption || 'Data'} (scrollable table)` }, t);
 }
 
 export function card(title, { id, level = 2, intro } = {}, ...children) {

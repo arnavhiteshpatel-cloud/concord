@@ -379,7 +379,7 @@ async function main() {
       // consent scope withdrawal
       await page.getByRole('button', { name: /Stop this.*Future research/ }).click();
       await page.getByRole('button', { name: 'Stop this', exact: true }).click();
-      await page.waitForFunction(() => { const c = document.querySelector('#sec-consent'); return c && /Future research — • No/.test(c.innerText.replace(/\s+/g, ' ')); });
+      await page.waitForFunction(() => { const c = document.querySelector('#sec-consent'); return c && /Future research — •? ?No/.test(c.innerText.replace(/\s+/g, ' ')); });
       check(role, 'withdrawing one consent scope works', true);
       // keyboard-only questionnaire (NM-SESSION): Tab into each radio group, Space selects
       await page.getByRole('button', { name: /Fill in NeuroMetric post-session check/ }).focus();

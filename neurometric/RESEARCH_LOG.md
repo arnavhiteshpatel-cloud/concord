@@ -14,3 +14,8 @@ Dated log of what was investigated, how, and what changed as a result. (All 2026
 | 07:01 | Real-data check on NLB MC_RTT (DANDI:000129, CC-BY) | 541 reaches; pipeline runs on real behaviour as canonical events (X1) |
 | 07:03 | Full simulation study launched (sweeps B, B2–B4, C, C2, D, E, F, F2; I, K, L, M, N, H, P, G) | see EXPERIMENT_REGISTRY.md |
 | 07:06 | B_noise finished: most ISO movement metrics monotone; ADL completion 91% ceiling; onset and tracking lag insensitive to noise | Supports using kinematic + bitrate metrics as degradation-sensitive scores, and process metrics (completion) as functional, ceiling-prone outcomes |
+| 07:20–07:30 | Independent adversarial review of the science core: 5 critical, 8 important, 11 minor findings | All critical and most important/minor fixed (docs/review/RESPONSE_TO_SCIENCE_CORE_REVIEW.md); partial results discarded; full study relaunched |
+| 07:25 | Psychometrics verification found the McGraw–Wong ICC(A,1) CI under-covers (78–93%) when sessions differ | Generalized CI adopted; ≥3 (planned 4) retest sessions in the validation plan |
+| 07:35–07:53 | Full simulation study (18 experiments) on corrected code | Primary-score recommendation: CCPM, grid achieved bitrate, movement time (censored), ADL time; Fitts throughput secondary for BCI-like users |
+| 07:55 | Grants/validation-plan reliability rule conflict detected | Harmonized: GCI lower bound ≥ 0.75, k = 4 |
+| 08:00 | Final report (45 pp), workbook, registry regenerated from result files | FOUNDER_HANDOFF.md |

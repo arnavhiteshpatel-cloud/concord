@@ -19,7 +19,7 @@ clinical outcome assessment (yet), or a regulatory submission.
 | 5 | Task scoring | `metrics/` + analytic fixtures | done |
 | 6 | Decoder simulator | `simulator/decoder.py`, engine, scanning | done |
 | 7 | Virtual participants | `users/models.py`, populations | done |
-| 8 | Large-scale experiments | `experiments/registry.py` (B–N, P, G, H, I, K, L, M), X1 real data | running/done (see EXPERIMENT_REGISTRY.md) |
+| 8 | Large-scale experiments | `experiments/registry.py` (B–N, P, G, H, I, K, L, M), X1 real data | done; regenerated after independent review (see EXPERIMENT_REGISTRY.md) |
 | 9 | Psychometrics | `psychometrics/` + verification (Exp R) | done |
 | 10 | Accessibility | web app, axe tests, docs/accessibility | done (automated only) |
 | 11 | Privacy-preserving telemetry | `study/` telemetry with allowlist, consent gating | done (app-scoped) |

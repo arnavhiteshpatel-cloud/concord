@@ -1,0 +1,972 @@
+{
+  "generated_at": "2026-11-27T08:01:03.204Z",
+  "tool": "tests/portal/e2e.mjs (Playwright Chromium headless + axe-core)",
+  "axe_version": "4.10.2",
+  "axe_tags": [
+    "wcag2a",
+    "wcag2aa",
+    "wcag21a",
+    "wcag21aa",
+    "wcag22aa",
+    "best-practice"
+  ],
+  "data": "SYNTHETIC demo study (seed-demo); no patient data",
+  "summary": {
+    "pages_scanned": 17,
+    "serious_critical_total": 0,
+    "moderate_total": 0,
+    "minor_total": 0,
+    "checks_total": 115,
+    "checks_passed": 115,
+    "checks_failed": 0
+  },
+  "pages": [
+    {
+      "role": "sponsor_analyst",
+      "page": "dashboard",
+      "url": "/portal/#/dashboard",
+      "viewport": "1280x900",
+      "color_scheme": "light",
+      "violations": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "horizontal_overflow_px": 0,
+      "details": []
+    },
+    {
+      "role": "sponsor_analyst",
+      "page": "queries",
+      "url": "/portal/#/queries",
+      "viewport": "1280x900",
+      "color_scheme": "light",
+      "violations": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "horizontal_overflow_px": 0,
+      "details": []
+    },
+    {
+      "role": "sponsor_analyst",
+      "page": "exports",
+      "url": "/portal/#/exports",
+      "viewport": "1280x900",
+      "color_scheme": "light",
+      "violations": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "horizontal_overflow_px": 0,
+      "details": []
+    },
+    {
+      "role": "sponsor_analyst",
+      "page": "dashboard",
+      "url": "/portal/#/dashboard",
+      "viewport": "1280x900",
+      "color_scheme": "dark",
+      "violations": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "horizontal_overflow_px": 0,
+      "details": []
+    },
+    {
+      "role": "coordinator",
+      "page": "participants",
+      "url": "/portal/#/participants",
+      "viewport": "1280x900",
+      "color_scheme": "light",
+      "violations": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "horizontal_overflow_px": 0,
+      "details": []
+    },
+    {
+      "role": "coordinator",
+      "page": "visits",
+      "url": "/portal/#/visits",
+      "viewport": "1280x900",
+      "color_scheme": "light",
+      "violations": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "horizontal_overflow_px": 0,
+      "details": []
+    },
+    {
+      "role": "coordinator",
+      "page": "participant detail",
+      "url": "/portal/#/participants/NM-PHRN94HEAV",
+      "viewport": "1280x900",
+      "color_scheme": "light",
+      "violations": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "horizontal_overflow_px": 0,
+      "details": []
+    },
+    {
+      "role": "coordinator",
+      "page": "queries",
+      "url": "/portal/#/queries",
+      "viewport": "1280x900",
+      "color_scheme": "light",
+      "violations": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "horizontal_overflow_px": 0,
+      "details": []
+    },
+    {
+      "role": "investigator",
+      "page": "review",
+      "url": "/portal/#/review",
+      "viewport": "1280x900",
+      "color_scheme": "light",
+      "violations": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "horizontal_overflow_px": 0,
+      "details": []
+    },
+    {
+      "role": "investigator",
+      "page": "system",
+      "url": "/portal/#/system",
+      "viewport": "1280x900",
+      "color_scheme": "light",
+      "violations": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "horizontal_overflow_px": 0,
+      "details": []
+    },
+    {
+      "role": "admin",
+      "page": "users",
+      "url": "/portal/#/users",
+      "viewport": "1280x900",
+      "color_scheme": "light",
+      "violations": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "horizontal_overflow_px": 0,
+      "details": []
+    },
+    {
+      "role": "admin",
+      "page": "audit",
+      "url": "/portal/#/audit",
+      "viewport": "1280x900",
+      "color_scheme": "light",
+      "violations": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "horizontal_overflow_px": 0,
+      "details": []
+    },
+    {
+      "role": "admin",
+      "page": "system",
+      "url": "/portal/#/system",
+      "viewport": "1280x900",
+      "color_scheme": "light",
+      "violations": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "horizontal_overflow_px": 0,
+      "details": []
+    },
+    {
+      "role": "participant",
+      "page": "my study",
+      "url": "/portal/#/me",
+      "viewport": "390x900",
+      "color_scheme": "light",
+      "violations": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "horizontal_overflow_px": 0,
+      "details": []
+    },
+    {
+      "role": "participant",
+      "page": "questionnaire form",
+      "url": "/portal/#/me",
+      "viewport": "390x900",
+      "color_scheme": "light",
+      "violations": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "horizontal_overflow_px": 0,
+      "details": []
+    },
+    {
+      "role": "participant",
+      "page": "my study",
+      "url": "/portal/#/me",
+      "viewport": "390x900",
+      "color_scheme": "dark",
+      "violations": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "horizontal_overflow_px": 0,
+      "details": []
+    },
+    {
+      "role": "care_partner",
+      "page": "my study",
+      "url": "/portal/#/me",
+      "viewport": "390x900",
+      "color_scheme": "light",
+      "violations": {
+        "critical": 0,
+        "serious": 0,
+        "moderate": 0,
+        "minor": 0
+      },
+      "horizontal_overflow_px": 0,
+      "details": []
+    }
+  ],
+  "checks": [
+    {
+      "role": "setup",
+      "check": "care-partner account created via admin API",
+      "pass": true,
+      "detail": "201"
+    },
+    {
+      "role": "setup",
+      "check": "re-identification key stored (synthetic)",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "role": "setup",
+      "check": "/portal/ served with CSP + COOP/CORP",
+      "pass": true,
+      "detail": "coep=require-corp"
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "DEMO banner visible",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "lands on Study dashboard",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "nav shows dashboard, queries, reports & exports only",
+      "pass": true,
+      "detail": "Study dashboard|Data queries|Reports & exports"
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "dashboard renders >= 8 SVG charts",
+      "pass": true,
+      "detail": "10"
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "section \"Study overview\" present",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "section \"Assessment completeness by visit\" present",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "section \"Functional performance over visits\" present",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "section \"Device-modality comparison\" present",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "section \"Task-level analysis\" present",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "section \"Home-use summary\" present",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "section \"Care-partner burden and patient-reported scores\" present",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "section \"Missing-data analysis\" present",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "section \"Protocol deviations\" present",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "section \"Data quality\" present",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "site list shows DEMO-01",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "completeness table lists visits",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "hover shows chart tooltip",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "keyboard focus + arrows show tooltip",
+      "pass": true,
+      "detail": "Study day 28 · Week 4Clinic visits: 2.76 (95% CI 0.809 to 4.7), n = 6"
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "\"Show as table\" reveals the data table",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "trend table includes 95% CI",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "no participant identifiers on the sponsor dashboard",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "axe: no serious/critical violations on dashboard (light, 1280px)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "no horizontal scroll at 360px: dashboard",
+      "pass": true,
+      "detail": "overflow 0px"
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "backend returns 403 for participant list",
+      "pass": true,
+      "detail": "403"
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "forbidden view \"Participants\" shows not-available message",
+      "pass": true,
+      "detail": "Not available for your role"
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "forbidden view \"Audit trail\" shows not-available message",
+      "pass": true,
+      "detail": "Not available for your role"
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "queries table hides participant column for sponsor",
+      "pass": true,
+      "detail": "Question|Record|Status|Raised|Answer|Actions"
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "axe: no serious/critical violations on queries (light, 1280px)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "only the sponsor package is offered",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "export manifest lists files with SHA-256",
+      "pass": true,
+      "detail": "14 files"
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "every file hash re-verified in browser",
+      "pass": true,
+      "detail": "14/14"
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "zip SHA-256 shown",
+      "pass": true,
+      "detail": "ac9bf74c08b20960451ae078d4c7f91e123ddc9c1c415d3e54a6576091f9a955"
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "report CLI command shown",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "axe: no serious/critical violations on exports (light, 1280px)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "no horizontal scroll at 360px: exports",
+      "pass": true,
+      "detail": "overflow 0px"
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "axe: no serious/critical violations on dashboard (dark, 1280px)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "sponsor_analyst",
+      "check": "no page errors",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "coordinator",
+      "check": "DEMO banner visible",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "coordinator",
+      "check": "nav: participants, visits, queries (no dashboard/exports/admin)",
+      "pass": true,
+      "detail": "Participants|Visits due|Data queries"
+    },
+    {
+      "role": "coordinator",
+      "check": "participant completeness lists pseudonymous IDs",
+      "pass": true,
+      "detail": "NM-PHRN94HEAV,NM-QYS2TZJ8B5,NM-EJA7E5MKVP,NM-VGNWM5SVS3,NM-Y8AB7YFX6N,NM-WGJM7ZE58G,NM-3WJ9D57TZ5,NM-9JBQRN7Q8H"
+    },
+    {
+      "role": "coordinator",
+      "check": "enrollment state tiles shown",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "coordinator",
+      "check": "axe: no serious/critical violations on participants (light, 1280px)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "coordinator",
+      "check": "no horizontal scroll at 360px: participants",
+      "pass": true,
+      "detail": "overflow 0px"
+    },
+    {
+      "role": "coordinator",
+      "check": "visits due view renders",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "coordinator",
+      "check": "axe: no serious/critical violations on visits (light, 1280px)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "coordinator",
+      "check": "participant detail shows sessions",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "coordinator",
+      "check": "re-identification hidden by default",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "coordinator",
+      "check": "explicit reveal flow shows identifier",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "coordinator",
+      "check": "identifier hidden again",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "coordinator",
+      "check": "axe: no serious/critical violations on participant detail (light, 1280px)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "coordinator",
+      "check": "queries list shown",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "coordinator",
+      "check": "deviations list shown",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "coordinator",
+      "check": "axe: no serious/critical violations on queries (light, 1280px)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "coordinator",
+      "check": "forbidden view \"Study dashboard\" shows not-available message",
+      "pass": true,
+      "detail": "Not available for your role"
+    },
+    {
+      "role": "coordinator",
+      "check": "forbidden view \"Users\" shows not-available message",
+      "pass": true,
+      "detail": "Not available for your role"
+    },
+    {
+      "role": "coordinator",
+      "check": "no page errors",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "investigator",
+      "check": "DEMO banner visible",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "investigator",
+      "check": "nav: dashboard + coordinator views + review, exports, audit, integrity",
+      "pass": true,
+      "detail": "Study dashboard|Participants|Visits due|Data queries|Review & sign-off|Reports & exports|Audit trail|System integrity"
+    },
+    {
+      "role": "investigator",
+      "check": "dashboard renders (investigator audience)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "investigator",
+      "check": "wrong password: nothing signed, still signed in",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "investigator",
+      "check": "casebook signed with re-authentication",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "investigator",
+      "check": "signature verifies",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "investigator",
+      "check": "axe: no serious/critical violations on review (light, 1280px)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "investigator",
+      "check": "sponsor and full packages offered",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "investigator",
+      "check": "integrity check passes",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "investigator",
+      "check": "backup controls hidden (no backup.run)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "investigator",
+      "check": "axe: no serious/critical violations on system (light, 1280px)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "investigator",
+      "check": "forbidden view \"Users\" shows not-available message",
+      "pass": true,
+      "detail": "Not available for your role"
+    },
+    {
+      "role": "investigator",
+      "check": "no page errors",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "admin",
+      "check": "DEMO banner visible",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "admin",
+      "check": "nav: users, audit, integrity only",
+      "pass": true,
+      "detail": "Users|Audit trail|System integrity"
+    },
+    {
+      "role": "admin",
+      "check": "users table lists accounts",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "admin",
+      "check": "axe: no serious/critical violations on users (light, 1280px)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "admin",
+      "check": "audit chain verification result shown",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "admin",
+      "check": "audit entries listed (values withheld)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "admin",
+      "check": "audit view shows no re-identification value",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "admin",
+      "check": "axe: no serious/critical violations on audit (light, 1280px)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "admin",
+      "check": "no horizontal scroll at 360px: audit",
+      "pass": true,
+      "detail": "overflow 0px"
+    },
+    {
+      "role": "admin",
+      "check": "integrity check passes",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "admin",
+      "check": "backup + verify succeed",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "admin",
+      "check": "axe: no serious/critical violations on system (light, 1280px)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "admin",
+      "check": "forbidden view \"Study dashboard\" shows not-available message",
+      "pass": true,
+      "detail": "Not available for your role"
+    },
+    {
+      "role": "admin",
+      "check": "forbidden view \"Participant\" shows not-available message",
+      "pass": true,
+      "detail": "Not available for your role"
+    },
+    {
+      "role": "admin",
+      "check": "forbidden view \"My study\" shows not-available message",
+      "pass": true,
+      "detail": "Not available for your role"
+    },
+    {
+      "role": "admin",
+      "check": "no page errors",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "participant",
+      "check": "DEMO banner visible",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "participant",
+      "check": "lands on My study",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "participant",
+      "check": "no staff navigation shown",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "participant",
+      "check": "axe: no serious/critical violations on my study (light, 390px)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "participant",
+      "check": "all interactive targets >= 44x44px",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "role": "participant",
+      "check": "telemetry pause works",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "participant",
+      "check": "telemetry resume works",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "participant",
+      "check": "\"review what was sent\" shows stored payload",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "participant",
+      "check": "withdrawing one consent scope works",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "participant",
+      "check": "questionnaire items rendered from instrument",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "participant",
+      "check": "axe: no serious/critical violations on questionnaire form (light, 390px)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "participant",
+      "check": "Tab order reaches the send button",
+      "pass": true,
+      "detail": "Send my answers"
+    },
+    {
+      "role": "participant",
+      "check": "questionnaire submitted with keyboard only",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "participant",
+      "check": "response stored by the backend",
+      "pass": true,
+      "detail": "1"
+    },
+    {
+      "role": "participant",
+      "check": "no horizontal scroll at 360px: my study",
+      "pass": true,
+      "detail": "overflow 0px"
+    },
+    {
+      "role": "participant",
+      "check": "forbidden view \"Study dashboard\" shows not-available message",
+      "pass": true,
+      "detail": "Not available for your role"
+    },
+    {
+      "role": "participant",
+      "check": "axe: no serious/critical violations on my study (dark, 390px)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "participant",
+      "check": "no page errors",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "care_partner",
+      "check": "DEMO banner visible",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "care_partner",
+      "check": "care-partner page renders",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "care_partner",
+      "check": "care-partner questionnaire (NM-CPB) offered",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "care_partner",
+      "check": "no consent withdrawal controls for care partner",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "care_partner",
+      "check": "telemetry review visible",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "care_partner",
+      "check": "axe: no serious/critical violations on my study (light, 390px)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "role": "care_partner",
+      "check": "no horizontal scroll at 360px: my study",
+      "pass": true,
+      "detail": "overflow 0px"
+    },
+    {
+      "role": "care_partner",
+      "check": "forbidden view \"Reports & exports\" shows not-available message",
+      "pass": true,
+      "detail": "Not available for your role"
+    },
+    {
+      "role": "care_partner",
+      "check": "no page errors",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}
