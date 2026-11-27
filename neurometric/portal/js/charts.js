@@ -141,7 +141,7 @@ export function lineChart(opts) {
   const draw = (W, { tip, plot, sr }) => {
     const narrow = W < 520;
     const multi = series.length > 1;
-    const m = { l: 48, r: multi && !narrow ? 128 : 18, t: 14, b: 46 };
+    const m = { l: 48, r: multi && !narrow ? 132 : 18, t: 14, b: 46 };
     const iw = Math.max(40, W - m.l - m.r);
     const ih = H - m.t - m.b;
     const vals = series.flatMap((sr) => sr.points.flatMap((p) => (p.suppressed || p.y === null ? [] : [p.y, p.lo, p.hi])))
@@ -195,7 +195,7 @@ export function lineChart(opts) {
         const d = `M${withCi.map((p) => `${X(p.x)},${Y(p.hi)}`).join('L')}L${withCi.slice().reverse().map((p) => `${X(p.x)},${Y(p.lo)}`).join('L')}Z`;
         svg.appendChild(s('path', { class: `band ${cls[i]}`, d, 'aria-hidden': 'true' }));
       }
-      for (const p of withCi) { // whiskers keep single-point CIs visible
+      if (withCi.length === 1) for (const p of withCi) { // a lone CI has no band: draw a whisker
         svg.appendChild(s('line', { class: `line ${cls[i]}`, x1: X(p.x), x2: X(p.x), y1: Y(p.lo), y2: Y(p.hi), 'stroke-width': 1, opacity: 0.5 }));
       }
       if (pts.length >= 2) {
@@ -208,12 +208,19 @@ export function lineChart(opts) {
       }
       if (pts.length) ends.push({ name: sr.name, x: X(pts[pts.length - 1].x), y: Y(pts[pts.length - 1].y) });
     });
-    // direct end labels (only when there is room and they do not collide; legend always present)
+    // direct end labels in the right gutter (legend always present). Labels that would collide
+    // are spaced apart and tied to their line end with a thin leader line, never left floating.
     if (multi && !narrow) {
-      const ys = ends.map((e) => e.y).sort((a, b) => a - b);
-      const collide = ys.some((y, i) => i > 0 && y - ys[i - 1] < 15);
-      if (!collide) {
-        for (const e of ends) svg.appendChild(s('text', { class: 'label', x: e.x + 10, y: e.y + 4 }, e.name.length > 18 ? `${e.name.slice(0, 17)}…` : e.name));
+      const gx = m.l + iw + 14;
+      const placed = ends.map((e) => ({ ...e, ly: e.y })).sort((a, b) => a.y - b.y);
+      for (let i = 1; i < placed.length; i++) placed[i].ly = Math.max(placed[i].ly, placed[i - 1].ly + 16);
+      const overflow = placed.length ? placed[placed.length - 1].ly - (m.t + ih) : 0;
+      if (overflow > 0) for (const p of placed) p.ly -= overflow;
+      for (const e of placed) {
+        if (Math.abs(e.ly - e.y) > 1 || gx - e.x > 16) {
+          svg.appendChild(s('path', { class: 'crosshair', d: `M${e.x + 7},${e.y}L${gx - 10},${e.y}L${gx - 4},${e.ly}`, fill: 'none', 'aria-hidden': 'true' }));
+        }
+        svg.appendChild(s('text', { class: 'label', x: gx, y: e.ly + 4 }, e.name.length > 16 ? `${e.name.slice(0, 15)}…` : e.name));
       }
     }
 
