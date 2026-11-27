@@ -135,7 +135,7 @@ Status key:
 
 | Check | Result | File |
 |---|---|---|
-| axe-core 4.10.3, tags wcag2a/2aa/21a/21aa/22aa/best-practice. 58 scans: 5 static screens × 3 themes; the watch-demo × 3 themes; all 17 tasks running × 2 themes; A5 with time pressure on; pause overlay, assistance dialog, stop confirmation, results with data, setup with an active scan highlight. | **0 violations** (0 critical, 0 serious, 0 moderate, 0 minor). Some rules returned "needs review" (axe cannot decide colour contrast over transformed or overlapping content); these need manual review. | `experiments/results/Q_accessibility/axe_summary.json`, `axe_violations.csv` |
+| axe-core 4.10.3, tags wcag2a/2aa/21a/21aa/22aa/best-practice. 58 scans: 5 static screens × 3 themes; the watch-demo × 3 themes; all 17 tasks running × 2 themes; A5 with time pressure on; pause overlay, assistance dialog, stop confirmation, results with data, setup with an active scan highlight. | **0 violations** (0 critical, 0 serious, 0 moderate, 0 minor). The only "needs review" rule was `color-contrast` (on 11 scans), which axe cannot decide over the scaled task canvas or overlapping content; it needs manual review. | `experiments/results/Q_accessibility/axe_summary.json`, `axe_violations.csv` |
 | Reflow 320 px, 200 % text, WCAG text spacing (7 screens each) | No horizontal page scroll (21/21) | `reflow_text_spacing.csv` |
 | E2E: A4 keyboard-only with two-switch step scanning | Completed; Python scorer success 1.0 | `e2e_tasks_summary.json` |
 | E2E: Setup → task list with **one switch** (auto-scan, 150 ms) | Completed | `e2e_tasks_summary.json` |

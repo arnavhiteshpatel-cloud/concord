@@ -181,10 +181,20 @@ test("Experiment A: input adapter timing and consistency (2000 CDP moves + 1000 
   writeCsv(
     path.join(dir, "browser_events.csv"),
     ["stream_id", "seq", "t_ms", "interval_ms", "x_task", "y_task", "injected_index"],
-    merged.map((e: any, k: number) => {
-      const prev = merged.slice(0, k).reverse().find((p: any) => p.stream_id === e.stream_id);
-      return [e.stream_id, e.seq, e.t_ms.toFixed(4), prev ? (e.t_ms - prev.t_ms).toFixed(4) : "", e.x.toFixed(2), e.y.toFixed(2), e.stream_id === "in:pointer:mouse" ? idxMouse(e) : ""];
-    }),
+    // all CDP mouse events + the first 4000 synthetic pen events (keeps the file small; the
+    // summary JSON covers every event)
+    (() => {
+      const lastT = new Map<string, number>();
+      const rows: (string | number)[][] = [];
+      let penRows = 0;
+      for (const e of merged) {
+        const prev = lastT.get(e.stream_id);
+        lastT.set(e.stream_id, e.t_ms);
+        if (e.stream_id === "in:pointer:pen" && penRows++ >= 4000) continue;
+        rows.push([e.stream_id, e.seq, e.t_ms.toFixed(4), prev !== undefined ? (e.t_ms - prev).toFixed(4) : "", e.x.toFixed(2), e.y.toFixed(2), e.stream_id === "in:pointer:mouse" ? idxMouse(e) : ""]);
+      }
+      return rows;
+    })(),
   );
   writeCsv(path.join(dir, "browser_cdp_send_times.csv"), ["index", "node_send_ms"], sendT.map((t, i) => [i, t.toFixed(4)]));
   // assertions: integrity (timing magnitudes are reported, not asserted)

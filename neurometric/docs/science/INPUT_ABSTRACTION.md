@@ -42,7 +42,7 @@ event as it is created. `tests/web` re-validates every exported event with
 * **Timestamps.** DOM input events are stamped from `Event.timeStamp`, not from the handler time.
   Coalesced pointer samples use their own `timeStamp`. Gamepad and simulated samples use the poll
   or scheduled time. Why: in headless Chromium the handler for a CDP-injected mouse move ran a
-  median of 15.6 ms after the event's `timeStamp`, because continuous input is aligned to animation
+  median of 15.2 ms after the event's `timeStamp`, because continuous input is aligned to animation
   frames. Handler-time stamping would add up to one frame of bias (Experiment S,
   `experiments/results/S_event_latency/browser_summary.json`). [INF from measurement]
 * **Resolution.** The app is served with `Cross-Origin-Opener-Policy: same-origin` and
@@ -55,7 +55,7 @@ event as it is created. `tests/web` re-validates every exported event with
 * **Per-stream monotonic clamp.** If a sample's time is earlier than the previous sample of the same
   stream, it is set to the previous time, and `meta.t_clamped_ms` records the correction. The
   problem therefore stays visible in the data and is never hidden. In Experiment A, no clamps
-  occurred across 35,443 events.
+  occurred across 35,377 events (latest run).
 * **Stream naming.** Input streams are `in:<source>`: `in:pointer:mouse|pen|touch`, `in:keyboard`,
   `in:switch`, `in:dwell`, `in:gamepad`, `in:text`, `in:scroll-buttons`, `in:sim:<id>`,
   `in:replay:<orig>`. The task engine's marker stream is `task`, and session control
@@ -162,7 +162,10 @@ must reproduce them:
   monotonic output.
 
 In the browser e2e runs, the provisional TypeScript scores were identical to the Python scores
-computed from the same exported events (A2 throughput 17.44 bit/s in both; E1 WPM 19.21 in both).
+computed from the same exported events (A2 throughput 17.14 bit/s, A4 achieved bitrate 74.30 bit/s
+and E1 WPM 19.16 in both; these values come from synthetic input). The TypeScript metrics for the
+Python-simulated virtual-user traces in the demo also match Python's own numbers (for example
+mouse_sim 3.74 bit/s, bci_good 0.67 bit/s and grid bitrates 6.20 / 2.16 / 0.93 / 0.67 bit/s).
 
 ## 8. Measured behaviour in headless Chromium (not physical latency)
 
@@ -172,13 +175,14 @@ injected events. They exclude HID polling, the OS input stack, the compositor an
 are not device latency.** The bench protocol is in `browser_timing.md` §5.
 
 * **Experiment A.** 2000 CDP mouse moves: 2000 recorded, 0 missing, 0 duplicated, 0 order
-  violations, 0 non-monotonic. A 1000 Hz in-page pen stream ran over the same period: 33,443
-  dispatched, 33,443 recorded, 0 dropped, seq contiguous, median interval 1.00 ms. The merged
+  violations, 0 non-monotonic. A 1000 Hz in-page pen stream ran over the same period: 33,377
+  dispatched, 33,377 recorded, 0 dropped, seq contiguous, median interval 1.00 ms (p99 4.2 ms,
+  from main-thread contention with the CDP stream). The merged
   two-stream timeline had 0 order violations, and Python `check_stream` reported 0 non-monotonic,
   0 duplicates and 0 gaps. CDP moves arrive at about 60 Hz (median 16.7 ms), because Playwright
   waits for the renderer, which aligns moves to frames.
-* **Experiment S.** From dispatch to canonical event: median 0.04 ms, p99 0.19 ms. From canonical
-  event to the next frame callback: median 8.7 ms, p95 16.0 ms, which is the expected uniform wait
+* **Experiment S.** From dispatch to canonical event: median 0.055 ms, p99 0.12 ms. From canonical
+  event to the next frame callback: median 8.5 ms, p95 16.1 ms, which is the expected uniform wait
   over a 16.7 ms frame. A 10-minute session at 60 Hz, fast-forwarded (36,000 DOM events): 0
   dropped, heap growth about 106 bytes per retained event, and about 9.5 MB of serialised JSON for
   42k events. The recorder keeps the full session log in memory by design.
@@ -194,3 +198,14 @@ are not device latency.** The bench protocol is in `browser_timing.md` §5.
 * Multi-touch is not recorded: only the primary pointer is.
 * The backend does not send COEP, so the page is not cross-origin isolated when the backend serves
   it (see §2).
+
+## 10. Commands
+
+```
+cd web && npm install && npm run build && npm test     # build to web/dist (served by the backend if present) + Vitest parity/unit tests
+cd tests/web && npm install && npx playwright test     # e2e, axe, timing experiments, backend upload (uses vite preview on :4173)
+python web/scripts/export_battery.py                   # re-export stimuli from Python (seed 0)
+python web/scripts/export_demo_traces.py               # re-export virtual-user traces for the demo
+python web/scripts/make_golden.py                      # re-generate parity golden fixtures
+```
+

@@ -1,6 +1,6 @@
 {
  "experiment": "A_input_timing (browser part)",
- "generated": "2026-11-27T07:35:41.559Z",
+ "generated": "2026-11-27T07:47:49.372Z",
  "caveat": "Headless Chromium on a shared CI-class Linux container. Events are injected via CDP (page.mouse) or dispatchEvent, so USB/Bluetooth polling, OS input processing, compositor and display latency are NOT included. These figures characterise the in-page software path (adapter -> canonical event) only and must not be reported as physical end-to-end latency; see docs/research/browser_timing.md for the bench protocol.",
  "environment": {
   "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.8010.12 Safari/537.36",
@@ -22,59 +22,59 @@
   "t_clamped_events": 0,
   "recorded_interval_ms": {
    "n": 1999,
-   "mean": 16.712686343171427,
-   "sd": 2.5361545728043278,
-   "min": 3.510000000242144,
-   "p05": 12.964499999862165,
-   "p50": 16.674999999813735,
-   "p95": 20.490000000223517,
-   "p99": 24.851999999638647,
-   "max": 41.35000000009313
+   "mean": 16.696565782891707,
+   "sd": 2.4644914267739,
+   "min": 3.5899999998509884,
+   "p05": 13.143000000435858,
+   "p50": 16.679999999701977,
+   "p95": 20.201000000163912,
+   "p99": 24.2930000000447,
+   "max": 68.52500000037253
   },
   "node_send_interval_ms": {
    "n": 1999,
-   "mean": 16.71307340270137,
-   "sd": 2.130909911295429,
-   "min": 5.192440000002534,
-   "p05": 13.36922599999948,
-   "p50": 16.668963000000076,
-   "p95": 20.01556339999879,
-   "p99": 23.989071599997985,
-   "max": 37.40613400000075
+   "mean": 16.696700674337162,
+   "sd": 2.1134826305937233,
+   "min": 4.656417000000147,
+   "p05": 13.876481200000034,
+   "p50": 16.67220499999894,
+   "p95": 19.146851699997566,
+   "p99": 22.542109340000533,
+   "max": 68.1938540000001
   },
-  "injection_duration_ms": 33409.436388
+  "injection_duration_ms": 33376.706415
  },
  "synthetic_1000hz_stream": {
-  "dispatched": 33443,
-  "recorded_pointer_move": 33443,
+  "dispatched": 33377,
+  "recorded_pointer_move": 33377,
   "dropped": 0,
   "seq_contiguous": true,
   "non_monotonic_t": 0,
   "t_clamped_events": 0,
   "recorded_interval_ms": {
-   "n": 33442,
-   "mean": 0.9999976077985744,
-   "sd": 0.6472707848322727,
+   "n": 33376,
+   "mean": 0.9999967042186181,
+   "sd": 0.6329682550895569,
    "min": 0,
-   "p05": 0.03500000014901161,
+   "p05": 0.13000000058673322,
    "p50": 1,
-   "p95": 1.0899999998509884,
-   "p99": 4.551800000048173,
-   "max": 27.544999999925494
+   "p95": 1.059999999590218,
+   "p99": 3.957500000251457,
+   "max": 57.89000000059605
   },
   "dispatch_minus_schedule_ms": {
-   "n": 33443,
-   "mean": 0.23941333002380724,
-   "sd": 0.9693346016558259,
+   "n": 33377,
+   "mean": 0.22762606040570899,
+   "sd": 1.5597237207107988,
    "min": 0,
    "p05": 0,
-   "p50": 0.004999999888241291,
-   "p95": 1.834999999962747,
-   "p99": 4.764999999664724,
-   "max": 26.544999999925494
+   "p50": 0.005000000819563866,
+   "p95": 1.125,
+   "p99": 4.540000000037253,
+   "max": 56.89000000059605
   },
   "recorded_t_minus_event_timestamp_ms": {
-   "n": 33443,
+   "n": 33377,
    "mean": 0,
    "sd": 0,
    "min": 0,
@@ -87,11 +87,11 @@
  },
  "note_cdp_pacing": "Playwright page.mouse.move() resolves only after the renderer has handled the move, which headless Chromium aligns to animation frames, so CDP moves arrive at ~60 Hz regardless of how fast they are sent; the 1000 Hz stream is generated in-page with dispatchEvent and runs concurrently for the whole CDP injection.",
  "two_streams_merged": {
-  "events": 35443,
+  "events": 35377,
   "merge_order_violations": 0,
-  "stream_switches_in_merged_timeline": 4000,
+  "stream_switches_in_merged_timeline": 3997,
   "python_check_stream": {
-   "n": 35444,
+   "n": 35378,
    "non_monotonic": 0,
    "duplicate_seq": 0,
    "seq_gaps": 0,

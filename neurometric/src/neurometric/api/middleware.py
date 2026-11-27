@@ -20,6 +20,9 @@ SECURITY_HEADERS = {
     b"permissions-policy": b"camera=(), microphone=(), geolocation=(), payment=(), usb=()",
     b"cross-origin-opener-policy": b"same-origin",
     b"cross-origin-resource-policy": b"same-origin",
+    # COOP + COEP make the page cross-origin isolated, restoring fine performance.now()
+    # resolution (~5 us in Chromium) for task timing (docs/research/browser_timing.md)
+    b"cross-origin-embedder-policy": b"require-corp",
     b"content-security-policy": CSP.encode(),
 }
 
