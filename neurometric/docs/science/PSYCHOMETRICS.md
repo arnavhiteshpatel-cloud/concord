@@ -414,3 +414,13 @@ intervals were adequate here, but the default is the exact non-central-t interva
 * Terwee CB et al. (2007) J Clin Epidemiol 60:34–42 [PK].
 * Weerahandi S (1993) JASA 88:899–905 (generalized confidence intervals) [PK].
 * Weir JP (2005) J Strength Cond Res 19:231–240 [PK].
+
+## Design note: number of test–retest sessions (checked 2026-11-27)
+With absolute-agreement ICC(A,1), the session (rater) variance is estimated with k−1 degrees of
+freedom. With k = 2 sessions it has 1 df, so the generalized CI — which accounts for that
+uncertainty and keeps nominal coverage when sessions differ systematically — is much wider than
+the McGraw–Wong F-based CI. Example (30 simulated subjects, true ICC ≈ 0.8, small session shift):
+k=2: F-CI lower 0.52 vs GCI lower 0.30; k=3: 0.67 vs 0.63; k=4: 0.77 vs 0.71. **Implication for
+the validation plan:** use ≥3 sessions per participant in Stage 3 when absolute agreement is the
+target, or pre-specify consistency ICC(C,1) as primary with a separate test of systematic session
+effects (practice) if only 2 sessions are feasible.
