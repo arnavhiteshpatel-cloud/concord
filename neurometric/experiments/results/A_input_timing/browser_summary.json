@@ -1,0 +1,107 @@
+{
+ "experiment": "A_input_timing (browser part)",
+ "generated": "2026-11-27T07:34:23.134Z",
+ "caveat": "Headless Chromium on a shared CI-class Linux container. Events are injected via CDP (page.mouse) or dispatchEvent, so USB/Bluetooth polling, OS input processing, compositor and display latency are NOT included. These figures characterise the in-page software path (adapter -> canonical event) only and must not be reported as physical end-to-end latency; see docs/research/browser_timing.md for the bench protocol.",
+ "environment": {
+  "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.8010.12 Safari/537.36",
+  "cross_origin_isolated": true,
+  "device_pixel_ratio": 1,
+  "hardware_concurrency": 4,
+  "timer_resolution_ms": 0.004999999888241291
+ },
+ "canvas_scale": 0.9875,
+ "cdp_mouse_stream": {
+  "injected": 2000,
+  "recorded_pointer_move": 2000,
+  "matched_unique": 2000,
+  "missing_injected": 0,
+  "duplicated_injected": 0,
+  "unmatched_recorded": 0,
+  "order_violations": 0,
+  "non_monotonic_t": 0,
+  "t_clamped_events": 0,
+  "recorded_interval_ms": {
+   "n": 1999,
+   "mean": 16.71052776388181,
+   "sd": 2.088957294134138,
+   "min": 1.654999999795109,
+   "p05": 13.706499999947846,
+   "p50": 16.665000000037253,
+   "p95": 19.58100000009872,
+   "p99": 22.353199999639763,
+   "max": 59.16000000014901
+  },
+  "node_send_interval_ms": {
+   "n": 1999,
+   "mean": 16.710803186093056,
+   "sd": 1.394335019752392,
+   "min": 7.546831999999995,
+   "p05": 16.278394299999924,
+   "p50": 16.665908999999374,
+   "p95": 17.203363499999796,
+   "p99": 21.1764058799982,
+   "max": 43.60462299999972
+  },
+  "injection_duration_ms": 33404.897842
+ },
+ "synthetic_1000hz_stream": {
+  "dispatched": 4000,
+  "recorded_pointer_move": 4000,
+  "dropped": 0,
+  "seq_contiguous": true,
+  "non_monotonic_t": 0,
+  "t_clamped_events": 0,
+  "recorded_interval_ms": {
+   "n": 3999,
+   "mean": 0.9999687421855464,
+   "sd": 0.6964382552628822,
+   "min": 0,
+   "p05": 0.01500000013038516,
+   "p50": 1,
+   "p95": 1.0200000000186265,
+   "p99": 5.530299999797716,
+   "max": 12.775000000372529
+  },
+  "dispatch_minus_schedule_ms": {
+   "n": 4000,
+   "mean": 0.26317624991352206,
+   "sd": 0.993957691833785,
+   "min": 0,
+   "p05": 0,
+   "p50": 0.004999999888241291,
+   "p95": 2.2854999996954546,
+   "p99": 5.075599999721148,
+   "max": 11.850000000093132
+  },
+  "recorded_t_minus_event_timestamp_ms": {
+   "n": 4000,
+   "mean": 0,
+   "sd": 0,
+   "min": 0,
+   "p05": 0,
+   "p50": 0,
+   "p95": 0,
+   "p99": 0,
+   "max": 0
+  }
+ },
+ "two_streams_merged": {
+  "events": 6000,
+  "merge_order_violations": 0,
+  "stream_switches_in_merged_timeline": 472,
+  "python_check_stream": {
+   "n": 6001,
+   "non_monotonic": 0,
+   "duplicate_seq": 0,
+   "seq_gaps": 0,
+   "gap_events": 0,
+   "streams": [
+    "in:pointer:mouse",
+    "in:pointer:pen",
+    "task"
+   ]
+  },
+  "python_validation_errors": 0,
+  "python_merge_order_matches": true
+ }
+}
