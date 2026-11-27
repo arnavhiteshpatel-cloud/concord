@@ -93,3 +93,14 @@ never interpreted automatically.
   stored as device metadata, not recomputed).
 * Composite "independence" or "digital function" indices are **experimental** and labelled so
   until validated (see docs/science/INDEPENDENCE_MODEL.md).
+
+## Notes added after independent review
+* TAC, MDC and ODC count sign changes of 10 ms (or device-rate) samples: they depend on noise and
+  sampling rate; compare only at equal sampling rates (as for submovements).
+* IF follows the original Soukoreff & MacKenzie (2003) definition (all erased non-editing
+  keystrokes, including correct ones). Wobbrock & Myers (2006) refine this by aligning the input
+  stream; NeuroMetric may add that refinement later [PK].
+* Throughput flags spatial outliers (movement < D/2 or |endpoint error| > 2W) but does not exclude
+  them; they inflate We.
+* `iso_tp_bps` is undefined (NaN) when no condition meets the validity rules; `iso_mt_ms` counts
+  timeouts at the time limit (censored), `iso_mt_completed_ms` only selection-terminated trials.
