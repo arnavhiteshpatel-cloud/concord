@@ -47,6 +47,8 @@ export class TaskSession {
   assistsInTrial = 0;
   completed = false;
   metadata: SessionMetadata | null = null;
+  /** Session time of the most recent stimulus_on / phrase_start marker. */
+  lastStimT = NaN;
 
   constructor(
     readonly stim: Stimuli,
@@ -69,8 +71,10 @@ export class TaskSession {
       this.assistsInTrial = 0;
       if (typeof meta.trial === "number") this.trialIndex = meta.trial;
     }
+    const ev = this.task.emit({ kind: "marker", meta: { marker, ...meta } }, t === undefined ? {} : { t });
+    if ((marker === "stimulus_on" || marker === "phrase_start") && ev) this.lastStimT = ev.t_ms;
     if (marker === "trial_end" || marker === "phrase_end") this.inTrial = false;
-    return this.task.emit({ kind: "marker", meta: { marker, ...meta } }, t === undefined ? {} : { t });
+    return ev;
   }
 
   pause(reason = "participant"): void {
@@ -87,10 +91,8 @@ export class TaskSession {
 
   assist(type: AssistType, by: string, note?: string): void {
     if (!ASSIST_TYPES.includes(type)) throw new Error("bad assist type");
-    const wasPaused = this.rec.paused;
-    this.rec.paused = false; // control events are recorded even while paused
+    // control events are recorded even while input is paused
     this.ctl.emit({ kind: "assist", meta: { assist_type: type, by, in_trial: this.inTrial, trial: this.trialIndex, ...(note ? { note } : {}) } });
-    this.rec.paused = wasPaused;
     if (this.inTrial) this.assistsInTrial++;
   }
 

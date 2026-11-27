@@ -256,13 +256,13 @@ Window: day 0 = 1 Dec 2026, day 90 = 28 Feb 2027.
 **Decision:** pass = G1 + G2 + at least four of G3-G7 → proceed to phase 1 with pilots. Partial (G2 met, G1 not) →
 continue as grant-funded research software (scenario A posture) for one more 90-day cycle. Fail (G1 and G4 both
 missing) → stop the sponsor-sales track; keep NeuroMetric as an open research tool or stop. Detailed decision rules
-E1-E9 are in `docs/commercial/CUSTOMER_DISCOVERY_PLAN.md`.
+Playbook decision rules E1–E9: `docs/research/PLAYBOOK_B_DECISION_RULES.md`; supplementary commercial rules C1–C9: `docs/commercial/CUSTOMER_DISCOVERY_PLAN.md`.
 
 ---
 
 ## 9. Open items
 
-- Founder playbook reconciliation (90-day gate wording; E1-E9 numbering).
+- Founder playbook reconciliation: done (E1–E9 transcribed; 90-day gate per playbook §14).
 - Prices for COA licences (ZBI, PIADS, QUEST), SOC 2 and insurance quotes [UNR].
 - 2026 NIH SBIR/STTR caps from the primary NIH notice; NIDILRR FY28 timing [UNR].
 - Whether MyARCEX, PoNS controller and IpsiHand logs are exportable [UNR].

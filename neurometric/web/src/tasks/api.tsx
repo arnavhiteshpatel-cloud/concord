@@ -46,6 +46,17 @@ export interface TaskHandlers {
   emptyEndsTrial?: boolean;
   /** Keyboard users steer a virtual cursor with the arrow keys (pointing tasks). */
   virtualCursor?: boolean;
+  /** Skip the current trial (recorded as trial_end outcome "abandoned"). */
+  onSkip?: () => void;
+  /** Provisional summary of the trials so far (used when the task is stopped early). */
+  summarize?: () => ProvisionalSummary;
+}
+
+/** Short-configuration limits (practice runs, automated tests): ?trials=&blocks=&n= */
+export interface Limits {
+  trials?: number;
+  blocks?: number;
+  n?: number;
 }
 
 export interface TaskApi {
@@ -68,6 +79,7 @@ export interface TaskApi {
   /** Emit stimulus_on on the frame that first shows the stimulus. */
   stimulusOnNextFrame(meta: Record<string, unknown>): void;
   timeLimit(ms: number): number;
+  limits: Limits;
 }
 
 export const ItemButton = memo(function ItemButton(props: {
