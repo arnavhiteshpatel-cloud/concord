@@ -67,7 +67,10 @@ daily living) is scored from those events alone. Assistance from care partners i
 events, not treated as failure, and home use is summarised as consented aggregate counts. In
 **computational preliminary studies** we built a closed-loop simulated-decoder harness with
 virtual users to test, before any human study, which metrics respond to which device failure
-mode and which saturate [RESULT PENDING: experiments/results/B_noise/summary.json and experiments/results/G_metric_comparison/ranking.csv — one sentence: sensitivity (Spearman ρ) of throughput, achieved bitrate and CCPM to injected noise, and the ceiling fraction of digital-ADL completion].
+mode and which saturate. In a 52,920-trial noise sweep, correct characters per minute and
+achieved bitrate fell monotonically as decoder noise rose (Spearman ρ −0.910 and −0.895), effective
+throughput was undefined in 42.4% of sessions, and a digital-ADL completion score sat at ceiling in
+89.8% of sessions (`experiments/results/B_noise/summary.json`).
 An independent code review of the simulator found five critical defects, all fixed with
 regression tests before the reported study was run (`docs/review/RESPONSE_TO_SCIENCE_CORE_REVIEW.md`).
 The scoring pipeline ran without stream errors on 541 reaches of a public macaque hand-cursor
@@ -275,7 +278,39 @@ appropriate), plus monotonicity of level means, paired effect size at the first 
 the lowest level reaching |d_z| ≥ 0.5, and floor/ceiling fractions
 (`src/neurometric/experiments/analysis.py`).
 
-[RESULT PENDING: experiments/results/B_noise/summary.json — table of Spearman ρ, monotone fraction, floor/ceiling fraction and median simulated retest ICC(A,1) for iso_tp_bps, iso_movement_variability_px, grid_bitrate_bps, type_ccpm, adl_time_s, adl_completion_rate, grid_accuracy, iso_onset_ms, track_lag_ms; figure experiments/results/B_noise/sweep.png]
+Results (60 virtual participants, 52,920 simulated trials; `experiments/results/B_noise/summary.json`,
+generated 2026-11-27T07:35Z after the review fixes), with the latency sweep (Study C,
+`experiments/results/C_latency/summary.json`, 07:37Z; total decoder output latency 0–700 ms) for
+contrast:
+
+| Metric | Noise: Spearman ρ | Noise: monotone fraction | Noise: floor / ceiling / undefined | Noise: median simulated retest ICC(A,1) | Latency: Spearman ρ |
+|---|---|---|---|---|---|
+| Effective Fitts throughput (A2; valid conditions only) | −0.809 | 1.00 | undefined in 42.4% of sessions | 0.611 | −0.885 (undefined 47.6%) |
+| Movement time (A2; timeouts counted at the limit) | −0.939 | 1.00 | — | 0.733 | −0.908 |
+| Movement variability (A2) | −0.989 | 1.00 | — | 0.750 | −0.975 |
+| Grid achieved bitrate (A4) | −0.895 | 0.83 | floor 5.2% | 0.671 | −0.961 |
+| Correct characters per minute (E1) | −0.910 | 1.00 | floor 10.7% | 0.787 | −0.967 |
+| Digital-ADL time (F2) | −0.813 | 1.00 | undefined 10.2% | 0.418 | −0.937 |
+| Digital-ADL completion (F2) | −0.487 | 1.00 | **ceiling 89.8%** | 0.160 | −0.805 (ceiling 67.4%) |
+| Grid accuracy (A4) | −0.831 | 1.00 | **ceiling 58.3%** | 0.388 | −0.877 |
+| Tracking lag (B2) | −0.043 | 0.67 | — | 0.090 | **−0.738** |
+| Selection-process onset (A2) | +0.082 | 0.50 | — | 0.696 | −0.275 |
+
+Figures: `experiments/results/B_noise/sweep.png`, `experiments/results/C_latency/sweep.png`.
+
+Interpretation (bounded by the simulation's assumptions):
+- Rate and kinematic metrics (movement variability, CCPM, achieved bitrate, movement time) track
+  both noise and latency monotonically and are candidates for **degradation-sensitive** scores.
+- Effective throughput is **undefined in a large share of degraded sessions** (42.4% under the
+  noise sweep) because the speed–accuracy assumptions behind effective width fail at high error
+  rates; it cannot be the only pointing score for impaired control. This supports reporting P1
+  only for pointing modalities with its validity flags and keeping P2/P3 as primary scores for all.
+- Digital-activity **completion saturates** (ceiling in 89.8% of noise-sweep sessions) and is
+  nearly unreliable between people (median simulated ICC 0.160); completion time is sensitive.
+  This is the computational rationale for the P4 time index (§4.3.4).
+- Tracking lag ignores noise (ρ −0.043) but responds to latency (ρ −0.738): some metrics are
+  **specific** to one failure mode, which is useful for device diagnostics rather than as a
+  general function score.
 
 Pre-specified interpretation rules: a metric is a candidate **degradation-sensitive** score if
 ρ ≤ −0.7 with all adjacent steps monotone; a metric with > 15% of sessions at a bound is
@@ -291,7 +326,7 @@ missed selections (F2); directional bias (B2); decoder update interval (B3); dec
 worst-case sensitivity, floor/ceiling and simulated retest ICC
 (`src/neurometric/experiments/registry.py`).
 
-- Latency: [RESULT PENDING: experiments/results/C_latency/summary.json — Spearman ρ of iso_tp_bps, grid_bitrate_bps, type_ccpm and track_lag_ms with latency].
+- Latency (velocity-control user): see the table in §4.2.2; with 60 ms of total latency (the first degraded level) movement time, CCPM, achieved bitrate and dial-in time already reached |d_z| ≥ 0.5 versus 0 ms (`experiments/results/C_latency/summary.json`, `min_detect_level`).
 - False activations: [RESULT PENDING: experiments/results/F_false_activation/summary.json — Spearman ρ of false_activations_per_min, grid_bitrate_bps and adl_time_s with false-selection rate].
 - Dropout, drift, missed selections, bias, update rate, gain: [RESULT PENDING: experiments/results/{D_dropout,E_drift,F2_missed_selection,B2_bias,B3_update_rate,B4_gain}/summary.json — per-metric Spearman ρ].
 - Cross-sweep ranking: [RESULT PENDING: experiments/results/G_metric_comparison/ranking.csv — top metrics by mean_sensitivity and their min_sensitivity, max_ceiling_frac, median_retest_icc]. Figure: [RESULT PENDING: experiments/results/G_metric_comparison/sensitivity_heatmap.png].
@@ -435,9 +470,8 @@ experienced AT users.
 - **Primary scores** (`CLINICAL_VALIDATION_PLAN.md` §1.1): P1 effective throughput (A2,
   pointing modalities only); P2 achieved bitrate (A4); P3 correct characters per minute (E1,
   3 phrases); P4 dADL time index, the mean log10 time over F2, F3 and F5 with assisted or
-  incomplete trials set to the task cap. P4 uses time rather than completion because completion is a
-  bounded proportion expected to saturate in capable users [INF]; Study B tests this
-  [RESULT PENDING: experiments/results/B_noise/summary.json — ceiling_frac of adl_completion_rate].
+  incomplete trials set to the task cap. P4 uses time rather than completion because completion
+  saturated in the computational studies (ceiling in 89.8% of noise-sweep sessions; §4.2.2).
 - **Primary analysis.** ICC(A,1) (two-way random, absolute agreement, single measurement) over
   S1–S3 with the **generalized 95% CI** as the inferential interval; the McGraw–Wong interval and
   ICC(C,1) are reported for comparability. SEM from variance components (de Vet et al. 2006),

@@ -47,6 +47,7 @@ export class TaskSession {
   assistsInTrial = 0;
   completed = false;
   metadata: SessionMetadata | null = null;
+  observedPointerTypes: Set<string> = new Set();
   /** Session time of the most recent stimulus_on / phrase_start marker. */
   lastStimT = NaN;
 
@@ -117,7 +118,7 @@ export class TaskSession {
         time_multiplier: s.timeMultiplier, target_min_px: s.targetMinPx, short: s.short, motion: s.motion,
         theme: s.theme, text_scale: s.textScale, declared_modality: s.modality,
       },
-      metadata: this.metadata,
+      metadata: this.metadata ? { ...this.metadata, observed_pointer_types: [...this.observedPointerTypes] } : null,
       stream_report: checkStream(events),
       provisional,
       events,

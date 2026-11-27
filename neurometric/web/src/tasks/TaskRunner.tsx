@@ -8,7 +8,7 @@ import { KeyboardAdapter } from "../input/keyboard";
 import { DwellSelector } from "../input/dwell";
 import { GamepadAdapter } from "../input/gamepad";
 import { recordScanAction, switchStream, type ScanTarget } from "../input/switch";
-import { collectSessionMetadata } from "../input/metadata";
+import { collectSessionMetadata, syncMetadata } from "../input/metadata";
 import { TASK_H, TASK_W } from "../input/space";
 import type { StreamHandle } from "../input/recorder";
 import type { Modality, AssistType } from "../input/types";
@@ -46,6 +46,7 @@ export function TaskRunner(props: { stim: Stimuli; spec: TaskSpec; settings: Set
   const [cursor, setCursor] = useState<{ x: number; y: number } | null>(null);
   const [dwell, setDwell] = useState<{ x: number; y: number; frac: number } | null>(null);
   const [scale, setScale] = useState(0.5);
+  const scaleRef = useRef(0.5);
   const [assistOpen, setAssistOpen] = useState(false);
   const [assistBy, setAssistBy] = useState("staff");
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -151,6 +152,8 @@ export function TaskRunner(props: { stim: Stimuli; spec: TaskSpec; settings: Set
     const fit = () => {
       const r = wrap.getBoundingClientRect();
       const s = Math.max(0.1, Math.min(r.width / TASK_W, r.height / TASK_H));
+      scaleRef.current = s;
+      if (session.metadata) session.metadata.canvas_scale = s;
       setScale(s);
     };
     fit();
@@ -165,8 +168,9 @@ export function TaskRunner(props: { stim: Stimuli; spec: TaskSpec; settings: Set
     (window as unknown as { __nmActive?: unknown }).__nmActive = { session, recorder: session.rec, api };
     canvasRef.current?.focus({ preventScroll: true });
     let live = true;
-    collectSessionMetadata(scale).then((m) => {
-      if (live) session.metadata = m;
+    session.metadata = syncMetadata(scaleRef.current);
+    collectSessionMetadata(scaleRef.current).then((m) => {
+      if (live) session.metadata = { ...m, canvas_scale: scaleRef.current, observed_pointer_types: session.metadata?.observed_pointer_types ?? [] };
     });
     session.marker("task_start", { task_id: stim.task_id, stimulus_hash: stim.stimulus_hash, selection: sel, declared_modality: modality });
     return () => {
@@ -181,6 +185,7 @@ export function TaskRunner(props: { stim: Stimuli; spec: TaskSpec; settings: Set
     const rec = session.rec;
     const pointerModality = settings.modality === "auto" ? "auto" : settings.modality;
     const observed = new Set<string>();
+    session.observedPointerTypes = observed;
     const dwellStream = rec.stream("in:dwell", pointerModality === "auto" ? "mouse" : pointerModality);
     streams.current.dwell = dwellStream;
     let dwellSel: DwellSelector | null = null;
@@ -342,7 +347,6 @@ export function TaskRunner(props: { stim: Stimuli; spec: TaskSpec; settings: Set
         scanBridge.onAction = null;
         scanBridge.fromTimeStamp = null;
       }
-      (window as unknown as { __nmObservedPointerTypes?: string[] }).__nmObservedPointerTypes = [...observed];
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);

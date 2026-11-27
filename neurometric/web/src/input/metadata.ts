@@ -29,6 +29,8 @@ export interface SessionMetadata {
   prefers_contrast_more: boolean;
   prefers_color_scheme_dark: boolean;
   timing: TimingEstimate;
+  /** PointerEvent.pointerType values actually seen (the declared modality is stored separately). */
+  observed_pointer_types?: string[];
 }
 
 /** Smallest non-zero difference between successive performance.now() readings. */
@@ -92,6 +94,31 @@ function mq(q: string): boolean {
   } catch {
     return false;
   }
+}
+
+/** Everything that can be read synchronously (refresh-rate fields are filled in later). */
+export function syncMetadata(canvasScale: number | null = null): SessionMetadata {
+  const nav = navigator as Navigator & { userAgentData?: { brands?: { brand: string; version: string }[]; platform?: string } };
+  return {
+    app: "neurometric-web/0.1.0",
+    schema_version: "1.0",
+    user_agent: navigator.userAgent,
+    ua_brands: nav.userAgentData?.brands?.map((b) => `${b.brand}/${b.version}`).join(", ") ?? null,
+    platform: nav.userAgentData?.platform ?? null,
+    device_pixel_ratio: window.devicePixelRatio,
+    viewport_css_px: [window.innerWidth, window.innerHeight],
+    screen_css_px: [screen.width, screen.height],
+    canvas_scale: canvasScale,
+    cross_origin_isolated: Boolean(globalThis.crossOriginIsolated),
+    time_origin_epoch_ms: performance.timeOrigin,
+    pointer_events: typeof PointerEvent !== "undefined",
+    coalesced_events: typeof PointerEvent !== "undefined" && "getCoalescedEvents" in PointerEvent.prototype,
+    gamepad_api: typeof navigator.getGamepads === "function",
+    prefers_reduced_motion: mq("(prefers-reduced-motion: reduce)"),
+    prefers_contrast_more: mq("(prefers-contrast: more)"),
+    prefers_color_scheme_dark: mq("(prefers-color-scheme: dark)"),
+    timing: { timer_resolution_ms: estimateTimerResolution(5000), refresh_interval_ms_median: null, refresh_interval_ms_p95: null, refresh_hz_est: null, frames_over_1_5x: 0, frames_sampled: 0 },
+  };
 }
 
 export async function collectSessionMetadata(canvasScale: number | null = null): Promise<SessionMetadata> {

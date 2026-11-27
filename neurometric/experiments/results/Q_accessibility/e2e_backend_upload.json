@@ -1,0 +1,12 @@
+{
+ "generated": "2026-11-27T07:38:20.616Z",
+ "task": "A4",
+ "trials": 3,
+ "server_session_id": "ses_380a3653529099a482b0",
+ "server_metrics": {
+  "n_trials": 3,
+  "success_rate": 1,
+  "achieved_bitrate_bps": 22.9739053126236
+ },
+ "note": "SYNTHETIC demo study seeded by neurometric.api seed-demo; upload via the web Results screen."
+}
