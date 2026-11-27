@@ -1,0 +1,336 @@
+{
+  "experiment": "K_responsiveness",
+  "generated_utc": "2026-11-27T07:44:14Z",
+  "software": {
+    "neurometric": "0.1.0",
+    "python": "3.13.18",
+    "numpy": "2.5.3",
+    "pandas": "3.0.5"
+  },
+  "synthetic": true,
+  "disclaimer": "Simulation results. They characterise the measurement system under modelled input degradation; they are not human or clinical data.",
+  "design": "60 virtual participants; session 1 bci_moderate; session 2: first half improved decoder (noise x0.6, fewer false/missed selections), second half unchanged",
+  "results": [
+    {
+      "metric": "iso_submovements",
+      "srm_improved": 3.7858466949289604,
+      "guyatt_ri": 3.0923768768804316,
+      "auc_improved_vs_stable": 0.9977777777777778,
+      "icc_stable": 0.5227949392132489,
+      "mdc95": 11.026553755862968,
+      "frac_improved_exceeding_mdc": 0.8666666666666667,
+      "frac_stable_exceeding_mdc": 0.0
+    },
+    {
+      "metric": "iso_mt_ms",
+      "srm_improved": 3.1741545442140975,
+      "guyatt_ri": 2.691379433247557,
+      "auc_improved_vs_stable": 0.9933333333333333,
+      "icc_stable": 0.5122042217193657,
+      "mdc95": 1458.8408455417907,
+      "frac_improved_exceeding_mdc": 0.7333333333333333,
+      "frac_stable_exceeding_mdc": 0.0
+    },
+    {
+      "metric": "iso_success_rate",
+      "srm_improved": 3.012947089290891,
+      "guyatt_ri": 2.7528960935720472,
+      "auc_improved_vs_stable": 0.9816666666666667,
+      "icc_stable": 0.3053791013462319,
+      "mdc95": 0.298545760158624,
+      "frac_improved_exceeding_mdc": 0.7333333333333333,
+      "frac_stable_exceeding_mdc": 0.03333333333333333
+    },
+    {
+      "metric": "iso_timeout_rate",
+      "srm_improved": 2.1670107677216257,
+      "guyatt_ri": 1.671961381034548,
+      "auc_improved_vs_stable": 0.9694444444444444,
+      "icc_stable": 0.30556492411467095,
+      "mdc95": 0.2633944158954431,
+      "frac_improved_exceeding_mdc": 0.3333333333333333,
+      "frac_stable_exceeding_mdc": 0.0
+    },
+    {
+      "metric": "iso_movement_variability_px",
+      "srm_improved": 1.9661357006532696,
+      "guyatt_ri": 2.2682620412412526,
+      "auc_improved_vs_stable": 0.9577777777777777,
+      "icc_stable": 0.5618656948713814,
+      "mdc95": 5.654855660673181,
+      "frac_improved_exceeding_mdc": 0.5333333333333333,
+      "frac_stable_exceeding_mdc": 0.03333333333333333
+    },
+    {
+      "metric": "type_ccpm",
+      "srm_improved": 2.448889252896501,
+      "guyatt_ri": 2.4545317176143424,
+      "auc_improved_vs_stable": 0.9533333333333334,
+      "icc_stable": 0.6349849334870727,
+      "mdc95": 5.48773500946431,
+      "frac_improved_exceeding_mdc": 0.5666666666666667,
+      "frac_stable_exceeding_mdc": 0.06666666666666667
+    },
+    {
+      "metric": "type_wpm",
+      "srm_improved": 2.522442226295755,
+      "guyatt_ri": 2.2810381565737883,
+      "auc_improved_vs_stable": 0.9488888888888889,
+      "icc_stable": 0.6140403117409763,
+      "mdc95": 1.1087131732821252,
+      "frac_improved_exceeding_mdc": 0.4666666666666667,
+      "frac_stable_exceeding_mdc": 0.03333333333333333
+    },
+    {
+      "metric": "iso_reentries",
+      "srm_improved": 2.5340677067223942,
+      "guyatt_ri": 1.7776911741247814,
+      "auc_improved_vs_stable": 0.9444444444444444,
+      "icc_stable": 0.24174882126018038,
+      "mdc95": 1.270578738606807,
+      "frac_improved_exceeding_mdc": 0.43333333333333335,
+      "frac_stable_exceeding_mdc": 0.03333333333333333
+    },
+    {
+      "metric": "grid_bitrate_bps",
+      "srm_improved": 1.8074308656697324,
+      "guyatt_ri": 2.0020632054669156,
+      "auc_improved_vs_stable": 0.9311111111111111,
+      "icc_stable": 0.5539991963140403,
+      "mdc95": 0.46172368239555994,
+      "frac_improved_exceeding_mdc": 0.4666666666666667,
+      "frac_stable_exceeding_mdc": 0.03333333333333333
+    },
+    {
+      "metric": "iso_error_rate",
+      "srm_improved": 1.8416335714509837,
+      "guyatt_ri": 1.6730584924230978,
+      "auc_improved_vs_stable": 0.93,
+      "icc_stable": 0.4095615013911388,
+      "mdc95": 0.330413237538192,
+      "frac_improved_exceeding_mdc": 0.3,
+      "frac_stable_exceeding_mdc": 0.0
+    },
+    {
+      "metric": "grid_time_ms",
+      "srm_improved": 1.3367795910387201,
+      "guyatt_ri": 1.2793824181452658,
+      "auc_improved_vs_stable": 0.9,
+      "icc_stable": 0.45872271628391975,
+      "mdc95": 1342.0956704737782,
+      "frac_improved_exceeding_mdc": 0.2,
+      "frac_stable_exceeding_mdc": 0.0
+    },
+    {
+      "metric": "iso_path_efficiency",
+      "srm_improved": 2.037910985503722,
+      "guyatt_ri": 1.6995828074468222,
+      "auc_improved_vs_stable": 0.8911111111111111,
+      "icc_stable": 0.47899571659757045,
+      "mdc95": 0.09654728164978646,
+      "frac_improved_exceeding_mdc": 0.4,
+      "frac_stable_exceeding_mdc": 0.06666666666666667
+    },
+    {
+      "metric": "iso_endpoint_error_px",
+      "srm_improved": 1.3076879083992197,
+      "guyatt_ri": 1.716578311055471,
+      "auc_improved_vs_stable": 0.8811111111111111,
+      "icc_stable": 0.43034196674005804,
+      "mdc95": 19.332352269745826,
+      "frac_improved_exceeding_mdc": 0.26666666666666666,
+      "frac_stable_exceeding_mdc": 0.03333333333333333
+    },
+    {
+      "metric": "iso_tp_all_bps",
+      "srm_improved": 1.573385497303703,
+      "guyatt_ri": 1.6674606944688009,
+      "auc_improved_vs_stable": 0.8766666666666667,
+      "icc_stable": 0.04286837643732317,
+      "mdc95": 0.25693407820874137,
+      "frac_improved_exceeding_mdc": 0.4,
+      "frac_stable_exceeding_mdc": 0.03333333333333333
+    },
+    {
+      "metric": "iso_dial_in_ms",
+      "srm_improved": 1.5468509152245162,
+      "guyatt_ri": 1.2617831489626719,
+      "auc_improved_vs_stable": 0.86,
+      "icc_stable": 0.10087008327762365,
+      "mdc95": 1802.0255993199794,
+      "frac_improved_exceeding_mdc": 0.2,
+      "frac_stable_exceeding_mdc": 0.03333333333333333
+    },
+    {
+      "metric": "iso_mt_completed_ms",
+      "srm_improved": 1.4327607286983817,
+      "guyatt_ri": 1.6255718156137433,
+      "auc_improved_vs_stable": 0.8477777777777777,
+      "icc_stable": 0.5874033951819128,
+      "mdc95": 989.2809698837326,
+      "frac_improved_exceeding_mdc": 0.36666666666666664,
+      "frac_stable_exceeding_mdc": 0.06666666666666667
+    },
+    {
+      "metric": "iso_tp_bps",
+      "srm_improved": 1.4693105330767326,
+      "guyatt_ri": 1.473956404230921,
+      "auc_improved_vs_stable": 0.8076923076923077,
+      "icc_stable": -0.35398401526811113,
+      "mdc95": 0.2585458827506827,
+      "frac_improved_exceeding_mdc": 0.38461538461538464,
+      "frac_stable_exceeding_mdc": 0.0
+    },
+    {
+      "metric": "false_activations_per_min",
+      "srm_improved": 0.7198989360068822,
+      "guyatt_ri": 0.48357382356990625,
+      "auc_improved_vs_stable": 0.6594444444444445,
+      "icc_stable": -0.2919268039986443,
+      "mdc95": 6.540965552392296,
+      "frac_improved_exceeding_mdc": 0.0,
+      "frac_stable_exceeding_mdc": 0.03333333333333333
+    },
+    {
+      "metric": "type_correction_burden",
+      "srm_improved": 0.6995714966606542,
+      "guyatt_ri": 0.4335593975129851,
+      "auc_improved_vs_stable": 0.5983333333333334,
+      "icc_stable": 0.2756244616709736,
+      "mdc95": 0.2493938826710721,
+      "frac_improved_exceeding_mdc": 0.03333333333333333,
+      "frac_stable_exceeding_mdc": 0.06666666666666667
+    },
+    {
+      "metric": "type_kspc",
+      "srm_improved": 0.6995714966606542,
+      "guyatt_ri": 0.4335593975129851,
+      "auc_improved_vs_stable": 0.5983333333333334,
+      "icc_stable": 0.2756244616709737,
+      "mdc95": 0.4987877653421442,
+      "frac_improved_exceeding_mdc": 0.03333333333333333,
+      "frac_stable_exceeding_mdc": 0.06666666666666667
+    },
+    {
+      "metric": "track_rms_px",
+      "srm_improved": 0.6017118933741303,
+      "guyatt_ri": 0.4365329930139907,
+      "auc_improved_vs_stable": 0.5877777777777777,
+      "icc_stable": 0.4486890741305273,
+      "mdc95": 37.20369372664368,
+      "frac_improved_exceeding_mdc": 0.03333333333333333,
+      "frac_stable_exceeding_mdc": 0.06666666666666667
+    },
+    {
+      "metric": "type_total_error_rate",
+      "srm_improved": 0.718875096988115,
+      "guyatt_ri": 0.5949404731953389,
+      "auc_improved_vs_stable": 0.5783333333333334,
+      "icc_stable": 0.2206177899672677,
+      "mdc95": 0.18936225924389033,
+      "frac_improved_exceeding_mdc": 0.03333333333333333,
+      "frac_stable_exceeding_mdc": 0.03333333333333333
+    },
+    {
+      "metric": "iso_overshoot_px",
+      "srm_improved": 0.29315183682396057,
+      "guyatt_ri": 0.3922624714321903,
+      "auc_improved_vs_stable": 0.54,
+      "icc_stable": 0.7486600238069648,
+      "mdc95": 15.268790420663178,
+      "frac_improved_exceeding_mdc": 0.13333333333333333,
+      "frac_stable_exceeding_mdc": 0.03333333333333333
+    },
+    {
+      "metric": "type_uncorrected_error_rate",
+      "srm_improved": 0.34828357354865935,
+      "guyatt_ri": 0.28578001452557633,
+      "auc_improved_vs_stable": 0.5144444444444445,
+      "icc_stable": -0.16051148565242415,
+      "mdc95": 0.07222926310303106,
+      "frac_improved_exceeding_mdc": 0.0,
+      "frac_stable_exceeding_mdc": 0.0
+    },
+    {
+      "metric": "adl_time_s",
+      "srm_improved": 0.44629728422157416,
+      "guyatt_ri": 0.2645275875576301,
+      "auc_improved_vs_stable": 0.5055555555555555,
+      "icc_stable": 0.07775137458303508,
+      "mdc95": 16.514605200153156,
+      "frac_improved_exceeding_mdc": 0.03333333333333333,
+      "frac_stable_exceeding_mdc": 0.03333333333333333
+    },
+    {
+      "metric": "type_aborted_frac",
+      "srm_improved": NaN,
+      "guyatt_ri": NaN,
+      "auc_improved_vs_stable": 0.5,
+      "icc_stable": NaN,
+      "mdc95": NaN,
+      "frac_improved_exceeding_mdc": NaN,
+      "frac_stable_exceeding_mdc": NaN
+    },
+    {
+      "metric": "adl_completion_rate",
+      "srm_improved": NaN,
+      "guyatt_ri": NaN,
+      "auc_improved_vs_stable": 0.5,
+      "icc_stable": NaN,
+      "mdc95": NaN,
+      "frac_improved_exceeding_mdc": NaN,
+      "frac_stable_exceeding_mdc": NaN
+    },
+    {
+      "metric": "adl_wrong_selections",
+      "srm_improved": 0.32773069341672506,
+      "guyatt_ri": 0.19707685230459138,
+      "auc_improved_vs_stable": 0.49666666666666665,
+      "icc_stable": -0.0450450450450444,
+      "mdc95": 1.3066666666666664,
+      "frac_improved_exceeding_mdc": 0.0,
+      "frac_stable_exceeding_mdc": 0.03333333333333333
+    },
+    {
+      "metric": "track_lag_ms",
+      "srm_improved": -0.06223705436282516,
+      "guyatt_ri": -0.07995896242859621,
+      "auc_improved_vs_stable": 0.4872222222222222,
+      "icc_stable": 0.4396950706095763,
+      "mdc95": 205.59189527715074,
+      "frac_improved_exceeding_mdc": 0.03333333333333333,
+      "frac_stable_exceeding_mdc": 0.03333333333333333
+    },
+    {
+      "metric": "grid_accuracy",
+      "srm_improved": 0.46064641749526236,
+      "guyatt_ri": 0.3036875835622755,
+      "auc_improved_vs_stable": 0.4866666666666667,
+      "icc_stable": 0.10010010010010076,
+      "mdc95": 0.19372325381698446,
+      "frac_improved_exceeding_mdc": 0.03333333333333333,
+      "frac_stable_exceeding_mdc": 0.03333333333333333
+    },
+    {
+      "metric": "track_time_on_target",
+      "srm_improved": 0.23011092815941728,
+      "guyatt_ri": 0.2312379457045172,
+      "auc_improved_vs_stable": 0.46166666666666667,
+      "icc_stable": 0.23537330945606164,
+      "mdc95": 0.1308565996683195,
+      "frac_improved_exceeding_mdc": 0.1,
+      "frac_stable_exceeding_mdc": 0.06666666666666667
+    },
+    {
+      "metric": "iso_onset_ms",
+      "srm_improved": -0.09809851280570481,
+      "guyatt_ri": -0.0860362518610908,
+      "auc_improved_vs_stable": 0.44222222222222224,
+      "icc_stable": 0.671820152331785,
+      "mdc95": 143.65085199491665,
+      "frac_improved_exceeding_mdc": 0.0,
+      "frac_stable_exceeding_mdc": 0.03333333333333333
+    }
+  ],
+  "note": "MDC is statistically detectable change; it is NOT a minimal clinically important difference."
+}
