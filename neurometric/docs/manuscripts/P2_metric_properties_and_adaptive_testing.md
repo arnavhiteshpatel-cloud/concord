@@ -190,7 +190,11 @@ structural problem (ceiling, low between-person variance), not a length problem.
 [RESULT PENDING: experiments/results/K_responsiveness/responsiveness.csv — Table 3: top 8 metrics by auc_improved_vs_stable with srm_improved, guyatt_ri, icc_stable, mdc95, frac_improved_exceeding_mdc, frac_stable_exceeding_mdc; Figure: experiments/results/K_responsiveness/responsiveness_auc.png]
 
 ### 3.4 Floor/ceiling and adaptive difficulty
-From the noise sweep: [RESULT PENDING: experiments/results/B_noise/summary.json — pooled floor_frac and ceiling_frac for adl_completion_rate, grid_accuracy, iso_success_rate, adl_wrong_selections, false_activations_per_min, type_total_error_rate, grid_bitrate_bps, type_ccpm]. Each is judged against the 15% criterion (Terwee et al. 2007, 10.1016/j.jclinepi.2006.03.012 [V-DOI]). Note that after the review fixes false-activation metrics are NaN (not observable) for switch scanning.
+From the noise sweep: pooled over 7 levels (`experiments/results/B_noise/summary.json`, 07:35Z), ceiling fractions were
+89.8% for digital-ADL completion, 58.3% for grid accuracy and 27.9% for ISO success rate; floor
+fractions were 83.8% for ADL wrong selections, 56.0% for empty-space selections per minute and
+53.1% for typing total error rate. Rate metrics had less floor: achieved bitrate 5.2% and CCPM
+10.7%. Effective throughput was undefined (validity conditions failed) in 42.4% of sessions. Each is judged against the 15% criterion (Terwee et al. 2007, 10.1016/j.jclinepi.2006.03.012 [V-DOI]). Note that after the review fixes false-activation metrics are NaN (not observable) for switch scanning.
 Cross-sweep maxima:
 [RESULT PENDING: experiments/results/G_metric_comparison/ranking.csv — max_floor_frac and max_ceiling_frac per metric across all sweeps].
 

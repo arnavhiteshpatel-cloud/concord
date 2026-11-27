@@ -80,7 +80,11 @@ validation with people who use assistive technology.
 - Working research software: event schema and adapters, task battery (browser), scoring, a
   psychometrics library, a study-management module with consent gating, and a closed-loop
   **simulated-decoder harness** with virtual users.
-- **Simulation result (synthetic, not human):** [RESULT PENDING: experiments/results/B_noise/summary.json — plain-language sentence: how typing rate and pointing throughput changed as simulated decoder noise increased (Spearman ρ), and the share of simulated sessions at the ceiling of "task completed"]. An independent code review found and fixed five critical simulator defects before these results were regenerated (`docs/review/RESPONSE_TO_SCIENCE_CORE_REVIEW.md`), which is the kind of rigor judges should expect from us.
+- **Simulation result (synthetic, not human):** in a 52,920-trial simulated sweep, typing rate
+  (correct characters per minute) fell steadily as simulated decoder noise increased (Spearman ρ
+  −0.910), while "did the digital task get completed?" was at its ceiling in 89.8% of simulated
+  sessions — which is why we measure time and assistance, not just completion
+  (`experiments/results/B_noise/summary.json`). An independent code review found and fixed five critical simulator defects before these results were regenerated (`docs/review/RESPONSE_TO_SCIENCE_CORE_REVIEW.md`), which is the kind of rigor judges should expect from us.
 - **Statistics verified:** 86 of 86 known-truth simulation checks pass; we found that a standard
   reliability interval under-covers and switched to a better method
   (`experiments/results/R_statistical_verification/coverage_results.json`).

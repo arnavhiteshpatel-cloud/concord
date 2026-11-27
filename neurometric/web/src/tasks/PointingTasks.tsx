@@ -99,7 +99,7 @@ export function SingleTargetTask({ api }: { api: TaskApi }) {
       api.setInstruction(`Trial ${i + 1} of ${n}. Select the Start circle in the centre.`);
       return;
     }
-    api.setInstruction(isA5 ? `Select the target before the time runs out (${tr.deadline_ms / 1000} s).` : "Select the blue target.");
+    api.setInstruction(isA5 ? `Select the target before the time runs out (${tr.deadline_ms / 1000} s).` : "Select the filled target circle.");
     const p = api.pointer() ?? { x: 640, y: 400 };
     col.current.begin([tr.start.x, tr.start.y], [tr.x, tr.y], [tr.w / 2, tr.w / 2]);
     col.current.add(p.x, p.y, api.now());

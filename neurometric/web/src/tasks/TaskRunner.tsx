@@ -170,7 +170,7 @@ export function TaskRunner(props: { stim: Stimuli; spec: TaskSpec; settings: Set
     let live = true;
     session.metadata = syncMetadata(scaleRef.current);
     collectSessionMetadata(scaleRef.current).then((m) => {
-      if (live) session.metadata = { ...m, canvas_scale: scaleRef.current, observed_pointer_types: session.metadata?.observed_pointer_types ?? [] };
+      if (live) session.metadata = { ...m, canvas_scale: scaleRef.current };
     });
     session.marker("task_start", { task_id: stim.task_id, stimulus_hash: stim.stimulus_hash, selection: sel, declared_modality: modality });
     return () => {

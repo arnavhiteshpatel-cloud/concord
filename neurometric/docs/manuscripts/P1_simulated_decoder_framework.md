@@ -31,7 +31,7 @@ observable events. For each degradation type we swept severity over 60 virtual p
 two independent replicates and estimated each metric's monotonic sensitivity, smallest detectable
 level, floor and ceiling fractions and simulated test–retest agreement.
 
-**Main results.** [RESULT PENDING: experiments/results/B_noise/summary.json — Spearman ρ of movement variability, achieved bitrate, CCPM and effective throughput with noise; ceiling fraction of digital-activity completion; ρ of onset and tracking lag]. [RESULT PENDING: experiments/results/G_metric_comparison/ranking.csv — one sentence on which metrics were sensitive across all degradation types and which were blind to latency/false activations]. An independent code review found five critical simulator defects, which were fixed before all results were regenerated. The scoring pipeline produced a speed–difficulty relation on a public macaque hand-cursor dataset (541 reaches; `experiments/results/X1_external_mc_rtt/summary.json`).
+**Main results.** In the noise sweep (52,920 simulated trials), movement variability, correct characters per minute and achieved bitrate tracked noise (Spearman ρ −0.989, −0.910, −0.895); effective throughput was undefined in 42.4% of sessions because its validity conditions failed; digital-activity completion was at ceiling in 89.8% of sessions; and tracking lag ignored noise (ρ −0.043) but tracked latency (ρ −0.738) (`experiments/results/B_noise/summary.json`, `experiments/results/C_latency/summary.json`). [RESULT PENDING: experiments/results/G_metric_comparison/ranking.csv — one sentence on which metrics were sensitive across all degradation types and which were blind to latency/false activations]. An independent code review found five critical simulator defects, which were fixed before all results were regenerated. The scoring pipeline produced a speed–difficulty relation on a public macaque hand-cursor dataset (541 reaches; `experiments/results/X1_external_mc_rtt/summary.json`).
 
 **Significance.** Simulation cannot establish reliability or validity in people, but it can
 expose measures that are structurally blind, saturated or unstable, and it can guide which
@@ -280,19 +280,75 @@ scenarios passed, `experiments/results/R_statistical_verification/coverage_resul
 All results in §3.1–3.5 are synthetic.
 
 ### 3.1 Noise (Study B)
-[RESULT PENDING: experiments/results/B_noise/summary.json — n_trials_simulated and runtime_s]
+60 virtual participants × 7 levels × 2 replicates; 52,920 simulated trials (an estimate computed
+from rows × a fixed per-session trial count); runtime 97.0 s
+(`experiments/results/B_noise/summary.json`, generated 2026-11-27T07:35Z after the review fixes).
+Figure 1: `experiments/results/B_noise/sweep.png`.
 
-Table 1. Properties of selected metrics under increasing noise.
-[RESULT PENDING: experiments/results/B_noise/summary.json — rows (ρ, monotone fraction, d_z at first level, minimum detectable level, adjacent AUC, floor, ceiling, median retest ICC(A,1)) for iso_movement_variability_px, iso_submovements, iso_success_rate, iso_endpoint_error_px, type_ccpm, grid_bitrate_bps, iso_tp_bps, iso_mt_ms, adl_time_s, grid_accuracy, iso_path_efficiency, track_rms_px, false_activations_per_min, adl_completion_rate, iso_onset_ms, track_lag_ms; Figure 1: experiments/results/B_noise/sweep.png]
+Table 1. Properties of selected metrics under increasing noise (source: same file, fields
+`properties` and `median_retest_icc_by_metric`; "undef." = share of sessions where the metric is
+undefined).
 
-Pre-specified reading (written before the regenerated results): degradation-sensitive metrics
-should have ρ ≤ −0.7 with monotone steps; bounded proportions (completion, accuracy on large
-targets) are expected to saturate (> 15% of sessions at a bound) and to show low simulated retest
-ICC because of little between-person variance; onset and tracking lag are not expected to respond
-to noise but may respond to latency (Study C).
+| Metric | ρ | Monotone | d_z at first level | Min. detectable level | Adjacent AUC | Floor | Ceiling | Undef. | Median retest ICC(A,1) |
+|---|---|---|---|---|---|---|---|---|---|
+| Movement variability | −0.989 | 1.00 | −7.13 | 0.5 | 0.997 | — | — | 0 | 0.750 |
+| Submovements | −0.963 | 1.00 | −2.30 | 0.5 | 0.892 | — | — | 0 | 0.784 |
+| ISO success rate | −0.947 | 1.00 | −0.06 | 1.0 | 0.822 | 0.136 | 0.279 | 0 | 0.251 |
+| Endpoint error | −0.945 | 1.00 | −0.22 | 1.0 | 0.897 | — | — | 0 | 0.112 |
+| Movement time (timeouts at limit) | −0.939 | 1.00 | −0.99 | 0.5 | 0.833 | — | — | 0 | 0.733 |
+| CCPM | −0.910 | 1.00 | −0.11 | 1.0 | 0.805 | 0.107 | — | 0 | 0.787 |
+| Achieved bitrate | −0.895 | 0.83 | +0.18 | 2.0 | 0.781 | 0.052 | — | 0 | 0.671 |
+| Path efficiency | −0.846 | 1.00 | −1.84 | 0.5 | 0.755 | 0 | 0 | 0.012 | 0.551 |
+| Grid accuracy | −0.831 | 1.00 | −0.11 | 3.0 | 0.696 | 0.026 | **0.583** | 0 | 0.388 |
+| ADL time | −0.813 | 1.00 | −0.11 | 2.0 | 0.732 | — | — | 0.102 | 0.418 |
+| Effective throughput (valid conditions) | −0.809 | 1.00 | −1.07 | 0.5 | 0.792 | — | — | **0.424** | 0.611 |
+| Tracking RMS error | −0.801 | 1.00 | −0.26 | 2.0 | 0.693 | — | — | 0 | 0.427 |
+| Empty-space selections/min | −0.600 | 0.67 | −0.18 | 2.0 | 0.514 | **0.560** | — | 0 | −0.046 |
+| ADL completion | −0.487 | 1.00 | 0.00 | 6.0 | 0.553 | 0.102 | **0.898** | 0 | 0.160 |
+| Tracking lag | −0.043 | 0.67 | −0.11 | none | 0.516 | — | — | 0 | 0.090 |
+| Selection-process onset | +0.082 | 0.50 | +0.02 | none | 0.490 | — | — | 0 | 0.696 |
+
+Observations:
+1. Kinematic metrics declined monotonically and early; movement variability was the most
+   noise-specific (ρ −0.989; adjacent-level AUC 0.997) because it is the perpendicular spread of
+   the trajectory.
+2. User-level rates were monotone (CCPM ρ −0.910) or nearly so (achieved bitrate ρ −0.895, 5 of 6
+   steps), but first reached |d_z| ≥ 0.5 only at noise scale 1.0 and 2.0, later than throughput,
+   movement time and path efficiency (0.5).
+3. **Effective throughput was undefined in 42.4% of virtual-participant sessions**: once errors
+   exceed the validity rules, effective width is not interpretable and the score is set to NaN
+   rather than averaged (review fix C2). The "all conditions" diagnostic version was undefined in
+   8.8% (`iso_tp_all_bps`). Throughput alone therefore cannot carry a battery for poorly
+   controlled devices.
+4. Functional process outcomes saturated: ADL completion was at ceiling in 89.8% of sessions and
+   moved (|d_z| ≥ 0.5) only at the highest level; grid accuracy at ceiling in 58.3%. Their
+   simulated retest ICCs were low (0.160 and 0.388).
+5. Selection-process onset (ρ +0.082) and tracking lag (ρ −0.043) did not respond to noise.
 
 ### 3.2 Latency (Studies C, C2)
-[RESULT PENDING: experiments/results/C_latency/summary.json — Table 2 rows (ρ, monotone, min_detect_level, ceiling) for track_lag_ms, track_rms_px, iso_tp_bps, iso_dial_in_ms, grid_bitrate_bps, type_ccpm, adl_time_s; figure experiments/results/C_latency/sweep.png]
+Velocity-control user, total decoder output latency 0–700 ms (`experiments/results/C_latency/summary.json`,
+generated 07:37Z; figure `experiments/results/C_latency/sweep.png`). Nominal latency is shown; it
+has no jitter here, so realised equals nominal.
+
+| Metric | ρ | Monotone | Min. detectable latency (ms) | Floor / ceiling / undef. | Median retest ICC(A,1) |
+|---|---|---|---|---|---|
+| Correct characters per minute | −0.967 | 1.00 | 60 | floor 0.274 | 0.873 |
+| Achieved bitrate | −0.961 | 1.00 | 60 | floor 0.340 | 0.721 |
+| Tracking RMS error | −0.959 | 1.00 | 60 | — | 0.608 |
+| ADL time | −0.937 | 1.00 | 60 | undef. 0.326 | 0.568 |
+| Dial-in time | −0.924 | 1.00 | 60 | undef. 0.386 | 0.741 |
+| Movement time | −0.908 | 0.83 | 60 | — | 0.855 |
+| Effective throughput (valid conditions) | −0.885 | 1.00 | 60 | undef. 0.476 | 0.667 |
+| ADL completion | −0.805 | 1.00 | 300 | floor 0.326 / ceiling 0.674 | 0.739 |
+| Tracking lag | −0.738 | 1.00 | 300 | — | 0.315 |
+| Selection-process onset | −0.275 | 0.83 | 60 | — | 0.798 |
+| Target re-entries | +0.135 | 0.50 | 60 | — | 0.724 |
+
+Latency was destructive for the closed-loop velocity user: every user-level rate reached
+|d_z| ≥ 0.5 at the first step (60 ms vs 0 ms), and ADL completion split into a bimodal
+floor/ceiling pattern (32.6% / 67.4%). Tracking lag, blind to noise (§3.1), was monotone in
+latency (ρ −0.738) but only detectable from 300 ms. Target re-entries were non-monotone (ρ +0.135),
+presumably because with long latency trials time out before re-entering [INF].
 
 [RESULT PENDING: experiments/results/C2_latency_mouse/summary.json — same rows for the position-control user; contrast velocity vs position control]
 
@@ -332,7 +388,7 @@ Figure 3: `experiments/results/X1_external_mc_rtt/mc_rtt_metrics.png` (reach-tim
 path-efficiency distributions; reach time against effective ID).
 
 ### 3.7 Computational cost and reproducibility
-[RESULT PENDING: experiments/results/B_noise/summary.json — runtime_s of the sweep]
+The B_noise sweep took 97.0 s on 4 worker processes (`experiments/results/B_noise/summary.json`, `runtime_s`).
 [RESULT PENDING: experiments/results/S_event_latency/summary.json — server-side scoring time and JSON round-trip hash identity on a synthetic session; the file present at drafting predates the review fixes and must be regenerated].
 [RESULT PENDING: experiments/results/P_reproducibility/summary.json — in-process vs pool hash identical; different seed differs].
 In-page event capture (software path only, headless Chromium): 2,000 injected mouse events were

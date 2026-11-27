@@ -16,7 +16,7 @@
   --danger: #b91c1c;
   --ok: #166534;
   --canvas: #f8fafc;
-  --canvas-line: #94a3b8;
+  --canvas-line: #64748b;
   --warn-bg: #fff7ed;
   color-scheme: light;
   font-size: calc(100% * var(--text-scale, 1));
@@ -39,7 +39,7 @@
     --danger: #fca5a5;
     --ok: #86efac;
     --canvas: #0b0f14;
-    --canvas-line: #475569;
+    --canvas-line: #94a3b8;
     --warn-bg: #2a1d0b;
     color-scheme: dark;
   }
@@ -61,7 +61,7 @@
   --danger: #fca5a5;
   --ok: #86efac;
   --canvas: #0b0f14;
-  --canvas-line: #475569;
+  --canvas-line: #94a3b8;
   --warn-bg: #2a1d0b;
   color-scheme: dark;
 }

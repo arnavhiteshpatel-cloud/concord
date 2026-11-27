@@ -81,7 +81,7 @@ export function SteeringTask({ api }: { api: TaskApi }) {
     if (done) return;
     st.current = { phase: "wait", tStart: 0, exits: 0, outside: false, dev2: 0, nDev: 0 };
     api.setItems([]);
-    api.setInstruction(`Trial ${i + 1} of ${n}. Move into the green start zone on the left, then steer along the tunnel to the end zone without touching the edges.`);
+    api.setInstruction(`Trial ${i + 1} of ${n}. Move into the start zone (the shaded box at the left end of the tunnel), then steer right along the tunnel into the end zone at the right end without crossing the edges.`);
     api.stimulusOnNextFrame({ trial: i, tunnel: { x0, x1, y: 400, w: W }, L, W });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [i, done]);
