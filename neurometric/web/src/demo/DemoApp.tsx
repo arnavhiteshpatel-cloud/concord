@@ -111,8 +111,9 @@ export function DemoApp({ settings }: { settings: Settings }) {
 
 function ResultsTable({ rows }: { rows: ResultRow[] }) {
   return (
+    <div className="table-scroll" role="region" aria-labelledby="demo-results-cap" tabIndex={0}>
     <table style={{ marginTop: 16 }} id="demo-results">
-      <caption>Results across conditions (provisional; computed in the browser)</caption>
+      <caption id="demo-results-cap">Results across conditions (provisional; computed in the browser)</caption>
       <thead>
         <tr>
           <th scope="col">Condition</th>
@@ -149,6 +150,7 @@ function ResultsTable({ rows }: { rows: ResultRow[] }) {
         ))}
       </tbody>
     </table>
+    </div>
   );
 }
 

@@ -228,10 +228,10 @@ export function IsoRingTask({ api }: { api: TaskApi }) {
     api.setItems(isA3 ? ring : [ring[k]]);
     if (phase === "start") {
       if (k === 0) api.session.marker("block_start", { block: block.bi, D: block.D, W: block.W, n: nSel });
-      api.setInstruction(`Block ${b + 1} of ${blocks.length}. ${isA3 ? "Hold the pointer still on" : "Select"} the highlighted circle to begin, then follow the highlight across the ring as quickly and accurately as you can.`);
+      api.setInstruction(`Block ${b + 1} of ${blocks.length}. ${isA3 ? "Hold the pointer still on" : "Select"} the filled (highlighted) circle to begin, then follow the highlight across the ring as quickly and accurately as you can.`);
       return;
     }
-    api.setInstruction(`${isA3 ? "Dwell on" : "Select"} the highlighted circle (${k} of ${nSel - 1}).`);
+    api.setInstruction(`${isA3 ? "Dwell on" : "Select"} the filled (highlighted) circle (${k} of ${nSel - 1}).`);
     const p = prevSel.current ?? { x: tgt.x, y: tgt.y, t: api.now() };
     col.current.begin([p.x, p.y], [tgt.x, tgt.y], [tgt.w / 2, tgt.w / 2]);
     col.current.add(p.x, p.y, p.t);

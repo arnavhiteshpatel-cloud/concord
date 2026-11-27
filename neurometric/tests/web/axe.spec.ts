@@ -141,3 +141,35 @@ test.afterAll(() => {
     ) + "\n",
   );
 });
+
+// WCAG 1.4.10 Reflow (320 CSS px), 1.4.4 Resize text (200 % text size setting) and 1.4.12 Text
+// spacing: no horizontal scrolling of the page (the 1280x800 task canvas is scaled as a whole,
+// which falls under the 2-D content exception).
+const reflow: Record<string, unknown>[] = [];
+test("reflow at 320 px, 200 % text and WCAG text-spacing overrides: no horizontal page scroll", async ({ browser }) => {
+  const SCREENS = ["#/setup", "#/tasks", "#/results", "#/demo", "#/run/A2", "#/run/E1?autostart=1", "#/run/F2?autostart=1"];
+  for (const [label, viewport, extra] of [
+    ["320px", { width: 320, height: 640 }, ""],
+    ["text-200pct", { width: 1280, height: 800 }, "&__text=2"],
+    ["text-spacing", { width: 1280, height: 800 }, "&__spacing=1"],
+  ] as const) {
+    const ctx = await browser.newContext({ viewport, bypassCSP: true });
+    if (extra.includes("__text")) await ctx.addInitScript(() => { try { localStorage.setItem("neurometric.settings.v1", JSON.stringify({ textScale: 2 })); } catch { /* */ } });
+    const page = await ctx.newPage();
+    for (const s of SCREENS) {
+      await page.goto("about:blank");
+      await page.goto(`http://127.0.0.1:4173/${s}`);
+      await page.waitForTimeout(250);
+      if (extra.includes("__spacing")) {
+        await page.addStyleTag({ content: "* { line-height: 1.5 !important; letter-spacing: 0.12em !important; word-spacing: 0.16em !important; } p { margin-bottom: 2em !important; }" });
+        await page.waitForTimeout(100);
+      }
+      const [sw, iw] = await page.evaluate(() => [document.documentElement.scrollWidth, window.innerWidth]);
+      reflow.push({ check: label, screen: s, scroll_width: sw, viewport_width: iw, horizontal_scroll: sw > iw + 1 });
+      expect(sw, `${label} ${s}`).toBeLessThanOrEqual(iw + 1);
+    }
+    await ctx.close();
+  }
+  const dir = ensureDir(path.join(RESULTS, "Q_accessibility"));
+  writeCsv(path.join(dir, "reflow_text_spacing.csv"), ["check", "screen", "scroll_width", "viewport_width", "horizontal_scroll"], reflow.map((r) => [r.check, r.screen, r.scroll_width, r.viewport_width, r.horizontal_scroll] as any));
+});

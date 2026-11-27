@@ -147,6 +147,7 @@ legend { font-weight: 700; padding: 0 6px; }
 .warn { border-left: 6px solid var(--danger); background: var(--warn-bg); padding: 8px 12px; margin: 12px 0; }
 .provisional { border: 2px dashed var(--border); padding: 8px 12px; border-radius: 8px; }
 table { border-collapse: collapse; width: 100%; }
+.table-scroll { max-width: 100%; overflow-x: auto; }
 th, td { border: 1px solid var(--border); padding: 6px 8px; text-align: left; }
 caption { text-align: left; font-weight: 700; padding: 4px 0; }
 .task-list { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
@@ -156,7 +157,7 @@ caption { text-align: left; font-weight: 700; padding: 4px 0; }
 /* Task screen */
 .task-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .task-bar .instr { font-size: 1.15rem; font-weight: 600; flex: 1 1 320px; }
-.canvas-wrap { position: relative; width: 100%; height: calc(100vh - 210px); min-height: 280px; }
+.canvas-wrap { position: relative; overflow: hidden; width: 100%; height: calc(100vh - 210px); min-height: 280px; }
 .task-canvas {
   position: absolute; left: 0; top: 0; width: 1280px; height: 800px; transform-origin: 0 0;
   background: var(--canvas); border: 2px solid var(--canvas-line); overflow: hidden;
