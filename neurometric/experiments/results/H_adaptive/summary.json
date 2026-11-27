@@ -1,0 +1,43 @@
+{
+  "experiment": "H_adaptive",
+  "generated_utc": "2026-11-27T07:52:23Z",
+  "software": {
+    "neurometric": "0.1.0",
+    "python": "3.13.18",
+    "numpy": "2.5.3",
+    "pandas": "3.0.5"
+  },
+  "synthetic": true,
+  "disclaimer": "Simulation results. They characterise the measurement system under modelled input degradation; they are not human or clinical data.",
+  "design": "6 noise levels x 60 virtual participants; fixed 100 px and 40 px grids (40 trials) vs 40-trial 2-down/1-up size staircase (step x1.4, 6-116 px)",
+  "results": [
+    {
+      "design": "adaptive_size_threshold",
+      "floor_frac": 0.1388888888888889,
+      "ceiling_frac": 0.14722222222222223,
+      "rho_with_device_noise": -0.94684419982329,
+      "within_level_rho_with_latent_ability": 0.28952923124099245,
+      "min_adjacent_auc": 0.7112499999999999,
+      "mean_adjacent_auc": 0.8930555555555555
+    },
+    {
+      "design": "fixed_large_100px",
+      "floor_frac": 0.05555555555555555,
+      "ceiling_frac": 0.4388888888888889,
+      "rho_with_device_noise": -0.9064445756841087,
+      "within_level_rho_with_latent_ability": 0.41599917653954527,
+      "min_adjacent_auc": 0.44999999999999996,
+      "mean_adjacent_auc": 0.7748333333333333
+    },
+    {
+      "design": "fixed_small_40px",
+      "floor_frac": 0.4,
+      "ceiling_frac": 0.2361111111111111,
+      "rho_with_device_noise": -0.9353331112099813,
+      "within_level_rho_with_latent_ability": 0.3460594554341416,
+      "min_adjacent_auc": 0.5086111111111111,
+      "mean_adjacent_auc": 0.7909166666666667
+    }
+  ],
+  "caveat": "Adaptive scores are on a different scale; comparability across battery versions must be maintained by fixing the staircase rule and version."
+}

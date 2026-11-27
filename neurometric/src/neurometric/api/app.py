@@ -31,6 +31,7 @@ from .middleware import (BodySizeLimitMiddleware, LoginRateLimiter, SecurityHead
                          env_int)
 
 DEFAULT_WEB_DIST = Path(__file__).resolve().parents[3] / "web" / "dist"
+DEFAULT_PORTAL = Path(__file__).resolve().parents[3] / "portal"
 _bearer = HTTPBearer(auto_error=False)
 
 
@@ -469,8 +470,13 @@ def create_app(db_path: str | Path, *, web_dist: Optional[str | Path] = None,
     app.add_middleware(SecurityHeadersMiddleware)
     dist = Path(web_dist) if web_dist else Path(os.environ.get("NEUROMETRIC_WEB_DIST",
                                                                DEFAULT_WEB_DIST))
+    from fastapi.staticfiles import StaticFiles
+    portal = Path(os.environ.get("NEUROMETRIC_PORTAL_DIR", DEFAULT_PORTAL))
+    if portal.is_dir():  # sponsor evidence portal (plain static files); mounted before "/"
+        from fastapi.responses import RedirectResponse
+        app.add_api_route("/portal", lambda: RedirectResponse("/portal/"), include_in_schema=False)
+        app.mount("/portal", StaticFiles(directory=str(portal), html=True), name="portal")
     if dist.is_dir():
-        from fastapi.staticfiles import StaticFiles
         app.mount("/", StaticFiles(directory=str(dist), html=True), name="web")
     return app
 
