@@ -1,4 +1,4 @@
-// DOM helpers. Everything is built with createElement/textContent (never innerHTML with data),
+// DOM helpers. Everything is built with createElement/textContent (no HTML-string parsing of data),
 // so server data can never inject markup.
 import { ApiError, explain } from './api.js';
 
