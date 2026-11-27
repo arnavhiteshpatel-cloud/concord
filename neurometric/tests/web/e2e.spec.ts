@@ -146,6 +146,36 @@ test("Setup is operable with a single switch (auto-scan) and reaches the task li
   summary.single_switch_setup = { reached_task_list: true, scan_ms: 150 };
 });
 
+test("Degradation demo: live ISO run (identity, position control) and virtual-user table", async ({ page }) => {
+  await page.goto("/#/demo");
+  await page.click("#preset-identity");
+  await page.click("text=Position control (pointer-like)");
+  const canvas = page.locator(".task-canvas").first();
+  await expect(canvas).toBeVisible();
+  let pos = await centerOf(page, ".task-canvas");
+  for (let k = 0; k < 13; k++) {
+    const c = await centerOf(page, ".task-canvas .titem.target");
+    await moveTo(page, pos, c, 8);
+    await page.waitForTimeout(40); // let the 10 ms simulation ticks catch up
+    await page.mouse.down();
+    await page.waitForTimeout(30);
+    await page.mouse.up();
+    pos = c;
+    await page.waitForTimeout(40);
+  }
+  const row = page.locator("#demo-results tbody tr", { hasText: "you (live)" });
+  await expect(row).toHaveCount(1);
+  const cells = await row.locator("td").allTextContents();
+  const tp = Number(cells[3]);
+  expect(tp).toBeGreaterThan(0.5);
+  await page.click("#demo-tab-watch");
+  await expect(page.locator("#demo-results tbody tr", { hasText: "virtual user" })).toHaveCount(8);
+  const vrows = await page.locator("#demo-results tbody tr", { hasText: "virtual user" }).evaluateAll((trs) =>
+    trs.map((tr) => [...tr.querySelectorAll("th, td")].map((c) => c.textContent)),
+  );
+  summary.demo = { live_identity_position_iso_tp_bps: tp, virtual_user_rows: vrows };
+});
+
 test.afterAll(() => {
   const dir = ensureDir(path.join(RESULTS, "Q_accessibility"));
   writeFileSync(path.join(dir, "e2e_tasks_summary.json"), JSON.stringify({ generated: new Date().toISOString(), note: "Automated Playwright runs in headless Chromium with synthetic input (CDP mouse, keyboard as switch). Not a substitute for testing with real assistive technology.", results: summary }, null, 1) + "\n");

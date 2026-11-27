@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="referrer" content="no-referrer">
+  <title>NeuroMetric evidence portal</title>
+  <link rel="stylesheet" href="css/portal.css">
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <div id="demo-banner" class="demo-banner" role="note" hidden>
+    <strong>DEMO — synthetic data, not patients</strong>
+    <span class="demo-banner__detail">Every record in this study is simulated. Nothing shown here describes a real person.</span>
+  </div>
+  <header class="site-header">
+    <div class="site-header__inner">
+      <p class="brand"><span class="brand__mark" aria-hidden="true"></span>NeuroMetric <span class="brand__sub">evidence portal</span></p>
+      <div id="user-area" class="user-area"></div>
+    </div>
+    <nav id="primary-nav" class="primary-nav" aria-label="Primary" hidden></nav>
+  </header>
+  <main id="main" tabindex="-1">
+    <noscript><p class="notice">The portal needs JavaScript enabled.</p></noscript>
+    <p class="loading">Loading…</p>
+  </main>
+  <footer class="site-footer">
+    <p>Research software for functional-outcome evidence. Not a medical device. Not a regulatory submission.</p>
+  </footer>
+  <div id="live-polite" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+  <div id="live-assertive" class="visually-hidden" aria-live="assertive" aria-atomic="true"></div>
+</body>
+</html>

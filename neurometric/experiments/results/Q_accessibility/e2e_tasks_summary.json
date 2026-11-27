@@ -1,84 +1,19 @@
 {
- "generated": "2026-11-27T07:30:05.979Z",
+ "generated": "2026-11-27T07:42:29.781Z",
  "note": "Automated Playwright runs in headless Chromium with synthetic input (CDP mouse, keyboard as switch). Not a substitute for testing with real assistive technology.",
  "results": {
-  "A2": {
-   "events": 158,
-   "kinds": [
-    "assist",
-    "click",
-    "marker",
-    "pause",
-    "pointer_down",
-    "pointer_move",
-    "pointer_up",
-    "resume"
-   ],
-   "scores": {
-    "n_trials": 7,
-    "fitts_throughput_bps": 17.43966071683433,
-    "error_rate": 0,
-    "movement_time_ms_mean": 308.1599999999938,
-    "path_efficiency_mean": 0.999348123853747,
-    "interruptions": 1,
-    "assist_events": 1
-   },
-   "provisional_browser": {
-    "fitts_throughput_bps": 17.43966071683433,
-    "selections": 6,
-    "error_rate": 0
-   }
-  },
-  "A4": {
-   "events": 63,
-   "kinds": [
-    "key",
-    "marker",
-    "switch"
-   ],
-   "scores": {
-    "n_trials": 4,
-    "success_rate": 1,
-    "achieved_bitrate_bps": 64.37401388997182,
-    "movement_time_ms_mean": 70.27000000013504
-   },
-   "provisional_browser": {
-    "trials": 4,
-    "correct": 4,
-    "wrong": 0,
-    "achieved_bitrate_bps": 64.37401388997182,
-    "movement_time_ms_mean": 70.27000000013504,
-    "empty_selections": 0
-   }
-  },
-  "E1": {
-   "events": 169,
-   "kinds": [
-    "dwell_select",
-    "key",
-    "marker",
-    "pointer_move",
-    "text_input"
-   ],
-   "presented": "i need a short break",
-   "scores": {
-    "wpm_mean": 19.214497844268116,
-    "msd_error_rate_mean": 0,
-    "total_error_rate_mean": 0.047619047619047616,
-    "corrected_error_rate_mean": 0.047619047619047616,
-    "kspc_mean": 1.1
-   },
-   "provisional_browser": {
-    "phrases": 1,
-    "wpm_mean": 19.214497844268116,
-    "ccpm_mean": 101.12893602246379,
-    "msd_error_rate_mean": 0,
-    "total_error_rate_mean": 0.047619047619047616
-   }
-  },
-  "single_switch_setup": {
-   "reached_task_list": true,
-   "scan_ms": 150
+  "demo": {
+   "live_identity_position_iso_tp_bps": 23.33,
+   "virtual_user_rows": [
+    "mouse_simvirtual userpositionISO ring3.740 %8760.99–12",
+    "mouse_simvirtual userpositionGrid 4×6–0 %730–6.2010",
+    "bci_goodvirtual uservelocityISO ring0.678 %28580.69–12",
+    "bci_goodvirtual uservelocityGrid 4×6–10 %1677–2.1610",
+    "bci_moderatevirtual uservelocityISO ring0.1430 %47240.51–10",
+    "bci_moderatevirtual uservelocityGrid 4×6–10 %3400–0.9310",
+    "bci_poorvirtual uservelocityISO ring0.44100 %53230.39–4",
+    "bci_poorvirtual uservelocityGrid 4×6–10 %2700–0.6710"
+   ]
   }
  }
 }

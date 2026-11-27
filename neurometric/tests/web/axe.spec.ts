@@ -16,6 +16,7 @@ interface Rec {
   violations: { id: string; impact: string; nodes: number; help: string; targets: string[] }[];
   passes: number;
   incomplete: number;
+  incomplete_rules: string[];
 }
 const records: Rec[] = [];
 
@@ -28,6 +29,7 @@ async function scan(page: Page, screen: string, theme = "system"): Promise<Rec> 
       violations: res.violations.map((v: any) => ({ id: v.id, impact: v.impact, nodes: v.nodes.length, help: v.help, targets: v.nodes.slice(0, 5).map((n: any) => String(n.target)) })),
       passes: res.passes.length,
       incomplete: res.incomplete.length,
+      incomplete_rules: res.incomplete.map((v: any) => v.id),
     };
   }, TAGS);
   const rec = { screen, theme, ...r };
@@ -133,7 +135,7 @@ test.afterAll(() => {
         screens_scanned: records.length,
         violations_by_impact: byImpact,
         serious_or_critical: records.reduce((a, r) => a + serious(r).length, 0),
-        screens: records.map((r) => ({ screen: r.screen, theme: r.theme, violations: r.violations.map((v) => `${v.id} (${v.impact}, ${v.nodes} nodes)`), rules_passed: r.passes, needs_review: r.incomplete })),
+        screens: records.map((r) => ({ screen: r.screen, theme: r.theme, violations: r.violations.map((v) => `${v.id} (${v.impact}, ${v.nodes} nodes)`), rules_passed: r.passes, needs_review: r.incomplete, needs_review_rules: r.incomplete_rules })),
         caveat: "Automated rules find roughly a third to a half of WCAG issues. Zero automated violations does not mean the app is accessible; the manual protocol in docs/accessibility/ACCESSIBILITY.md (screen readers, switch hardware, eye trackers) has NOT been carried out.",
       },
       null,
