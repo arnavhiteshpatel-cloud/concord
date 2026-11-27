@@ -41,7 +41,7 @@ Full detail is in `CLINICAL_VALIDATION_PLAN.md` and `docs/clinical/stage1_protoc
 |---|---|---|---|
 | 1 | 42 | 1 | about 75 min |
 | 2 | 24 | 2 | about 150 min |
-| 3 | 60 | 4 | about 170 min over ≤ 4 weeks |
+| 3 | 60 | 5 | about 220 min over ≤ 5 weeks |
 | 4 | 45 | 3–4 (+ optional at 3 and 6 months) | about 4–5 h over 2–3 weeks, plus a 7-day care-partner diary |
 
 Participants complete computer tasks with their usual input method, and short questionnaires

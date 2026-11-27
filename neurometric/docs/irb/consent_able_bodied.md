@@ -20,7 +20,7 @@ exist]. The content below is meant to be pasted into it. Assent is not applicabl
   copy-typing short phrases, and practice activities such as finding a fictional contact.
   The goal is to learn whether the tasks measure computer performance consistently.
 - **Time:** *[Stage 1: one visit of about 75 minutes]* / *[Stage 2: two visits of about 75 minutes]* /
-  *[Stage 3: four visits over up to 4 weeks, about 40–60 minutes each]*.
+  *[Stage 3: five visits over up to 5 weeks, about 40–60 minutes each]*.
 - **Risks:** mainly tiredness, boredom or mild eye strain. There is a small risk that someone
   outside the study could see your study data.
 - **Benefits:** there is no direct benefit to you.
@@ -44,7 +44,7 @@ tasks are not a medical test, and your scores are not interpreted as health info
   pointer using a webcam, an eye-tracker pointer, and a single button with automatic scanning.
   The order is assigned by chance. The webcam and eye tracker only move the pointer. **We do not
   record or save video, images or where you look.**
-- *[Stage 3 only]* You come back on three more days, 2–7 days apart, at about the same time of
+- *[Stage 3 only]* You come back on four more days, 2–7 days apart, at about the same time of
   day.
 - You may take breaks at any time. We will also ask you to take short breaks.
 

@@ -264,6 +264,7 @@ class TelemetryMixin(StudyServiceBase):
             raise self._reject(actor, pid, rs)
         s_iso, e_iso = iso(start), iso(end)
         dsid = payload["device_session_id"]
+        rejected: list[str] = []
         with self.db.tx():
             same = self.db.one("SELECT * FROM telemetry_batches WHERE participant_id=? AND "
                                "device_session_id=? AND period_start=? AND period_end=?",
@@ -273,24 +274,30 @@ class TelemetryMixin(StudyServiceBase):
                     self._receipt(actor.org_id, pid, "duplicate", ["duplicate_batch"], same["id"])
                     return {"batch_id": same["id"], "status": "duplicate",
                             "payload_sha256": digest, "flags": jload(same["flags_json"], [])}
-                raise self._reject(actor, pid, ["conflicting_duplicate"])
-            overlaps = self.db.query(
-                "SELECT id, device_session_id FROM telemetry_batches WHERE participant_id=? AND "
-                "period_start < ? AND period_end > ?", (pid, e_iso, s_iso))
-            if any(o["device_session_id"] == dsid for o in overlaps):
-                raise self._reject(actor, pid, ["overlapping_period"])
-            if overlaps:
-                flags.append("overlaps_other_device_session")
-            if self.db.one("SELECT 1 FROM telemetry_batches WHERE participant_id=? AND "
-                           "device_session_id=? AND period_start > ?", (pid, dsid, s_iso)):
-                flags.append("out_of_order")
-            row = {"id": new_id("tlm"), "org_id": actor.org_id, "study_id": p["study_id"],
-                   "participant_id": pid, "device_session_id": dsid, "period_start": s_iso,
-                   "period_end": e_iso, "payload_json": canonical_json(payload),
-                   "payload_sha256": digest, "flags_json": canonical_json(flags),
-                   "received_at": self.db.now_iso(), "is_demo": p["is_demo"]}
-            self._insert(actor, "telemetry_batches", row, reason="telemetry ingest")
-            self._receipt(actor.org_id, pid, "accepted", flags, row["id"])
+                rejected = ["conflicting_duplicate"]
+            else:
+                overlaps = self.db.query(
+                    "SELECT id, device_session_id FROM telemetry_batches WHERE participant_id=? "
+                    "AND period_start < ? AND period_end > ?", (pid, e_iso, s_iso))
+                if any(o["device_session_id"] == dsid for o in overlaps):
+                    rejected = ["overlapping_period"]
+                else:
+                    if overlaps:
+                        flags.append("overlaps_other_device_session")
+                    if self.db.one("SELECT 1 FROM telemetry_batches WHERE participant_id=? AND "
+                                   "device_session_id=? AND period_start > ?",
+                                   (pid, dsid, s_iso)):
+                        flags.append("out_of_order")
+                    row = {"id": new_id("tlm"), "org_id": actor.org_id, "study_id": p["study_id"],
+                           "participant_id": pid, "device_session_id": dsid,
+                           "period_start": s_iso, "period_end": e_iso,
+                           "payload_json": canonical_json(payload), "payload_sha256": digest,
+                           "flags_json": canonical_json(flags),
+                           "received_at": self.db.now_iso(), "is_demo": p["is_demo"]}
+                    self._insert(actor, "telemetry_batches", row, reason="telemetry ingest")
+                    self._receipt(actor.org_id, pid, "accepted", flags, row["id"])
+        if rejected:  # recorded outside the transaction so the receipt is kept
+            raise self._reject(actor, pid, rejected)
         return {"batch_id": row["id"], "status": "accepted", "payload_sha256": digest,
                 "flags": flags}
 

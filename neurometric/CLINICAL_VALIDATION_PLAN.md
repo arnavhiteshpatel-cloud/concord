@@ -69,8 +69,8 @@ Companion documents:
 |---|---|---|---|---|---|
 | 1 | Do the tasks behave as specified (validity of the instrument mechanics, feasibility, floor/ceiling, timing, order/fatigue effects)? | Able-bodied adults | 42 (≥40) | Valid-trial rate lower 95% Wilson bound ≥ 0.90; Fitts linearity median R² ≥ 0.80 | No (pre-specified feasibility go/no-go) |
 | 2 | Do scores separate input modalities in the expected direction, and how large are modality offsets? | Able-bodied adults using 4 modalities | 24 (24; replace dropouts to keep Williams balance) | Holm-adjusted paired contrasts on P2 (achieved bitrate) in the pre-specified direction | **Yes** (H2.1) |
-| 3 | Test–retest reliability and measurement error after familiarization | Able-bodied adults, mouse | 60 (50) | ICC(A,1) lower 95% CI bound ≥ 0.75 for each of P1–P4 | **Yes** (H3.1, co-primary, intersection–union) |
-| 4 | Reliability, known-groups and convergent validity, floor/ceiling in AT users (ALS, SCI, stroke); responsiveness sub-study | Adults using AT for computer access | 45 (36 for retest) | Known-groups AUC; ≥75% of construct hypotheses confirmed; ICC(A,1) lower bound ≥ 0.75 | **Yes** (H4.1–H4.3); reliability secondary-confirmatory |
+| 3 | Test–retest reliability and measurement error after familiarization | Able-bodied adults, mouse | 60 (50) | ICC(A,1) **generalized-CI (GCI)** lower 95% bound ≥ 0.75 for each of P1–P4, with k = 4 test sessions after 1 familiarization session | **Yes** (H3.1, co-primary, intersection–union) |
+| 4 | Reliability, known-groups and convergent validity, floor/ceiling in AT users (ALS, SCI, stroke); responsiveness sub-study | Adults using AT for computer access | 45 (36 for retest) | Known-groups AUC; ≥ 75% of construct hypotheses confirmed; floor ≤ 15%. Reliability (k = 2 is the most that is feasible): ICC(C,1) lower bound ≥ 0.75 **plus** a separate equivalence test showing no systematic session shift | **Yes** (H4.1–H4.3); reliability secondary-confirmatory |
 | 5 | Is 2-week home use with aggregate telemetry feasible and acceptable? | 5 AT users + care partners | 5 (≥4) | ≥4/5 usable logs; ≥80% day completeness; burden ratings | No (feasibility) |
 | 6 | Can NeuroMetric run inside a partner's neural-interface or rehabilitation-device study? | Partner's participants under partner's protocol/IRB | Partner-determined | Feasibility and agreement metrics only | No (descriptive), unless the partner's SAP says otherwise |
 
@@ -106,7 +106,7 @@ These sources are separated **by design** first, then **by model**.
 | Source | Design control | Model term (SAP §6) |
 |---|---|---|
 | Individual ability | Within-subject designs; each participant is their own control | Random intercept u_i (person) |
-| Practice across sessions | Familiarization session S0 (not analysed for reliability); fixed inter-session interval 2–7 days | Session fixed effect (S0..S3) and test of S1→S3 trend |
+| Practice across sessions | Familiarization session S0 (not analysed for reliability); fixed inter-session interval 2–7 days | Session fixed effect (S0..S4) and test of the S1→S4 trend; TOST equivalence of first vs last test session |
 | Learning within session | Practice block before each task; trial index logged | Trial-within-block slope (fixed); random slope if supported |
 | Fatigue within session | Rest rules (§2.3); pre/post fatigue NRS; randomized task-family order in Stage 1 | Position-in-battery fixed effect; elapsed-time-on-task; fatigue NRS change |
 | Device / modality differences | Williams Latin square for modality order (Stage 2); fixed device per participant in Stages 3–4 | Modality fixed effect; person × modality random effect |
@@ -142,7 +142,7 @@ u_i ~ N(0, τ²_person), w_{im} ~ N(0, τ²_person×modality), v_{is} ~ N(0, τ�
   n = 42 = 7 per sequence). Stage 1 is the only stage that randomizes task order. Stages 3–4 use
   one fixed order, because reliability requires identical conditions across sessions.
 - **Within-task stimuli:** fixed seeds per session (`battery.stimuli(task_id, seed)`). Test
-  sessions S1–S3 use **different seeds with identical parameters**, so that memorized target
+  sessions S1–S4 use **different seeds with identical parameters**, so that memorized target
   positions or phrases cannot inflate retest scores. The seed schedule is in the SAP.
 
 ### 2.3 Fatigue and rest rules (all stages)
@@ -229,7 +229,7 @@ inability to follow procedures, or if eligibility is lost.
 |---|---|---|
 | 1 | $20 per visit (1 visit, ~75 min) | ≈ $16/h, typical campus-study range [HYP] |
 | 2 | $25 per visit (2 visits) = $50 | longer setup and calibration |
-| 3 | $20 per visit × 4 = $80, plus $10 if all visits completed (≤ 15% of total) | small completion bonus to cut attrition without coercion [HYP] |
+| 3 | $20 per visit × 5 = $100, plus $15 if all visits completed (13% of the total, under the 15% cap) | small completion bonus to cut attrition without coercion [HYP] |
 | 4 | $40 per visit (≈ $30/h) + parking/travel reimbursement + $20 per visit for an accompanying care partner | higher burden; travel with AT is costly [HYP] |
 | 5 | $30 setup + $15 per home battery (×3: days 1, 8, 14) + $2 per diary day (care partner, up to $28) + $30 closeout interview ≈ $133 per dyad | prorated [HYP] |
 | 6 | Per partner protocol | — |
@@ -389,76 +389,110 @@ on analytical use. NeuroMetric uses only the OS pointer and stores no gaze data
 **Research question.** After familiarization, how reliable (ICC) and how precise (SEM, MDC95,
 limits of agreement) are P1–P4 across days, on the same device and setup?
 
+**Choice of estimand and interval (design input from the psychometrics workstream,
+`docs/science/PSYCHOMETRICS.md`, "Design note: number of test–retest sessions", and Experiment R
+§9.3).**
+- With absolute-agreement ICC(A,1), the session variance is estimated with only k − 1 degrees of
+  freedom.
+- The McGraw–Wong (MW) F-based interval **under-covers** when sessions differ systematically.
+  Experiment R reproduced 0.907 coverage at n = 20, k = 2 and 0.929 at n = 30, k = 3 with a
+  session variance of 0.1–0.2. The coordinator reports 78–92% across scenarios.
+- The **generalized confidence interval (GCI)** (`icc(...)["table"][i]["gci_low"]`) kept nominal
+  coverage (0.956–0.961) in the same scenarios.
+- **The decision bound is therefore the GCI.** The GCI is much wider when k is small. In the
+  design-note example (n = 30, true ICC about 0.8), the lower bounds were:
+  - k = 2: F 0.52, GCI 0.30;
+  - k = 3: F 0.67, GCI 0.63;
+  - k = 4: F 0.77, GCI 0.71.
+- **Hence the design uses k = 4 test sessions** after a familiarization session.
+
 **Hypotheses.**
 - **H3.1 (confirmatory, co-primary).** For each of P1, P2, P3 and P4, ICC(A,1) (two-way random,
   absolute agreement, single measurement; `psychometrics.icc`, form "2,1") over test sessions
-  S1–S3 has a **McGraw–Wong lower 95% CI bound ≥ 0.75**. The battery-level claim needs all four
-  to pass (intersection–union test, so no multiplicity adjustment is needed). Per-score claims
-  are also reported with Bonferroni 98.75% lower bounds as a sensitivity analysis.
-- H3.2 (secondary). SEM_agreement (variance components) and MDC95 = 1.96·√2·SEM with 95% CIs.
-  Pre-specified precision target: the SEM 95% CI is within about ±15% of the estimate. With
-  (n − 1)(k − 1) = 98 df, the chi-square-based multiplier interval is [0.88, 1.16].
-- H3.3 (secondary, practice). The mean change S1→S3 for each primary score lies within
-  ±0.5 × SEM (TOST, `psychometrics.tost`, 90% CI) [HYP margin]. Failure means a practice
-  effect persists after S0. It is reported, and the number of familiarization sessions is
-  revisited for Stage 4.
-- H3.4 (secondary). Generalized confidence interval (GCI) lower bound for ICC(A,1), and
-  ICC(C,1), are reported alongside H3.1.
+  S1–S4 has a **GCI lower 95% bound ≥ 0.75**.
+  - The battery-level claim needs all four to pass (intersection–union, so no multiplicity
+    adjustment).
+  - Per-score claims are also reported with Bonferroni 98.75% GCI lower bounds.
+- H3.2 (secondary). SEM_agreement from variance components, and MDC95 = 1.96·√2·SEM, with 95%
+  CIs. With (n − 1)(k − 1) = 147 residual df, the chi-square multiplier interval for the SEM is
+  about [0.90, 1.13] (computed for df = 147).
+- H3.3 (secondary, systematic session effect / practice). Two parts:
+  - TOST (`psychometrics.tost`, paired, 90% CI) on mean(S4 − S1), with equivalence margin
+    ±1.0 × SEM. A shift smaller than the error of one measurement is treated as negligible.
+    Power with zero true shift is about 0.999 at n = 50; a ±0.5 SEM margin would have power
+    about 0.59 (computed).
+  - The mixed-model session trend over S1–S4 is reported.
+  - Failure is reported and triggers re-examination of the familiarization procedure for Stage 4.
+- H3.4 (sensitivity). The MW lower bound for ICC(A,1), and ICC(C,1) (consistency, MW exact
+  F-interval) are reported. ICC(A,1) ≈ ICC(C,1) indicates negligible systematic shift.
 
-**Design.** Four visits: S0 familiarization (full practice of the core battery, not analysed for
-reliability), then S1, S2 and S3 at 2–7-day intervals, at the same time of day ±2 h, on the same
-laptop/browser/mouse/display, with the same administrator where possible. Stimulus seeds differ
-by session (§2.2). Task order is fixed (from Stage 1).
+**Design.** Five visits.
+- S0: familiarization. The core battery is run twice; S0 is not analysed for reliability.
+- S1, S2, S3, S4: test sessions at 2–7-day intervals.
+- Conditions held fixed: time of day ±2 h; the same laptop/browser/mouse/display; the same
+  administrator where possible.
+- Stimulus seeds differ by session (§2.2). Task order is fixed (from Stage 1).
 
-**Eligibility.** As Stage 1, plus availability for four visits within 4 weeks. People who took
-part in Stage 1 or 2 are excluded, because they have prior exposure.
+**Eligibility.** As Stage 1, plus availability for five visits within about 5 weeks. People who
+took part in Stage 1 or 2 are excluded, because they have prior exposure.
 
 **Sample-size justification (calculations shown).**
-1. *Analytic, hypothesis-testing approach* (Walter, Eliasziw & Donner 1998 [PK]):
-   n = 1 + 2k(z_{1−α} + z_{1−β})² / [(ln C0)²(k − 1)], with
-   C0 = (1 + kρ0/(1 − ρ0)) / (1 + kρ1/(1 − ρ1)), one-sided α = 0.025, power 0.80.
-   - ρ0 = 0.75, ρ1 = 0.88, k = 2 → n = 49.4
-   - ρ0 = 0.75, ρ1 = 0.88, k = 3 → n = 34.9
-   - ρ0 = 0.75, ρ1 = 0.90, k = 2 → n = 32.5
-   (Computed this session.)
-2. *Analytic, precision approach* (Bonett 2002 [PK]; Zou 2012 adds assurance [PK]):
-   n = 1 + 8z²(1 − ρ)²(1 + (k − 1)ρ)² / [k(k − 1)w²].
-   - ρ = 0.85, k = 2, full width w = 0.20 → n = 30.6
-   - ρ = 0.88, w = 0.15 → n = 35.8
-3. *Both formulas assume no systematic session effect.* ICC(A,1) also penalizes systematic
-   session shifts (practice), and its CI depends on the session variance, which k − 1 df
-   estimate. A Monte Carlo study using the project's own `psychometrics.icc` (400 replicates per
-   cell; two-way random model) gave P(McGraw–Wong lower bound ≥ 0.75):
+1. *Analytic formulas give a starting range. They assume no systematic session effect.*
+   - Walter, Eliasziw & Donner 1998 [PK]: n = 1 + 2k(z_{1−α} + z_{1−β})² / [(ln C0)²(k − 1)],
+     with C0 = (1 + kρ0/(1 − ρ0)) / (1 + kρ1/(1 − ρ1)), one-sided α = 0.025, power 0.80.
+     - ρ0 = 0.75, ρ1 = 0.88, k = 2 → n = 49.4
+     - ρ0 = 0.75, ρ1 = 0.88, k = 3 → n = 34.9
+     - ρ0 = 0.75, ρ1 = 0.90, k = 2 → n = 32.5
+   - Bonett 2002 [PK] (Zou 2012 adds assurance [PK]):
+     n = 1 + 8z²(1 − ρ)²(1 + (k − 1)ρ)² / [k(k − 1)w²]. For ρ = 0.85, k = 2, full width
+     w = 0.20, n = 30.6.
+   - Neither formula covers the absolute-agreement ICC with the session-variance uncertainty that
+     the GCI accounts for.
+2. *Simulation with the decision rule actually used.* A Monte Carlo study with the project's
+   `psychometrics.icc` (two-way random model; 300 replicates per cell; 2,000 GCI draws; run
+   2026-11-27) estimated P(GCI lower bound ≥ 0.75). The session variance is the true systematic
+   between-session variance as a share of the total. It is part of the ICC(A,1) denominator, so
+   "true ICC" includes it.
 
-   | n | k | session variance (share of total) | true ICC 0.75 (false-pass) | true 0.88 | true 0.90 |
-   |---|---|---|---|---|---|
-   | 50 | 2 | 0 | 0.010 | 0.80 | 0.94 |
-   | 50 | 2 | 0.03 | 0.025 | 0.59 | 0.62 |
-   | 50 | 3 | 0 | 0.015 | 0.91 | 0.99 |
-   | 50 | 3 | 0.03 | 0.030 | 0.64 | 0.69 |
-   | 50 | 3 | 0.08 | 0.068 | 0.36 | 0.32 |
-   | 60 | 3 | 0 | 0.020 | 0.96 | 1.00 |
+   | k (test sessions) | n | true ICC 0.75 (false-pass) | true 0.88, session 0% | 0.88, 1% | 0.88, 3% | true 0.90, session 0% / 1% / 3% |
+   |---|---|---|---|---|---|---|
+   | 3 | 50 | ≤ 0.010 | 0.69 | 0.28 | 0.15 | 0.86 / 0.34 / 0.17 |
+   | **4** | **50** | **≤ 0.013** | **0.93** | **0.53** | **0.27** | **0.99 / 0.66 / 0.34** |
+   | 4 | 60 | ≤ 0.013 | 0.94 | 0.63 | 0.30 | 0.99 / 0.70 / 0.35 |
+   | 5 | 50 | ≤ 0.013 | 0.96 | 0.74 | 0.44 | 1.00 / 0.88 / 0.51 |
+   | 4 | 40 | ≤ 0.010 | 0.80 | 0.49 | 0.31 | 0.96 / 0.62 / 0.30 |
 
-   The GCI lower bound was far more conservative in every scenario (P(pass) ≤ 0.08 with k = 2 and
-   any session variance). That is why GCI is a sensitivity analysis, not the decision rule.
-   **Interpretation [INF]:** with k ≤ 3, adding participants cannot fix uncertainty about
-   systematic session shifts. Only design can: familiarization to a plateau, and more sessions.
-   This is the reason for S0 plus three test sessions.
-4. **Decision:** 50 completers with k = 3 test sessions. Enrol 60 to allow about 17% attrition
-   over 4 visits [HYP attrition rate]. If the observed systematic S1→S3 shift is small
-   (H3.3 passes), power is about 0.9 at true ICC 0.88. If practice persists, power falls to about
-   0.6, and the plan says so in advance.
+   For comparison, the MW rule at k = 4, n = 50 passed 0.95 / 0.93 / 0.72 at true 0.88. It has
+   false-pass ≤ 0.037 in these cells, but under-covers in the scenarios in the design note.
+   Full output: session scratchpad `mc4.out`, to be committed under `experiments/` by the
+   statistician at lock [INF].
+3. **Interpretation [INF].**
+   - Beyond about 50 participants, more participants add little. **The number of sessions, and
+     how well practice is removed before S1, determine power.**
+   - Even 1% residual systematic session variance halves power at k = 4.
+   - Hence the double familiarization run at S0, and H3.3.
+4. **Decision:** k = 4 test sessions, 50 completers, enrol 60 (about 17% attrition over 5 visits
+   [HYP]).
+   - Expected power is 0.93 if practice is removed (true ICC 0.88), and about 0.5 with 1%
+     residual session variance. The plan states this in advance.
+   - k = 5 (power 0.96 / 0.74) is the alternative if the faculty PI judges a sixth visit
+     acceptable.
+   - If only 2 sessions were feasible, the pre-specified fallback (as in Stage 4) is ICC(C,1)
+     plus a separate TOST for systematic shift. **It is not ICC(A,1) with a GCI**, which would
+     rarely pass at k = 2. Earlier runs in the same session gave P(pass) ≤ 0.31 even at n = 60,
+true ICC 0.90 and no session shift.
 
-**Burden.** S0 about 50 min; S1–S3 about 40 min each (core battery about 20–25 min of task time
-plus NASA-TLX, fatigue NRS and breaks). Total about 2 h 50 min over ≤ 4 weeks.
+**Burden.** S0 about 60 min (consent plus two practice runs); S1–S4 about 40 min each (core
+battery about 20–25 min of task time plus NASA-TLX, fatigue NRS and breaks). Total about
+3 h 40 min over ≤ 5 weeks.
 
 **Analyses.**
-- `icc` (forms 2,1 / 3,1), with GCI and McGraw–Wong CIs.
+- `icc` (forms 2,1 and 3,1): GCI for the decision, MW as sensitivity.
 - `icc_mixed` sensitivity.
 - `sem_mdc` from variance components (de Vet et al. 2006).
-- `bland_altman` on log scale for S1 vs S2 and S2 vs S3, with proportional bias.
+- `bland_altman` on log scale for S1 vs S4 and for adjacent sessions, with proportional bias.
 - Mixed model with session fixed effects (practice).
-- `floor_ceiling`.
+- `tost`; `floor_ceiling`.
 - MDC is labelled **"distribution-based estimate, not an MCID"** (`DISTRIBUTION_LABEL`).
 
 ## 6. Stage 4: validation with AT users (ALS, SCI, stroke)
@@ -528,15 +562,24 @@ unless a licence covering electronic use is obtained. **We do not modify COPM.**
 - **H4.3 (confirmatory, floor).** In each diagnostic cohort, ≤ 15% of participants are at the
   floor (zero correct selections or capped time) on P2 and P4. If this fails, the battery needs
   a lower-demand version for that group. That is an informative negative result.
-- H4.4 (secondary-confirmatory, reliability). ICC(A,1) lower 95% bound ≥ 0.75 for each
-  applicable primary score, own AT, S1 vs S2 (k = 2) after S0, with an optional S3.
+- H4.4 (secondary-confirmatory, reliability; own AT; S1 vs S2 after S0). Only 2 test
+  sessions are feasible for most AT users, given travel, fatigue and ALS progression. ICC(A,1)
+  with a GCI is therefore **not** the decision estimand (§5). Both of the following must hold
+  for each applicable primary score:
+  - (a) **ICC(C,1)** (two-way mixed, consistency, single measurement) with McGraw–Wong exact
+    F-based lower 95% bound ≥ 0.75. This interval is exact for the consistency form, and
+    Experiment R found nominal coverage.
+  - (b) A **separate test of systematic session (practice) effects**: TOST on the paired mean
+    S2 − S1 with margin ±1.0 × SEM_consistency (90% CI inside the margin).
+  ICC(A,1) with both the GCI and the MW interval is reported descriptively. In participants who
+  complete the optional S3, k = 3 ICC(A,1) (GCI) is reported as exploratory.
 - H4.5 (exploratory). Measurement invariance of reliability across diagnoses
   (`compare_icc_across_groups`; `INVARIANCE_SCOPE_NOTE`).
 
 **Design.** S0 familiarization (own AT, settings recorded), S1 and S2 at 3–7-day intervals in
 the participant's chosen setting (lab or home), held fixed. Home sessions are run with a
 researcher present in person, or by video call if the IRB approves; no recording. An optional S3
-gives planned-missing data for `icc_mixed`. Questionnaires are at S1 (participant and care
+gives planned-missing data for `icc_mixed`, and a k = 3 exploratory ICC(A,1). Questionnaires are at S1 (participant and care
 partner), and the care-partner assistance diary runs for the 7 days after S1.
 
 **Sample size.**
@@ -548,12 +591,15 @@ partner), and the care-partner assistance diary runs for the 7 days after S1.
 - Convergent correlations at n = 36: power vs ρ0 = 0 is 0.88 for r = 0.5 and 0.68 for r = 0.4.
   The 95% CI for an observed r = 0.5 is about 0.21–0.71 (computed). COSMIN judges magnitude
   against the prediction, so precision is the binding issue. This is stated as a limitation.
-- Reliability (Monte Carlo with `psychometrics.icc`, n = 36):
-  - k = 2, true ICC 0.90 (AT samples are heterogeneous, so between-person variance and ICC are
-    plausibly higher [HYP]): P(pass) = 0.82 with no systematic session shift, 0.67 with 2%
-    session variance;
-  - k = 3: 0.93 / 0.79;
-  - false-pass at true 0.75: ≤ 0.033.
+- Reliability (Monte Carlo with `psychometrics.icc`, n = 36, k = 2, 1,000 replicates):
+  - P(ICC(C,1) MW lower bound ≥ 0.75) = 0.83 at true consistency ICC 0.90 (AT samples are
+    heterogeneous, so a higher ICC is plausible [HYP]);
+  - 0.67 at 0.88; 0.35 at 0.85;
+  - false-pass at 0.75: 0.029.
+  - TOST (±1 SEM margin, n = 36) has power 0.99 when there is no shift and 0.93 when the true
+    shift is 0.25 SEM (normal approximation, computed).
+  - For comparison, ICC(A,1) with the GCI at k = 2 would pass in ≤ 0.31 of replicates even at
+    n = 60 with no shift, which is why it is not used here.
   This is why H4.4 is secondary.
 - Known groups KG1 (36 vs 50, d = 1.5): power about 1.0.
 - The total of 45 is also a feasibility ceiling for a single academic site with no existing

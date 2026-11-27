@@ -32,10 +32,10 @@
 | H2.2 | Same ordering for P3, P4 | Secondary | Holm within each score |
 | H2.3 | NASA-TLX raw higher for B, C, D than A | Secondary | Holm, 3 contrasts |
 | H2.4 | Modality offsets | Estimation | Ratios (back-transformed) with 95% CI; Bland–Altman log-scale LoA (descriptive) |
-| **H3.1** | ICC(A,1) for P1, P2, P3, P4 | **Confirmatory, co-primary** | Each McGraw–Wong lower 95% bound ≥ 0.75 (S1–S3, k = 3). Battery claim needs all 4 (intersection–union) |
-| H3.2 | SEM, MDC95 precision | Secondary | SEM 95% CI within the chi-square multiplier interval [0.88, 1.16] (df = 98); reported regardless |
-| H3.3 | No residual practice effect after S0 | Secondary | TOST on mean(S3 − S1) with margin ±0.5 × SEM, 90% CI |
-| H3.4 | GCI lower bound, ICC(C,1) | Sensitivity | Reported; discordance with H3.1 is discussed (§9) |
+| **H3.1** | ICC(A,1) for P1, P2, P3, P4 | **Confirmatory, co-primary** | Each **generalized-CI (GCI) lower 95% bound** ≥ 0.75 (S1–S4, k = 4). Battery claim needs all 4 (intersection–union). The McGraw–Wong bound is a sensitivity analysis only, because it under-covers with systematic session effects (Experiment R; `docs/science/PSYCHOMETRICS.md` design note) |
+| H3.2 | SEM, MDC95 precision | Secondary | SEM 95% CI within the chi-square multiplier interval [0.90, 1.13] (df = 147); reported regardless |
+| H3.3 | No residual systematic session (practice) effect after S0 | Secondary | TOST on mean(S4 − S1), margin ±1.0 × SEM, 90% CI; plus the mixed-model session trend over S1–S4 |
+| H3.4 | MW lower bound for ICC(A,1); ICC(C,1) with MW exact CI | Sensitivity | Reported; discordance with H3.1 is discussed (§9) |
 
 ## 2. Design summary
 - **Stage 1.** Single visit; full battery, 18 tasks; Williams 6 × 6 over task families A–F;
@@ -43,7 +43,7 @@
 - **Stage 2.** 2 visits; 4 modalities (A mouse, B head pointer + dwell, C eye-gaze OS pointer +
   dwell, D single-switch scanning); Williams 4 × 4 (ABDC, BCAD, CDBA, DACB); periods 1–2 at
   visit 1, periods 3–4 at visit 2; n = 24.
-- **Stage 3.** S0 familiarization, then S1, S2, S3 at 2–7-day intervals; fixed task order; mouse;
+- **Stage 3.** S0 familiarization (core battery run twice), then S1, S2, S3, S4 at 2–7-day intervals; fixed task order; mouse;
   n = 60 enrolled, 50 completers.
 - **Randomization.** `scripts/allocation_<stage>.py` (to be written), seeded with a value drawn
   publicly at lock (e.g. a date-stamped value recorded in the SAP). Permuted blocks of the
@@ -54,7 +54,7 @@
 ## 3. Estimands
 | Objective | Population | Variable | Intercurrent events → strategy | Summary |
 |---|---|---|---|---|
-| H3.1 | Able-bodied adults, mouse, after familiarization | P1–P4 per session | Hardware or browser change between sessions → per-protocol exclusion of that session (hypothetical: same setup); session stopped for fatigue → scores from completed tasks kept, uncompleted tasks missing (MAR) | ICC(A,1), 95% CI |
+| H3.1 | Able-bodied adults, mouse, after familiarization | P1–P4 per test session (S1–S4) | Hardware or browser change between sessions → per-protocol exclusion of that session (hypothetical: same setup); session stopped for fatigue → scores from completed tasks kept, uncompleted tasks missing (MAR) | ICC(A,1), 95% CI |
 | H2.1 | Able-bodied novices | log10 P2 per modality block | Calibration failure (C) → recorded as "modality not usable" and P2 set to floor (0 bps) in the primary analysis (treatment-policy). Sensitivity: exclude (hypothetical) | Ratio of geometric means, one-sided Holm-adjusted tests |
 | H1.x | Able-bodied adults | Trial validity; R²; floor/ceiling | none expected | Proportions, medians |
 
@@ -87,7 +87,7 @@
   Invalid trials are excluded from scoring and counted for H1.1.
 
 ## 5. Populations
-As in the template. For H3.1 the **reliability set** is participants with valid S1, S2 and S3
+As in the template. For H3.1 the **reliability set** is participants with valid S1, S2, S3 and S4
 for that score (complete case). Mixed-model sensitivity uses all with ≥ 1 valid test session.
 
 ## 6. Models
@@ -108,16 +108,16 @@ log10 P2_{im} = β0 + β_modality[m] + β_period[p] + β_sequence[g] + u_i + e_{
 - Paired dz per contrast (`cohens_dz`) is reported.
 
 **6.3 Stage 3 reliability (H3.1–H3.4).**
-- Wide matrix n × 3 (S1–S3) per score.
-- `psychometrics.icc(Y, forms=("2,1","3,1"), alpha=0.05)` gives the McGraw–Wong CI (decision)
-  and the GCI (`gci_low`; sensitivity).
+- Wide matrix n × 4 (S1–S4) per score.
+- `psychometrics.icc(Y, forms=("2,1","3,1"), alpha=0.05)` gives the GCI (`gci_low`, `gci_high`;
+  **decision**; seeded, `gci_draws = 10000`) and the McGraw–Wong CI (sensitivity).
 - `psychometrics.sem_mdc(..., icc_form="2,1")`: SEM_agreement = √(σ²_session + σ²_residual)
   from ANOVA variance components; MDC95 = 1.96 × √2 × SEM. Labelled with `DISTRIBUTION_LABEL`.
-- `psychometrics.bland_altman` on log10 scores for pairs (S1,S2) and (S2,S3): bias, LoA,
+- `psychometrics.bland_altman` on log10 scores for S1 vs S4 and for adjacent pairs: bias, LoA,
   proportional-bias regression. Back-transformed to ratio LoA.
 - Practice: `fit_repeated_measures_lmm(df, outcome, "pid", "session", time_as="categorical")`
-  over S0–S3, plus a numeric-trend model over S1–S3.
-- TOST: `psychometrics.tost(S3, S1, low=-0.5*SEM, paired=True)`.
+  over S0–S4, plus a numeric-trend model over S1–S4.
+- TOST: `psychometrics.tost(S4, S1, low=-1.0*SEM, paired=True)`.
 - Floor/ceiling: `floor_ceiling(x, min_possible, max_possible)`. For P2 the floor is 0 bps; for
   P4 the ceiling is all trials at cap.
 
@@ -142,6 +142,9 @@ z approximation. Every simplification is logged.
 - **H3.1 primary** is complete case. **Sensitivity 1:** `icc(..., missing="mixed")`.
   **Sensitivity 2:** MI (R `mice`, PMM, m = 50, predictors: other primary scores at all sessions,
   age band, fatigue NRS); ICC per imputation; Fisher z; Rubin's rules.
+  There is no standard way to combine GCIs across imputations, so the MI sensitivity reports
+  the Rubin-pooled Fisher-z ICC(A,1) with its approximate CI. It is labelled approximate and is
+  not a decision rule.
 - **Tipping point:** add −δ × SD(observed S1) to imputed values for P1–P3 and +δ × SD for P4
   (unfavourable direction), δ ∈ {0, 0.1, …, 1.0}. Report the smallest δ at which the lower bound
   falls below 0.75.
@@ -149,13 +152,14 @@ z approximation. Every simplification is logged.
   participant on the same sequence, to keep the Williams balance; the replacement is reported.
 
 ## 9. Sensitivity analyses
-1. GCI lower bound vs McGraw–Wong. If MW passes but GCI does not, report it as "met by the
-   pre-specified McGraw–Wong criterion; the GCI sensitivity analysis indicates that systematic
-   session differences limit absolute agreement".
+1. McGraw–Wong lower bound vs the GCI decision bound. If MW passes but GCI does not, report
+   "not met by the pre-specified GCI criterion". MW is known to under-cover when sessions
+   differ systematically, so an MW pass is not a substitute.
 2. ICC(C,1), consistency, to separate ranking stability from systematic shift.
 3. Per-protocol set.
 4. Without the misfire/outlier rule.
-5. S2–S3 only (k = 2), in case S1 still carries practice.
+5. S2–S4 only (k = 3, GCI), in case S1 still carries practice. Exploratory, because it is
+   chosen after S1 is seen.
 6. MI and tipping point (§8).
 7. Stage 2: calibration failures excluded rather than floored.
 8. Stage 2: carry-over model.
@@ -174,7 +178,7 @@ None. Recruitment and attrition are monitored without outcome data.
 - T4: Stage 2 modality geometric means, ratios and Holm-adjusted p-values.
 - T5: Stage 3 ICC(A,1) and ICC(C,1) with MW and GCI CIs, SEM, MDC95, and Bland–Altman ratio LoA.
 - F1: Bland–Altman plots.
-- F2: session-mean trajectories S0–S3.
+- F2: session-mean trajectories S0–S4.
 - F3: modality forest plot.
 
 ## 13. Sample-size record (computed 2026-11-27)
@@ -182,12 +186,20 @@ None. Recruitment and attrition are monitored without outcome data.
   - ρ1 = 0.88, k = 2: n = 49.4; k = 3: n = 34.9
   - ρ1 = 0.90, k = 2: n = 32.5
 - **Bonett 2002:** ρ = 0.85, k = 2, w = 0.20: n = 30.6.
-- **Monte Carlo** with `psychometrics.icc`, 400 replicates per cell. P(MW lower bound ≥ 0.75)
-  at n = 50, k = 3:
-  - true 0.88: 0.91 (no session variance), 0.64 (3%), 0.36 (8%);
-  - false-pass at true 0.75: 0.015, 0.030, 0.068.
-  The GCI is very conservative with k ≤ 3. The scripts are in the session scratchpad and are to
-  be committed under `experiments/` by the statistician at lock [INF].
+- These analytic formulas ignore session-variance uncertainty, so they understate n and k for
+  an absolute-agreement GCI rule.
+- **Monte Carlo of the actual decision rule** (`psychometrics.icc` GCI lower bound ≥ 0.75; 300
+  replicates per cell; 2,000 GCI draws; 2026-11-27). P(pass) at true ICC 0.88 with 0% / 1% / 3%
+  systematic session variance:
+  - k = 3, n = 50: 0.69 / 0.28 / 0.15
+  - **k = 4, n = 50: 0.93 / 0.53 / 0.27** (true 0.90: 0.99 / 0.66 / 0.34)
+  - k = 4, n = 60: 0.94 / 0.63 / 0.30
+  - k = 5, n = 50: 0.96 / 0.74 / 0.44
+  - false-pass at true 0.75: ≤ 0.013 in every k ≥ 3 cell
+- k = 2 (earlier runs): ≤ 0.31 even with no session variance.
+- **Choice: k = 4, 50 completers (enrol 60).** The scripts (`mc2.py`, `mc4.py`, `mc5.py` in the
+  session scratchpad) are to be committed under `experiments/` by the statistician at lock
+  [INF].
 - **Stage 2** (one-sided paired t, α = 0.01, n = 24): power 0.91 for dz = 0.8.
 - **Stage 1:** Wilson 95% CI for 38/40 = 0.835–0.986.
 

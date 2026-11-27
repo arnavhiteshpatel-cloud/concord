@@ -24,7 +24,7 @@ promise benefit, use the word "free" for study procedures, or overstate compensa
 > finding a contact).
 > **Who:** adults aged 18–65 who use a computer mouse every day and have no condition that
 > affects how they use a computer.
-> **What:** 1 to 4 visits to a campus lab, about 40–75 minutes each, depending on the study part.
+> **What:** 1 to 5 visits to a campus lab, about 40–75 minutes each, depending on the study part.
 > **Payment:** *[amount per visit, as approved]*.
 > **Contact:** *[STUDY EMAIL]* · *[STUDY PHONE]* · *[short URL]*
 > Principal Investigator: *[FACULTY PI NAME, DEPARTMENT]*, University of Illinois

@@ -15,7 +15,7 @@ import type { Modality, AssistType } from "../input/types";
 import { ASSIST_TYPES } from "../input/types";
 import { prefersReducedMotion, type Settings } from "../a11y/settings";
 import { scanBridge } from "../a11y/scanning";
-import { hitTest, type SelectVia, type TaskApi, type TaskItem } from "./api";
+import { hitTest, type Limits, type SelectVia, type TaskApi, type TaskItem } from "./api";
 import { TaskSession, type ProvisionalSummary, type TaskRun } from "./session";
 import type { Stimuli, TaskSpec } from "./stimuli";
 import { TASK_COMPONENTS } from "./registry";
@@ -34,7 +34,7 @@ const ASSIST_LABELS: Record<AssistType, string> = {
   task_completion: "Someone else completed the task step",
 };
 
-export function TaskRunner(props: { stim: Stimuli; spec: TaskSpec; settings: Settings; onDone: (run: TaskRun) => void; onExit: () => void }) {
+export function TaskRunner(props: { stim: Stimuli; spec: TaskSpec; settings: Settings; limits: Limits; onDone: (run: TaskRun) => void }) {
   const { stim, spec, settings } = props;
   const reducedMotion = prefersReducedMotion(settings);
   const modality = declaredModality(settings);
@@ -58,7 +58,9 @@ export function TaskRunner(props: { stim: Stimuli; spec: TaskSpec; settings: Set
   const finishedRef = useRef(false);
   const streams = useRef<{ kb?: StreamHandle; sw?: StreamHandle; dwell?: StreamHandle; ptr?: StreamHandle }>({});
   const dwellRef = useRef<DwellSelector | null>(null);
-  const sel = settings.selection;
+  // A3 is by definition a dwell task; every other task uses the participant's selection method.
+  const sel = stim.task_id === "A3" ? "dwell" : settings.selection;
+  const [confirmStop, setConfirmStop] = useState(false);
 
   const doSelect = useCallback(
     (x: number, y: number, t: number, via: SelectVia, stream: StreamHandle | null, fixedItem?: TaskItem | null, extra?: Record<string, unknown>) => {
@@ -102,6 +104,8 @@ export function TaskRunner(props: { stim: Stimuli; spec: TaskSpec; settings: Set
       pointer: () => lastPos.current,
       keyboardSelect: (item) => {
         const kb = streams.current.kb ?? session.rec.stream("in:keyboard", "keyboard");
+        lastPos.current = { x: item.x, y: item.y };
+        if (sel === "keyboard") setCursor({ x: item.x, y: item.y });
         doSelect(item.x, item.y, session.now(), "keyboard", kb, item);
       },
       onFrame: (fn) => {
@@ -121,6 +125,7 @@ export function TaskRunner(props: { stim: Stimuli; spec: TaskSpec; settings: Set
         setTimeout(() => fire(), 200); // rAF does not run in background tabs
       },
       timeLimit: (ms) => (settings.noTimePressure ? Infinity : ms * settings.timeMultiplier),
+      limits: props.limits,
     };
   }
   const api = apiRef.current;
@@ -364,11 +369,25 @@ export function TaskRunner(props: { stim: Stimuli; spec: TaskSpec; settings: Set
       canvasRef.current?.focus();
     });
   }, [session, api]);
+  // Stopping needs an explicit second confirmation (in-app, so it works with switch scanning).
   const stop = useCallback(() => {
-    if (!window.confirm || window.confirm("Stop this task? Results so far are kept and marked incomplete.")) {
-      finish(api.handlers.summarize?.() ?? null, false);
-    }
+    setConfirmStop(true);
+    queueMicrotask(() => {
+      scanBridge.scanner?.reset();
+      document.getElementById("btn-stop-confirm")?.focus();
+    });
+  }, []);
+  const stopConfirmed = useCallback(() => {
+    setConfirmStop(false);
+    finish(api.handlers.summarize?.() ?? null, false);
   }, [api, finish]);
+  const stopCancelled = useCallback(() => {
+    setConfirmStop(false);
+    queueMicrotask(() => {
+      scanBridge.scanner?.reset();
+      document.getElementById("btn-stop")?.focus();
+    });
+  }, []);
   const openAssist = () => {
     setAssistOpen(true);
     dialogRef.current?.showModal();
@@ -416,9 +435,21 @@ export function TaskRunner(props: { stim: Stimuli; spec: TaskSpec; settings: Set
           <button id="btn-assist" data-scan-control type="button" onClick={openAssist} disabled={finished}>
             Record assistance
           </button>
-          <button id="btn-stop" data-scan-control type="button" className="danger" onClick={stop} disabled={finished}>
-            Stop task
-          </button>
+          {!confirmStop ? (
+            <button id="btn-stop" data-scan-control type="button" className="danger" onClick={stop} disabled={finished}>
+              Stop task
+            </button>
+          ) : (
+            <span role="group" aria-label="Confirm stopping the task" className="row">
+              <span>Stop and keep results so far (marked incomplete)?</span>
+              <button id="btn-stop-confirm" data-scan-control type="button" className="danger" onClick={stopConfirmed}>
+                Yes, stop
+              </button>
+              <button id="btn-stop-cancel" data-scan-control type="button" onClick={stopCancelled}>
+                No, continue
+              </button>
+            </span>
+          )}
         </div>
       </div>
       <p role="status" id="task-feedback" className="muted" style={{ minHeight: "1.5em", margin: "0 0 6px" }}>

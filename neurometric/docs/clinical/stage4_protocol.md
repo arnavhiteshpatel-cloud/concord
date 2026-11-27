@@ -10,7 +10,10 @@
    - known-groups validity (H4.1: KG2, direct selection vs switch scanning, on P2);
    - construct validity (H4.2: ≥ 75% of locked hypotheses confirmed);
    - floor (H4.3: ≤ 15% at floor per cohort).
-2. **Secondary:** test–retest reliability with the participant's own AT (H4.4).
+2. **Secondary:** test–retest reliability with the participant's own AT (H4.4). Only k = 2 test
+   sessions are feasible, so the estimand is ICC(C,1) (MW exact lower bound ≥ 0.75) **plus** a
+   separate TOST for systematic session shift (±1 SEM). ICC(A,1) with the GCI is reported
+   descriptively (plan §6 and §5).
 3. **Exploratory:** reliability invariance across diagnoses; responsiveness sub-study.
 
 ## 2. Participants
@@ -46,7 +49,7 @@ and that session is flagged for sensitivity analysis.
 - A5 is not given unless the participant opts in (no time pressure; WCAG 2.2.1 adjustable
   timing).
 - The A2 32-px condition is excluded when `target_min_px` > 32. The profile is set at S0 and
-  **frozen** for S1–S3.
+  **frozen** for S1–S3 (S3 optional).
 - D1 uses drag-lock for users who cannot hold.
 - E1 key size, scanning rate and dwell use the participant's own settings, recorded and frozen.
 

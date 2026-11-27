@@ -50,7 +50,7 @@ export interface InputEvent {
   schema_version: string;
 }
 
-export type EventInit = Omit<InputEvent, "session_id" | "stream_id" | "seq" | "schema_version" | "synthetic" | "modality"> & {
+export type EventInit = Omit<InputEvent, "t_ms" | "session_id" | "stream_id" | "seq" | "schema_version" | "synthetic" | "modality"> & {
   synthetic?: boolean;
   modality?: Modality;
 };
